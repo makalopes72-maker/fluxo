@@ -444,30 +444,81 @@ function setTodayDate(){
   document.getElementById('add-date').textContent=`${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`;
 }
 
+// modo: 'reais' (digitando primeiro valor) ou 'inteiro' (digitando segundo valor após × ou ÷)
+let displayMode='reais'; // 'reais' ou 'inteiro'
+let secondInt=0; // segundo número inteiro (para × e ÷)
+
 function kp(k){
-  if(['÷','×','−','+'].includes(k)){opPending=k;prevCents=amountCents;amountCents=0;updVal();return;}
+  if(['÷','×','−','+'].includes(k)){
+    if(amountCents===0) return;
+    opPending=k; prevCents=amountCents; amountCents=0;
+    displayMode=(k==='×'||k==='÷')?'inteiro':'reais';
+    secondInt=0;
+    updVal(); return;
+  }
   if(k==='='){
     if(opPending&&prevCents>0){
       if(opPending==='÷'){
-        // dividir por número absoluto: digitou 3 → amountCents=3
-        amountCents=amountCents?Math.round(prevCents/amountCents):prevCents;
+        const d=displayMode==='inteiro'?secondInt:amountCents/100;
+        amountCents=d?Math.round(prevCents/d):prevCents;
       } else if(opPending==='×'){
-        // multiplicar por número absoluto: digitou 2 → amountCents=2
-        amountCents=Math.round(prevCents*amountCents);
+        const m=displayMode==='inteiro'?secondInt:amountCents/100;
+        amountCents=Math.round(prevCents*m);
       } else if(opPending==='−'){
         amountCents=prevCents-amountCents;
       } else {
         amountCents=prevCents+amountCents;
       }
-      opPending=null;prevCents=0;
+      opPending=null; prevCents=0; displayMode='reais'; secondInt=0;
     }
-    updVal();return;
+    updVal(); return;
   }
-  if(k==='del'){amountCents=Math.floor(amountCents/10);updVal();return;}
-  if(k==='00'){if(amountCents<100000000)amountCents*=100;updVal();return;}
-  if(!isNaN(k)){if(amountCents<10000000)amountCents=amountCents*10+parseInt(k);updVal();return;}
+  if(k==='del'){
+    if(opPending){
+      if(displayMode==='inteiro') secondInt=Math.floor(secondInt/10);
+      else amountCents=Math.floor(amountCents/10);
+    } else {
+      amountCents=Math.floor(amountCents/10);
+    }
+    updVal(); return;
+  }
+  if(!opPending){
+    // primeiro número: modo reais (centavos)
+    if(k==='00'){if(amountCents<100000000)amountCents*=100;}
+    else if(!isNaN(k)){if(amountCents<10000000)amountCents=amountCents*10+parseInt(k);}
+  } else {
+    // segundo número
+    if(displayMode==='inteiro'){
+      // número inteiro absoluto
+      if(!isNaN(k)&&k!=='00'){if(secondInt<9999)secondInt=secondInt*10+parseInt(k);}
+      else if(k==='00'){if(secondInt<999)secondInt=secondInt*100;}
+    } else {
+      // número em reais (centavos)
+      if(k==='00'){if(amountCents<100000000)amountCents*=100;}
+      else if(!isNaN(k)){if(amountCents<10000000)amountCents=amountCents*10+parseInt(k);}
+    }
+  }
+  updVal();
 }
-function updVal(){document.getElementById('add-vnum').textContent='R$ '+(amountCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});}
+
+function updVal(){
+  const el=document.getElementById('add-vnum');
+  if(!opPending){
+    // mostra R$ valor
+    el.textContent='R$ '+(amountCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  } else {
+    // mostra expressão: 9,00 × 3
+    const first=(prevCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
+    const opSymbol=opPending;
+    let second='';
+    if(displayMode==='inteiro'){
+      second=secondInt>0?String(secondInt):'';
+    } else {
+      second=amountCents>0?(amountCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2}):'';
+    }
+    el.textContent=first+' '+opSymbol+(second?' '+second:'');
+  }
+}
 
 function setType(t){
   txType=t;
@@ -502,7 +553,7 @@ async function saveTransaction(){
     await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'append',row:[date,desc||cat,value,cat,acc,txType],sheet:SHEET_NAME})});
     toast('Salvo!','success');
   }catch(e){toast('Salvo localmente','');}
-  amountCents=0;opPending=null;prevCents=0;updVal();
+  amountCents=0;opPending=null;prevCents=0;displayMode='reais';secondInt=0;updVal();
   document.getElementById('tx-desc').value='';
   btn.disabled=false;btn.textContent='Salvar transação';
   renderDash();
