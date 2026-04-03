@@ -448,10 +448,17 @@ function kp(k){
   if(['÷','×','−','+'].includes(k)){opPending=k;prevCents=amountCents;amountCents=0;updVal();return;}
   if(k==='='){
     if(opPending&&prevCents>0){
-      if(opPending==='÷'){const d=amountCents/100;amountCents=d?Math.round(prevCents/d):prevCents;}
-      else if(opPending==='×'){const m=amountCents/100;amountCents=Math.round(prevCents*m);}
-      else if(opPending==='−')amountCents=prevCents-amountCents;
-      else amountCents=prevCents+amountCents;
+      if(opPending==='÷'){
+        // dividir por número absoluto: digitou 3 → amountCents=3
+        amountCents=amountCents?Math.round(prevCents/amountCents):prevCents;
+      } else if(opPending==='×'){
+        // multiplicar por número absoluto: digitou 2 → amountCents=2
+        amountCents=Math.round(prevCents*amountCents);
+      } else if(opPending==='−'){
+        amountCents=prevCents-amountCents;
+      } else {
+        amountCents=prevCents+amountCents;
+      }
       opPending=null;prevCents=0;
     }
     updVal();return;
