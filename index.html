@@ -1265,7 +1265,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='5.8';
+const APP_VERSION='5.9';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2893,22 +2893,19 @@ function getInstLinkedAccounts(instName){
 function calcCcSaldo(instName){
   const inst=instituicoes.find(i=>i.name===instName);if(!inst)return 0;
   const user=currentUser||'ALE';
-  // saldo base set directly by last ajuste
+  // base = last adjusted value (set directly by user)
   const base=(inst.ccSaldoUser&&inst.ccSaldoUser[user])||0;
-  // sum only transactions AFTER last ajuste date
-  const lastAdjDate=inst['ccLastAdjDate_'+user]||null;
+  // if never adjusted, return 0
+  if(!inst.ccSaldoUser||inst.ccSaldoUser[user]===undefined)return 0;
+  // add only transactions strictly AFTER the last adjustment timestamp
+  const lastAdjTs=inst['ccLastAdjTs_'+user]||0;
   const linked=getInstLinkedAccounts(instName).map(a=>a.name);
   if(!linked.length)return base;
   let delta=0;
   allData.forEach(t=>{
     if(!linked.includes(t.account))return;
-    if(t._isAdjust)return; // skip adjustment entries
-    if(lastAdjDate){
-      // only count transactions after the last adjustment
-      const td=parseDate(t.date);
-      const ad=parseDate(lastAdjDate);
-      if(td&&ad&&td<=ad)return;
-    }
+    if(t._isAdjust)return;
+    if(t._adjTs&&t._adjTs<=lastAdjTs)return; // skip old entries
     delta+=t.type==='entrada'?t.value:-t.value;
   });
   return base+delta;
