@@ -200,6 +200,48 @@
   .period-tab{padding:6px 14px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.78rem;cursor:pointer;}
   .period-tab.active{background:var(--kp);color:var(--font);}
 
+  /* EXTRATO */
+  .extrato-header{flex-shrink:0;background:var(--bg);padding:10px 16px 0;border-bottom:1px solid var(--border);}
+  .extrato-totals{display:flex;gap:0;margin-bottom:10px;background:var(--card);border-radius:12px;overflow:hidden;}
+  .extrato-total-item{flex:1;padding:10px 14px;display:flex;flex-direction:column;gap:2px;}
+  .extrato-total-item:not(:last-child){border-right:1px solid var(--border);}
+  .extrato-total-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+  .extrato-total-val{font-size:1rem;font-weight:700;}
+  .extrato-total-val.in{color:var(--accent2);}
+  .extrato-total-val.out{color:var(--red);}
+  .extrato-total-val.bal.neg{color:var(--red);}
+
+  .extrato-filters{display:flex;gap:6px;margin-bottom:8px;overflow-x:auto;padding-bottom:2px;}
+  .extrato-filters::-webkit-scrollbar{display:none;}
+  .ext-chip{padding:5px 12px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.73rem;white-space:nowrap;cursor:pointer;flex-shrink:0;transition:all .2s;}
+  .ext-chip.active{background:var(--btn);border-color:var(--btn);color:#0f0f11;}
+  .ext-chip.icon-chip{padding:5px 10px;}
+
+  .extrato-search{display:flex;align-items:center;gap:8px;background:var(--kp);border-radius:10px;padding:7px 12px;margin-bottom:8px;}
+  .extrato-search input{flex:1;border:none;background:transparent;color:var(--font);font-family:var(--font-body);font-size:.85rem;outline:none;}
+  .extrato-search input::placeholder{color:var(--muted);}
+
+  .extrato-body{flex:1;overflow-y:auto;padding:8px 16px 40px;}
+  .extrato-body::-webkit-scrollbar{display:none;}
+
+  .day-group{margin-bottom:12px;}
+  .day-header{display:flex;justify-content:space-between;align-items:center;padding:6px 0 4px;margin-bottom:4px;border-bottom:1px solid var(--border);}
+  .day-header-date{font-size:.75rem;font-weight:700;color:var(--font);text-transform:uppercase;letter-spacing:.05em;}
+  .day-header-total{font-size:.75rem;font-weight:600;color:var(--muted);}
+
+  .ext-filter-panel{background:var(--card);border-radius:12px;padding:14px;margin-bottom:8px;display:none;flex-direction:column;gap:10px;}
+  .ext-filter-panel.open{display:flex;}
+  .ext-fp-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px;font-weight:600;}
+  .ext-fp-chips{display:flex;flex-wrap:wrap;gap:5px;}
+  .ext-fp-chip{padding:5px 10px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.73rem;cursor:pointer;white-space:nowrap;}
+  .ext-fp-chip.active{background:var(--font);color:var(--bg);border-color:var(--font);}
+  .ext-month-nav{display:flex;align-items:center;gap:8px;}
+  .ext-month-btn{padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--font);font-family:var(--font-body);font-size:.8rem;cursor:pointer;}
+  .ext-month-val{flex:1;text-align:center;font-size:.85rem;font-weight:600;color:var(--font);}
+  .ext-sort-row{display:flex;gap:6px;}
+  .ext-sort-btn{flex:1;padding:7px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.75rem;cursor:pointer;text-align:center;}
+  .ext-sort-btn.active{background:var(--kp);color:var(--font);border-color:var(--font);}
+
   /* SETTINGS */
   .cfg-block{background:var(--card);border-radius:16px;padding:20px;margin-bottom:16px;}
   .cfg-block-title{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:16px;}
@@ -340,7 +382,7 @@
   <div class="menu-nav">
     <button class="menu-item active" id="mitem-dash" onclick="goScreen('dash');closeMenu()"><span class="menu-item-icon">◎</span><span class="menu-item-label">Início</span></button>
     <button class="menu-item" id="mitem-add" onclick="goScreen('add');closeMenu()"><span class="menu-item-icon">＋</span><span class="menu-item-label">Lançar transação</span></button>
-    <button class="menu-item" id="mitem-hist" onclick="goScreen('hist');closeMenu()"><span class="menu-item-icon">≡</span><span class="menu-item-label">Histórico</span></button>
+    <button class="menu-item" id="mitem-hist" onclick="goScreen('hist');closeMenu()"><span class="menu-item-icon">≡</span><span class="menu-item-label">Extrato</span></button>
     <div class="menu-divider"></div>
     <button class="menu-item" id="mitem-cfg" onclick="goScreen('cfg');closeMenu()"><span class="menu-item-icon">⚙</span><span class="menu-item-label">Configurações</span></button>
     <button class="menu-item" onclick="loadData();closeMenu()"><span class="menu-item-icon">↻</span><span class="menu-item-label">Sincronizar dados</span></button>
@@ -505,19 +547,65 @@
     </div>
   </div>
 
-  <!-- HISTORY -->
-  <div class="screen" id="screen-hist">
-    <div style="margin-top:8px">
-      <div class="period-tabs" style="flex-wrap:wrap;">
-        <button class="period-tab active" onclick="setPeriod('mes',this)">Este mês</button>
-        <button class="period-tab" onclick="setPeriod('3m',this)">3 meses</button>
-        <button class="period-tab" onclick="setPeriod('ano',this)">Este ano</button>
-        <button class="period-tab" onclick="setPeriod('tudo',this)">Tudo</button>
-        <button class="period-tab" onclick="setPeriod('futuras',this)">📆 Futuras</button>
+  <!-- EXTRATO -->
+  <div id="screen-hist" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
+
+    <!-- HEADER FIXO -->
+    <div class="extrato-header">
+      <!-- TOTALIZADOR -->
+      <div class="extrato-totals" id="ext-totals">
+        <div class="extrato-total-item"><div class="extrato-total-lbl">Entradas</div><div class="extrato-total-val in" id="ext-in">R$ 0</div></div>
+        <div class="extrato-total-item"><div class="extrato-total-lbl">Saídas</div><div class="extrato-total-val out" id="ext-out">R$ 0</div></div>
+        <div class="extrato-total-item"><div class="extrato-total-lbl">Saldo</div><div class="extrato-total-val bal" id="ext-bal">R$ 0</div></div>
       </div>
-      <div class="filter-row" id="cat-filters"></div>
-      <div class="tx-list" id="hist-list"><div class="empty">Carregando…</div></div>
+      <!-- FILTROS RÁPIDOS -->
+      <div class="extrato-filters">
+        <button class="ext-chip active" onclick="setExtPeriod('mes',this)">Este mês</button>
+        <button class="ext-chip" onclick="setExtPeriod('30d',this)">30 dias</button>
+        <button class="ext-chip" onclick="setExtPeriod('ano',this)">Este ano</button>
+        <button class="ext-chip" onclick="setExtPeriod('tudo',this)">Tudo</button>
+        <button class="ext-chip" onclick="setExtPeriod('futuras',this)">📆 Futuras</button>
+        <button class="ext-chip icon-chip" id="ext-filter-btn" onclick="toggleExtFilter()" title="Filtros">⚙</button>
+      </div>
+      <!-- BUSCA -->
+      <div class="extrato-search">
+        <span style="color:var(--muted);font-size:.9rem;">🔍</span>
+        <input type="text" id="ext-search" placeholder="Buscar transação…" oninput="renderHistory()">
+      </div>
+      <!-- PAINEL DE FILTROS -->
+      <div class="ext-filter-panel" id="ext-filter-panel">
+        <!-- Mês -->
+        <div id="ext-month-row" style="display:none">
+          <div class="ext-fp-label">Mês</div>
+          <div class="ext-month-nav">
+            <button class="ext-month-btn" onclick="changeMonth(-1)">‹</button>
+            <div class="ext-month-val" id="ext-month-label">—</div>
+            <button class="ext-month-btn" onclick="changeMonth(1)">›</button>
+          </div>
+        </div>
+        <!-- Ordenação -->
+        <div>
+          <div class="ext-fp-label">Ordenar</div>
+          <div class="ext-sort-row">
+            <button class="ext-sort-btn active" id="sort-desc" onclick="setSort('desc',this)">↓ Mais recente</button>
+            <button class="ext-sort-btn" id="sort-asc" onclick="setSort('asc',this)">↑ Mais antigo</button>
+          </div>
+        </div>
+        <!-- Contas -->
+        <div>
+          <div class="ext-fp-label">Contas</div>
+          <div class="ext-fp-chips" id="ext-conta-chips"></div>
+        </div>
+        <!-- Pastas -->
+        <div>
+          <div class="ext-fp-label">Pastas</div>
+          <div class="ext-fp-chips" id="ext-pasta-chips"></div>
+        </div>
+      </div>
     </div>
+
+    <!-- LISTA AGRUPADA -->
+    <div class="extrato-body" id="hist-list"><div class="empty">Carregando…</div></div>
   </div>
 
   <!-- SETTINGS -->
@@ -626,7 +714,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='2.5';
+const APP_VERSION='2.6';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -899,6 +987,8 @@ const FONTS=[
 
 // ── STATE ──
 let currentUser=null,allData=[],amountCents=0,opPending=null,prevCents=0;
+let extPeriod='mes',extSort='desc',extSearchText='',extContas=[],extPastas=[];
+let extMonth=new Date().getMonth(),extYear=new Date().getFullYear();
 let txType='saída',currentPeriod='mes',currentCatFilter='Todas',editingIndex=null;
 let displayMode='reais',secondInt=0;
 let selTipo=null,selCat=null,selConta=null,openDrop=null;
@@ -1164,7 +1254,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 const START_OPTIONS=[
   {id:'dash', label:'Início',      sub:'Dashboard com saldo e resumo', ic:'◎'},
   {id:'add',  label:'Lançar',      sub:'Abre direto na tela de transação', ic:'＋'},
-  {id:'hist', label:'Histórico',   sub:'Lista de todas as transações', ic:'≡'},
+  {id:'hist', label:'Extrato',   sub:'Extrato de transações', ic:'≡'},
 ];
 let startScreen='add';
 
@@ -1254,7 +1344,7 @@ function login(u){
   const sv=document.getElementById('splash-version');if(sv)sv.textContent='v'+APP_VERSION;
   document.getElementById('menu-user').textContent=u;
   const cfu=document.getElementById('cfg-user');if(cfu)cfu.textContent=u;const cu2=document.getElementById('cfg-user2');if(cu2)cu2.textContent=u;
-  loadAccounts();loadDefaultAccounts();loadStartScreen();initTiposData();setTodayDate();buildSettings();buildStartScreenUI();loadData();setTimeout(()=>goScreen(startScreen),100);
+  loadAccounts();loadDefaultAccounts();loadStartScreen();initTiposData();setTodayDate();buildSettings();buildStartScreenUI();extMonth=new Date().getMonth();extYear=new Date().getFullYear();loadData();setTimeout(()=>goScreen(startScreen),100);
 }
 function logout(){currentUser=null;allData=[];document.getElementById('app').classList.remove('visible');document.getElementById('splash').style.display='flex';closeMenu();}
 
@@ -1271,8 +1361,10 @@ function goScreen(name){
   }
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-add').classList.remove('active');
+  const _sh=document.getElementById('screen-hist');if(_sh)_sh.style.display='none';
   document.querySelectorAll('.menu-item').forEach(b=>b.classList.remove('active'));
   if(name==='add')document.getElementById('screen-add').classList.add('active');
+  else if(name==='hist'){const sh=document.getElementById('screen-hist');if(sh)sh.style.display='flex';}
   else document.getElementById('screen-'+name).classList.add('active');
   const mi=document.getElementById('mitem-'+name);if(mi)mi.classList.add('active');
   if(name==='hist')renderHistory();
