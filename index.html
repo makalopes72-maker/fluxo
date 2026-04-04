@@ -362,21 +362,30 @@
       <div class="kk" onclick="kp('00')">,00</div><div class="kk" onclick="kp('0')">0</div><div class="kk eq" id="kk-eq" onclick="kp('=')">=</div><div class="kk op" onclick="kp('+')">+</div>
     </div>
     <!-- Campos -->
+    <!-- back bar shown when fields are expanded -->
+    <div class="add-fields-back" onclick="exitFieldsMode()">
+      <span class="add-fields-back-ic">‹</span>
+      <div>
+        <div class="add-fields-back-val" id="back-val">R$ 0,00</div>
+        <div class="add-fields-back-lbl">toque para voltar ao teclado</div>
+      </div>
+    </div>
+
     <div class="add-fields-wrap" id="add-fields-wrap">
       <div class="fields-grid" id="fields-grid">
         <!-- Descrição full width -->
         <div class="field-cell full">
           <span class="field-ic">📝</span>
-          <input class="field-input" id="tx-desc" placeholder="Descrição (opcional)">
+          <input class="field-input" id="tx-desc" placeholder="Descrição (opcional)" onfocus="enterFieldsMode()">
         </div>
         <!-- Tipo + Categoria em linha -->
         <div class="fields-row">
-          <div class="field-cell" id="fc-tipo" onclick="toggleDrop('tipo')">
+          <div class="field-cell" id="fc-tipo" onclick="enterFieldsMode();toggleDrop('tipo')">
             <span class="field-ic">📂</span>
             <span class="field-val ph" id="fv-tipo">Pasta</span>
             <span class="field-arr">›</span>
           </div>
-          <div class="field-cell" id="fc-cat" onclick="toggleDrop('cat')">
+          <div class="field-cell" id="fc-cat" onclick="enterFieldsMode();toggleDrop('cat')">
             <span class="field-ic">🏷</span>
             <span class="field-val ph" id="fv-cat">Categoria</span>
             <span class="field-arr">›</span>
@@ -391,7 +400,7 @@
             <span class="field-val" id="add-date">—</span>
             <input type="date" id="date-input" style="position:absolute;opacity:0;width:100%;height:100%;top:0;left:0;cursor:pointer;" onchange="onDateChange(this.value)">
           </div>
-          <div class="field-cell" id="fc-conta" onclick="toggleDrop('conta')">
+          <div class="field-cell" id="fc-conta" onclick="enterFieldsMode();toggleDrop('conta')">
             <span class="field-ic">🏦</span>
             <span class="field-val ph" id="fv-conta">Conta</span>
             <span class="field-arr">›</span>
@@ -774,6 +783,27 @@ function buildTiposEditor(){
   }).join('');
 }
 
+// ── FIELDS MODE (hide keypad, show fields full screen) ──
+function enterFieldsMode(){
+  const sa=document.getElementById('screen-add');
+  if(!sa)return;
+  sa.classList.add('fields-mode');
+  // update back bar value
+  const bv=document.getElementById('back-val');
+  if(bv) bv.textContent=document.getElementById('add-vnum').textContent;
+  // scroll fields to top
+  const fw=document.getElementById('add-fields-wrap');
+  if(fw) fw.scrollTop=0;
+}
+
+function exitFieldsMode(){
+  const sa=document.getElementById('screen-add');
+  if(sa) sa.classList.remove('fields-mode');
+  // blur any active input
+  document.activeElement?.blur();
+  closeDrop();
+}
+
 // ── CLICK SOUND (Web Audio API) ──
 const _ac=new (window.AudioContext||window.webkitAudioContext)();
 function playClick(soft=false){
@@ -900,6 +930,7 @@ function logout(){currentUser=null;allData=[];document.getElementById('app').cla
 
 // ── NAV ──
 function goScreen(name){
+  exitFieldsMode();
   if(name==='add'){
     // pre-fill conta with default
     const def=getDefaultAccount();
@@ -1038,7 +1069,7 @@ async function saveTransaction(){
   }catch(e){toast('Salvo localmente','');}
   amountCents=0;opPending=null;prevCents=0;displayMode='reais';secondInt=0;updVal();
   document.getElementById('tx-desc').value='';
-  selTipo=null;selCat=null;selConta=null;window._selectedDate=null;
+  selTipo=null;selCat=null;selConta=null;window._selectedDate=null;exitFieldsMode();
   document.getElementById('fv-tipo').textContent='Tipo';document.getElementById('fv-tipo').classList.add('ph');
   document.getElementById('fv-cat').textContent='Categoria';document.getElementById('fv-cat').classList.add('ph');
   document.getElementById('fv-conta').textContent='Conta';document.getElementById('fv-conta').classList.add('ph');
