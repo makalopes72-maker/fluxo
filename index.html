@@ -587,7 +587,7 @@
         <div id="drop-main" style="display:none"></div>
         <!-- Data + Conta em linha -->
         <div class="fields-row">
-          <div class="field-cell" onclick="(function(){const i=document.getElementById('date-input');if(i&&i.showPicker)i.showPicker();else if(i){i.style.pointerEvents='all';i.focus();i.style.pointerEvents='none';}})()">
+          <div class="field-cell" onclick="openDatePicker('date-input')">
             <span class="field-ic">📅</span>
             <span class="field-val" id="add-date">—</span>
             <input type="date" id="date-input" tabindex="-1" style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;" onchange="onDateChange(this.value)">
@@ -712,7 +712,11 @@
       </div>
     </div>
     <div class="detail-body">
-      <button class="upd-btn" onclick="openUpdModal()">Atualizar valor</button>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <button class="upd-btn" style="flex:2;" onclick="openUpdModal()">Atualizar valor</button>
+        <button class="upd-btn" style="flex:1;background:var(--kp);color:var(--font);border:1px solid var(--border);" onclick="editAtivo()">✏️ Editar</button>
+      </div>
+      <button id="encerrar-btn" style="width:100%;padding:10px;border-radius:12px;border:1.5px solid var(--red);background:transparent;color:var(--red);font-family:var(--font-body);font-size:.85rem;font-weight:600;cursor:pointer;margin-bottom:12px;" onclick="encerrarAtivo()">Encerrar investimento</button>
       <div class="inv-section-title">Detalhes</div>
       <div class="detail-info-card" id="ativo-info-card"></div>
       <div class="inv-section-title">Histórico de valores</div>
@@ -736,7 +740,7 @@
   <!-- MODAL: Adicionar Ativo -->
   <div id="ativo-modal" style="position:fixed;inset:0;z-index:300;display:flex;align-items:flex-end;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .25s;">
     <div style="width:100%;background:var(--card);border-radius:24px 24px 0 0;padding:20px 20px 44px;max-height:90vh;overflow-y:auto;transform:translateY(40px);transition:transform .25s cubic-bezier(.4,0,.2,1);" id="ativo-modal-sheet">
-      <div style="font-family:var(--font-display);font-size:1.3rem;color:var(--font);margin-bottom:16px;">Novo ativo</div>
+      <div style="font-family:var(--font-display);font-size:1.3rem;color:var(--font);margin-bottom:16px;" id="ativo-modal-title">Novo ativo</div>
       <div class="field"><label>Nome</label><input type="text" id="av-nome" placeholder="Ex: CDB Safra 110% CDI"></div>
       <div class="field"><label>Classe</label>
         <select id="av-classe" onchange="updAtivoTipos()">
@@ -757,7 +761,7 @@
       <div class="field"><label>Taxa / Percentual</label><input type="text" id="av-taxa" placeholder="Ex: 110% ou 12% a.a."></div>
       <div class="field"><label>Data de aplicação</label>
         <div style="position:relative;">
-          <button class="edit-field-btn" onclick="(function(){const i=document.getElementById('av-data-aplic');if(i&&i.showPicker)i.showPicker();else if(i){i.style.pointerEvents='all';i.focus();i.style.pointerEvents='none';}})()">
+          <button class="edit-field-btn" onclick="openDatePicker('av-data-aplic')">
             <span>📅</span><span class="efb-val" id="av-data-aplic-display">Selecione</span>
           </button>
           <input type="date" id="av-data-aplic" tabindex="-1" style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;" onchange="(function(v){if(!v)return;const[y,m,d]=v.split('-');document.getElementById('av-data-aplic-display').textContent=d+'/'+m+'/'+y;})(this.value)">
@@ -765,7 +769,7 @@
       </div>
       <div class="field"><label>Vencimento</label>
         <div style="position:relative;">
-          <button class="edit-field-btn" onclick="(function(){const i=document.getElementById('av-vencimento');if(i&&i.showPicker)i.showPicker();else if(i){i.style.pointerEvents='all';i.focus();i.style.pointerEvents='none';}})()">
+          <button class="edit-field-btn" onclick="openDatePicker('av-vencimento')">
             <span>📅</span><span class="efb-val" id="av-vencimento-display">Selecione (opcional)</span>
           </button>
           <input type="date" id="av-vencimento" tabindex="-1" style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;" onchange="(function(v){if(!v)return;const[y,m,d]=v.split('-');document.getElementById('av-vencimento-display').textContent=d+'/'+m+'/'+y;})(this.value)">
@@ -992,7 +996,7 @@
     <div class="field">
       <label>Data</label>
       <div style="position:relative;">
-        <button class="edit-field-btn" onclick="(function(){const i=document.getElementById('edit-date-input');if(i&&i.showPicker)i.showPicker();else if(i){i.style.pointerEvents='all';i.focus();i.style.pointerEvents='none';}})()">
+        <button class="edit-field-btn" onclick="openDatePicker('edit-date-input')">
           <span>📅</span><span class="efb-val" id="edit-date-display">—</span>
         </button>
         <input type="date" id="edit-date-input" tabindex="-1" style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;" onchange="onEditDateChange(this.value)">
@@ -1045,7 +1049,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='3.5';
+const APP_VERSION='3.6';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2279,6 +2283,12 @@ const ATIVO_BADGE={'Renda Fixa':'badge-rf','Renda Variável':'badge-rv','Fundos 
 
 let instituicoes=[], currentInstIdx=null, currentAtivoIdx=null, updCents=0;
 
+function openDatePicker(id){
+  const el=document.getElementById(id);if(!el)return;
+  el.style.pointerEvents='all';el.style.width='100%';el.style.height='100%';
+  if(el.showPicker)el.showPicker();else el.focus();
+  setTimeout(()=>{el.style.pointerEvents='none';el.style.width='1px';el.style.height='1px';},500);
+}
 function loadInvestimentos(){
   try{const s=localStorage.getItem('fluxo_inv');if(s){instituicoes=JSON.parse(s);}}catch(e){}
   if(!instituicoes.length) seedInvestimentos();
@@ -2348,7 +2358,8 @@ function renderAtivos(){
     const pct=a.aplicado?((rend/a.aplicado)*100).toFixed(1):0;
     const badge=ATIVO_BADGE[a.classe]||'badge-rf';
     const updDate=a.log.length?a.log[a.log.length-1].date:'—';
-    return `<div class="ativo-card" onclick="openAtivo(${i})">
+    const _enc=a.encerrado||false;
+    return `<div class="ativo-card" style="${_enc?'opacity:.6;':''}" onclick="openAtivo(${i})">
       <div class="ativo-top">
         <div class="ativo-name">${a.nome}</div>
         <span class="ativo-badge ${badge}">${a.classe.split(' ')[0]}</span>
@@ -2395,6 +2406,12 @@ function openAtivo(idx){
     ic.innerHTML=rows.filter(r=>r[1]&&r[1]!=='').map((r,i,arr)=>`<div class="detail-info-row${i===arr.length-1?' last':''}"><span class="dir-lbl">${r[0]}</span><span class="dir-val">${r[1]}</span></div>`).join('');
   }
   renderLog();
+  const eb=document.getElementById('encerrar-btn');
+  if(eb){
+    const _a=instituicoes[currentInstIdx].ativos[idx];
+    if(_a&&_a.encerrado){eb.textContent='Reativar investimento';eb.style.borderColor='var(--accent2)';eb.style.color='var(--accent2)';eb.onclick=reativarAtivo;}
+    else{eb.textContent='Encerrar investimento';eb.style.borderColor='var(--red)';eb.style.color='var(--red)';eb.onclick=encerrarAtivo;}
+  }
   goScreen('ativo');
 }
 
@@ -2449,8 +2466,56 @@ function updAtivoTipos(){
   const tipos=ATIVO_TIPOS[classe]||[];
   sel.innerHTML='<option value="">Selecione…</option>'+tipos.map(t=>`<option>${t}</option>`).join('');
 }
+function editAtivo(){
+  const a=instituicoes[currentInstIdx].ativos[currentAtivoIdx];
+  const m=document.getElementById('ativo-modal');if(!m)return;
+  m.dataset.editMode='1';
+  const t=document.getElementById('ativo-modal-title');if(t)t.textContent='Editar ativo';
+  document.getElementById('av-nome').value=a.nome||'';
+  const cls=document.getElementById('av-classe');if(cls){cls.value=a.classe||'';updAtivoTipos();}
+  setTimeout(()=>{const tip=document.getElementById('av-tipo');if(tip)tip.value=a.tipo||'';},50);
+  document.getElementById('av-aplicado').value=a.aplicado||'';
+  const idx2=document.getElementById('av-indexador');if(idx2)idx2.value=a.indexador||'';
+  document.getElementById('av-taxa').value=a.taxa||'';
+  if(a.dataAplic){
+    document.getElementById('av-data-aplic').value=a.dataAplic;
+    const dp=a.dataAplic.split('-');
+    const dd=document.getElementById('av-data-aplic-display');
+    if(dd&&dp.length===3)dd.textContent=dp[2]+'/'+dp[1]+'/'+dp[0];
+  }
+  if(a.vencimento){
+    const vp=a.vencimento.split('/');
+    if(vp.length===3){
+      document.getElementById('av-vencimento').value=vp[2]+'-'+vp[1]+'-'+vp[0];
+      const vd=document.getElementById('av-vencimento-display');if(vd)vd.textContent=a.vencimento;
+    }
+  }
+  const liq=document.getElementById('av-liquidez');if(liq)liq.value=a.liquidez||'';
+  const gar=document.getElementById('av-garantia');if(gar)gar.value=a.garantia||'';
+  const ir=document.getElementById('av-ir');if(ir)ir.value=a.ir||'';
+  document.getElementById('av-obs').value=a.obs||'';
+  m.style.opacity='1';m.style.pointerEvents='all';
+  document.getElementById('ativo-modal-sheet').style.transform='translateY(0)';
+}
+function encerrarAtivo(){
+  if(!confirm('Encerrar este investimento? O histórico será mantido.'))return;
+  const a=instituicoes[currentInstIdx].ativos[currentAtivoIdx];
+  const n=new Date();
+  const ds=String(n.getDate()).padStart(2,'0')+'/'+String(n.getMonth()+1).padStart(2,'0')+'/'+n.getFullYear();
+  a.encerrado=true;a.dataEncerramento=ds;
+  a.log.push({date:ds,value:getAtivoAtual(a),note:'Investimento encerrado'});
+  saveInvestimentos();renderAtivos();openAtivo(currentAtivoIdx);toast('Encerrado','success');
+}
+function reativarAtivo(){
+  if(!confirm('Reativar este investimento?'))return;
+  const a=instituicoes[currentInstIdx].ativos[currentAtivoIdx];
+  a.encerrado=false;delete a.dataEncerramento;
+  saveInvestimentos();renderAtivos();openAtivo(currentAtivoIdx);toast('Reativado','success');
+}
 function openAtivoForm(){
   const m=document.getElementById('ativo-modal');if(!m)return;
+  m.dataset.editMode='0';
+  const tt=document.getElementById('ativo-modal-title');if(tt)tt.textContent='Novo ativo';
   ['av-nome','av-taxa','av-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['av-classe','av-tipo','av-indexador','av-liquidez','av-garantia','av-ir'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('av-aplicado').value='';
