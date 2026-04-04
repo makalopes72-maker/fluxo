@@ -617,7 +617,7 @@
           <div class="field-cell" onclick="openDatePicker('date-input')">
             <span class="field-ic">📅</span>
             <span class="field-val" id="add-date">—</span>
-            <input type="date" id="date-input" tabindex="-1" style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;" onchange="onDateChange(this.value)">
+            <input type="date" id="date-input" lang="pt-BR" tabindex="-1" style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;" onchange="onDateChange(this.value)">
           </div>
           <div class="field-cell" id="fc-conta" onclick="enterFieldsMode();toggleDrop('conta')">
             <span class="field-ic">🏦</span>
@@ -792,13 +792,13 @@
       <div class="field"><label>Taxa / Percentual</label><input type="text" id="av-taxa" placeholder="Ex: 110% ou 12% a.a."></div>
       <div class="field"><label>Data de aplicação</label>
         <div class="date-field-wrap">
-          <input type="date" id="av-data-aplic" onchange="syncDateDisplay('av-data-aplic','av-data-aplic-display')">
+          <input type="date" id="av-data-aplic" lang="pt-BR" onchange="syncDateDisplay('av-data-aplic','av-data-aplic-display')">
           <span id="av-data-aplic-display" style="display:none;"></span>
         </div>
       </div>
       <div class="field"><label>Vencimento <span style="color:var(--muted);font-size:.75rem;">(opcional)</span></label>
         <div class="date-field-wrap">
-          <input type="date" id="av-vencimento" onchange="syncDateDisplay('av-vencimento','av-vencimento-display')">
+          <input type="date" id="av-vencimento" lang="pt-BR" onchange="syncDateDisplay('av-vencimento','av-vencimento-display')">
           <span id="av-vencimento-display" style="display:none;"></span>
         </div>
       </div>
@@ -1026,7 +1026,7 @@
         <button class="edit-field-btn" onclick="openDatePicker('edit-date-input')">
           <span>📅</span><span class="efb-val" id="edit-date-display">—</span>
         </button>
-        <input type="date" id="edit-date-input" tabindex="-1" style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;" onchange="onEditDateChange(this.value)">
+        <input type="date" id="edit-date-input" lang="pt-BR" tabindex="-1" style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;" onchange="onEditDateChange(this.value)">
       </div>
     </div>
 
@@ -1076,7 +1076,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='4.0';
+const APP_VERSION='3.10';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2567,10 +2567,14 @@ function editAtivo(){
   if(a.dataAplic){
     document.getElementById('av-data-aplic').value=a.dataAplic;
   }
-  if(a.vencimento){
-    const vp=a.vencimento.split('/');
-    if(vp.length===3){
-      document.getElementById('av-vencimento').value=vp[2]+'-'+vp[1]+'-'+vp[0];
+  const vencEl=document.getElementById('av-vencimento');
+  if(vencEl){
+    if(a.vencimento&&a.vencimento!==''){
+      const vp=a.vencimento.split('/');
+      if(vp.length===3) vencEl.value=`${vp[2]}-${vp[1]}-${vp[0]}`;
+      else vencEl.value='';
+    } else {
+      vencEl.value='';
     }
   }
   const liq=document.getElementById('av-liquidez');if(liq)liq.value=a.liquidez||'';
@@ -2629,7 +2633,7 @@ function saveAtivo(){
     indexador:document.getElementById('av-indexador').value||'',
     taxa:document.getElementById('av-taxa').value||'',
     dataAplic:dataAplic||'',
-    vencimento:document.getElementById('av-vencimento-display')?.textContent==='Selecione (opcional)'?'':document.getElementById('av-vencimento-display')?.textContent||'',
+    vencimento:venc,
     liquidez:document.getElementById('av-liquidez').value||'',
     garantia:document.getElementById('av-garantia').value||'',
     ir:document.getElementById('av-ir').value||'',
