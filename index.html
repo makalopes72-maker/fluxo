@@ -277,6 +277,96 @@
   .acct-inst-sel{font-size:.72rem;padding:3px 10px;border-radius:100px;border:1px solid var(--border);background:transparent;font-family:var(--font-body);color:var(--muted);cursor:pointer;}
   .acct-inst-sel.linked{background:rgba(59,130,246,.1);color:#185fa5;border-color:rgba(59,130,246,.3);}
 
+  /* DASHBOARD 7.0 */
+  .dash-scroll{flex:1;overflow-y:auto;padding:0 0 40px;}
+  .dash-scroll::-webkit-scrollbar{display:none;}
+  .dash-quick-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:12px 16px 4px;}
+  .dash-qbtn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 6px;border-radius:14px;border:none;background:var(--card);cursor:pointer;font-family:var(--font-body);box-shadow:0 1px 3px rgba(0,0,0,.06);}
+  .dash-qbtn:active{opacity:.75;}
+  .dash-qbtn-ic{font-size:1.4rem;}
+  .dash-qbtn-lbl{font-size:.72rem;font-weight:600;color:var(--font);}
+  .dash-qbtn.primary{background:var(--font);}
+  .dash-qbtn.primary .dash-qbtn-lbl{color:var(--bg);}
+  /* CHART */
+  .dash-chart-wrap{padding:12px 16px;}
+  .dash-chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .dash-chart-title{font-size:.82rem;font-weight:700;color:var(--font);}
+  .dash-chart-periods{display:flex;gap:4px;}
+  .dcp{padding:4px 9px;border-radius:100px;border:1px solid var(--border);background:transparent;font-family:var(--font-body);font-size:.68rem;font-weight:600;color:var(--muted);cursor:pointer;}
+  .dcp.active{background:var(--font);color:var(--bg);border-color:var(--font);}
+  .dash-chart-svg-wrap{background:var(--card);border-radius:14px;padding:12px 8px 8px;overflow:hidden;}
+  .dash-chart-svg{width:100%;height:140px;display:block;}
+  .dash-chart-labels{display:flex;justify-content:space-between;padding:4px 4px 0;margin-top:2px;}
+  .dash-chart-lbl{font-size:.6rem;color:var(--muted);}
+  .dash-chart-custom{display:flex;gap:6px;margin-top:8px;align-items:center;}
+  .dash-chart-custom input{flex:1;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.78rem;outline:none;}
+  .dash-chart-custom button{padding:6px 12px;border-radius:8px;border:none;background:var(--font);color:var(--bg);font-family:var(--font-body);font-size:.78rem;font-weight:700;cursor:pointer;}
+  /* ORÇAMENTO */
+  #screen-orc{display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0;background:var(--bg);}
+  #screen-orc.active-orc{display:flex;}
+  .orc-header{flex-shrink:0;background:var(--font);padding:14px 16px;}
+  .orc-header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .orc-title{font-family:var(--font-display);font-size:1.2rem;color:#fff;}
+  .orc-month-nav{display:flex;align-items:center;gap:10px;}
+  .orc-month-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;}
+  .orc-month-lbl{font-size:.9rem;font-weight:600;color:#fff;min-width:80px;text-align:center;}
+  .orc-totals{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+  .orc-total-item{background:rgba(255,255,255,.08);border-radius:9px;padding:7px 10px;}
+  .orc-total-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.45);margin-bottom:2px;}
+  .orc-total-val{font-size:.9rem;font-weight:700;color:#fff;}
+  .orc-body{flex:1;overflow-y:auto;padding:10px 16px 40px;}
+  .orc-body::-webkit-scrollbar{display:none;}
+  .orc-pasta-block{margin-bottom:12px;}
+  .orc-pasta-header{display:flex;align-items:center;gap:8px;padding:8px 0 6px;cursor:pointer;}
+  .orc-pasta-icon{font-size:1rem;}
+  .orc-pasta-name{font-size:.82rem;font-weight:700;color:var(--font);flex:1;}
+  .orc-pasta-total{font-size:.75rem;color:var(--muted);}
+  .orc-pasta-arr{font-size:.8rem;color:var(--muted);transition:transform .2s;}
+  .orc-pasta-arr.open{transform:rotate(90deg);}
+  .orc-cat-list{display:flex;flex-direction:column;gap:6px;}
+  .orc-cat-card{background:var(--card);border-radius:12px;padding:12px 14px;border:1px solid var(--border);}
+  .orc-cat-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px;}
+  .orc-cat-name{font-size:.82rem;font-weight:600;color:var(--font);}
+  .orc-cat-badges{display:flex;gap:4px;align-items:center;}
+  .orc-badge{font-size:.6rem;font-weight:700;padding:2px 6px;border-radius:100px;}
+  .orc-badge.fixo{background:rgba(59,130,246,.12);color:#1d4ed8;}
+  .orc-badge.var{background:rgba(139,92,246,.12);color:#6d28d9;}
+  .orc-badge.abs{background:rgba(245,158,11,.12);color:#b45309;}
+  .orc-badge.rel{background:rgba(16,185,129,.12);color:#065f46;}
+  .orc-cat-vals{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
+  .orc-val-box{background:var(--kp);border-radius:8px;padding:7px 10px;}
+  .orc-val-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:2px;}
+  .orc-val-num{font-size:.88rem;font-weight:700;color:var(--font);}
+  .orc-progress-wrap{height:5px;background:var(--kp);border-radius:100px;margin-bottom:8px;overflow:hidden;}
+  .orc-progress-bar{height:100%;border-radius:100px;transition:width .3s;}
+  .orc-progress-bar.verde{background:#22c55e;}
+  .orc-progress-bar.laranja{background:#f59e0b;}
+  .orc-progress-bar.vermelho{background:#ef4444;}
+  .orc-cat-footer{display:flex;justify-content:space-between;align-items:center;}
+  .orc-cat-info{font-size:.68rem;color:var(--muted);}
+  .orc-edit-btn{font-size:.68rem;padding:3px 9px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font-body);}
+  /* FAROL DASHBOARD */
+  .dash-farois{padding:0 16px;margin-bottom:8px;}
+  .dash-farol-title{font-size:.75rem;font-weight:700;color:var(--font);margin-bottom:7px;}
+  .dash-farol-list{display:flex;flex-direction:column;gap:5px;}
+  .dash-farol-item{background:var(--card);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:10px;border:1px solid var(--border);}
+  .dash-farol-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .dash-farol-name{font-size:.8rem;color:var(--font);flex:1;}
+  .dash-farol-vals{font-size:.75rem;color:var(--muted);text-align:right;}
+  /* ORC EDIT MODAL */
+  #orc-edit-modal{position:fixed;inset:0;z-index:500;display:none;align-items:flex-end;background:rgba(0,0,0,.5);}
+  #orc-edit-modal.open{display:flex;}
+  .orc-edit-sheet{width:100%;background:var(--card);border-radius:24px 24px 0 0;padding:20px 20px 44px;max-height:85vh;overflow-y:auto;}
+  .orc-edit-title{font-family:var(--font-display);font-size:1.1rem;color:var(--font);margin-bottom:14px;}
+  .orc-edit-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .orc-edit-label{font-size:.78rem;color:var(--muted);width:90px;flex-shrink:0;}
+  .orc-edit-inp{flex:1;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.9rem;outline:none;}
+  .orc-edit-seg{display:flex;gap:4px;}
+  .orc-edit-seg-btn{flex:1;padding:7px 4px;border-radius:8px;border:1px solid var(--border);background:transparent;font-family:var(--font-body);font-size:.72rem;color:var(--muted);cursor:pointer;}
+  .orc-edit-seg-btn.active{background:var(--font);color:var(--bg);border-color:var(--font);}
+  .orc-edit-months{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:4px;}
+  .orc-month-chip{padding:5px;border-radius:8px;border:1px solid var(--border);background:transparent;font-family:var(--font-body);font-size:.65rem;text-align:center;cursor:pointer;color:var(--muted);}
+  .orc-month-chip.has-val{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.4);color:var(--font);font-weight:600;}
   /* EXTRATO */
   .extrato-header{flex-shrink:0;background:var(--bg);padding:10px 16px 0;border-bottom:1px solid var(--border);}
   .extrato-totals{display:flex;gap:0;margin-bottom:10px;background:var(--card);border-radius:12px;overflow:hidden;}
@@ -615,6 +705,7 @@
     <button class="menu-item" id="mitem-hist" onclick="goScreen('hist');closeMenu()"><span class="menu-item-icon">≡</span><span class="menu-item-label">Extrato</span></button>
     <button class="menu-item" id="mitem-inv" onclick="goScreen('inv');closeMenu()"><span class="menu-item-icon">📈</span><span class="menu-item-label">Investimentos</span></button>
     <div class="menu-divider"></div>
+    <button class="menu-item" id="mitem-orc" onclick="goScreen('orc');closeMenu()"><span class="menu-item-icon">🎯</span><span class="menu-item-label">Orçamento</span></button>
     <button class="menu-item" id="mitem-cfg" onclick="goScreen('cfg');closeMenu()"><span class="menu-item-icon">⚙</span><span class="menu-item-label">Configurações</span></button>
     <button class="menu-item" onclick="loadData();closeMenu()"><span class="menu-item-icon">↻</span><span class="menu-item-label">Sincronizar dados</span></button>
     <div class="menu-divider"></div>
@@ -635,19 +726,63 @@
 
   <!-- DASHBOARD -->
   <div class="screen active" id="screen-dash">
-    <div style="margin-top:16px">
-      <div class="balance-card">
-        <div class="balance-label">Saldo do mês</div>
-        <div class="balance-value" id="dash-balance">R$ 0,00</div>
-        <div class="balance-sub">
-          <div class="balance-sub-item"><span>Entradas</span><span class="in" id="dash-in">R$ 0,00</span></div>
-          <div class="balance-sub-item"><span>Saídas</span><span class="out" id="dash-out">R$ 0,00</span></div>
+    <div class="dash-scroll">
+      <!-- Saldo do mês -->
+      <div style="padding:16px 16px 0;">
+        <div class="balance-card">
+          <div class="balance-label">Saldo do mês</div>
+          <div class="balance-value" id="dash-balance">R$ 0,00</div>
+          <div class="balance-sub">
+            <div class="balance-sub-item"><span>Entradas</span><span class="in" id="dash-in">R$ 0,00</span></div>
+            <div class="balance-sub-item"><span>Saídas</span><span class="out" id="dash-out">R$ 0,00</span></div>
+          </div>
         </div>
       </div>
-      <div class="mini-chart" id="mini-chart"></div>
-      <div class="section-title">Por categoria</div>
-      <div class="cat-grid" id="cat-grid"><div class="empty">Sem dados ainda</div></div>
-      <div class="section-title">Últimas transações</div>
+      <!-- Botões rápidos -->
+      <div class="dash-quick-btns">
+        <button class="dash-qbtn primary" onclick="goScreen('add')">
+          <span class="dash-qbtn-ic">＋</span>
+          <span class="dash-qbtn-lbl">Transação</span>
+        </button>
+        <button class="dash-qbtn" onclick="goScreen('inv')">
+          <span class="dash-qbtn-ic">📈</span>
+          <span class="dash-qbtn-lbl">Investimentos</span>
+        </button>
+        <button class="dash-qbtn" onclick="goScreen('hist')">
+          <span class="dash-qbtn-ic">≡</span>
+          <span class="dash-qbtn-lbl">Extrato</span>
+        </button>
+      </div>
+      <!-- Gráfico de linha -->
+      <div class="dash-chart-wrap">
+        <div class="dash-chart-header">
+          <div class="dash-chart-title">Saldo acumulado</div>
+          <div class="dash-chart-periods">
+            <button class="dcp active" onclick="setDashPeriod(30,this)">30d</button>
+            <button class="dcp" onclick="setDashPeriod(90,this)">90d</button>
+            <button class="dcp" onclick="setDashPeriod(180,this)">180d</button>
+            <button class="dcp" onclick="setDashPeriod(365,this)">1a</button>
+            <button class="dcp" onclick="setDashPeriod(-1,this)">⚙</button>
+          </div>
+        </div>
+        <div class="dash-chart-svg-wrap">
+          <svg class="dash-chart-svg" id="dash-chart-svg" viewBox="0 0 300 140" preserveAspectRatio="none"></svg>
+        </div>
+        <div class="dash-chart-labels" id="dash-chart-labels"></div>
+        <div class="dash-chart-custom" id="dash-chart-custom" style="display:none;">
+          <input type="date" id="dash-custom-ini" lang="pt-BR">
+          <span style="font-size:.75rem;color:var(--muted);">até</span>
+          <input type="date" id="dash-custom-fim" lang="pt-BR">
+          <button onclick="applyDashCustom()">OK</button>
+        </div>
+      </div>
+      <!-- Farois de orçamento -->
+      <div id="dash-farois" style="display:none;" class="dash-farois"></div>
+      <!-- Por categoria -->
+      <div class="section-title" style="padding:0 16px;margin-bottom:8px;">Por categoria</div>
+      <div class="cat-grid" style="padding:0 16px;" id="cat-grid"><div class="empty">Sem dados ainda</div></div>
+      <!-- Últimas transações -->
+      <div class="section-title" style="padding:0 16px;margin:12px 0 8px;">Últimas transações</div>
       <div class="tx-list" id="recent-list"><div class="empty">Sem transações</div></div>
     </div>
   </div>
@@ -1077,6 +1212,65 @@
   </div>
 
   <!-- SETTINGS -->
+  <!-- ORÇAMENTO -->
+  <div id="screen-orc">
+    <div class="orc-header">
+      <div class="orc-header-top">
+        <div class="orc-title">🎯 Orçamento</div>
+        <div class="orc-month-nav">
+          <button class="orc-month-btn" onclick="orcNavMonth(-1)">‹</button>
+          <div class="orc-month-lbl" id="orc-month-lbl">—</div>
+          <button class="orc-month-btn" onclick="orcNavMonth(+1)">›</button>
+        </div>
+      </div>
+      <div class="orc-totals">
+        <div class="orc-total-item"><div class="orc-total-lbl">Previsto</div><div class="orc-total-val" id="orc-tot-prev">R$ 0</div></div>
+        <div class="orc-total-item"><div class="orc-total-lbl">Realizado</div><div class="orc-total-val" id="orc-tot-real">R$ 0</div></div>
+        <div class="orc-total-item"><div class="orc-total-lbl">Saldo</div><div class="orc-total-val" id="orc-tot-saldo">R$ 0</div></div>
+      </div>
+    </div>
+    <div class="orc-body" id="orc-body"></div>
+  </div>
+
+  <!-- ORC EDIT MODAL -->
+  <div id="orc-edit-modal">
+    <div class="orc-edit-sheet">
+      <div class="orc-edit-title" id="orc-edit-title">Editar orçamento</div>
+      <div class="orc-edit-row">
+        <span class="orc-edit-label">Valor padrão</span>
+        <input class="orc-edit-inp" type="text" inputmode="decimal" id="orc-edit-default" placeholder="R$ 0,00">
+      </div>
+      <div class="orc-edit-row">
+        <span class="orc-edit-label">Periodicidade</span>
+        <div class="orc-edit-seg">
+          <button class="orc-edit-seg-btn active" onclick="setOrcPeriod('mensal',this)">Mensal</button>
+          <button class="orc-edit-seg-btn" onclick="setOrcPeriod('semanal',this)">Semanal</button>
+          <button class="orc-edit-seg-btn" onclick="setOrcPeriod('anual',this)">Anual</button>
+        </div>
+      </div>
+      <div class="orc-edit-row">
+        <span class="orc-edit-label">Tipo</span>
+        <div class="orc-edit-seg">
+          <button class="orc-edit-seg-btn active" onclick="setOrcTipo('F',this)">Fixo</button>
+          <button class="orc-edit-seg-btn" onclick="setOrcTipo('V',this)">Variável</button>
+        </div>
+      </div>
+      <div class="orc-edit-row">
+        <span class="orc-edit-label">Farol</span>
+        <div class="orc-edit-seg">
+          <button class="orc-edit-seg-btn active" onclick="setOrcFarol('A',this)">Absoluto</button>
+          <button class="orc-edit-seg-btn" onclick="setOrcFarol('R',this)">Relativo</button>
+        </div>
+      </div>
+      <div style="font-size:.72rem;color:var(--muted);margin:8px 0 6px;">Exceções por mês (sobrescreve o padrão)</div>
+      <div class="orc-edit-months" id="orc-edit-months"></div>
+      <div style="display:flex;gap:8px;margin-top:16px;">
+        <button onclick="closeOrcEdit()" style="flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.9rem;cursor:pointer;">Cancelar</button>
+        <button onclick="saveOrcEdit()" style="flex:2;padding:12px;border-radius:12px;border:none;background:var(--font);color:var(--bg);font-family:var(--font-body);font-size:.9rem;font-weight:700;cursor:pointer;">Salvar</button>
+      </div>
+    </div>
+  </div>
+
   <div class="screen" id="screen-cfg">
     <div style="margin-top:8px">
       <!-- SUBMENUS -->
@@ -1265,7 +1459,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='6.2';
+const APP_VERSION='8.1';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2154,7 +2348,7 @@ function login(u){
   const sv=document.getElementById('splash-version');if(sv)sv.textContent='v'+APP_VERSION;
   document.getElementById('menu-user').textContent=u;
   const cfu=document.getElementById('cfg-user');if(cfu)cfu.textContent=u;const cu2=document.getElementById('cfg-user2');if(cu2)cu2.textContent=u;
-  loadAccounts();seedInstLinks();loadDefaultAccounts();loadStartScreen();initTiposData();loadKeywords();loadInvestimentos();setTodayDate();buildSettings();buildStartScreenUI();extMonth=new Date().getMonth();extYear=new Date().getFullYear();loadData();setTimeout(()=>goScreen(startScreen),100);
+  loadAccounts();seedInstLinks();loadDefaultAccounts();loadStartScreen();initTiposData();loadKeywords();loadOrc();loadInvestimentos();setTodayDate();buildSettings();buildStartScreenUI();extMonth=new Date().getMonth();extYear=new Date().getFullYear();loadData();setTimeout(()=>goScreen(startScreen),100);
 }
 function logout(){
   currentUser=null;allData=[];
@@ -2184,6 +2378,14 @@ function goScreen(name){
   document.getElementById('screen-add').classList.remove('active');
   document.querySelectorAll('.menu-item').forEach(b=>b.classList.remove('active'));
   // inv screens
+  if(name==='orc'){
+    const el=document.getElementById('screen-orc');if(el)el.style.display='flex';
+    document.querySelectorAll('.menu-item').forEach(b=>b.classList.remove('active'));
+    const mi=document.getElementById('mitem-orc');if(mi)mi.classList.add('active');
+    renderOrc();return;
+  }
+  // hide orc screen when leaving
+  const orcEl=document.getElementById('screen-orc');if(orcEl)orcEl.style.display='none';
   if(['inv','cart','ativo'].includes(name)){
     const el=document.getElementById('screen-'+name);if(el)el.style.display='flex';
     const mi=document.getElementById('mitem-inv');if(mi)mi.classList.add('active');
@@ -2535,6 +2737,96 @@ function getFiltered(period,cat){
   const now=new Date();const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   return allData.filter(tx=>{const d=parseDate(tx.date);if(!d)return false;let ok=true;if(period==='mes')ok=d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();else if(period==='3m'){const m=new Date(now);m.setMonth(m.getMonth()-3);ok=d>=m;}else if(period==='ano')ok=d.getFullYear()===now.getFullYear();else if(period==='futuras')ok=d>today;return ok&&((!cat||cat==='Todas')||tx.cat===cat);});
 }
+let dashPeriodDays=30;
+let dashCustomIni=null,dashCustomFim=null;
+
+function setDashPeriod(days,el){
+  dashPeriodDays=days;
+  document.querySelectorAll('.dcp').forEach(b=>b.classList.remove('active'));
+  if(el)el.classList.add('active');
+  const cust=document.getElementById('dash-chart-custom');
+  if(cust)cust.style.display=days===-1?'flex':'none';
+  if(days!==-1){dashCustomIni=null;dashCustomFim=null;renderDashChart();}
+}
+function applyDashCustom(){
+  const ini=document.getElementById('dash-custom-ini')?.value;
+  const fim=document.getElementById('dash-custom-fim')?.value;
+  if(!ini||!fim){toast('Selecione as datas','error');return;}
+  dashCustomIni=new Date(ini);dashCustomFim=new Date(fim);dashCustomFim.setHours(23,59,59);
+  dashPeriodDays=-1;renderDashChart();
+}
+
+function renderDashChart(){
+  const svg=document.getElementById('dash-chart-svg');
+  const labelsEl=document.getElementById('dash-chart-labels');
+  if(!svg)return;
+  const today=new Date();today.setHours(23,59,59);
+  let startDate;
+  if(dashPeriodDays===-1&&dashCustomIni){
+    startDate=new Date(dashCustomIni);
+  } else {
+    startDate=new Date(today);
+    startDate.setDate(today.getDate()-(dashPeriodDays||30)+1);
+    startDate.setHours(0,0,0,0);
+  }
+  const endDate=dashPeriodDays===-1&&dashCustomFim?new Date(dashCustomFim):new Date(today);
+  // build day-by-day points
+  const days=[];
+  const cur=new Date(startDate);
+  while(cur<=endDate){days.push(new Date(cur));cur.setDate(cur.getDate()+1);}
+  if(days.length<2){svg.innerHTML='<text x="50%" y="50%" text-anchor="middle" fill="gray" font-size="10">Sem dados</text>';return;}
+  // calculate cumulative saldo per day
+  const points=days.map(d=>{
+    const dd=new Date(d);dd.setHours(23,59,59);
+    let saldo=0;
+    allData.forEach(t=>{
+      const td=parseDate(t.date);
+      if(td&&td<=dd&&td>=startDate){
+        saldo+=t.type==='entrada'?t.value:-t.value;
+      }
+    });
+    return saldo;
+  });
+  const minV=Math.min(...points);
+  const maxV=Math.max(...points);
+  const range=maxV-minV||1;
+  const W=300,H=130,pad=6;
+  const px=(i)=>pad+(i/(days.length-1))*(W-pad*2);
+  const py=(v)=>H-pad-(((v-minV)/range)*(H-pad*2));
+  // build path
+  const pathD=points.map((v,i)=>(i===0?'M':'L')+px(i).toFixed(1)+' '+py(v).toFixed(1)).join(' ');
+  // fill area
+  const fillD=pathD+` L${px(days.length-1).toFixed(1)} ${H} L${px(0).toFixed(1)} ${H} Z`;
+  // zero line y
+  const zeroY=py(0);
+  const lineColor=points[points.length-1]>=0?'var(--accent2)':'var(--red)';
+  const fillId='dashGrad';
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.innerHTML=`
+    <defs>
+      <linearGradient id="${fillId}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.25"/>
+        <stop offset="100%" stop-color="${lineColor}" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    ${zeroY>pad&&zeroY<H?`<line x1="${pad}" y1="${zeroY.toFixed(1)}" x2="${W-pad}" y2="${zeroY.toFixed(1)}" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3"/>`:''}
+    <path d="${fillD}" fill="url(#${fillId})"/>
+    <path d="${pathD}" fill="none" stroke="${lineColor}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${px(days.length-1).toFixed(1)}" cy="${py(points[points.length-1]).toFixed(1)}" r="3" fill="${lineColor}"/>`;
+  // labels — show 5 evenly spaced
+  if(labelsEl){
+    const step=Math.max(1,Math.floor((days.length-1)/4));
+    const idxs=[0];
+    for(let i=step;i<days.length-1;i+=step)idxs.push(i);
+    idxs.push(days.length-1);
+    const unique=[...new Set(idxs)];
+    labelsEl.innerHTML=unique.map(i=>{
+      const d=days[i];
+      return `<span class="dash-chart-lbl">${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}</span>`;
+    }).join('');
+  }
+}
+
 function renderDash(){
   const data=getFiltered('mes',null);let totalIn=0,totalOut=0;
   data.forEach(t=>t.type==='entrada'?totalIn+=t.value:totalOut+=t.value);
@@ -2542,14 +2834,7 @@ function renderDash(){
   const el=document.getElementById('dash-balance');if(el){el.textContent=fmt(bal);el.className='balance-value'+(bal<0?' negative':'');}
   const di=document.getElementById('dash-in');if(di)di.textContent=fmt(totalIn);
   const dout=document.getElementById('dash-out');if(dout)dout.textContent=fmt(totalOut);
-  renderMiniChart();renderCatGrid(data);renderRecent();
-}
-function renderMiniChart(){
-  const now=new Date(),months=[];
-  for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push({label:d.toLocaleString('pt-BR',{month:'short'}),month:d.getMonth(),year:d.getFullYear()});}
-  const vals=months.map(m=>{let o=0;allData.filter(t=>{const d=parseDate(t.date);return d&&d.getMonth()===m.month&&d.getFullYear()===m.year&&t.type==='saída';}).forEach(t=>o+=t.value);return o;});
-  const maxV=Math.max(...vals,1);
-  const mc=document.getElementById('mini-chart');if(mc)mc.innerHTML=months.map((m,i)=>`<div class="bar-wrap"><div class="bar${i===5?' current':''}" style="height:${Math.max(4,(vals[i]/maxV)*100)}%"></div><div class="bar-label">${m.label}</div></div>`).join('');
+  renderDashChart();renderCatGrid(data);renderRecent();renderDashFarois();
 }
 function renderCatGrid(data){
   const cats={};data.filter(t=>t.type==='saída').forEach(t=>cats[t.cat]=(cats[t.cat]||0)+t.value);
@@ -3391,6 +3676,235 @@ function saveAtivo(){
     const cv=document.getElementById('cart-val');if(cv)cv.textContent=fmtInv(getInstTotal(instituicoes[currentInstIdx]));
     renderAtivos();closeAtivoModal();toast('Ativo salvo!','success');
   }
+}
+
+// ══════════════════════════════════════════════
+// ── ORÇAMENTO ──
+// ══════════════════════════════════════════════
+
+// orcData: {tipoPasta: {catName: {default:number, period:'mensal'|'semanal'|'anual', tipo:'F'|'V', farol:'A'|'R', months:{YYYY-MM: number}}}}
+let orcData={};
+let orcMonth=new Date().getMonth();
+let orcYear=new Date().getFullYear();
+let _orcEditTipo=null,_orcEditCat=null,_orcEditPeriod='mensal',_orcEditTipoFC='F',_orcEditFarol='A';
+
+function loadOrc(){
+  try{const s=localStorage.getItem('fluxo_orc');if(s){orcData=JSON.parse(s);return;}}catch(e){}
+  seedOrc();
+}
+function seedOrc(){
+  orcData={"Alimentação": {"Café da Manhã / Padaria": {"default": 400, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Desconto VR": {"default": 350, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Feira": {"default": 350, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Lanches & Snacks": {"default": 40, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Refeições em restaurante": {"default": 1100, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Supermercado": {"default": 800, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Casa": {"Celular / Telefone": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Combo TV + Internet + Telefone": {"default": 2850, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Condomínio": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Energia Elétrica": {"default": 240, "period": "mensal", "tipo": "V", "farol": "A", "months": {}}, "Gás": {"default": 240, "period": "mensal", "tipo": "V", "farol": "A", "months": {}}, "IPTU": {"default": 1040, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Limpeza / Faxina": {"default": 1000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Móveis e Decoração": {"default": 200, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Reforma / Manutenção": {"default": 150, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Seguro Residencial": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Utensílios / Eletrodomésticos": {"default": 100, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Moradia": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Dependentes": {"Celular Filhos": {"default": 590, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Clube Filhos": {"default": 590, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Escotismo": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Escotismo Corrida": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Pensão Alimentícia": {"default": 8840, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Pensão Alimentícia Férias": {"default": 8840, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Plano Saúde Filhos": {"default": 1500, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Táxi Filhos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Filhos": {"default": 100, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Educação": {"Consultorias": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Cursos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Material Escolar": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Empresa / Atividade Autônoma": {"Alimentação Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Contabilidade": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "CRF / TRF Anuidade": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Cursos e Eventos Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Estacionamento Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Infraestrutura": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "INSS": {"default": 92, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "INSS Férias": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "IR": {"default": 6000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Férias": {"default": 6000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Materiais de Escritório Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "NEXUS": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Outros Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Gastos Pessoais": {"Aplicativos / Armazenamento": {"default": 30, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Doações": {"default": 30, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Documentos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Eletrônicos Pessoais": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Higiene / Estética / Produtos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "IMSS / IR (PF)": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Loterias": {"default": 20, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Presentes": {"default": 300, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Salão de Beleza / Manicure": {"default": 40, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Transferências": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Transporte": {"Combustível (sem reembolso)": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Estacionamento": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Sem Parar": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Táxi (sem reembolso) / Aplicativo": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Transporte": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Saúde": {"Medicamentos Farmácia": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Plano de Saúde": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Consultas Fora do Plano": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Academia / Esporte": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}}, "Lazer": {"APPs Netflix Spotify": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Bares e Restaurantes": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Cinema / Teatro / Show / Passeio": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Lazer": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Receita": {"Receita Bruta (Cliente / Salário)": {"default": 34000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Reembolso": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Receita": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}};
+  saveOrc();
+}
+function saveOrc(){try{localStorage.setItem('fluxo_orc',JSON.stringify(orcData));}catch(e){}}
+
+function getOrcCat(tipo,cat){
+  if(!orcData[tipo])orcData[tipo]={};
+  if(!orcData[tipo][cat])orcData[tipo][cat]={default:0,period:'mensal',tipo:'V',farol:'R',months:{}};
+  return orcData[tipo][cat];
+}
+
+function getOrcValForMonth(tipo,cat,year,month){
+  const o=getOrcCat(tipo,cat);
+  const key=year+'-'+String(month+1).padStart(2,'0');
+  if(o.months&&o.months[key]!==undefined)return o.months[key];
+  // convert period to monthly value
+  if(o.period==='semanal')return o.default*(52/12);
+  if(o.period==='anual')return o.default/12;
+  return o.default;
+}
+
+function getRealForMonth(cat,tipo,year,month){
+  return allData.filter(t=>{
+    const d=parseDate(t.date);
+    return d&&d.getFullYear()===year&&d.getMonth()===month&&t.type==='saída'&&(t.cat===cat||t.tipo===tipo)&&!t._isOrcPrev;
+  }).reduce((s,t)=>s+t.value,0);
+}
+
+function getFarol(tipo,cat,year,month){
+  const o=getOrcCat(tipo,cat);
+  const prev=getOrcValForMonth(tipo,cat,year,month);
+  if(prev<=0)return null;
+  const real=getRealForMonth(cat,tipo,year,month);
+  if(o.farol==='A'){
+    if(real<=prev*0.9)return'verde';
+    if(real<=prev)return'laranja';
+    return'vermelho';
+  } else {
+    // relativo: check if pace exceeds budget
+    const today=new Date();
+    const isCurrentMonth=today.getFullYear()===year&&today.getMonth()===month;
+    if(!isCurrentMonth){
+      if(real<=prev)return'verde';
+      return'vermelho';
+    }
+    const daysInMonth=new Date(year,month+1,0).getDate();
+    const dayOfMonth=today.getDate();
+    const pct=dayOfMonth/daysInMonth;
+    const expected=prev*pct;
+    if(real<=expected*0.9)return'verde';
+    if(real<=expected*1.1)return'laranja';
+    return'vermelho';
+  }
+}
+
+function orcNavMonth(dir){
+  orcMonth+=dir;
+  if(orcMonth>11){orcMonth=0;orcYear++;}
+  if(orcMonth<0){orcMonth=11;orcYear--;}
+  renderOrc();
+}
+
+function renderOrc(){
+  // header month label
+  const lbl=document.getElementById('orc-month-lbl');
+  if(lbl){const d=new Date(orcYear,orcMonth,1);lbl.textContent=d.toLocaleString('pt-BR',{month:'long',year:'numeric'});}
+  const body=document.getElementById('orc-body');if(!body)return;
+  const tipos=Object.keys(tiposData).filter(t=>tiposData[t].active);
+  let totalPrev=0,totalReal=0;
+  let html='';
+  tipos.forEach(tipo=>{
+    const cats=(tiposData[tipo]?.cats||[]).filter(c=>c.active).map(c=>c.name);
+    if(!cats.length)return;
+    let tipoPrev=0,tipoReal=0;
+    const catsHtml=cats.map(cat=>{
+      const o=getOrcCat(tipo,cat);
+      const prev=getOrcValForMonth(tipo,cat,orcYear,orcMonth);
+      const real=getRealForMonth(cat,tipo,orcYear,orcMonth);
+      tipoPrev+=prev;tipoReal+=real;
+      const farol=getFarol(tipo,cat,orcYear,orcMonth);
+      const pct=prev>0?Math.min(100,(real/prev)*100):0;
+      const barColor=farol||'verde';
+      const periodoLabel=o.period==='semanal'?'Sem.':o.period==='anual'?'Anual':'Mensal';
+      const dotColor=farol==='verde'?'#22c55e':farol==='laranja'?'#f59e0b':farol==='vermelho'?'#ef4444':'var(--border)';
+      return `<div class="orc-cat-card">
+        <div class="orc-cat-top">
+          <div style="display:flex;align-items:center;gap:6px;">
+            ${farol?`<div style="width:8px;height:8px;border-radius:50%;background:${dotColor};flex-shrink:0;"></div>`:''}
+            <div class="orc-cat-name">${cat}</div>
+          </div>
+          <div class="orc-cat-badges">
+            <span class="orc-badge ${o.tipo==='F'?'fixo':'var'}">${o.tipo==='F'?'Fixo':'Var'}</span>
+            <span class="orc-badge ${o.farol==='A'?'abs':'rel'}">${o.farol}</span>
+          </div>
+        </div>
+        <div class="orc-cat-vals">
+          <div class="orc-val-box"><div class="orc-val-lbl">Previsto</div><div class="orc-val-num">${prev>0?fmt(prev):'—'}</div></div>
+          <div class="orc-val-box"><div class="orc-val-lbl">Realizado</div><div class="orc-val-num" style="${real>0?'color:var(--red)':''}">${real>0?fmt(real):'—'}</div></div>
+        </div>
+        ${prev>0?`<div class="orc-progress-wrap"><div class="orc-progress-bar ${barColor}" style="width:${pct}%"></div></div>`:''}
+        <div class="orc-cat-footer">
+          <div class="orc-cat-info">${periodoLabel}${o.default>0?' · padrão '+fmt(o.default):''}</div>
+          <button class="orc-edit-btn" onclick="openOrcEdit('${tipo.replace(/'/g,"\'")}','${cat.replace(/'/g,"\'")}')">✏️ Editar</button>
+        </div>
+      </div>`;
+    }).join('');
+    totalPrev+=tipoPrev;totalReal+=tipoReal;
+    html+=`<div class="orc-pasta-block">
+      <div class="orc-pasta-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'flex':'none';this.querySelector('.orc-pasta-arr').classList.toggle('open')">
+        <span class="orc-pasta-icon">${TIPO_ICONS[tipo]||'📁'}</span>
+        <span class="orc-pasta-name">${tipo}</span>
+        <span class="orc-pasta-total">${tipoPrev>0?fmt(tipoPrev):''}</span>
+        <span class="orc-pasta-arr open">›</span>
+      </div>
+      <div class="orc-cat-list" style="display:flex;">${catsHtml}</div>
+    </div>`;
+  });
+  body.innerHTML=html;
+  // totals
+  const tp=document.getElementById('orc-tot-prev');if(tp)tp.textContent=fmt(totalPrev);
+  const tr=document.getElementById('orc-tot-real');if(tr)tr.textContent=fmt(totalReal);
+  const ts=document.getElementById('orc-tot-saldo');if(ts){const sal=totalPrev-totalReal;ts.textContent=(sal>=0?'':'-')+fmt(Math.abs(sal));ts.style.color=sal>=0?'#22c55e':'#ef4444';}
+}
+
+// ── ORC EDIT ──
+function openOrcEdit(tipo,cat){
+  _orcEditTipo=tipo;_orcEditCat=cat;
+  const o=getOrcCat(tipo,cat);
+  const t=document.getElementById('orc-edit-title');if(t)t.textContent='Orçamento: '+cat;
+  const inp=document.getElementById('orc-edit-default');
+  if(inp)inp.value=o.default>0?o.default.toFixed(2).replace('.',','):'';
+  _orcEditPeriod=o.period||'mensal';
+  _orcEditTipoFC=o.tipo||'V';
+  _orcEditFarol=o.farol||'R';
+  // reset seg buttons
+  document.querySelectorAll('#orc-edit-modal .orc-edit-seg-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#orc-edit-modal .orc-edit-seg').forEach((seg,i)=>{
+    const vals=[['mensal','semanal','anual'],['F','V'],['A','R']];
+    const cur=[_orcEditPeriod,_orcEditTipoFC,_orcEditFarol][i];
+    seg.querySelectorAll('.orc-edit-seg-btn').forEach((b,j)=>{if(vals[i][j]===cur)b.classList.add('active');});
+  });
+  // build month chips for current year
+  const mc=document.getElementById('orc-edit-months');
+  if(mc){
+    const months=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    mc.innerHTML=months.map((m,i)=>{
+      const key=orcYear+'-'+String(i+1).padStart(2,'0');
+      const hasVal=o.months&&o.months[key]!==undefined;
+      const val=hasVal?o.months[key]:null;
+      return `<button class="orc-month-chip${hasVal?' has-val':''}" onclick="editOrcMonth('${key}','${m}',${val||0})">${m}${hasVal?'<br><span style="font-size:.6rem;">'+val.toFixed(0)+'</span>':''}</button>`;
+    }).join('');
+  }
+  const modal=document.getElementById('orc-edit-modal');if(modal)modal.classList.add('open');
+}
+function closeOrcEdit(){
+  const modal=document.getElementById('orc-edit-modal');if(modal)modal.classList.remove('open');
+}
+function setOrcPeriod(v,el){_orcEditPeriod=v;el.closest('.orc-edit-seg').querySelectorAll('.orc-edit-seg-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
+function setOrcTipo(v,el){_orcEditTipoFC=v;el.closest('.orc-edit-seg').querySelectorAll('.orc-edit-seg-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
+function setOrcFarol(v,el){_orcEditFarol=v;el.closest('.orc-edit-seg').querySelectorAll('.orc-edit-seg-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
+
+function editOrcMonth(key,monthName,curVal){
+  const val=prompt('Valor para '+monthName+' (deixe vazio para usar o padrão):',curVal>0?curVal.toFixed(2):'');
+  if(val===null)return;
+  const o=getOrcCat(_orcEditTipo,_orcEditCat);
+  if(!o.months)o.months={};
+  if(val.trim()===''){delete o.months[key];}
+  else{const n=parseFloat(val.replace(',','.'));if(!isNaN(n))o.months[key]=n;}
+  saveOrc();openOrcEdit(_orcEditTipo,_orcEditCat);
+}
+
+function saveOrcEdit(){
+  if(!_orcEditTipo||!_orcEditCat)return;
+  const inp=document.getElementById('orc-edit-default');
+  const raw=inp?inp.value.replace(',','.').trim():'0';
+  const n=parseFloat(raw)||0;
+  const o=getOrcCat(_orcEditTipo,_orcEditCat);
+  o.default=n;o.period=_orcEditPeriod;o.tipo=_orcEditTipoFC;o.farol=_orcEditFarol;
+  saveOrc();closeOrcEdit();renderOrc();renderDashFarois();
+  toast('Orçamento salvo!','success');
+}
+
+// ── DASHBOARD FAROIS ──
+function renderDashFarois(){
+  const el=document.getElementById('dash-farois');if(!el)return;
+  const today=new Date();
+  const year=today.getFullYear(),month=today.getMonth();
+  const alerts=[];
+  Object.keys(tiposData).forEach(tipo=>{
+    (tiposData[tipo]?.cats||[]).filter(c=>c.active).forEach(c=>{
+      const cat=c.name;
+      const o=getOrcCat(tipo,cat);
+      if(o.default<=0)return;
+      const farol=getFarol(tipo,cat,year,month);
+      if(farol&&farol!=='verde'){
+        const prev=getOrcValForMonth(tipo,cat,year,month);
+        const real=getRealForMonth(cat,tipo,year,month);
+        alerts.push({cat,farol,prev,real});
+      }
+    });
+  });
+  if(!alerts.length){el.style.display='none';return;}
+  el.style.display='block';
+  const dotColor=f=>f==='laranja'?'#f59e0b':'#ef4444';
+  el.innerHTML=`<div class="dash-farol-title">⚠️ Alertas de orçamento</div>
+    <div class="dash-farol-list">${alerts.slice(0,5).map(a=>`
+      <div class="dash-farol-item">
+        <div class="dash-farol-dot" style="background:${dotColor(a.farol)};"></div>
+        <div class="dash-farol-name">${a.cat}</div>
+        <div class="dash-farol-vals">${fmt(a.real)} / ${fmt(a.prev)}</div>
+      </div>`).join('')}
+    </div>`;
 }
 
 loadPrefs();
