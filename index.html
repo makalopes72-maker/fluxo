@@ -536,12 +536,28 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='1.4';
+const APP_VERSION='1.5';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
 const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbxZmzOQhV3EKREbD97mHo353FXxKj75Vl98I78Xn6-zCnOAQGFnwxW2lxm3qco6MtI7/exec';
 
+const TIPO_ICONS={
+  'Alimentação':    '🍽',
+  'Casa':           '🏠',
+  'Dependentes':    '👨‍👧',
+  'Educação':       '📚',
+  'Empresa / Aut.': '💼',
+  'Gastos Pessoais':'👤',
+  'Investimentos':  '📈',
+  'Lazer':          '🎉',
+  'Receita':        '💵',
+  'Saúde':          '💊',
+  'Seguros':        '🛡',
+  'Serv. Financeiros':'🏦',
+  'Transporte':     '🚗',
+  'Viagens':        '✈️',
+};
 const CAT_ICONS={'Alimentação':'🍽','Transporte':'🚗','Moradia':'🏠','Saúde':'💊','Lazer':'🎉','Educação':'📚','Vestuário':'👕','Salário':'💰','Receita':'💵','Casa':'🏠','Investimentos':'📈','Outros':'📦'};
 
 // ── TIPOS & CATEGORIAS ──
@@ -756,7 +772,7 @@ function buildTiposEditor(){
     const activeCats=t.cats.filter(c=>c.active).length;
     return `<div class="tipo-block">
       <div class="tipo-header${t.active?'':' inactive-tipo'}" onclick="toggleTipoOpen('${name.replace(/'/g,"\\'")}')">
-        <div class="tipo-header-name">${name}</div>
+        <div class="tipo-header-name">${TIPO_ICONS[name]||'📁'} ${name}</div>
         <div class="tipo-header-count">${activeCats}/${t.cats.length}</div>
         <div class="tipo-actions" onclick="event.stopPropagation()">
           <button class="tipo-btn act" onclick="toggleTipo('${name.replace(/'/g,"\\'")}')">
@@ -993,7 +1009,7 @@ function buildCatDrop(){
   const cats=TIPOS[selTipo]||[];
   const slot=document.getElementById('drop-main');slot.style.display='block';
   if(!cats.length){slot.innerHTML=`<div class="drop-panel"><div class="drop-item" style="color:var(--muted)">Sem subcategorias</div></div>`;return;}
-  slot.innerHTML=`<div class="drop-panel"><div class="drop-item grp-header">${selTipo}</div>${cats.map(c=>`<div class="drop-item${selCat===c?' selected':''}" onclick="pickCat('${c.replace(/'/g,"\\'")}')">${c}</div>`).join('')}</div>`;
+  slot.innerHTML=`<div class="drop-panel"><div class="drop-item grp-header">${TIPO_ICONS[selTipo]||'📁'} ${selTipo}</div>${cats.map(c=>`<div class="drop-item${selCat===c?' selected':''}" onclick="pickCat('${c.replace(/'/g,"\\'")}')">${c}</div>`).join('')}</div>`;
 }
 function buildContaDrop(){
   const slot=document.getElementById('drop-conta');slot.style.display='block';
@@ -1002,7 +1018,7 @@ function buildContaDrop(){
 }
 function pickTipo(t){
   selTipo=t;selCat=null;
-  const fv=document.getElementById('fv-tipo');if(fv){fv.textContent=t;fv.classList.remove('ph');}
+  const fv=document.getElementById('fv-tipo');if(fv){fv.textContent=(TIPO_ICONS[t]||'📁')+' '+t;fv.classList.remove('ph');}
   const fc=document.getElementById('fv-cat');if(fc){fc.textContent='Categoria';fc.classList.add('ph');}
   closeDrop();
   if(tiposData[t]&&getActiveCats(t).length)setTimeout(()=>toggleDrop('cat'),100);
@@ -1147,7 +1163,7 @@ function renderHistory(){
 }
 function setCatFilter(cat){currentCatFilter=cat;renderHistory();}
 function txHTML(t,idx){
-  const icon=CAT_ICONS[t.cat]||'📦';
+  const icon=CAT_ICONS[t.cat]||TIPO_ICONS[t.tipo]||'📦';
   return `<div class="tx-wrap"><div class="tx-actions"><button class="tx-action-btn tx-action-edit" onclick="openEdit(${idx})"><span class="act-icon">✏️</span>editar</button><button class="tx-action-btn tx-action-del" onclick="deleteTx(${idx})"><span class="act-icon">🗑</span>excluir</button></div><div class="tx-item"><div class="tx-icon">${icon}</div><div class="tx-info"><div class="tx-desc">${t.desc||t.cat}</div><div class="tx-date">${t.date} · ${t.cat} · ${t.account}</div></div><div class="tx-val ${t.type==='entrada'?'in':'out'}">${t.type==='entrada'?'+':'-'}${fmt(t.value)}</div></div></div>`;
 }
 const SWIPE_OPEN=160,SWIPE_THRESHOLD=60;
