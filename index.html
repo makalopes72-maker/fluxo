@@ -313,15 +313,25 @@
   .ativo-updated{font-size:.68rem;color:var(--muted);margin-top:6px;}
 
   /* DETALHE ATIVO */
-  .detail-header{flex-shrink:0;background:var(--font);padding:14px 16px 16px;}
-  .detail-back{font-size:.8rem;color:rgba(255,255,255,.6);cursor:pointer;margin-bottom:4px;}
-  .detail-name{font-size:1rem;font-weight:700;color:#fff;}
-  .detail-inst{font-size:.75rem;color:rgba(255,255,255,.45);margin-top:2px;}
-  .detail-vals{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
-  .dv-item{background:rgba(255,255,255,.1);border-radius:10px;padding:9px 12px;}
-  .dv-lbl{font-size:.65rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;}
-  .dv-val{font-size:1rem;font-weight:700;color:#fff;}
-  .dv-val.pos{color:#6ee7b7;}
+  .detail-header{flex-shrink:0;background:#1a1a1a;padding:12px 16px 14px;}
+  .detail-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+  .detail-back{font-size:1rem;font-weight:600;color:rgba(255,255,255,.65);cursor:pointer;display:flex;align-items:center;gap:3px;padding-top:2px;}
+  .detail-title-group{text-align:right;}
+  .detail-name{font-family:var(--font-display);font-size:1rem;color:#fff;line-height:1.2;}
+  .detail-inst{font-size:.7rem;color:rgba(255,255,255,.4);margin-top:3px;}
+  .detail-vals{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;}
+  .dv-item{background:rgba(255,255,255,.07);border-radius:9px;padding:9px 11px;}
+  .dv-lbl{font-size:.6rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;}
+  .dv-val{font-size:.92rem;font-weight:700;color:rgba(255,255,255,.8);}
+  .dv-val.pos{color:rgba(255,255,255,.8);}
+  .dv-val.neg{color:rgba(255,255,255,.8);}
+  .dv-sub{font-size:.65rem;color:rgba(255,255,255,.3);margin-top:3px;}
+  .detail-rend{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  .dr-group{display:grid;grid-template-columns:7fr 3fr;gap:5px;}
+  .dr-item{background:rgba(255,255,255,.07);border-radius:9px;padding:9px 11px;}
+  .dr-lbl{font-size:.6rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;}
+  .dr-val{font-size:.92rem;font-weight:700;color:rgba(255,255,255,.75);}
+  .dr-days{font-size:.65rem;color:rgba(255,255,255,.3);margin-top:3px;}
   .detail-body{flex:1;overflow-y:auto;padding:10px 16px 40px;}
   .detail-body::-webkit-scrollbar{display:none;}
   .detail-info-card{background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:12px;border:1px solid var(--border);}
@@ -732,14 +742,43 @@
   <!-- DETALHE ATIVO -->
   <div id="screen-ativo" class="inv-screen">
     <div class="detail-header">
-      <div class="detail-back" id="ativo-back-btn" onclick="goScreen('cart')">‹ Voltar</div>
-      <div class="detail-name" id="ativo-detail-name">—</div>
-      <div class="detail-inst" id="ativo-detail-inst">—</div>
+      <div class="detail-top">
+        <div class="detail-back" onclick="goScreen('cart')">‹ <span id="ativo-back-inst">Voltar</span></div>
+        <div class="detail-title-group">
+          <div class="detail-name" id="ativo-detail-name">—</div>
+          <div class="detail-inst" id="ativo-detail-inst">—</div>
+        </div>
+      </div>
       <div class="detail-vals">
-        <div class="dv-item"><div class="dv-lbl">Aplicado</div><div class="dv-val" id="ativo-aplicado">—</div></div>
-        <div class="dv-item"><div class="dv-lbl">Valor atual</div><div class="dv-val pos" id="ativo-atual">—</div></div>
-        <div class="dv-item"><div class="dv-lbl">Rendimento</div><div class="dv-val pos" id="ativo-rend">—</div></div>
-        <div class="dv-item"><div class="dv-lbl">Atualizado</div><div class="dv-val" id="ativo-upd-date" style="font-size:.78rem;">—</div></div>
+        <div class="dv-item">
+          <div class="dv-lbl">Aplicado</div>
+          <div class="dv-val" id="ativo-aplicado">—</div>
+          <div class="dv-sub" id="ativo-desde">—</div>
+        </div>
+        <div class="dv-item">
+          <div class="dv-lbl">Atual</div>
+          <div class="dv-val" id="ativo-atual">—</div>
+          <div class="dv-sub" id="ativo-upd-date">—</div>
+        </div>
+      </div>
+      <div class="detail-rend">
+        <div class="dr-group">
+          <div class="dr-item">
+            <div class="dr-lbl">Rendimento</div>
+            <div class="dr-val" id="ativo-rend">—</div>
+          </div>
+          <div class="dr-item">
+            <div class="dr-lbl">Var.</div>
+            <div class="dr-val" id="ativo-pct">—</div>
+          </div>
+        </div>
+        <div class="dr-item">
+          <div class="dr-lbl">Vencimento</div>
+          <div style="display:flex;align-items:baseline;gap:5px;">
+            <div class="dr-val" id="ativo-venc-val">—</div>
+            <div class="dr-days" id="ativo-venc-days"></div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="detail-body">
@@ -1076,7 +1115,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='3.10';
+const APP_VERSION='3.13';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2310,6 +2349,12 @@ const ATIVO_BADGE={'Renda Fixa':'badge-rf','Renda Variável':'badge-rv','Fundos 
 
 let instituicoes=[], currentInstIdx=null, currentAtivoIdx=null, updCents=0;
 
+function normVenc(v){
+  // converts yyyy-mm-dd to dd/mm/yyyy if needed
+  if(!v)return'';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(v)){const[y,m,d]=v.split('-');return d+'/'+m+'/'+y;}
+  return v; // already dd/mm/yyyy
+}
 function syncDateDisplay(inputId, displayId){
   const inp=document.getElementById(inputId);
   const disp=document.getElementById(displayId);
@@ -2326,21 +2371,21 @@ function openDatePicker(id){
   setTimeout(()=>{el.style.pointerEvents='none';el.style.width='1px';el.style.height='1px';},500);
 }
 function loadInvestimentos(){
-  try{const s=localStorage.getItem('fluxo_inv');if(s){instituicoes=JSON.parse(s);}}catch(e){}
+  try{const s=localStorage.getItem('fluxo_inv2');if(s){instituicoes=JSON.parse(s);}}catch(e){}
   if(!instituicoes.length) seedInvestimentos();
 }
-function saveInvestimentos(){try{localStorage.setItem('fluxo_inv',JSON.stringify(instituicoes));}catch(e){}}
+function saveInvestimentos(){try{localStorage.setItem('fluxo_inv2',JSON.stringify(instituicoes));}catch(e){}}
 
 function seedInvestimentos(){
   instituicoes=[
     {id:1,name:'Safra',icon:'🏦',ativos:[
-      {id:1,nome:'CDB Safra 110% CDI',classe:'Renda Fixa',tipo:'CDB',aplicado:25000,indexador:'% do CDI',taxa:'110%',dataAplic:'2025-10-15',vencimento:'2027-03-15',liquidez:'No vencimento',garantia:'FGC (até R$ 250 mil/CPF)',ir:'Tabela Regressiva',obs:'',log:[{date:'15/10/2025',value:25000,note:'Aplicação inicial'},{date:'01/01/2026',value:26580,note:''},{date:'01/02/2026',value:26500,note:''},{date:'01/03/2026',value:26920,note:''},{date:'01/04/2026',value:27100,note:''},{date:'04/04/2026',value:27340,note:''}]},
-      {id:2,nome:'LCI 92% CDI',classe:'Renda Fixa',tipo:'LCI',aplicado:12000,indexador:'% do CDI',taxa:'92%',dataAplic:'2025-08-01',vencimento:'2026-08-01',liquidez:'No vencimento',garantia:'FGC (até R$ 250 mil/CPF)',ir:'Isento (PF)',obs:'',log:[{date:'01/08/2025',value:12000,note:'Aplicação inicial'},{date:'01/04/2026',value:12890,note:''}]},
+      {id:1,nome:'CDB Safra 110% CDI',classe:'Renda Fixa',tipo:'CDB',aplicado:25000,indexador:'% do CDI',taxa:'110%',dataAplic:'2025-10-15',vencimento:'15/03/2027',liquidez:'No vencimento',garantia:'FGC (até R$ 250 mil/CPF)',ir:'Tabela Regressiva',obs:'',log:[{date:'15/10/2025',value:25000,note:'Aplicação inicial'},{date:'01/01/2026',value:26580,note:''},{date:'01/02/2026',value:26500,note:''},{date:'01/03/2026',value:26920,note:''},{date:'01/04/2026',value:27100,note:''},{date:'04/04/2026',value:27340,note:''}]},
+      {id:2,nome:'LCI 92% CDI',classe:'Renda Fixa',tipo:'LCI',aplicado:12000,indexador:'% do CDI',taxa:'92%',dataAplic:'2025-08-01',vencimento:'01/08/2026',liquidez:'No vencimento',garantia:'FGC (até R$ 250 mil/CPF)',ir:'Isento (PF)',obs:'',log:[{date:'01/08/2025',value:12000,note:'Aplicação inicial'},{date:'01/04/2026',value:12890,note:''}]},
       {id:3,nome:'PETR4',classe:'Renda Variável',tipo:'Ação (Brasil)',aplicado:5000,indexador:'Outro',taxa:'—',dataAplic:'2025-03-10',vencimento:'',liquidez:'Diária (D+0)',garantia:'N/A',ir:'15% (ganho de capital)',obs:'100 ações a R$ 50',log:[{date:'10/03/2025',value:5000,note:'Compra inicial'},{date:'01/04/2026',value:5420,note:''}]},
     ]},
     {id:2,name:'Itaú',icon:'🏦',ativos:[
-      {id:1,nome:'Tesouro IPCA+ 2029',classe:'Renda Fixa',tipo:'Tesouro IPCA+',aplicado:15000,indexador:'IPCA + taxa',taxa:'IPCA+6,2%',dataAplic:'2024-11-20',vencimento:'2029-05-15',liquidez:'Diária (D+0)',garantia:'Risco Soberano (Tesouro)',ir:'Tabela Regressiva',obs:'',log:[{date:'20/11/2024',value:15000,note:'Aplicação inicial'},{date:'01/04/2026',value:16200,note:''}]},
-      {id:2,nome:'CDB Itaú 108% CDI',classe:'Renda Fixa',tipo:'CDB',aplicado:12000,indexador:'% do CDI',taxa:'108%',dataAplic:'2025-06-01',vencimento:'2026-06-01',liquidez:'No vencimento',garantia:'FGC (até R$ 250 mil/CPF)',ir:'Tabela Regressiva',obs:'',log:[{date:'01/06/2025',value:12000,note:'Aplicação inicial'},{date:'01/04/2026',value:12650,note:''}]},
+      {id:1,nome:'Tesouro IPCA+ 2029',classe:'Renda Fixa',tipo:'Tesouro IPCA+',aplicado:15000,indexador:'IPCA + taxa',taxa:'IPCA+6,2%',dataAplic:'2024-11-20',vencimento:'15/05/2029',liquidez:'Diária (D+0)',garantia:'Risco Soberano (Tesouro)',ir:'Tabela Regressiva',obs:'',log:[{date:'20/11/2024',value:15000,note:'Aplicação inicial'},{date:'01/04/2026',value:16200,note:''}]},
+      {id:2,nome:'CDB Itaú 108% CDI',classe:'Renda Fixa',tipo:'CDB',aplicado:12000,indexador:'% do CDI',taxa:'108%',dataAplic:'2025-06-01',vencimento:'01/06/2026',liquidez:'No vencimento',garantia:'FGC (até R$ 250 mil/CPF)',ir:'Tabela Regressiva',obs:'',log:[{date:'01/06/2025',value:12000,note:'Aplicação inicial'},{date:'01/04/2026',value:12650,note:''}]},
     ]},
     {id:3,name:'Avenue',icon:'🌎',ativos:[
       {id:1,nome:'IVVB11',classe:'Renda Variável',tipo:'ETF',aplicado:8000,indexador:'Dólar',taxa:'S&P500',dataAplic:'2025-01-15',vencimento:'',liquidez:'Diária (D+0)',garantia:'N/A',ir:'15% (ganho de capital)',obs:'',log:[{date:'15/01/2025',value:8000,note:'Compra inicial'},{date:'01/04/2026',value:9100,note:''}]},
@@ -2430,14 +2475,15 @@ function renderAtivos(){
         <div class="ar-item">
           <div class="ar-lbl">Vencimento</div>
           ${(()=>{
-            if(!a.vencimento){return '<div class="ar-val">N/A</div>';}
-            const vp=a.vencimento.split('/');
+            const venc=normVenc(a.vencimento);
+            if(!venc){return '<div class="ar-val">N/A</div>';}
+            const vp=venc.split('/');
             if(vp.length!==3)return '<div class="ar-val">N/A</div>';
             const vDate=new Date(vp[2],vp[1]-1,vp[0]);
             const today=new Date();today.setHours(0,0,0,0);
             const diff=Math.ceil((vDate-today)/(1000*60*60*24));
             const diffStr=diff>0?diff+' dias':(diff===0?'Hoje':'Vencido');
-            return '<div class="ar-val">'+a.vencimento+'</div><div class="ar-days">'+diffStr+'</div>';
+            return '<div style="display:flex;align-items:baseline;gap:5px;"><div class="ar-val">'+venc+'</div><div class="ar-days">'+diffStr+'</div></div>';
           })()}
         </div>
       </div>
@@ -2476,19 +2522,49 @@ function openAtivo(idx){
   const atual=getAtivoAtual(a);
   const rend=atual-a.aplicado;
   const updDate=a.log.length?a.log[a.log.length-1].date:'—';
+  const inst=instituicoes[currentInstIdx];
+  const desde=a.log.length?a.log[0].date:'—';
+  const pct=a.aplicado?((rend/a.aplicado)*100).toFixed(1):0;
+  const rendSign=rend>=0?'+':'';
+  // back btn
+  const bi=document.getElementById('ativo-back-inst');if(bi)bi.textContent=inst.name;
+  // title
   const dn=document.getElementById('ativo-detail-name');if(dn)dn.textContent=a.nome;
-  const di=document.getElementById('ativo-detail-inst');if(di)di.textContent=instituicoes[currentInstIdx].name+' · '+a.classe+' · '+a.tipo;
+  const di=document.getElementById('ativo-detail-inst');if(di)di.textContent=inst.name+' · '+a.classe+(a.tipo?' · '+a.tipo:'');
+  // vals
   const da=document.getElementById('ativo-aplicado');if(da)da.textContent=fmtInvFull(a.aplicado);
+  const dsd=document.getElementById('ativo-desde');if(dsd)dsd.textContent='desde '+desde;
   const dav=document.getElementById('ativo-atual');if(dav)dav.textContent=fmtInvFull(atual);
-  const dr=document.getElementById('ativo-rend');if(dr){dr.textContent=(rend>=0?'+':'')+fmtInvFull(rend);dr.className='dv-val '+(rend>=0?'pos':'neg');}
-  const dd=document.getElementById('ativo-upd-date');if(dd)dd.textContent=updDate;
+  const dd=document.getElementById('ativo-upd-date');if(dd)dd.textContent='em '+updDate;
+  // rend
+  const dr=document.getElementById('ativo-rend');if(dr)dr.textContent=rendSign+fmtInvFull(rend);
+  const dp=document.getElementById('ativo-pct');if(dp)dp.textContent=rendSign+pct+'%';
+  // vencimento
+  const vv=document.getElementById('ativo-venc-val');
+  const vd=document.getElementById('ativo-venc-days');
+  const vencNorm=normVenc(a.vencimento);
+  if(vencNorm){
+    if(vv)vv.textContent=vencNorm;
+    if(vd){
+      const vp=vencNorm.split('/');
+      if(vp.length===3){
+        const vDate=new Date(vp[2],vp[1]-1,vp[0]);
+        const today=new Date();today.setHours(0,0,0,0);
+        const diff=Math.ceil((vDate-today)/(1000*60*60*24));
+        vd.textContent=diff>0?diff+' dias':diff===0?'Hoje':'Vencido';
+      }
+    }
+  } else {
+    if(vv)vv.textContent='N/A';
+    if(vd)vd.textContent='';
+  }
   // info card
   const ic=document.getElementById('ativo-info-card');
   if(ic){
     const rows=[
       ['Classe',a.classe],['Tipo',a.tipo],['Indexador',a.indexador],
       ['Taxa',a.taxa],['Liquidez',a.liquidez],['Garantia',a.garantia],
-      ['IR',a.ir],['Vencimento',a.vencimento||'—'],['Observações',a.obs||'—'],
+      ['IR',a.ir],['Vencimento',normVenc(a.vencimento)||'—'],['Observações',a.obs||'—'],
     ];
     ic.innerHTML=rows.filter(r=>r[1]&&r[1]!=='').map((r,i,arr)=>`<div class="detail-info-row${i===arr.length-1?' last':''}"><span class="dir-lbl">${r[0]}</span><span class="dir-val">${r[1]}</span></div>`).join('');
   }
