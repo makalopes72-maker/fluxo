@@ -1265,7 +1265,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='5.7';
+const APP_VERSION='5.8';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2893,15 +2893,23 @@ function getInstLinkedAccounts(instName){
 function calcCcSaldo(instName){
   const inst=instituicoes.find(i=>i.name===instName);if(!inst)return 0;
   const user=currentUser||'ALE';
-  // base saldo is per user per institution
+  // saldo base set directly by last ajuste
   const base=(inst.ccSaldoUser&&inst.ccSaldoUser[user])||0;
+  // sum only transactions AFTER last ajuste date
+  const lastAdjDate=inst['ccLastAdjDate_'+user]||null;
   const linked=getInstLinkedAccounts(instName).map(a=>a.name);
   if(!linked.length)return base;
   let delta=0;
   allData.forEach(t=>{
-    if(linked.includes(t.account)){
-      delta+=t.type==='entrada'?t.value:-t.value;
+    if(!linked.includes(t.account))return;
+    if(t._isAdjust)return; // skip adjustment entries
+    if(lastAdjDate){
+      // only count transactions after the last adjustment
+      const td=parseDate(t.date);
+      const ad=parseDate(lastAdjDate);
+      if(td&&ad&&td<=ad)return;
     }
+    delta+=t.type==='entrada'?t.value:-t.value;
   });
   return base+delta;
 }
