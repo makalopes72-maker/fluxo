@@ -285,6 +285,7 @@
 <div id="splash">
   <h1>fluxo</h1>
   <p>suas finanças, simples assim</p>
+  <div id="splash-version" style="font-size:.7rem;color:var(--muted);letter-spacing:.1em;margin-top:-4px;margin-bottom:8px;"></div>
   <div class="user-btns">
     <button class="user-btn" onclick="login('ALE')">ALE</button>
     <button class="user-btn" onclick="login('SI')">SI</button>
@@ -442,7 +443,7 @@
           <div class="cfg-block-title">App</div>
           <div class="setting-row"><div><div class="setting-label">Usuário ativo</div></div><div class="setting-val" id="cfg-user2">—</div></div>
           <div class="setting-row"><div><div class="setting-label">Planilha Google Sheets</div><div class="setting-sub">Conectada e sincronizada</div></div><div class="setting-val">✓</div></div>
-          <div class="setting-row"><div><div class="setting-label">Versão</div></div><div class="setting-val">1.9.0</div></div>
+          <div class="setting-row"><div><div class="setting-label">Versão</div></div><div class="setting-val" id="cfg-version">—</div></div>
         </div>
       </div>
 
@@ -527,6 +528,7 @@
 <div id="toast"></div>
 
 <script>
+const APP_VERSION='1.1';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -887,6 +889,7 @@ function getDefaultAccount(){
 }
 
 function buildSettings(){
+  const cv=document.getElementById('cfg-version');if(cv)cv.textContent=APP_VERSION;
   const pg=document.getElementById('palette-grid');
   if(pg)pg.innerHTML=PALETTES.map(p=>`<div class="palette-card${prefs.paletteId===p.id?' active':''}" onclick="pickPalette('${p.id}')"><div class="palette-preview"><div style="background:${p.bg};grid-row:1/3"></div><div style="background:${p.btn}"></div><div style="background:${p.kp}"></div></div><div class="palette-name" style="background:${p.kp};color:${p.font}80">${p.name}</div></div>`).join('');
   const cpg=document.getElementById('color-picker-grid');
@@ -912,6 +915,7 @@ function login(u){
   document.getElementById('splash').style.display='none';
   document.getElementById('app').classList.add('visible');
   document.getElementById('user-tag').textContent=u;
+  const sv=document.getElementById('splash-version');if(sv)sv.textContent='v'+APP_VERSION;
   document.getElementById('menu-user').textContent=u;
   const cfu=document.getElementById('cfg-user');if(cfu)cfu.textContent=u;const cu2=document.getElementById('cfg-user2');if(cu2)cu2.textContent=u;
   loadAccounts();loadDefaultAccounts();loadStartScreen();initTiposData();setTodayDate();buildSettings();buildStartScreenUI();loadData();setTimeout(()=>goScreen(startScreen),100);
@@ -1186,6 +1190,7 @@ async function deleteTx(idx){
 function fmt(v){return 'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='show'+(type?' '+type:'');setTimeout(()=>t.className='',2500);}
 loadPrefs();
+const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+APP_VERSION;
 </script>
 </body>
 </html>
