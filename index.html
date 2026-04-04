@@ -913,7 +913,7 @@ function login(u){
   document.getElementById('app').classList.add('visible');
   document.getElementById('user-tag').textContent=u;
   document.getElementById('menu-user').textContent=u;
-  document.getElementById('cfg-user').textContent=u;const cu2=document.getElementById('cfg-user2');if(cu2)cu2.textContent=u;
+  const cfu=document.getElementById('cfg-user');if(cfu)cfu.textContent=u;const cu2=document.getElementById('cfg-user2');if(cu2)cu2.textContent=u;
   loadAccounts();loadDefaultAccounts();loadStartScreen();initTiposData();setTodayDate();buildSettings();buildStartScreenUI();loadData();setTimeout(()=>goScreen(startScreen),100);
 }
 function logout(){currentUser=null;allData=[];document.getElementById('app').classList.remove('visible');document.getElementById('splash').style.display='flex';closeMenu();}
@@ -1100,9 +1100,10 @@ function getFiltered(period,cat){
 function renderDash(){
   const data=getFiltered('mes',null);let totalIn=0,totalOut=0;
   data.forEach(t=>t.type==='entrada'?totalIn+=t.value:totalOut+=t.value);
-  const bal=totalIn-totalOut;const el=document.getElementById('dash-balance');
-  el.textContent=fmt(bal);el.className='balance-value'+(bal<0?' negative':'');
-  document.getElementById('dash-in').textContent=fmt(totalIn);document.getElementById('dash-out').textContent=fmt(totalOut);
+  const bal=totalIn-totalOut;
+  const el=document.getElementById('dash-balance');if(el){el.textContent=fmt(bal);el.className='balance-value'+(bal<0?' negative':'');}
+  const di=document.getElementById('dash-in');if(di)di.textContent=fmt(totalIn);
+  const dout=document.getElementById('dash-out');if(dout)dout.textContent=fmt(totalOut);
   renderMiniChart();renderCatGrid(data);renderRecent();
 }
 function renderMiniChart(){
@@ -1110,25 +1111,25 @@ function renderMiniChart(){
   for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push({label:d.toLocaleString('pt-BR',{month:'short'}),month:d.getMonth(),year:d.getFullYear()});}
   const vals=months.map(m=>{let o=0;allData.filter(t=>{const d=parseDate(t.date);return d&&d.getMonth()===m.month&&d.getFullYear()===m.year&&t.type==='saída';}).forEach(t=>o+=t.value);return o;});
   const maxV=Math.max(...vals,1);
-  document.getElementById('mini-chart').innerHTML=months.map((m,i)=>`<div class="bar-wrap"><div class="bar${i===5?' current':''}" style="height:${Math.max(4,(vals[i]/maxV)*100)}%"></div><div class="bar-label">${m.label}</div></div>`).join('');
+  const mc=document.getElementById('mini-chart');if(mc)mc.innerHTML=months.map((m,i)=>`<div class="bar-wrap"><div class="bar${i===5?' current':''}" style="height:${Math.max(4,(vals[i]/maxV)*100)}%"></div><div class="bar-label">${m.label}</div></div>`).join('');
 }
 function renderCatGrid(data){
   const cats={};data.filter(t=>t.type==='saída').forEach(t=>cats[t.cat]=(cats[t.cat]||0)+t.value);
   const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,4);
-  document.getElementById('cat-grid').innerHTML=sorted.length?sorted.map(([c,v])=>`<div class="cat-card"><div class="cat-icon">${CAT_ICONS[c]||'📦'}</div><div class="cat-name">${c}</div><div class="cat-val">${fmt(v)}</div></div>`).join(''):'<div class="empty">Sem gastos no mês</div>';
+  const cg=document.getElementById('cat-grid');if(cg)cg.innerHTML=sorted.length?sorted.map(([c,v])=>`<div class="cat-card"><div class="cat-icon">${CAT_ICONS[c]||'📦'}</div><div class="cat-name">${c}</div><div class="cat-val">${fmt(v)}</div></div>`).join(''):'<div class="empty">Sem gastos no mês</div>';
 }
 function renderRecent(){
   const recent=[...allData].sort((a,b)=>parseDate(b.date)-parseDate(a.date)).slice(0,5);
-  document.getElementById('recent-list').innerHTML=recent.length?recent.map(t=>txHTML(t,allData.indexOf(t))).join(''):'<div class="empty">Sem transações</div>';
+  const rl=document.getElementById('recent-list');if(rl)rl.innerHTML=recent.length?recent.map(t=>txHTML(t,allData.indexOf(t))).join(''):'<div class="empty">Sem transações</div>';
   attachSwipe('recent-list');
 }
 function setPeriod(p,el){currentPeriod=p;document.querySelectorAll('.period-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderHistory();}
 function renderHistory(){
   const data=getFiltered(currentPeriod,currentCatFilter);
   const allCats=['Todas',...new Set(allData.map(t=>t.cat))];
-  document.getElementById('cat-filters').innerHTML=allCats.map(c=>`<button class="filter-chip${c===currentCatFilter?' active':''}" onclick="setCatFilter('${c.replace(/'/g,"\\'")}')">${c}</button>`).join('');
+  const cf=document.getElementById('cat-filters');if(cf)cf.innerHTML=allCats.map(c=>`<button class="filter-chip${c===currentCatFilter?' active':''}" onclick="setCatFilter('${c.replace(/'/g,"\\'")}')">${c}</button>`).join('');
   const sorted=[...data].sort((a,b)=>parseDate(b.date)-parseDate(a.date));
-  document.getElementById('hist-list').innerHTML=sorted.length?sorted.map(t=>txHTML(t,allData.indexOf(t))).join(''):'<div class="empty">Nenhuma transação encontrada</div>';
+  const hl=document.getElementById('hist-list');if(hl)hl.innerHTML=sorted.length?sorted.map(t=>txHTML(t,allData.indexOf(t))).join(''):'<div class="empty">Nenhuma transação encontrada</div>';
   attachSwipe('hist-list');
 }
 function setCatFilter(cat){currentCatFilter=cat;renderHistory();}
