@@ -257,6 +257,26 @@
   .ktm-btn{width:100%;padding:13px;border-radius:12px;border:1.5px solid var(--border);background:transparent;font-family:var(--font-body);font-size:.95rem;color:var(--muted);cursor:pointer;font-weight:500;}
   .ktm-btn.primary{background:var(--btn);color:#0f0f11;border-color:var(--btn);font-weight:700;font-size:1rem;}
 
+  /* CONTA CORRENTE */
+  .cc-card{background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:10px;border:1px solid var(--border);}
+  .cc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .cc-title{font-size:.82rem;font-weight:700;color:var(--font);}
+  .cc-saldo{font-size:1.5rem;font-weight:700;color:var(--font);letter-spacing:-1px;margin-bottom:6px;}
+  .cc-saldo.pos{color:var(--accent2);}.cc-saldo.neg{color:var(--red);}
+  .cc-contas{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;}
+  .cc-conta-tag{font-size:.68rem;background:var(--kp);border:1px solid var(--border);border-radius:100px;padding:2px 9px;color:var(--muted);}
+  .cc-btns{display:flex;gap:6px;}
+  .cc-btn{flex:1;padding:8px;border-radius:9px;border:1px solid var(--border);background:transparent;font-family:var(--font-body);font-size:.72rem;font-weight:600;cursor:pointer;color:var(--muted);}
+  .cc-btn.ajuste{background:var(--font);color:var(--bg);border-color:var(--font);}
+  .cc-last{font-size:.65rem;color:var(--muted);margin-top:7px;}
+  .cc-mini{background:rgba(255,255,255,.08);border-radius:10px;padding:8px 12px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;}
+  .cc-mini-lbl{font-size:.65rem;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
+  .cc-mini-val{font-size:1rem;font-weight:700;color:#fff;}
+  .cc-mini-btn{font-size:.7rem;background:rgba(255,255,255,.15);color:rgba(255,255,255,.75);border:none;border-radius:7px;padding:5px 10px;cursor:pointer;font-family:var(--font-body);font-weight:600;}
+  /* inst selector in accounts */
+  .acct-inst-sel{font-size:.72rem;padding:3px 10px;border-radius:100px;border:1px solid var(--border);background:transparent;font-family:var(--font-body);color:var(--muted);cursor:pointer;}
+  .acct-inst-sel.linked{background:rgba(59,130,246,.1);color:#185fa5;border-color:rgba(59,130,246,.3);}
+
   /* EXTRATO */
   .extrato-header{flex-shrink:0;background:var(--bg);padding:10px 16px 0;border-bottom:1px solid var(--border);}
   .extrato-totals{display:flex;gap:0;margin-bottom:10px;background:var(--card);border-radius:12px;overflow:hidden;}
@@ -826,8 +846,16 @@
         <div class="cart-sub" id="cart-sub">—</div>
         <div class="cart-val" id="cart-val">R$ 0</div>
       </div>
+      <div class="cc-mini" id="cc-mini-bar">
+        <div>
+          <div class="cc-mini-lbl">Conta Corrente</div>
+          <div class="cc-mini-val" id="cc-mini-val">R$ 0,00</div>
+        </div>
+        <button class="cc-mini-btn" onclick="openCcAjuste()">⚙ Ajustar</button>
+      </div>
     </div>
     <div class="inv-body">
+      <div id="cc-card-wrap"></div>
       <div id="ativo-list"></div>
       <button class="inv-add-btn" onclick="openAtivoForm()">+ Novo ativo</button>
     </div>
@@ -1221,7 +1249,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='5.2';
+const APP_VERSION='5.4';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -1416,7 +1444,8 @@ const DEFAULT_ACCOUNTS=[
 let accounts=[...DEFAULT_ACCOUNTS];
 
 function loadAccounts(){
-  try{const s=localStorage.getItem('fluxo_accounts2');if(s)accounts=JSON.parse(s);}catch(e){}
+  try{const s=localStorage.getItem('fluxo_accounts2');if(s){accounts=JSON.parse(s);accounts.forEach(a=>{if(!a.instituicao)a.instituicao='';});return;}}catch(e){}
+  accounts=DEFAULT_ACCOUNTS.map(a=>({...a,instituicao:''}));
 }
 function saveAccounts(){try{localStorage.setItem('fluxo_accounts2',JSON.stringify(accounts));}catch(e){}}
 
@@ -1447,9 +1476,10 @@ function buildAccountsUI(){
   buildDefaultAccountSelects();
   const el=document.getElementById('acct-list-ui');if(!el)return;
   const ownerColors={ALE:'#5a8ff5',SI:'#ff6fa3',AMBOS:'#22c55e'};
+  const user=currentUser||'ALE';
+  // show only current user's accounts + shared in contas config
   const sections=[
-    {label:'ALE',key:'ALE'},
-    {label:'SI — Sílvia',key:'SI'},
+    {label:user,key:user},
     {label:'Compartilhadas',key:'AMBOS'},
   ];
   let html='';
@@ -1462,14 +1492,20 @@ function buildAccountsUI(){
         ${sec.label}
       </div>
       <div class="acct-list">
-        ${items.map(a=>`
-          <div class="acct-item${a.active?'':' inactive'}">
+        ${items.map(a=>{
+          const linked=a.instituicao||'';
+          return `<div class="acct-item${a.active?'':' inactive'}">
             <div class="acct-name">${a.name}</div>
             <div class="acct-actions">
+              <select class="acct-inst-sel${linked?' linked':''}" onchange="setAcctInstituicao(${a.i},this.value)">
+                <option value="">— vincular</option>
+                ${instituicoes.map(inst=>`<option value="${inst.name}"${linked===inst.name?' selected':''}>${inst.name}</option>`).join('')}
+              </select>
               <button class="acct-btn ${a.active?'danger':'restore'}" onclick="toggleAccount(${a.i})">${a.active?'Inativar':'Ativar'}</button>
               <button class="acct-btn danger" onclick="deleteAccount(${a.i})">✕</button>
             </div>
-          </div>`).join('')}
+          </div>`;
+        }).join('')}
       </div>
     </div>`;
   });
@@ -2102,7 +2138,7 @@ function login(u){
   const sv=document.getElementById('splash-version');if(sv)sv.textContent='v'+APP_VERSION;
   document.getElementById('menu-user').textContent=u;
   const cfu=document.getElementById('cfg-user');if(cfu)cfu.textContent=u;const cu2=document.getElementById('cfg-user2');if(cu2)cu2.textContent=u;
-  loadAccounts();loadDefaultAccounts();loadStartScreen();initTiposData();loadKeywords();loadInvestimentos();setTodayDate();buildSettings();buildStartScreenUI();extMonth=new Date().getMonth();extYear=new Date().getFullYear();loadData();setTimeout(()=>goScreen(startScreen),100);
+  loadAccounts();seedInstLinks();loadDefaultAccounts();loadStartScreen();initTiposData();loadKeywords();loadInvestimentos();setTodayDate();buildSettings();buildStartScreenUI();extMonth=new Date().getMonth();extYear=new Date().getFullYear();loadData();setTimeout(()=>goScreen(startScreen),100);
 }
 function logout(){currentUser=null;allData=[];document.getElementById('app').classList.remove('visible');document.getElementById('splash').style.display='flex';closeMenu();}
 
@@ -2809,12 +2845,115 @@ function openDatePicker(id){
   if(el.showPicker)el.showPicker();else el.focus();
   setTimeout(()=>{el.style.pointerEvents='none';el.style.width='1px';el.style.height='1px';},500);
 }
+// ── CONTA CORRENTE ──
+function setAcctInstituicao(idx,instName){
+  accounts[idx].instituicao=instName;
+  saveAccounts2();buildAccountsUI();
+  if(currentInstIdx!==null)renderCcCard();
+}
+function saveAccounts2(){try{localStorage.setItem('fluxo_accounts2',JSON.stringify(accounts));}catch(e){}}
+
+function getInstLinkedAccounts(instName){
+  const user=currentUser||'ALE';
+  return accounts.filter(a=>a.active&&a.instituicao===instName&&(a.owner===user||a.owner==='AMBOS'));
+}
+
+function calcCcSaldo(instName){
+  const inst=instituicoes.find(i=>i.name===instName);if(!inst)return 0;
+  const user=currentUser||'ALE';
+  // base saldo is per user per institution
+  const base=(inst.ccSaldoUser&&inst.ccSaldoUser[user])||0;
+  const linked=getInstLinkedAccounts(instName).map(a=>a.name);
+  if(!linked.length)return base;
+  let delta=0;
+  allData.forEach(t=>{
+    if(linked.includes(t.account)){
+      delta+=t.type==='entrada'?t.value:-t.value;
+    }
+  });
+  return base+delta;
+}
+
+function renderCcCard(){
+  const inst=instituicoes[currentInstIdx];if(!inst)return;
+  const user=currentUser||'ALE';
+  const linked=getInstLinkedAccounts(inst.name);
+  const saldo=calcCcSaldo(inst.name);
+  // mini bar
+  const mv=document.getElementById('cc-mini-val');
+  if(mv)mv.textContent=fmtInvFull(saldo);
+  // card
+  const wrap=document.getElementById('cc-card-wrap');if(!wrap)return;
+  const lastAdjKey='ccLastAdj_'+user;
+  const lastAdj=inst[lastAdjKey]?`Último ajuste (${user}): ${inst[lastAdjKey]}`:'Sem ajuste manual ainda';
+  const linkedNames=linked.map(a=>a.name);
+  wrap.innerHTML=`
+    <div class="inv-section-title">Conta corrente — ${user}</div>
+    <div class="cc-card">
+      <div class="cc-top">
+        <div class="cc-title">💰 Saldo disponível</div>
+        <span style="font-size:.7rem;color:var(--muted);">${inst.name} · ${user}</span>
+      </div>
+      <div class="cc-saldo ${saldo<0?'neg':'pos'}">${fmtInvFull(saldo)}</div>
+      ${linked.length?`<div class="cc-contas">${linked.map(a=>`<span class="cc-conta-tag">${a.name}</span>`).join('')}</div>`:'<div style="font-size:.75rem;color:var(--muted);margin-bottom:8px;">Nenhuma conta vinculada a ${user} em Configurações → Contas</div>'}
+      <div class="cc-btns">
+        <button class="cc-btn" onclick="filterExtratoCc('${inst.name}')">📊 Extrato</button>
+        <button class="cc-btn ajuste" onclick="openCcAjuste()">⚙ Ajustar saldo</button>
+      </div>
+      <div class="cc-last">${lastAdj}</div>
+    </div>
+    <div class="inv-section-title">Investimentos</div>`;
+}
+
+function filterExtratoCc(instName){
+  // filter extrato by linked accounts of current user for this inst
+  const linked=getInstLinkedAccounts(instName).map(a=>a.name);
+  extContas=[...linked];
+  goScreen('hist');
+  // trigger filter panel to show active filters
+  setTimeout(()=>{
+    const btn=document.getElementById('ext-filter-btn');
+    if(btn&&linked.length){btn.classList.add('active');const p=document.getElementById('ext-filter-panel');if(p){p.classList.add('open');buildExtChips();updMonthLabel();}}
+  },200);
+}
+
+function openCcAjuste(){
+  const inst=instituicoes[currentInstIdx];if(!inst)return;
+  const user=currentUser||'ALE';
+  if(!inst.ccSaldoUser)inst.ccSaldoUser={};
+  const cur=inst.ccSaldoUser[user]||0;
+  const val=prompt(`Ajustar saldo base (${user}) — ${inst.name}
+Valor atual: ${fmtInvFull(cur)}
+
+Novo valor base (R$):`,cur.toFixed(2));
+  if(val===null)return;
+  const n=parseFloat(val.replace(',','.'));
+  if(isNaN(n)){toast('Valor inválido','error');return;}
+  inst.ccSaldoUser[user]=n;
+  const now=new Date();
+  const ds=`${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()} · R$ ${fmtInvFull(n)} (base)`;
+  inst['ccLastAdj_'+user]=ds;
+  saveInvestimentos();renderCcCard();
+  toast('Saldo base atualizado!','success');
+}
+
 function loadInvestimentos(){
   try{const s=localStorage.getItem('fluxo_inv2');if(s){instituicoes=JSON.parse(s);}}catch(e){}
   if(!instituicoes.length) seedInvestimentos();
 }
 function saveInvestimentos(){try{localStorage.setItem('fluxo_inv2',JSON.stringify(instituicoes));}catch(e){}}
 
+function seedInstLinks(){
+  // auto-link accounts to institutions based on name
+  const map={'Itaú':['ALE Conta Itaú','ALE Crédito Itaú','SI Conta Itaú','SI Crédito Itaú','SI Itaú PJ UNO'],
+             'Safra':[],'Avenue':['AVENUE ALE','SI Avenue']};
+  accounts.forEach(a=>{
+    if(!a.instituicao){
+      Object.keys(map).forEach(inst=>{if(map[inst].includes(a.name))a.instituicao=inst;});
+    }
+  });
+  saveAccounts2();
+}
 function seedInvestimentos(){
   instituicoes=[
     {id:1,name:'Safra',icon:'🏦',ativos:[
@@ -2862,6 +3001,7 @@ function renderInv(){
 function openCarteira(idx){
   currentInstIdx=idx;
   const inst=instituicoes[idx];
+  setTimeout(()=>renderCcCard(),50);
   const ct=document.getElementById('cart-title');if(ct)ct.textContent=inst.name;
   const cs=document.getElementById('cart-sub');if(cs)cs.textContent=inst.ativos.length+' ativos';
   const cv=document.getElementById('cart-val');if(cv)cv.textContent=fmtInv(getInstTotal(inst));
