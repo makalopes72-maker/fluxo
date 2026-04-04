@@ -1240,7 +1240,7 @@
     <div style="font-family:var(--font-display);font-size:1.2rem;color:var(--font);margin-bottom:6px;">Ajustar saldo</div>
     <div style="font-size:.82rem;color:var(--muted);margin-bottom:16px;" id="cc-ajuste-atual">—</div>
     <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px;">Novo saldo desejado (R$)</div>
-    <input id="cc-ajuste-input" type="number" step="0.01" inputmode="decimal"
+    <input id="cc-ajuste-input" type="text" inputmode="decimal"
       style="width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-display);font-size:1.4rem;font-weight:700;text-align:center;outline:none;margin-bottom:8px;">
     <div style="font-size:.75rem;color:var(--muted);margin-bottom:16px;line-height:1.4;">A diferença será lançada automaticamente no extrato como entrada ou saída de ajuste.</div>
     <div style="display:flex;gap:8px;">
@@ -1265,7 +1265,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='5.6';
+const APP_VERSION='5.7';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2156,7 +2156,23 @@ function login(u){
   const cfu=document.getElementById('cfg-user');if(cfu)cfu.textContent=u;const cu2=document.getElementById('cfg-user2');if(cu2)cu2.textContent=u;
   loadAccounts();seedInstLinks();loadDefaultAccounts();loadStartScreen();initTiposData();loadKeywords();loadInvestimentos();setTodayDate();buildSettings();buildStartScreenUI();extMonth=new Date().getMonth();extYear=new Date().getFullYear();loadData();setTimeout(()=>goScreen(startScreen),100);
 }
-function logout(){currentUser=null;allData=[];document.getElementById('app').classList.remove('visible');document.getElementById('splash').style.display='flex';closeMenu();}
+function logout(){
+  currentUser=null;allData=[];
+  // close all modals
+  ['cc-ajuste-modal','kw-toast-modal','edit-modal','upd-modal','inst-modal','ativo-modal'].forEach(id=>{
+    const m=document.getElementById(id);
+    if(!m)return;
+    m.style.display='none';
+    m.style.opacity='0';
+    m.style.pointerEvents='none';
+    m.classList.remove('open','show');
+  });
+  // hide inv screens
+  ['inv','cart','ativo'].forEach(s=>{const el=document.getElementById('screen-'+s);if(el)el.style.display='none';});
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('splash').style.display='flex';
+  closeMenu();
+}
 
 // ── NAV ──
 function goScreen(name){
