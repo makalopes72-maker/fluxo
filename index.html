@@ -28,12 +28,12 @@
   #app{display:none;height:100%;flex-direction:column;overflow:hidden;}
   #app.visible{display:flex;}
 
-  header{padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;border-bottom:1px solid var(--border);background:var(--bg);}
+  header{padding:6px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;border-bottom:1px solid var(--border);background:var(--bg);}
   .header-left{display:flex;align-items:center;gap:12px;}
   .hamburger{width:36px;height:36px;border:none;background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border-radius:8px;padding:6px;}
   .hamburger:active{background:var(--kp);}
   .ham-line{width:20px;height:2px;background:var(--font);border-radius:2px;}
-  .logo{font-family:var(--font-display);font-size:1.4rem;color:var(--font);}
+  .logo{font-family:var(--font-display);font-size:1.1rem;color:var(--font);}
   .user-tag{font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--btn);background:rgba(34,197,94,.1);padding:4px 10px;border-radius:100px;}
 
   #menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:150;opacity:0;pointer-events:none;transition:opacity .3s;}
@@ -101,33 +101,34 @@
   .add-tipo-row{flex-shrink:0;display:flex;}
   .add-tipo-btn{flex:1;border:none;cursor:pointer;font-family:var(--font-body);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:10px 0;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;}
   .add-tipo-btn.saida-on{background:var(--red);color:#fff;}
-  .add-tipo-btn.saida-off{background:var(--kp);color:var(--muted);}
+  .add-tipo-btn.saida-off{background:var(--bg);color:var(--muted);}
   .add-tipo-btn.entrada-on{background:var(--accent2);color:#fff;}
-  .add-tipo-btn.entrada-off{background:var(--card);color:var(--muted);}
+  .add-tipo-btn.entrada-off{background:var(--bg);color:var(--muted);}
 
   .add-valor-row{flex-shrink:0;display:flex;align-items:stretch;}
-  .add-valor-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 8px 16px;transition:background .2s;}
+  .add-valor-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 8px 10px;transition:background .2s;}
   .add-valor-area.c-saida{background:var(--red);}
   .add-valor-area.c-entrada{background:var(--accent2);}
-  .add-valor-lbl{font-size:.7rem;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;}
-  .add-valor-num{font-family:var(--font-display);font-size:2.4rem;color:#fff;letter-spacing:-1px;line-height:1;}
+  .add-valor-lbl{font-size:.65rem;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px;}
+  .add-valor-num{font-family:var(--font-display);font-size:2rem;color:#fff;letter-spacing:-1px;line-height:1;}
   .add-del-btn{width:56px;border:none;cursor:pointer;background:var(--kp-dark);color:var(--muted);font-size:1.3rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .add-del-btn:active{opacity:.6;}
 
   .add-kp{flex-shrink:0;display:grid;grid-template-columns:repeat(3,1fr) 56px;grid-template-rows:repeat(4,1fr);gap:1px;background:var(--border);height:200px;}
-  .kk{background:var(--kp);display:flex;align-items:center;justify-content:center;font-family:var(--font-body);font-size:1.2rem;font-weight:600;color:var(--font);cursor:pointer;user-select:none;transition:background .1s;}
+  .kk{background:var(--kp);display:flex;align-items:center;justify-content:center;font-family:var(--font-body);font-size:1.6rem;font-weight:700;color:var(--font);cursor:pointer;user-select:none;transition:background .1s;}
   .kk:active{opacity:.7;}
   .kk.op{font-size:1rem;color:var(--muted);background:var(--kp-dark);}
   .kk.eq{font-size:1.1rem;font-weight:700;background:var(--btn);}
 
   /* FIELDS — flex:1, scrollable */
-  .add-fields-wrap{flex:1;overflow-y:auto;background:var(--card);min-height:0;}
+  .add-fields-wrap{flex:1;overflow-y:auto;background:var(--bg);padding:10px 12px;min-height:0;display:flex;flex-direction:column;gap:7px;}
   .add-fields-wrap::-webkit-scrollbar{display:none;}
 
-  /* 2-column grid */
-  .fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-top:1px solid var(--border);}
-  .field-cell{background:var(--card);display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;position:relative;min-width:0;}
-  .field-cell.full{grid-column:1/3;}
+  /* floating card grid */
+  .fields-grid{display:flex;flex-direction:column;gap:7px;}
+  .fields-row{display:flex;gap:7px;}
+  .field-cell{background:var(--card);border-radius:12px;display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;position:relative;min-width:0;flex:1;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+  .field-cell.full{width:100%;}
   .field-ic{font-size:1rem;flex-shrink:0;}
   .field-val{font-size:.82rem;font-weight:500;color:var(--font);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .field-val.ph{color:var(--muted);}
@@ -138,7 +139,7 @@
   .field-input::placeholder{color:var(--muted);}
 
   /* DROPDOWN */
-  .drop-panel{grid-column:1/3;background:var(--bg);border-bottom:1px solid var(--border);max-height:200px;overflow-y:auto;}
+  .drop-panel{background:var(--bg);border-radius:12px;border:1px solid var(--border);max-height:200px;overflow-y:auto;margin-top:-2px;box-shadow:0 4px 12px rgba(0,0,0,.08);}
   .drop-panel::-webkit-scrollbar{display:none;}
   .drop-item{padding:10px 16px;font-size:.82rem;cursor:pointer;color:var(--font);border-bottom:1px solid var(--border);}
   .drop-item:last-child{border-bottom:none;}
@@ -297,33 +298,35 @@
           <span class="field-ic">📝</span>
           <input class="field-input" id="tx-desc" placeholder="Descrição (opcional)">
         </div>
-        <!-- Tipo -->
-        <div class="field-cell" id="fc-tipo" onclick="toggleDrop('tipo')">
-          <span class="field-ic">📂</span>
-          <span class="field-val ph" id="fv-tipo">Tipo</span>
-          <span class="field-arr">›</span>
-        </div>
-        <!-- Categoria -->
-        <div class="field-cell" id="fc-cat" onclick="toggleDrop('cat')">
-          <span class="field-ic">🏷</span>
-          <span class="field-val ph" id="fv-cat">Categoria</span>
-          <span class="field-arr">›</span>
+        <!-- Tipo + Categoria em linha -->
+        <div class="fields-row">
+          <div class="field-cell" id="fc-tipo" onclick="toggleDrop('tipo')">
+            <span class="field-ic">📂</span>
+            <span class="field-val ph" id="fv-tipo">Tipo</span>
+            <span class="field-arr">›</span>
+          </div>
+          <div class="field-cell" id="fc-cat" onclick="toggleDrop('cat')">
+            <span class="field-ic">🏷</span>
+            <span class="field-val ph" id="fv-cat">Categoria</span>
+            <span class="field-arr">›</span>
+          </div>
         </div>
         <!-- dropdown tipo/cat slot -->
-        <div id="drop-main" style="display:none;grid-column:1/3"></div>
-        <!-- Data -->
-        <div class="field-cell">
-          <span class="field-ic">📅</span>
-          <span class="field-val" id="add-date">—</span>
-        </div>
-        <!-- Conta -->
-        <div class="field-cell" id="fc-conta" onclick="toggleDrop('conta')">
-          <span class="field-ic">🏦</span>
-          <span class="field-val ph" id="fv-conta">Conta</span>
-          <span class="field-arr">›</span>
+        <div id="drop-main" style="display:none"></div>
+        <!-- Data + Conta em linha -->
+        <div class="fields-row">
+          <div class="field-cell">
+            <span class="field-ic">📅</span>
+            <span class="field-val" id="add-date">—</span>
+          </div>
+          <div class="field-cell" id="fc-conta" onclick="toggleDrop('conta')">
+            <span class="field-ic">🏦</span>
+            <span class="field-val ph" id="fv-conta">Conta</span>
+            <span class="field-arr">›</span>
+          </div>
         </div>
         <!-- dropdown conta slot -->
-        <div id="drop-conta" style="display:none;grid-column:1/3"></div>
+        <div id="drop-conta" style="display:none"></div>
       </div>
     </div>
     <!-- Salvar -->
