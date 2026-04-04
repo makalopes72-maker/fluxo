@@ -97,34 +97,40 @@
   .tx-val.in{color:var(--accent2);}.tx-val.out{color:var(--red);}
 
   /* CONSOLIDADO */
-  .tx-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .2s;background:transparent;}
-  .tx-check.on{background:var(--btn);border-color:var(--btn);}
-  .tx-check.off{background:transparent;border-color:var(--muted);opacity:.5;}
-  .tx-check-ic{font-size:.6rem;color:#fff;font-weight:900;}
+  .tx-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--muted);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .2s;background:transparent;margin:0 2px;}
+  .tx-check.on{background:var(--font) !important;border-color:var(--font) !important;}
+  .tx-check.off{background:transparent !important;border-color:var(--muted) !important;opacity:.35;}
+  .tx-check-ic{font-size:.65rem;font-weight:900;}
+  .tx-check.on .tx-check-ic{color:var(--bg);}
+  .tx-check.off .tx-check-ic{color:transparent;}
   .tx-item.not-consolidated{opacity:.75;}
   .tx-item.not-consolidated .tx-desc{font-style:italic;}
 
-  /* PARCELAMENTO */
-  .parcel-card{background:var(--card);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.06);}
-  .parcel-card.active{border:2px solid var(--btn);}
-  .parcel-card-ic{font-size:1.1rem;}
-  .parcel-card-label{font-size:.9rem;font-weight:600;color:var(--font);flex:1;}
-  .parcel-card-toggle{width:36px;height:20px;border-radius:100px;border:none;cursor:pointer;transition:all .2s;position:relative;flex-shrink:0;}
-  .parcel-card-toggle.on{background:var(--btn);}
-  .parcel-card-toggle.off{background:var(--muted);}
-  .parcel-card-toggle::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:3px;transition:left .2s;}
-  .parcel-card-toggle.on::after{left:19px;}
-  .parcel-card-toggle.off::after{left:3px;}
-  .parcel-fields{display:flex;flex-direction:column;gap:8px;padding:8px 4px 0;}
-  .parcel-row{display:flex;gap:8px;align-items:center;}
-  .parcel-lbl{font-size:.75rem;color:var(--muted);width:90px;flex-shrink:0;text-transform:uppercase;letter-spacing:.04em;}
-  .parcel-input{flex:1;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.95rem;font-weight:600;outline:none;text-align:center;}
-  .parcel-total{font-size:.8rem;color:var(--muted);text-align:right;padding-top:2px;}
+  /* MODO DE LANÇAMENTO */
+  .launch-seg{display:flex;background:var(--kp);border-radius:12px;padding:3px;gap:2px;flex-shrink:0;}
+  .launch-seg-btn{flex:1;padding:8px 4px;border-radius:9px;border:none;font-family:var(--font-body);font-size:.72rem;font-weight:600;cursor:pointer;transition:all .2s;background:transparent;color:var(--muted);}
+  .launch-seg-btn.active{background:var(--bg);color:var(--font);box-shadow:0 1px 4px rgba(0,0,0,.12);}
+  .launch-panel{display:none;flex-direction:column;gap:8px;}
+  .launch-panel.active{display:flex;}
+  .lp-card{background:var(--card);border-radius:12px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+  .lp-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;font-weight:600;}
+  .lp-row{display:flex;gap:8px;align-items:center;}
+  .lp-input{padding:8px 10px;border-radius:10px;border:1.5px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.95rem;font-weight:600;text-align:center;outline:none;width:60px;}
+  .lp-input.wide{width:100%;flex:1;}
+  .lp-seg{display:flex;flex:1;background:var(--kp);border-radius:10px;padding:2px;gap:2px;}
+  .lp-seg-btn{flex:1;padding:6px 2px;border-radius:8px;border:none;font-family:var(--font-body);font-size:.68rem;font-weight:600;cursor:pointer;transition:all .2s;background:transparent;color:var(--muted);}
+  .lp-seg-btn.active{background:var(--bg);color:var(--font);box-shadow:0 1px 3px rgba(0,0,0,.1);}
+  .lp-parc-row{display:flex;gap:8px;}
+  .lp-parc-field{flex:1;display:flex;flex-direction:column;gap:4px;}
+  .lp-parc-field label{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;}
+  .lp-total{font-size:.78rem;color:var(--muted);text-align:right;margin-top:6px;}
+  .lp-total strong{color:var(--font);}
+  .lp-indefinido{background:var(--kp);border-radius:10px;padding:10px 12px;font-size:.78rem;color:var(--muted);line-height:1.5;}
   .empty{text-align:center;color:var(--muted);font-size:.9rem;padding:40px 0;}
 
   /* ── ADD SCREEN ── */
   .add-tipo-row{flex-shrink:0;display:flex;}
-  .add-tipo-btn{flex:1;border:none;cursor:pointer;font-family:var(--font-body);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:10px 0;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;}
+  .add-tipo-btn{flex:1;border:none;cursor:pointer;font-family:var(--font-body);font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:6px 0;display:flex;align-items:center;justify-content:center;gap:4px;transition:all .2s;}
   .add-tipo-btn.saida-on{background:var(--red);color:#fff;}
   .add-tipo-btn.saida-off{background:var(--bg);color:var(--muted);}
   .add-tipo-btn.entrada-on{background:var(--accent2);color:#fff;}
@@ -351,12 +357,7 @@
       </button>
       <div class="logo">fluxo</div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <div id="consolidado-toggle" style="display:none;align-items:center;gap:6px;cursor:pointer;" onclick="toggleConsolidado()">
-        <div class="tx-check on" id="consol-check"><span class="tx-check-ic">✓</span></div>
-      </div>
-      <div class="user-tag" id="user-tag">ALE</div>
-    </div>
+    <div class="user-tag" id="user-tag">ALE</div>
   </header>
 
   <!-- DASHBOARD -->
@@ -384,6 +385,9 @@
     <div class="add-tipo-row">
       <button class="add-tipo-btn saida-on" id="btn-saida" onclick="setTransType('saída')">↓ Saída</button>
       <button class="add-tipo-btn entrada-off" id="btn-entrada" onclick="setTransType('entrada')">↑ Entrada</button>
+      <div id="consol-check" class="tx-check on" onclick="toggleConsolidado()" style="width:56px;height:100%;border-radius:0;border:none;border-left:1px solid var(--border);background:var(--kp-dark);flex-shrink:0;">
+        <span class="tx-check-ic" style="font-size:.75rem;">✓</span>
+      </div>
     </div>
     <!-- Valor -->
     <div class="add-valor-row" onclick="exitFieldsMode()">
@@ -439,23 +443,58 @@
         <!-- dropdown conta slot -->
         <div id="drop-conta" style="display:none"></div>
 
-        <!-- PARCELAR -->
-        <div class="parcel-card" id="parcel-card" onclick="toggleParcel()">
-          <span class="parcel-card-ic">📆</span>
-          <span class="parcel-card-label">Parcelar</span>
-          <button class="parcel-card-toggle off" id="parcel-toggle"></button>
+        <!-- MODO DE LANÇAMENTO -->
+        <div class="launch-seg">
+          <button class="launch-seg-btn active" onclick="setLaunchMode('normal',this)">Normal</button>
+          <button class="launch-seg-btn" onclick="setLaunchMode('parcelar',this)">Parcelar</button>
+          <button class="launch-seg-btn" onclick="setLaunchMode('avancado',this)">Avançado</button>
         </div>
-        <div id="parcel-fields" style="display:none">
-          <div class="parcel-fields">
-            <div class="parcel-row">
-              <div class="parcel-lbl">Parcela início</div>
-              <input class="parcel-input" id="parc-ini" type="number" min="1" value="1" inputmode="numeric">
+
+        <!-- NORMAL -->
+        <div class="launch-panel active" id="lp-normal"></div>
+
+        <!-- PARCELAR -->
+        <div class="launch-panel" id="lp-parcelar">
+          <div class="lp-card">
+            <div class="lp-label">Parcelas</div>
+            <div class="lp-parc-row">
+              <div class="lp-parc-field"><label>De</label><input class="lp-input wide" id="parc-ini" type="number" min="1" value="1" inputmode="numeric"></div>
+              <div class="lp-parc-field"><label>Até</label><input class="lp-input wide" id="parc-fim" type="number" min="2" placeholder="Ex: 6" inputmode="numeric" oninput="updParcelTotal()"></div>
             </div>
-            <div class="parcel-row">
-              <div class="parcel-lbl">Parcela fim</div>
-              <input class="parcel-input" id="parc-fim" type="number" min="2" value="" placeholder="Ex: 6" inputmode="numeric" oninput="updParcelTotal()">
+            <div class="lp-total" id="parc-total"></div>
+          </div>
+        </div>
+
+        <!-- AVANÇADO -->
+        <div class="launch-panel" id="lp-avancado">
+          <div class="lp-card">
+            <div class="lp-label">Intervalo entre pagamentos</div>
+            <div class="lp-row">
+              <input class="lp-input" id="adv-int-qty" type="number" min="1" value="1" inputmode="numeric">
+              <div class="lp-seg">
+                <button class="lp-seg-btn" onclick="setAdvInt(this,'dia')">Dia</button>
+                <button class="lp-seg-btn" onclick="setAdvInt(this,'semana')">Sem.</button>
+                <button class="lp-seg-btn active" onclick="setAdvInt(this,'mes')">Mês</button>
+                <button class="lp-seg-btn" onclick="setAdvInt(this,'ano')">Ano</button>
+              </div>
             </div>
-            <div class="parcel-total" id="parc-total"></div>
+          </div>
+          <div class="lp-card">
+            <div class="lp-label">Período</div>
+            <div class="lp-seg" style="margin-bottom:10px;">
+              <button class="lp-seg-btn active" onclick="setAdvPeriod(this,'parcelado')">Parcelado</button>
+              <button class="lp-seg-btn" onclick="setAdvPeriod(this,'indefinido')">Indefinido</button>
+            </div>
+            <div id="adv-period-parc">
+              <div class="lp-parc-row">
+                <div class="lp-parc-field"><label>De</label><input class="lp-input wide" id="adv-parc-ini" type="number" min="1" value="1" inputmode="numeric"></div>
+                <div class="lp-parc-field"><label>Até</label><input class="lp-input wide" id="adv-parc-fim" type="number" min="2" placeholder="Ex: 12" inputmode="numeric" oninput="updAdvTotal()"></div>
+              </div>
+              <div class="lp-total" id="adv-total"></div>
+            </div>
+            <div id="adv-period-indef" style="display:none">
+              <div class="lp-indefinido">📆 Serão lançadas todas as ocorrências nos próximos <strong>12 meses</strong> a partir da data escolhida.</div>
+            </div>
           </div>
         </div>
       </div>
@@ -469,11 +508,12 @@
   <!-- HISTORY -->
   <div class="screen" id="screen-hist">
     <div style="margin-top:8px">
-      <div class="period-tabs">
+      <div class="period-tabs" style="flex-wrap:wrap;">
         <button class="period-tab active" onclick="setPeriod('mes',this)">Este mês</button>
         <button class="period-tab" onclick="setPeriod('3m',this)">3 meses</button>
         <button class="period-tab" onclick="setPeriod('ano',this)">Este ano</button>
         <button class="period-tab" onclick="setPeriod('tudo',this)">Tudo</button>
+        <button class="period-tab" onclick="setPeriod('futuras',this)">📆 Futuras</button>
       </div>
       <div class="filter-row" id="cat-filters"></div>
       <div class="tx-list" id="hist-list"><div class="empty">Carregando…</div></div>
@@ -586,7 +626,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='2.0';
+const APP_VERSION='2.5';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -993,42 +1033,84 @@ function resetConsolidado(){
   if(chk){ chk.className = 'tx-check on'; }
 }
 
-// ── PARCELAMENTO ──
-let isParcel = false;
-function toggleParcel(){
-  isParcel = !isParcel;
-  const tog = document.getElementById('parcel-toggle');
-  const fields = document.getElementById('parcel-fields');
-  const card = document.getElementById('parcel-card');
-  if(tog) tog.className = 'parcel-card-toggle '+(isParcel?'on':'off');
-  if(fields) fields.style.display = isParcel?'block':'none';
-  if(card) card.className = 'parcel-card'+(isParcel?' active':'');
-  updParcelTotal();
+// ── MODO DE LANÇAMENTO ──
+let launchMode='normal'; // 'normal' | 'parcelar' | 'avancado'
+let advInt='mes';        // 'dia' | 'semana' | 'mes' | 'ano'
+let advPeriod='parcelado'; // 'parcelado' | 'indefinido'
+
+function setLaunchMode(mode, el){
+  launchMode=mode;
+  document.querySelectorAll('.launch-seg-btn').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.querySelectorAll('.launch-panel').forEach(p=>p.classList.remove('active'));
+  const lp=document.getElementById('lp-'+mode);if(lp)lp.classList.add('active');
+  // parcelar ou avancado = não consolidado
+  if(mode!=='normal'){
+    isConsolidado=false;
+    const chk=document.getElementById('consol-check');
+    if(chk)chk.className='tx-check off';
+  } else {
+    isConsolidado=true;
+    const chk=document.getElementById('consol-check');
+    if(chk)chk.className='tx-check on';
+  }
+  updParcelTotal();updAdvTotal();
 }
+
+function setAdvInt(el,unit){
+  advInt=unit;
+  document.querySelectorAll('.lp-seg-btn[onclick*="setAdvInt"]').forEach(b=>b.classList.remove('active'));
+  if(el)el.classList.add('active');
+  updAdvTotal();
+}
+
+function setAdvPeriod(el,type){
+  advPeriod=type;
+  document.querySelectorAll('.lp-seg-btn[onclick*="setAdvPeriod"]').forEach(b=>b.classList.remove('active'));
+  if(el)el.classList.add('active');
+  const pp=document.getElementById('adv-period-parc');
+  const pi=document.getElementById('adv-period-indef');
+  if(pp)pp.style.display=type==='parcelado'?'block':'none';
+  if(pi)pi.style.display=type==='indefinido'?'block':'none';
+  updAdvTotal();
+}
+
 function updParcelTotal(){
-  if(!isParcel) return;
-  const ini = parseInt(document.getElementById('parc-ini')?.value)||1;
-  const fim = parseInt(document.getElementById('parc-fim')?.value)||0;
-  const tot = document.getElementById('parc-total');
-  if(!tot) return;
-  if(fim < ini+1){ tot.textContent=''; return; }
-  const qty = fim - ini + 1;
-  const each = amountCents/100;
-  const total = each * qty;
-  tot.textContent = `${qty} parcelas × R$ ${each.toLocaleString('pt-BR',{minimumFractionDigits:2})} = R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
+  if(launchMode!=='parcelar')return;
+  const ini=parseInt(document.getElementById('parc-ini')?.value)||1;
+  const fim=parseInt(document.getElementById('parc-fim')?.value)||0;
+  const tot=document.getElementById('parc-total');if(!tot)return;
+  if(fim<ini+1){tot.innerHTML='';return;}
+  const qty=fim-ini+1,each=amountCents/100,total=each*qty;
+  tot.innerHTML=`<strong>${qty} parcelas</strong> × R$ ${each.toLocaleString('pt-BR',{minimumFractionDigits:2})} = R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
 }
+
+function updAdvTotal(){
+  if(launchMode!=='avancado')return;
+  const tot=document.getElementById('adv-total');if(!tot)return;
+  if(advPeriod==='indefinido'){tot.innerHTML='<strong>12 meses</strong> de ocorrências';return;}
+  const ini=parseInt(document.getElementById('adv-parc-ini')?.value)||1;
+  const fim=parseInt(document.getElementById('adv-parc-fim')?.value)||0;
+  if(fim<ini+1){tot.innerHTML='';return;}
+  const qty=fim-ini+1,intQty=parseInt(document.getElementById('adv-int-qty')?.value)||1;
+  const units={'dia':'dia(s)','semana':'semana(s)','mes':'mês(es)','ano':'ano(s)'};
+  const each=amountCents/100,total=each*qty;
+  tot.innerHTML=`<strong>${qty} ocorrências</strong> a cada ${intQty} ${units[advInt]||advInt} · Total R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
+}
+
 function resetParcel(){
-  isParcel = false;
-  const tog = document.getElementById('parcel-toggle');
-  const fields = document.getElementById('parcel-fields');
-  const card = document.getElementById('parcel-card');
-  if(tog) tog.className = 'parcel-card-toggle off';
-  if(fields) fields.style.display = 'none';
-  if(card) card.className = 'parcel-card';
-  const ini = document.getElementById('parc-ini'); if(ini) ini.value=1;
-  const fim = document.getElementById('parc-fim'); if(fim) fim.value='';
-  const tot = document.getElementById('parc-total'); if(tot) tot.textContent='';
+  setLaunchMode('normal',document.querySelector('.launch-seg-btn'));
+  const ini=document.getElementById('parc-ini');if(ini)ini.value=1;
+  const fim=document.getElementById('parc-fim');if(fim)fim.value='';
+  const tot=document.getElementById('parc-total');if(tot)tot.innerHTML='';
+  const ai=document.getElementById('adv-parc-ini');if(ai)ai.value=1;
+  const af=document.getElementById('adv-parc-fim');if(af)af.value='';
+  const at=document.getElementById('adv-total');if(at)at.innerHTML='';
+  const iq=document.getElementById('adv-int-qty');if(iq)iq.value=1;
+  advInt='mes';advPeriod='parcelado';launchMode='normal';
 }
+
+
 
 // ── FIELDS MODE ──
 function enterFieldsMode(){
@@ -1179,9 +1261,7 @@ function logout(){currentUser=null;allData=[];document.getElementById('app').cla
 // ── NAV ──
 function goScreen(name){
   try{exitFieldsMode();}catch(e){}
-  // show consolidado toggle only on add screen
-  const ct=document.getElementById('consolidado-toggle');
-  if(ct) ct.style.display=name==='add'?'flex':'none';
+  // no-op: consolidado is now in the valor row
   if(name==='add'){
     // pre-fill conta with default
     const def=getDefaultAccount();
@@ -1291,6 +1371,7 @@ function updVal(){
   if(!el)return;
   if(!opPending){el.textContent='R$ '+(amountCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});}
   else{const f=(prevCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});const s=displayMode==='inteiro'?(secondInt>0?String(secondInt):''):(amountCents>0?(amountCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2}):'');el.textContent=f+' '+opPending+(s?' '+s:'');}
+  updParcelTotal();updAdvTotal();
 }
 function setTransType(t){
   txType=t;
@@ -1316,22 +1397,56 @@ async function saveTransaction(){
   const baseDate=window._selectedDate||(()=>{const n=new Date();return `${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`;})();
   const [bd,bm,by]=baseDate.split('/').map(Number);
 
-  // parcelamento
+  // modo de lançamento
   const parcIni=parseInt(document.getElementById('parc-ini')?.value)||1;
   const parcFim=parseInt(document.getElementById('parc-fim')?.value)||0;
-  const doParcel=isParcel&&parcFim>=parcIni+1;
-  const qty=doParcel?(parcFim-parcIni+1):1;
-  const consol=doParcel?false:isConsolidado; // parcelado = não consolidado
+  const doParcel=launchMode==='parcelar'&&parcFim>=parcIni+1;
+  const doAdv=launchMode==='avancado';
+
+  // calc occurrences for avancado
+  let advQty=1,advDates=[];
+  if(doAdv){
+    const intQty=parseInt(document.getElementById('adv-int-qty')?.value)||1;
+    const [bd2,bm2,by2]=baseDate.split('/').map(Number);
+    const baseD=new Date(by2,bm2-1,bd2);
+    const advIni=parseInt(document.getElementById('adv-parc-ini')?.value)||1;
+    const advFim=advPeriod==='indefinido'?null:(parseInt(document.getElementById('adv-parc-fim')?.value)||1);
+    const maxOcc=advPeriod==='indefinido'?365:((advFim||advIni)-advIni+1);
+    const msMap={'dia':86400000,'semana':604800000,'mes':null,'ano':null};
+    for(let i=0;i<maxOcc;i++){
+      const n=advIni-1+i;
+      let d=new Date(baseD);
+      if(advInt==='dia')d=new Date(baseD.getTime()+n*intQty*86400000);
+      else if(advInt==='semana')d=new Date(baseD.getTime()+n*intQty*7*86400000);
+      else if(advInt==='mes'){d=new Date(by2,bm2-1+n*intQty,bd2);}
+      else if(advInt==='ano'){d=new Date(by2+n*intQty,bm2-1,bd2);}
+      // stop if > 1 year for indefinido
+      if(advPeriod==='indefinido'){const limit=new Date(baseD);limit.setFullYear(limit.getFullYear()+1);if(d>limit)break;}
+      advDates.push(`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`);
+    }
+    advQty=advDates.length;
+  }
+
+  const qty=doParcel?(parcFim-parcIni+1):doAdv?advQty:1;
+  const consol=(!doParcel&&!doAdv)?isConsolidado:false;
 
   const rows=[];
   for(let i=0;i<qty;i++){
-    const parcN=parcIni+i;
-    // advance month
-    const d=new Date(by,bm-1+i,bd);
-    const dateStr=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
-    const parcDesc=doParcel?`${displayDesc} (${parcN}/${parcFim})`:displayDesc;
-    const val=(amountCents/100).toFixed(2).replace('.',',');
-    rows.push({date:dateStr,desc:parcDesc,value:amountCents/100,cat,tipo,account:acc,type:txType,consolidated:doParcel?false:consol});
+    let dateStr,parcDesc;
+    if(doParcel){
+      const parcN=parcIni+i;
+      const d=new Date(by,bm-1+i,bd);
+      dateStr=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+      parcDesc=`${displayDesc} (${parcN}/${parcFim})`;
+    } else if(doAdv){
+      dateStr=advDates[i];
+      const advIni2=parseInt(document.getElementById('adv-parc-ini')?.value)||1;
+      const advFim2=advPeriod==='indefinido'?advQty:(parseInt(document.getElementById('adv-parc-fim')?.value)||advQty);
+      parcDesc=`${displayDesc} (${advIni2+i}/${advFim2})`;
+    } else {
+      dateStr=baseDate;parcDesc=displayDesc;
+    }
+    rows.push({date:dateStr,desc:parcDesc,value:amountCents/100,cat,tipo,account:acc,type:txType,consolidated:consol});
   }
 
   try{
@@ -1346,7 +1461,7 @@ async function saveTransaction(){
   amountCents=0;opPending=null;prevCents=0;displayMode='reais';secondInt=0;updVal();
   document.getElementById('tx-desc').value='';
   selTipo=null;selCat=null;selConta=null;window._selectedDate=null;
-  exitFieldsMode();resetConsolidado();resetParcel();
+  exitFieldsMode();resetConsolidado();resetParcel();launchMode='normal';
   const _ft=document.getElementById('fv-tipo');if(_ft){_ft.textContent='Pasta';_ft.classList.add('ph');}
   const _fc=document.getElementById('fv-cat');if(_fc){_fc.textContent='Categoria';_fc.classList.add('ph');}
   const _fco=document.getElementById('fv-conta');if(_fco){_fco.textContent='Conta';_fco.classList.add('ph');}
@@ -1381,8 +1496,8 @@ function seedDemo(){
 }
 function parseDate(s){if(!s)return null;const p=s.split('/');return p.length===3?new Date(p[2],p[1]-1,p[0]):new Date(s);}
 function getFiltered(period,cat){
-  const now=new Date();
-  return allData.filter(tx=>{const d=parseDate(tx.date);if(!d)return false;let ok=true;if(period==='mes')ok=d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();else if(period==='3m'){const m=new Date(now);m.setMonth(m.getMonth()-3);ok=d>=m;}else if(period==='ano')ok=d.getFullYear()===now.getFullYear();return ok&&((!cat||cat==='Todas')||tx.cat===cat);});
+  const now=new Date();const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  return allData.filter(tx=>{const d=parseDate(tx.date);if(!d)return false;let ok=true;if(period==='mes')ok=d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();else if(period==='3m'){const m=new Date(now);m.setMonth(m.getMonth()-3);ok=d>=m;}else if(period==='ano')ok=d.getFullYear()===now.getFullYear();else if(period==='futuras')ok=d>today;return ok&&((!cat||cat==='Todas')||tx.cat===cat);});
 }
 function renderDash(){
   const data=getFiltered('mes',null);let totalIn=0,totalOut=0;
