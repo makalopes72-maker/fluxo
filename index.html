@@ -776,17 +776,21 @@ function buildTiposEditor(){
 
 // ── FIELDS MODE ──
 function enterFieldsMode(){
-  const sa=document.getElementById('screen-add');
-  if(!sa||sa.classList.contains('fields-mode'))return;
-  sa.classList.add('fields-mode');
-  const fw=document.getElementById('add-fields-wrap');
-  if(fw) fw.scrollTop=0;
+  try{
+    const sa=document.getElementById('screen-add');
+    if(!sa||sa.classList.contains('fields-mode'))return;
+    sa.classList.add('fields-mode');
+    const fw=document.getElementById('add-fields-wrap');
+    if(fw) fw.scrollTop=0;
+  }catch(e){}
 }
 function exitFieldsMode(){
-  const sa=document.getElementById('screen-add');
-  if(sa) sa.classList.remove('fields-mode');
-  document.activeElement?.blur();
-  closeDrop();
+  try{
+    const sa=document.getElementById('screen-add');
+    if(sa) sa.classList.remove('fields-mode');
+    if(document.activeElement) document.activeElement.blur();
+    closeDrop();
+  }catch(e){}
 }
 
 // ── CLICK SOUND (Web Audio API) ──
@@ -916,7 +920,7 @@ function logout(){currentUser=null;allData=[];document.getElementById('app').cla
 
 // ── NAV ──
 function goScreen(name){
-  exitFieldsMode();
+  try{exitFieldsMode();}catch(e){}
   if(name==='add'){
     // pre-fill conta with default
     const def=getDefaultAccount();
@@ -946,7 +950,7 @@ function setTodayDate(){
 function onDateChange(val){
   if(!val)return;
   const [y,m,d]=val.split('-');
-  document.getElementById('add-date').textContent=`${d}/${m}/${y}`;
+  const _dd=document.getElementById('add-date');if(_dd)_dd.textContent=`${d}/${m}/${y}`;
   // store selected date for use in save
   window._selectedDate=`${d}/${m}/${y}`;
 }
@@ -1022,12 +1026,14 @@ function kp(k){
 }
 function updVal(){
   const el=document.getElementById('add-vnum');
+  if(!el)return;
   if(!opPending){el.textContent='R$ '+(amountCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});}
   else{const f=(prevCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});const s=displayMode==='inteiro'?(secondInt>0?String(secondInt):''):(amountCents>0?(amountCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2}):'');el.textContent=f+' '+opPending+(s?' '+s:'');}
 }
 function setTransType(t){
   txType=t;
   const va=document.getElementById('add-varea'),bs=document.getElementById('btn-saida'),be=document.getElementById('btn-entrada'),sb=document.getElementById('btn-save'),lbl=document.getElementById('add-vlbl');
+  if(!va||!bs||!be||!sb||!lbl)return;
   if(t==='saída'){va.className='add-valor-area c-saida';bs.className='add-tipo-btn saida-on';be.className='add-tipo-btn entrada-off';lbl.textContent='Nova despesa';sb.style.background='var(--btn)';}
   else{va.className='add-valor-area c-entrada';be.className='add-tipo-btn entrada-on';bs.className='add-tipo-btn saida-off';lbl.textContent='Nova entrada';sb.style.background='#10b981';}
 }
@@ -1044,6 +1050,7 @@ async function saveTransaction(){
   const value=(amountCents/100).toFixed(2).replace('.',',');
   const displayDesc=desc||(selCat||selTipo||'Transação');
   const btn=document.getElementById('btn-save');
+  if(!btn)return;
   btn.disabled=true;btn.textContent='Salvando…';
   allData.push({_row:allData.length+2,date,desc:displayDesc,value:amountCents/100,cat,tipo,account:acc,type:txType});
   try{
