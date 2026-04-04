@@ -134,6 +134,26 @@
   .add-tipo-btn.saida-off{background:var(--bg);color:var(--muted);}
   .add-tipo-btn.entrada-on{background:var(--accent2);color:#fff;}
   .add-tipo-btn.entrada-off{background:var(--bg);color:var(--muted);}
+  .add-tipo-btn.transf-on{background:#7c3aed;color:#fff;}
+  .add-tipo-btn.transf-off{background:var(--bg);color:var(--muted);}
+  .add-valor-area.c-transf{background:#7c3aed;}
+  /* TRANSFER FIELDS */
+  .transf-fields{display:flex;flex-direction:column;gap:7px;}
+  .transf-side{background:var(--card);border-radius:12px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+  .transf-side-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:8px;}
+  .transf-side-label.origem{color:#7c3aed;}
+  .transf-side-label.destino{color:#059669;}
+  .transf-seg{display:flex;background:var(--kp);border-radius:9px;padding:2px;gap:2px;margin-bottom:8px;}
+  .transf-seg-btn{flex:1;padding:6px 4px;border-radius:7px;border:none;font-family:var(--font-body);font-size:.72rem;font-weight:600;cursor:pointer;background:transparent;color:var(--muted);transition:all .2s;}
+  .transf-seg-btn.active{background:var(--bg);color:var(--font);box-shadow:0 1px 3px rgba(0,0,0,.1);}
+  .transf-drop{background:var(--kp);border-radius:10px;padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;}
+  .transf-drop-val{flex:1;font-size:.88rem;font-weight:500;color:var(--font);}
+  .transf-drop-val.ph{color:var(--muted);}
+  .transf-drop-arr{font-size:.8rem;color:var(--muted);}
+  .transf-arrow{text-align:center;font-size:1.3rem;color:#7c3aed;margin:2px 0;}
+  /* TX extrato transferência */
+  .tx-item.transf-tx{border-left:3px solid #7c3aed;}
+  .tx-transf-route{font-size:.72rem;color:#7c3aed;margin-top:2px;font-weight:600;}
 
   .add-valor-row{flex-shrink:0;display:flex;align-items:stretch;}
   .add-valor-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 8px 10px;transition:background .2s;}
@@ -618,7 +638,8 @@
     <div class="add-tipo-row">
       <button class="add-tipo-btn saida-on" id="btn-saida" onclick="setTransType('saída')">↓ Saída</button>
       <button class="add-tipo-btn entrada-off" id="btn-entrada" onclick="setTransType('entrada')">↑ Entrada</button>
-      <div id="consol-check" class="tx-check on" onclick="toggleConsolidado()" style="width:56px;height:100%;border-radius:0;border:none;border-left:1px solid var(--border);background:var(--kp-dark);flex-shrink:0;">
+      <button class="add-tipo-btn transf-off" id="btn-transf" onclick="setTransType('transferência')">⇄ Transf.</button>
+      <div id="consol-check" class="tx-check on" onclick="toggleConsolidado()" style="width:46px;height:100%;border-radius:0;border:none;border-left:1px solid var(--border);background:var(--kp-dark);flex-shrink:0;">
         <span class="tx-check-ic" style="font-size:.75rem;">✓</span>
       </div>
     </div>
@@ -664,13 +685,13 @@
         <!-- dropdown tipo/cat slot -->
         <div id="drop-main" style="display:none"></div>
         <!-- Data + Conta em linha -->
-        <div class="fields-row">
+        <div class="fields-row" id="date-conta-row">
           <div class="field-cell" onclick="openDatePicker('date-input')">
             <span class="field-ic">📅</span>
             <span class="field-val" id="add-date">—</span>
             <input type="date" id="date-input" lang="pt-BR" tabindex="-1" style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;" onchange="onDateChange(this.value)">
           </div>
-          <div class="field-cell" id="fc-conta" onclick="enterFieldsMode();toggleDrop('conta')">
+          <div class="field-cell" id="fc-conta-cell" onclick="enterFieldsMode();toggleDrop('conta')">
             <span class="field-ic">🏦</span>
             <span class="field-val ph" id="fv-conta">Conta</span>
             <span class="field-arr">›</span>
@@ -730,6 +751,38 @@
             </div>
             <div id="adv-period-indef" style="display:none">
               <div class="lp-indefinido">📆 Serão lançadas todas as ocorrências nos próximos <strong>12 meses</strong> a partir da data escolhida.</div>
+            </div>
+          </div>
+        </div>
+        <!-- TRANSFERÊNCIA FIELDS (shown when type=transferência) -->
+        <div id="transf-panel" style="display:none;">
+          <div class="transf-fields">
+            <div class="transf-side">
+              <div class="transf-side-label origem">↑ Origem — sai daqui</div>
+              <div class="transf-seg">
+                <button class="transf-seg-btn active" onclick="setTransfSide('origem','conta',this)">Conta</button>
+                <button class="transf-seg-btn" onclick="setTransfSide('origem','invest',this)">Investimento</button>
+              </div>
+              <div class="transf-drop" onclick="openTransfDrop('origem')" id="transf-origem-drop">
+                <span class="field-ic">🏦</span>
+                <span class="transf-drop-val ph" id="transf-origem-val">Selecione a origem</span>
+                <span class="transf-drop-arr">›</span>
+              </div>
+              <div id="transf-origem-panel" style="display:none;margin-top:6px;"></div>
+            </div>
+            <div class="transf-arrow">⇣</div>
+            <div class="transf-side">
+              <div class="transf-side-label destino">↓ Destino — entra aqui</div>
+              <div class="transf-seg">
+                <button class="transf-seg-btn active" onclick="setTransfSide('destino','conta',this)">Conta</button>
+                <button class="transf-seg-btn" onclick="setTransfSide('destino','invest',this)">Investimento</button>
+              </div>
+              <div class="transf-drop" onclick="openTransfDrop('destino')" id="transf-destino-drop">
+                <span class="field-ic">🏦</span>
+                <span class="transf-drop-val ph" id="transf-destino-val">Selecione o destino</span>
+                <span class="transf-drop-arr">›</span>
+              </div>
+              <div id="transf-destino-panel" style="display:none;margin-top:6px;"></div>
             </div>
           </div>
         </div>
@@ -1168,7 +1221,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='4.3';
+const APP_VERSION='5.2';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -1547,14 +1600,33 @@ function buildTiposEditor(){
         <div class="tipo-header-toggle${isOpen?' open':''}">›</div>
       </div>
       <div class="tipo-cats${isOpen?' open':''}">
-        ${t.cats.map((c,i)=>`
-          <div class="tipo-cat-row">
-            <div class="tipo-cat-name${c.active?'':' inactive-cat'}">${c.name}</div>
-            <div class="tipo-cat-actions">
-              <button class="tcat-btn act" onclick="toggleCat('${name.replace(/'/g,"\\'")}',${i})">${c.active?'Inativar':'Ativar'}</button>
-              <button class="tcat-btn del" onclick="deleteCat('${name.replace(/'/g,"\\'")}',${i})">✕</button>
+        ${t.cats.map((c,i)=>{
+          const _safeT=name.replace(/[^a-zA-Z0-9]/g,'_');
+          const _safeC=c.name.replace(/[^a-zA-Z0-9]/g,'_');
+          const _kwInputId='kwinput2_'+_safeT+'_'+_safeC;
+          const _kwCount=(keywordsData[name]?.[c.name]||[]).length;
+          const _openKw=openKwCat===name+'|||'+c.name;
+          const _tSafe=name.replace(/'/g,"\\'");
+          const _cSafe=c.name.replace(/'/g,"\\'");
+          return `<div>
+            <div class="tipo-cat-row">
+              <div class="tipo-cat-name${c.active?'':' inactive-cat'}">${c.name}</div>
+              <div class="tipo-cat-actions">
+                <button class="tcat-btn act" onclick="toggleCat('${_tSafe}',${i})">${c.active?'Inativar':'Ativar'}</button>
+                <button class="tcat-btn del" onclick="deleteCat('${_tSafe}',${i})">✕</button>
+                <button class="kw-icon-btn${_kwCount?' has':''}" onclick="event.stopPropagation();toggleKwPanel('${_tSafe}','${_cSafe}')">🔑${_kwCount?` <span style='font-size:.55rem;font-weight:700;'>${_kwCount}</span>`:''}</button>
+              </div>
             </div>
-          </div>`).join('')}
+            ${_openKw?`<div class="kw-slide">
+              <div class="kw-slide-title">${c.name}</div>
+              <div class="kw-list">${(keywordsData[name]?.[c.name]||[]).map((kw,ki)=>`<span class="kw-tag">${kw}<span class="kw-tag-del" onclick="deleteKw('${_tSafe}','${_cSafe}',${ki})">✕</span></span>`).join('')||'<span style="font-size:.75rem;color:var(--muted)">Nenhuma ainda</span>'}</div>
+              <div class="kw-add-row">
+                <input type="text" id="${_kwInputId}" placeholder="Nova palavra-chave…">
+                <button onclick="addKw('${_tSafe}','${_cSafe}','${_kwInputId}')">+</button>
+              </div>
+            </div>`:''}
+          </div>`;
+        }).join('')}
         <div class="tipo-add-cat">
           <input type="text" id="new-cat-${safeId}" placeholder="Nova categoria…">
           <button onclick="addCat('${name.replace(/'/g,"\\'")}')">+</button>
@@ -1824,6 +1896,69 @@ function resetParcel(){
 }
 
 
+
+// ── TRANSFERÊNCIA ──
+let transfOrigemTipo='conta', transfDestinoTipo='conta';
+let transfOrigem=null, transfDestino=null;
+
+function setTransfSide(side,tipo,el){
+  if(side==='origem') transfOrigemTipo=tipo;
+  else transfDestinoTipo=tipo;
+  // update seg buttons
+  const seg=el.closest('.transf-seg');
+  seg.querySelectorAll('.transf-seg-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  // reset selection
+  if(side==='origem'){transfOrigem=null;const v=document.getElementById('transf-origem-val');if(v){v.textContent='Selecione a origem';v.className='transf-drop-val ph';}}
+  else{transfDestino=null;const v=document.getElementById('transf-destino-val');if(v){v.textContent='Selecione o destino';v.className='transf-drop-val ph';}}
+  const panel=document.getElementById('transf-'+side+'-panel');
+  if(panel)panel.style.display='none';
+}
+
+function openTransfDrop(side){
+  const tipo=side==='origem'?transfOrigemTipo:transfDestinoTipo;
+  const panel=document.getElementById('transf-'+side+'-panel');
+  if(!panel)return;
+  const isOpen=panel.style.display!=='none';
+  // close both first
+  ['origem','destino'].forEach(s=>{const p=document.getElementById('transf-'+s+'-panel');if(p)p.style.display='none';});
+  if(isOpen)return;
+  let items=[];
+  if(tipo==='conta'){
+    items=accounts.filter(a=>a.active).map(a=>({label:a.name,icon:'🏦',id:'conta:'+a.name}));
+  } else {
+    // investimentos
+    instituicoes.forEach(inst=>{
+      inst.ativos.filter(a=>!a.encerrado).forEach(a=>{
+        items.push({label:inst.name+' › '+a.nome,icon:'📈',id:'inv:'+inst.name+':::'+a.nome});
+      });
+    });
+  }
+  panel.innerHTML=`<div class="drop-panel" style="max-height:180px;overflow-y:auto;">${items.map(it=>`<div class="drop-item" onclick="pickTransf('${side}','${it.id.replace(/'/g,"\'")}','${it.label.replace(/'/g,"\'")}','${it.icon}')">${it.icon} ${it.label}</div>`).join('')||'<div class="drop-item" style="color:var(--muted)">Nenhum disponível</div>'}</div>`;
+  panel.style.display='block';
+}
+
+function pickTransf(side,id,label,icon){
+  if(side==='origem'){transfOrigem={id,label,icon};}
+  else{transfDestino={id,label,icon};}
+  const val=document.getElementById('transf-'+side+'-val');
+  if(val){val.textContent=icon+' '+label;val.className='transf-drop-val';}
+  const panel=document.getElementById('transf-'+side+'-panel');
+  if(panel)panel.style.display='none';
+  playClick();
+}
+
+function resetTransfFields(){
+  transfOrigem=null;transfDestino=null;
+  transfOrigemTipo='conta';transfDestinoTipo='conta';
+  const ov=document.getElementById('transf-origem-val');if(ov){ov.textContent='Selecione a origem';ov.className='transf-drop-val ph';}
+  const dv=document.getElementById('transf-destino-val');if(dv){dv.textContent='Selecione o destino';dv.className='transf-drop-val ph';}
+  ['origem','destino'].forEach(s=>{
+    const p=document.getElementById('transf-'+s+'-panel');if(p)p.style.display='none';
+    const seg=document.querySelector('#transf-'+s+'-drop')?.closest('.transf-side')?.querySelector('.transf-seg');
+    if(seg){seg.querySelectorAll('.transf-seg-btn').forEach((b,i)=>b.classList.toggle('active',i===0));}
+  });
+}
 
 // ── FIELDS MODE ──
 function enterFieldsMode(){
@@ -2099,10 +2234,38 @@ function updVal(){
 }
 function setTransType(t){
   txType=t;
-  const va=document.getElementById('add-varea'),bs=document.getElementById('btn-saida'),be=document.getElementById('btn-entrada'),sb=document.getElementById('btn-save'),lbl=document.getElementById('add-vlbl');
+  const va=document.getElementById('add-varea'),bs=document.getElementById('btn-saida'),be=document.getElementById('btn-entrada'),bt=document.getElementById('btn-transf'),sb=document.getElementById('btn-save'),lbl=document.getElementById('add-vlbl');
   if(!va||!bs||!be||!sb||!lbl)return;
-  if(t==='saída'){va.className='add-valor-area c-saida';bs.className='add-tipo-btn saida-on';be.className='add-tipo-btn entrada-off';lbl.textContent='Nova despesa';sb.style.background='var(--btn)';}
-  else{va.className='add-valor-area c-entrada';be.className='add-tipo-btn entrada-on';bs.className='add-tipo-btn saida-off';lbl.textContent='Nova entrada';sb.style.background='#10b981';}
+  // reset all
+  bs.className='add-tipo-btn saida-off';
+  be.className='add-tipo-btn entrada-off';
+  if(bt)bt.className='add-tipo-btn transf-off';
+  // show/hide transf panel and normal fields
+  const tp=document.getElementById('transf-panel');
+  const normalFields=['fc-tipo','fc-cat','drop-main','launch-seg','lp-normal','lp-parcelar','lp-avancado'];
+  const fieldsRow=document.querySelector('.fields-row');
+  if(t==='transferência'){
+    va.className='add-valor-area c-transf';
+    if(bt)bt.className='add-tipo-btn transf-on';
+    lbl.textContent='Transferência';
+    sb.style.background='#7c3aed';
+    sb.style.color='#fff';
+    if(tp)tp.style.display='block';
+    // hide pasta/cat/launch/date+conta
+    document.querySelectorAll('#fc-tipo,#fc-cat,#drop-main,.launch-seg,#lp-normal,#lp-parcelar,#lp-avancado').forEach(el=>{if(el)el.style.display='none';});
+    const contaCell=document.getElementById('fc-conta-cell');if(contaCell)contaCell.style.display='none';
+    const dropConta=document.getElementById('drop-conta');if(dropConta)dropConta.style.display='none';
+    // auto-consolidate
+    isConsolidado=true;
+    const chk=document.getElementById('consol-check');if(chk)chk.className='tx-check on';
+  } else {
+    if(tp)tp.style.display='none';
+    // restore normal fields
+    document.querySelectorAll('#fc-tipo,#fc-cat,.launch-seg,#lp-normal').forEach(el=>{if(el)el.style.display='';});
+    const contaCell=document.getElementById('fc-conta-cell');if(contaCell)contaCell.style.display='';
+    if(t==='saída'){va.className='add-valor-area c-saida';bs.className='add-tipo-btn saida-on';lbl.textContent='Nova despesa';sb.style.background='var(--btn)';sb.style.color='';}
+    else{va.className='add-valor-area c-entrada';be.className='add-tipo-btn entrada-on';lbl.textContent='Nova entrada';sb.style.background='#10b981';sb.style.color='';}
+  }
 }
 
 // ── SAVE ──
@@ -2110,6 +2273,56 @@ async function saveTransaction(){
   if(!amountCents){toast('Digite um valor','error');return;}
   const _descCheck=document.getElementById('tx-desc')?.value.trim();
   if(!_descCheck){toast('Digite uma descrição','error');document.getElementById('tx-desc')?.focus();return;}
+
+  // ── TRANSFERÊNCIA ──
+  if(txType==='transferência'){
+    if(!transfOrigem){toast('Selecione a origem','error');return;}
+    if(!transfDestino){toast('Selecione o destino','error');return;}
+    if(transfOrigem.id===transfDestino.id){toast('Origem e destino iguais','error');return;}
+    const desc=_descCheck;
+    const now=new Date();
+    const date=window._selectedDate||`${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+    const val=amountCents/100;
+    const tId='T'+Date.now();
+    // saída da origem
+    const rowSaida={_row:allData.length+2,date,desc,value:val,cat:'Transferência',tipo:'Transferências',account:transfOrigem.label,type:'saída',consolidated:true,_transferId:tId,_transferRoute:transfOrigem.label+' → '+transfDestino.label};
+    // entrada no destino
+    const rowEntrada={_row:allData.length+3,date,desc,value:val,cat:'Transferência',tipo:'Transferências',account:transfDestino.label,type:'entrada',consolidated:true,_transferId:tId,_transferRoute:transfOrigem.label+' → '+transfDestino.label};
+    allData.push(rowSaida,rowEntrada);
+    // update investimento if involved
+    const updInv=(item,delta)=>{
+      if(!item.id.startsWith('inv:'))return;
+      const parts=item.id.slice(4).split(':::');
+      if(parts.length<2)return;
+      const [instName,ativoNome]=parts;
+      const inst=instituicoes.find(i=>i.name===instName);if(!inst)return;
+      const ativo=inst.ativos.find(a=>a.nome===ativoNome);if(!ativo)return;
+      const prev=getAtivoAtual(ativo);
+      const newVal=prev+delta;
+      const now2=new Date();
+      const ds=String(now2.getDate()).padStart(2,'0')+'/'+String(now2.getMonth()+1).padStart(2,'0')+'/'+now2.getFullYear();
+      ativo.log.push({date:ds,value:newVal,note:delta<0?'Saída via transferência':'Entrada via transferência'});
+      saveInvestimentos();
+    };
+    updInv(transfOrigem,-val);
+    updInv(transfDestino,+val);
+    try{
+      await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'append',row:[date,desc,val.toFixed(2).replace('.',','),'Transferência',transfOrigem.label,'saída','1'],sheet:SHEET_NAME})});
+      await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'append',row:[date,desc,val.toFixed(2).replace('.',','),'Transferência',transfDestino.label,'entrada','1'],sheet:SHEET_NAME})});
+      toast('Transferência realizada!','success');
+    }catch(e){toast('Salvo localmente','');}
+    amountCents=0;opPending=null;prevCents=0;displayMode='reais';secondInt=0;updVal();
+    document.getElementById('tx-desc').value='';
+    window._selectedDate=null;
+    resetTransfFields();exitFieldsMode();resetConsolidado();resetParcel();
+    const _ft=document.getElementById('fv-tipo');if(_ft){_ft.textContent='Pasta';_ft.classList.add('ph');}
+    const _fc=document.getElementById('fv-cat');if(_fc){_fc.textContent='Categoria';_fc.classList.add('ph');}
+    const _fco=document.getElementById('fv-conta');if(_fco){_fco.textContent='Conta';_fco.classList.add('ph');}
+    setTransType('saída');
+    const btn=document.getElementById('btn-save');if(btn){btn.disabled=false;btn.textContent='Salvar transação';}
+    renderDash();setTimeout(()=>goScreen('dash'),600);
+    return;
+  }
   const desc=document.getElementById('tx-desc').value.trim();
   const cat=selCat||selTipo||'Outros';
   const tipo=selTipo||'';
@@ -2374,11 +2587,13 @@ function renderHistory(){
   attachSwipe('hist-list');
 }
 function txHTML(t,idx){
-  const icon=CAT_ICONS[t.cat]||TIPO_ICONS[t.tipo]||'📦';
-  const consol=t.consolidated!==false; // default true
+  const icon=t._transferId?'⇄':(CAT_ICONS[t.cat]||TIPO_ICONS[t.tipo]||'📦');
+  const consol=t.consolidated!==false;
   const checkCls='tx-check '+(consol?'on':'off');
-  const itemCls='tx-item'+(consol?'':' not-consolidated');
-  return `<div class="tx-wrap"><div class="tx-actions"><button class="tx-action-btn tx-action-edit" onclick="openEdit(${idx})"><span class="act-icon">✏️</span>editar</button><button class="tx-action-btn tx-action-del" onclick="deleteTx(${idx})"><span class="act-icon">🗑</span>excluir</button></div><div class="${itemCls}" onclick="openEditFromTap(${idx},event)"><div class="${checkCls}" onclick="toggleTxConsolidado(${idx},event)"><span class="tx-check-ic">✓</span></div><div class="tx-icon">${icon}</div><div class="tx-info"><div class="tx-desc">${t.desc||t.cat}</div><div class="tx-date">${t.date} · ${t.cat} · ${t.account}</div></div><div class="tx-val ${t.type==='entrada'?'in':'out'}">${t.type==='entrada'?'+':'-'}${fmt(t.value)}</div></div></div>`;
+  const isTransf=!!t._transferId;
+  const itemCls='tx-item'+(consol?'':' not-consolidated')+(isTransf?' transf-tx':'');
+  const routeHtml=isTransf?`<div class="tx-transf-route">⇄ ${t._transferRoute||''}</div>`:'';
+  return `<div class="tx-wrap"><div class="tx-actions"><button class="tx-action-btn tx-action-edit" onclick="openEdit(${idx})"><span class="act-icon">✏️</span>editar</button><button class="tx-action-btn tx-action-del" onclick="deleteTx(${idx})"><span class="act-icon">🗑</span>excluir</button></div><div class="${itemCls}" onclick="openEditFromTap(${idx},event)"><div class="${checkCls}" onclick="toggleTxConsolidado(${idx},event)"><span class="tx-check-ic">✓</span></div><div class="tx-icon" style="${isTransf?'background:rgba(124,58,237,.12);color:#7c3aed;':''}">${icon}</div><div class="tx-info"><div class="tx-desc">${t.desc||t.cat}</div><div class="tx-date">${t.date} · ${t.cat} · ${t.account}</div>${routeHtml}</div><div class="tx-val ${t.type==='entrada'?'in':'out'}" style="${isTransf?'color:#7c3aed;':''}">${t.type==='entrada'?'+':'-'}${fmt(t.value)}</div></div></div>`;
 }
 function openEditFromTap(idx,event){
   if(event.target.closest('.tx-check'))return;
