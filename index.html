@@ -203,6 +203,17 @@
   .field input,.field select{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.95rem;outline:none;}
   .field select option{background:var(--card);}
 
+  /* START SCREEN SELECTOR */
+  .start-opt{display:flex;flex-direction:column;gap:8px;}
+  .start-opt-btn{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:2px solid var(--border);background:var(--kp);cursor:pointer;transition:all .2s;font-family:var(--font-body);width:100%;text-align:left;}
+  .start-opt-btn.selected{border-color:var(--btn);background:var(--card);}
+  .start-opt-ic{font-size:1.3rem;flex-shrink:0;}
+  .start-opt-info{flex:1;}
+  .start-opt-label{font-size:.9rem;font-weight:600;color:var(--font);}
+  .start-opt-sub{font-size:.75rem;color:var(--muted);margin-top:2px;}
+  .start-opt-check{font-size:1rem;color:var(--btn);opacity:0;}
+  .start-opt-btn.selected .start-opt-check{opacity:1;}
+
   /* DEFAULT ACCOUNT SELECTOR */
   .default-acct-block{display:flex;flex-direction:column;gap:10px;}
   .default-acct-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
@@ -414,14 +425,29 @@
   <div class="screen" id="screen-cfg">
     <div style="margin-top:8px">
       <!-- SUBMENUS -->
-      <div class="cfg-tabs">
-        <button class="cfg-tab active" onclick="setCfgTab('aparencia',this)">🎨 Aparência</button>
+      <div class="cfg-tabs" style="flex-wrap:wrap;gap:6px;">
+        <button class="cfg-tab active" onclick="setCfgTab('geral',this)">⚙ Geral</button>
+        <button class="cfg-tab" onclick="setCfgTab('aparencia',this)">🎨 Aparência</button>
         <button class="cfg-tab" onclick="setCfgTab('contas',this)">🏦 Contas</button>
         <button class="cfg-tab" onclick="setCfgTab('tipos',this)">🗂 Pastas</button>
       </div>
 
+      <!-- GERAL -->
+      <div class="cfg-panel active" id="cfgp-geral">
+        <div class="cfg-block">
+          <div class="cfg-block-title">Tela inicial</div>
+          <div id="start-screen-ui"></div>
+        </div>
+        <div class="cfg-block">
+          <div class="cfg-block-title">App</div>
+          <div class="setting-row"><div><div class="setting-label">Usuário ativo</div></div><div class="setting-val" id="cfg-user2">—</div></div>
+          <div class="setting-row"><div><div class="setting-label">Planilha Google Sheets</div><div class="setting-sub">Conectada e sincronizada</div></div><div class="setting-val">✓</div></div>
+          <div class="setting-row"><div><div class="setting-label">Versão</div></div><div class="setting-val">1.9.0</div></div>
+        </div>
+      </div>
+
       <!-- APARÊNCIA -->
-      <div class="cfg-panel active" id="cfgp-aparencia">
+      <div class="cfg-panel" id="cfgp-aparencia">
         <div class="cfg-block">
           <div class="cfg-block-title">Paletas prontas</div>
           <div class="palette-grid" id="palette-grid"></div>
@@ -434,12 +460,7 @@
           <div class="cfg-block-title">Fonte</div>
           <div class="font-list" id="font-list"></div>
         </div>
-        <div class="cfg-block">
-          <div class="cfg-block-title">App</div>
-          <div class="setting-row"><div><div class="setting-label">Usuário ativo</div></div><div class="setting-val" id="cfg-user">—</div></div>
-          <div class="setting-row"><div><div class="setting-label">Planilha Google Sheets</div><div class="setting-sub">Conectada e sincronizada</div></div><div class="setting-val">✓</div></div>
-          <div class="setting-row"><div><div class="setting-label">Versão</div></div><div class="setting-val">1.9.0</div></div>
-        </div>
+
       </div>
 
       <!-- CONTAS -->
@@ -658,6 +679,7 @@ function setCfgTab(tab, el){
   document.querySelectorAll('.cfg-panel').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('cfgp-'+tab).classList.add('active');
+  if(tab==='geral') buildStartScreenUI();
   if(tab==='tipos') buildTiposEditor();
   if(tab==='contas') buildAccountsUI();
 }
@@ -781,6 +803,37 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
 });
 
+// ── START SCREEN ──
+const START_OPTIONS=[
+  {id:'dash', label:'Início',      sub:'Dashboard com saldo e resumo', ic:'◎'},
+  {id:'add',  label:'Lançar',      sub:'Abre direto na tela de transação', ic:'＋'},
+  {id:'hist', label:'Histórico',   sub:'Lista de todas as transações', ic:'≡'},
+];
+let startScreen='dash';
+
+function loadStartScreen(){try{startScreen=localStorage.getItem('fluxo_start')||'dash';}catch(e){}}
+function saveStartScreen(){try{localStorage.setItem('fluxo_start',startScreen);}catch(e){}}
+
+function setStartScreen(id){
+  startScreen=id;
+  saveStartScreen();
+  buildStartScreenUI();
+}
+
+function buildStartScreenUI(){
+  const el=document.getElementById('start-screen-ui');if(!el)return;
+  el.innerHTML=`<div class="start-opt">${START_OPTIONS.map(o=>`
+    <button class="start-opt-btn${startScreen===o.id?' selected':''}" onclick="setStartScreen('${o.id}')">
+      <span class="start-opt-ic">${o.ic}</span>
+      <div class="start-opt-info">
+        <div class="start-opt-label">${o.label}</div>
+        <div class="start-opt-sub">${o.sub}</div>
+      </div>
+      <span class="start-opt-check">✓</span>
+    </button>`).join('')}
+  </div>`;
+}
+
 // ── DEFAULT ACCOUNTS ──
 let defaultAccounts={ALE:'',SI:''};
 
@@ -840,8 +893,8 @@ function login(u){
   document.getElementById('app').classList.add('visible');
   document.getElementById('user-tag').textContent=u;
   document.getElementById('menu-user').textContent=u;
-  document.getElementById('cfg-user').textContent=u;
-  loadAccounts();loadDefaultAccounts();initTiposData();setTodayDate();buildSettings();loadData();
+  document.getElementById('cfg-user').textContent=u;const cu2=document.getElementById('cfg-user2');if(cu2)cu2.textContent=u;
+  loadAccounts();loadDefaultAccounts();loadStartScreen();initTiposData();setTodayDate();buildSettings();buildStartScreenUI();loadData();setTimeout(()=>goScreen(startScreen),100);
 }
 function logout(){currentUser=null;allData=[];document.getElementById('app').classList.remove('visible');document.getElementById('splash').style.display='flex';closeMenu();}
 
