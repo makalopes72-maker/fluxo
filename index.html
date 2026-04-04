@@ -266,11 +266,13 @@
   .inv-add-btn{width:100%;padding:12px;border-radius:12px;border:1.5px dashed var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.88rem;cursor:pointer;margin-top:4px;}
 
   /* CARTEIRA (lista de ativos) */
-  .cart-header{flex-shrink:0;background:var(--font);padding:14px 16px;}
-  .cart-back{font-size:.8rem;color:rgba(255,255,255,.6);cursor:pointer;margin-bottom:4px;}
-  .cart-title{font-size:1.1rem;font-weight:700;color:#fff;font-family:var(--font-display);}
-  .cart-sub{font-size:.75rem;color:rgba(255,255,255,.5);margin-top:2px;}
-  .cart-val{font-size:1.4rem;font-weight:700;color:#fff;margin-top:8px;letter-spacing:-1px;}
+  .cart-header{flex-shrink:0;background:var(--font);padding:12px 16px 16px;}
+  .cart-header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .cart-back{font-size:.88rem;font-weight:600;color:rgba(255,255,255,.7);cursor:pointer;display:inline-flex;align-items:center;gap:4px;}
+  .cart-title{font-size:1.3rem;font-weight:700;color:#fff;font-family:var(--font-display);line-height:1;text-align:right;}
+  .cart-header-bottom{display:flex;justify-content:space-between;align-items:flex-end;}
+  .cart-sub{font-size:.75rem;color:rgba(255,255,255,.45);}
+  .cart-val{font-size:1.6rem;font-weight:700;color:#fff;letter-spacing:-1px;line-height:1;text-align:right;}
   .ativo-card{background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:8px;cursor:pointer;border:1px solid var(--border);}
   .ativo-card:active{opacity:.8;}
   .ativo-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
@@ -281,11 +283,29 @@
   .badge-fi{background:rgba(59,130,246,.1);color:#2563eb;}
   .badge-pp{background:rgba(139,92,246,.1);color:#7c3aed;}
   .ativo-vals{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
-  .av-item{background:var(--kp);border-radius:8px;padding:7px 10px;}
+  .av-item{background:var(--kp);border-radius:8px;padding:8px 10px;}
+  .av-item.dark{background:var(--font);border-radius:8px;padding:8px 10px;}
   .av-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:2px;}
-  .av-val{font-size:.9rem;font-weight:700;color:var(--font);}
+  .av-lbl.white{color:rgba(255,255,255,.5);}
+  .av-val{font-size:.92rem;font-weight:700;color:var(--font);}
+  .av-val.white{color:#fff;}
   .av-val.pos{color:var(--accent2);}
   .av-val.neg{color:var(--red);}
+  .av-sub{font-size:.68rem;color:var(--muted);margin-top:4px;}
+  .av-sub.white{color:rgba(255,255,255,.4);}
+  .ativo-rend{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
+  .ar-item{background:var(--kp);border-radius:8px;padding:8px 10px;}
+  .ar-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:2px;}
+  .ar-val{font-size:.92rem;font-weight:700;}
+  .ar-val.pos{color:var(--accent2);}
+  .ar-val.neg{color:var(--red);}
+  .ativo-divider{height:1px;background:var(--border);margin:6px 0 8px;}
+  .ativo-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;}
+  .as-item{background:var(--kp);border-radius:8px;padding:7px 10px;}
+  .as-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:2px;}
+  .as-val{font-size:.82rem;font-weight:700;color:var(--font);}
+  .as-val.pos{color:var(--accent2);}
+  .as-val.neg{color:var(--red);}
   .ativo-pills{display:flex;flex-wrap:wrap;gap:4px;}
   .ativo-pill{font-size:.65rem;background:var(--bg);color:var(--muted);padding:2px 8px;border-radius:100px;border:1px solid var(--border);}
   .ativo-updated{font-size:.68rem;color:var(--muted);margin-top:6px;}
@@ -687,10 +707,14 @@
   <!-- CARTEIRA — ativos de uma instituição -->
   <div id="screen-cart" class="inv-screen">
     <div class="cart-header">
-      <div class="cart-back" onclick="goScreen('inv')">‹ Investimentos</div>
-      <div class="cart-title" id="cart-title">—</div>
-      <div class="cart-sub" id="cart-sub">—</div>
-      <div class="cart-val" id="cart-val">R$ 0</div>
+      <div class="cart-header-top">
+        <div class="cart-back" onclick="goScreen('inv')">‹ Investimentos</div>
+        <div class="cart-title" id="cart-title">—</div>
+      </div>
+      <div class="cart-header-bottom">
+        <div class="cart-sub" id="cart-sub">—</div>
+        <div class="cart-val" id="cart-val">R$ 0</div>
+      </div>
     </div>
     <div class="inv-body">
       <div id="ativo-list"></div>
@@ -1049,7 +1073,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='3.6';
+const APP_VERSION='3.8';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2352,23 +2376,43 @@ function renderAtivos(){
   const inst=instituicoes[currentInstIdx];
   const al=document.getElementById('ativo-list');if(!al)return;
   if(!inst.ativos.length){al.innerHTML='<div class="empty">Nenhum ativo cadastrado</div>';return;}
-  al.innerHTML=inst.ativos.map((a,i)=>{
+
+  const buildCard=(a,i)=>{
     const atual=getAtivoAtual(a);
     const rend=atual-a.aplicado;
     const pct=a.aplicado?((rend/a.aplicado)*100).toFixed(1):0;
     const badge=ATIVO_BADGE[a.classe]||'badge-rf';
+    const desde=a.log.length?a.log[0].date:'—';
     const updDate=a.log.length?a.log[a.log.length-1].date:'—';
-    const _enc=a.encerrado||false;
-    return `<div class="ativo-card" style="${_enc?'opacity:.6;':''}" onclick="openAtivo(${i})">
+    const rendSign=rend>=0?'+':'';
+    const rendCls=rend>=0?'pos':'neg';
+    return `<div class="ativo-card" onclick="openAtivo(${i})">
       <div class="ativo-top">
-        <div class="ativo-name">${a.nome}</div>
+        <div class="ativo-name">${a.nome}${a.encerrado?` <span style="font-size:.65rem;background:rgba(239,68,68,.1);color:var(--red);padding:2px 7px;border-radius:100px;font-weight:700;">encerrado</span>`:''}
+        </div>
         <span class="ativo-badge ${badge}">${a.classe.split(' ')[0]}</span>
       </div>
       <div class="ativo-vals">
-        <div class="av-item"><div class="av-lbl">Aplicado</div><div class="av-val">${fmtInvFull(a.aplicado)}</div></div>
-        <div class="av-item"><div class="av-lbl">Atual</div><div class="av-val pos">${fmtInvFull(atual)}</div></div>
-        <div class="av-item"><div class="av-lbl">Rendimento</div><div class="av-val ${rend>=0?'pos':'neg'}">${rend>=0?'+':''}${fmtInvFull(rend)}</div></div>
-        <div class="av-item"><div class="av-lbl">Variação</div><div class="av-val ${rend>=0?'pos':'neg'}">${pct}%</div></div>
+        <div class="av-item">
+          <div class="av-lbl">Aplicado</div>
+          <div class="av-val">${fmtInvFull(a.aplicado)}</div>
+          <div class="av-sub">desde ${desde}</div>
+        </div>
+        <div class="av-item dark">
+          <div class="av-lbl white">Atual</div>
+          <div class="av-val white">${fmtInvFull(atual)}</div>
+          <div class="av-sub white">em ${updDate}</div>
+        </div>
+      </div>
+      <div class="ativo-rend">
+        <div class="ar-item">
+          <div class="ar-lbl">Rendimento</div>
+          <div class="ar-val ${rendCls}">${rendSign}${fmtInvFull(rend)}</div>
+        </div>
+        <div class="ar-item">
+          <div class="ar-lbl">Variação</div>
+          <div class="ar-val ${rendCls}">${rendSign}${pct}%</div>
+        </div>
       </div>
       <div class="ativo-pills">
         ${a.tipo?`<span class="ativo-pill">${a.tipo}</span>`:''}
@@ -2377,9 +2421,25 @@ function renderAtivos(){
         ${a.garantia&&a.garantia!=='N/A'?`<span class="ativo-pill">FGC</span>`:''}
         ${a.ir?`<span class="ativo-pill">${a.ir}</span>`:''}
       </div>
-      <div class="ativo-updated">Atualizado em ${updDate}</div>
     </div>`;
-  }).join('');
+  };
+
+  const ativos=inst.ativos.map((a,i)=>({a,i})).filter(x=>!x.a.encerrado);
+  const encerrados=inst.ativos.map((a,i)=>({a,i})).filter(x=>x.a.encerrado);
+
+  let html='';
+  if(ativos.length){
+    html+=ativos.map(x=>buildCard(x.a,x.i)).join('');
+  } else {
+    html+='<div class="empty" style="padding:20px 0;">Nenhum ativo ativo</div>';
+  }
+  if(encerrados.length){
+    html+=`<div style="margin-top:20px;padding-top:12px;border-top:1px solid var(--border);">
+      <div class="inv-section-title" style="margin-top:0;">Encerrados (${encerrados.length})</div>
+      <div style="opacity:.55;">${encerrados.map(x=>buildCard(x.a,x.i)).join('')}</div>
+    </div>`;
+  }
+  al.innerHTML=html;
 }
 
 // ── DETALHE ATIVO ──
