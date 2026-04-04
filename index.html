@@ -294,11 +294,13 @@
   .av-sub{font-size:.68rem;color:var(--muted);margin-top:4px;}
   .av-sub.white{color:rgba(255,255,255,.4);}
   .ativo-rend{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
+  .ar-group{display:grid;grid-template-columns:7fr 3fr;gap:5px;}
   .ar-item{background:var(--kp);border-radius:8px;padding:8px 10px;}
   .ar-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:2px;}
-  .ar-val{font-size:.92rem;font-weight:700;}
-  .ar-val.pos{color:var(--accent2);}
-  .ar-val.neg{color:var(--red);}
+  .ar-val{font-size:.92rem;font-weight:700;color:#444;}
+  .ar-val.pos{color:#444;}
+  .ar-val.neg{color:#444;}
+  .ar-days{font-size:.68rem;color:var(--muted);margin-top:3px;}
   .ativo-divider{height:1px;background:var(--border);margin:6px 0 8px;}
   .ativo-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;}
   .as-item{background:var(--kp);border-radius:8px;padding:7px 10px;}
@@ -358,6 +360,11 @@
   .upd-actions{display:flex;gap:8px;}
   .upd-cancel{flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.9rem;cursor:pointer;}
   .upd-save{flex:2;padding:12px;border-radius:12px;border:none;background:var(--btn);font-family:var(--font-body);font-size:.9rem;font-weight:700;cursor:pointer;}
+
+  /* NATIVE DATE INPUT STYLED */
+  .date-field-wrap{position:relative;width:100%;}
+  .date-field-wrap input[type=date]{width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.95rem;outline:none;-webkit-appearance:none;appearance:none;}
+  .date-field-wrap input[type=date]::-webkit-calendar-picker-indicator{opacity:0.6;cursor:pointer;width:20px;height:20px;}
 
   /* SETTINGS */
   .cfg-block{background:var(--card);border-radius:16px;padding:20px;margin-bottom:16px;}
@@ -784,19 +791,15 @@
       </div>
       <div class="field"><label>Taxa / Percentual</label><input type="text" id="av-taxa" placeholder="Ex: 110% ou 12% a.a."></div>
       <div class="field"><label>Data de aplicação</label>
-        <div style="position:relative;">
-          <button class="edit-field-btn" onclick="openDatePicker('av-data-aplic')">
-            <span>📅</span><span class="efb-val" id="av-data-aplic-display">Selecione</span>
-          </button>
-          <input type="date" id="av-data-aplic" tabindex="-1" style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;" onchange="(function(v){if(!v)return;const[y,m,d]=v.split('-');document.getElementById('av-data-aplic-display').textContent=d+'/'+m+'/'+y;})(this.value)">
+        <div class="date-field-wrap">
+          <input type="date" id="av-data-aplic" onchange="syncDateDisplay('av-data-aplic','av-data-aplic-display')">
+          <span id="av-data-aplic-display" style="display:none;"></span>
         </div>
       </div>
-      <div class="field"><label>Vencimento</label>
-        <div style="position:relative;">
-          <button class="edit-field-btn" onclick="openDatePicker('av-vencimento')">
-            <span>📅</span><span class="efb-val" id="av-vencimento-display">Selecione (opcional)</span>
-          </button>
-          <input type="date" id="av-vencimento" tabindex="-1" style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;" onchange="(function(v){if(!v)return;const[y,m,d]=v.split('-');document.getElementById('av-vencimento-display').textContent=d+'/'+m+'/'+y;})(this.value)">
+      <div class="field"><label>Vencimento <span style="color:var(--muted);font-size:.75rem;">(opcional)</span></label>
+        <div class="date-field-wrap">
+          <input type="date" id="av-vencimento" onchange="syncDateDisplay('av-vencimento','av-vencimento-display')">
+          <span id="av-vencimento-display" style="display:none;"></span>
         </div>
       </div>
       <div class="field"><label>Liquidez</label>
@@ -1073,7 +1076,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='3.8';
+const APP_VERSION='4.0';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2307,6 +2310,15 @@ const ATIVO_BADGE={'Renda Fixa':'badge-rf','Renda Variável':'badge-rv','Fundos 
 
 let instituicoes=[], currentInstIdx=null, currentAtivoIdx=null, updCents=0;
 
+function syncDateDisplay(inputId, displayId){
+  const inp=document.getElementById(inputId);
+  const disp=document.getElementById(displayId);
+  if(!inp||!disp)return;
+  if(inp.value){
+    const[y,m,d]=inp.value.split('-');
+    disp.textContent=d+'/'+m+'/'+y;
+  }
+}
 function openDatePicker(id){
   const el=document.getElementById(id);if(!el)return;
   el.style.pointerEvents='all';el.style.width='100%';el.style.height='100%';
@@ -2405,13 +2417,28 @@ function renderAtivos(){
         </div>
       </div>
       <div class="ativo-rend">
-        <div class="ar-item">
-          <div class="ar-lbl">Rendimento</div>
-          <div class="ar-val ${rendCls}">${rendSign}${fmtInvFull(rend)}</div>
+        <div class="ar-group">
+          <div class="ar-item">
+            <div class="ar-lbl">Rendimento</div>
+            <div class="ar-val">${rendSign}${fmtInvFull(rend)}</div>
+          </div>
+          <div class="ar-item">
+            <div class="ar-lbl">Var.</div>
+            <div class="ar-val">${rendSign}${pct}%</div>
+          </div>
         </div>
         <div class="ar-item">
-          <div class="ar-lbl">Variação</div>
-          <div class="ar-val ${rendCls}">${rendSign}${pct}%</div>
+          <div class="ar-lbl">Vencimento</div>
+          ${(()=>{
+            if(!a.vencimento){return '<div class="ar-val">N/A</div>';}
+            const vp=a.vencimento.split('/');
+            if(vp.length!==3)return '<div class="ar-val">N/A</div>';
+            const vDate=new Date(vp[2],vp[1]-1,vp[0]);
+            const today=new Date();today.setHours(0,0,0,0);
+            const diff=Math.ceil((vDate-today)/(1000*60*60*24));
+            const diffStr=diff>0?diff+' dias':(diff===0?'Hoje':'Vencido');
+            return '<div class="ar-val">'+a.vencimento+'</div><div class="ar-days">'+diffStr+'</div>';
+          })()}
         </div>
       </div>
       <div class="ativo-pills">
@@ -2539,15 +2566,11 @@ function editAtivo(){
   document.getElementById('av-taxa').value=a.taxa||'';
   if(a.dataAplic){
     document.getElementById('av-data-aplic').value=a.dataAplic;
-    const dp=a.dataAplic.split('-');
-    const dd=document.getElementById('av-data-aplic-display');
-    if(dd&&dp.length===3)dd.textContent=dp[2]+'/'+dp[1]+'/'+dp[0];
   }
   if(a.vencimento){
     const vp=a.vencimento.split('/');
     if(vp.length===3){
       document.getElementById('av-vencimento').value=vp[2]+'-'+vp[1]+'-'+vp[0];
-      const vd=document.getElementById('av-vencimento-display');if(vd)vd.textContent=a.vencimento;
     }
   }
   const liq=document.getElementById('av-liquidez');if(liq)liq.value=a.liquidez||'';
@@ -2581,9 +2604,7 @@ function openAtivoForm(){
   document.getElementById('av-aplicado').value='';
   const today=new Date();const iso=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
   document.getElementById('av-data-aplic').value=iso;
-  const _dd=document.getElementById('av-data-aplic-display');if(_dd)_dd.textContent=`${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`;
   document.getElementById('av-vencimento').value='';
-  const _vd=document.getElementById('av-vencimento-display');if(_vd)_vd.textContent='Selecione (opcional)';
   m.style.opacity='1';m.style.pointerEvents='all';
   document.getElementById('ativo-modal-sheet').style.transform='translateY(0)';
 }
