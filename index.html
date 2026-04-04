@@ -1265,7 +1265,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='5.9';
+const APP_VERSION='6.0';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2891,24 +2891,12 @@ function getInstLinkedAccounts(instName){
 }
 
 function calcCcSaldo(instName){
+  // Simply return whatever the user last set as the saldo.
+  // Transactions do NOT change this value — only explicit adjustments do.
   const inst=instituicoes.find(i=>i.name===instName);if(!inst)return 0;
   const user=currentUser||'ALE';
-  // base = last adjusted value (set directly by user)
-  const base=(inst.ccSaldoUser&&inst.ccSaldoUser[user])||0;
-  // if never adjusted, return 0
-  if(!inst.ccSaldoUser||inst.ccSaldoUser[user]===undefined)return 0;
-  // add only transactions strictly AFTER the last adjustment timestamp
-  const lastAdjTs=inst['ccLastAdjTs_'+user]||0;
-  const linked=getInstLinkedAccounts(instName).map(a=>a.name);
-  if(!linked.length)return base;
-  let delta=0;
-  allData.forEach(t=>{
-    if(!linked.includes(t.account))return;
-    if(t._isAdjust)return;
-    if(t._adjTs&&t._adjTs<=lastAdjTs)return; // skip old entries
-    delta+=t.type==='entrada'?t.value:-t.value;
-  });
-  return base+delta;
+  if(!inst.ccSaldoUser)return 0;
+  return inst.ccSaldoUser[user]||0;
 }
 
 function renderCcCard(){
