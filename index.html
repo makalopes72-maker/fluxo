@@ -115,6 +115,13 @@
   .add-del-btn:active{opacity:.6;}
 
   .add-kp{flex-shrink:0;display:grid;grid-template-columns:repeat(3,1fr) 56px;grid-template-rows:repeat(4,1fr);gap:1px;background:var(--border);height:200px;}
+
+  /* FIELDS MODE — hides keypad, expands fields area */
+  #screen-add.fields-mode .add-kp{display:none !important;}
+  #screen-add.fields-mode .add-tipo-row{display:none !important;}
+  #screen-add.fields-mode .add-valor-row{flex-shrink:0;cursor:pointer;}
+  #screen-add.fields-mode .add-fields-wrap{flex:1;}
+  .add-valor-row{cursor:pointer;}
   .kk{background:var(--kp);display:flex;align-items:center;justify-content:center;font-family:var(--font-body);font-size:1.6rem;font-weight:700;color:var(--font);cursor:pointer;user-select:none;transition:background .1s;}
   .kk:active{opacity:.7;}
   .kk.op{font-size:1rem;color:var(--muted);background:var(--kp-dark);}
