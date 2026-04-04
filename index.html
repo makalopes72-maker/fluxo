@@ -347,7 +347,7 @@
       <button class="add-tipo-btn entrada-off" id="btn-entrada" onclick="setTransType('entrada')">↑ Entrada</button>
     </div>
     <!-- Valor -->
-    <div class="add-valor-row">
+    <div class="add-valor-row" onclick="exitFieldsMode()">
       <div class="add-valor-area c-saida" id="add-varea">
         <div class="add-valor-lbl" id="add-vlbl">Nova despesa</div>
         <div class="add-valor-num" id="add-vnum">R$ 0,00</div>
@@ -362,15 +362,6 @@
       <div class="kk" onclick="kp('00')">,00</div><div class="kk" onclick="kp('0')">0</div><div class="kk eq" id="kk-eq" onclick="kp('=')">=</div><div class="kk op" onclick="kp('+')">+</div>
     </div>
     <!-- Campos -->
-    <!-- back bar shown when fields are expanded -->
-    <div class="add-fields-back" onclick="exitFieldsMode()">
-      <span class="add-fields-back-ic">‹</span>
-      <div>
-        <div class="add-fields-back-val" id="back-val">R$ 0,00</div>
-        <div class="add-fields-back-lbl">toque para voltar ao teclado</div>
-      </div>
-    </div>
-
     <div class="add-fields-wrap" id="add-fields-wrap">
       <div class="fields-grid" id="fields-grid">
         <!-- Descrição full width -->
@@ -783,23 +774,17 @@ function buildTiposEditor(){
   }).join('');
 }
 
-// ── FIELDS MODE (hide keypad, show fields full screen) ──
+// ── FIELDS MODE ──
 function enterFieldsMode(){
   const sa=document.getElementById('screen-add');
-  if(!sa)return;
+  if(!sa||sa.classList.contains('fields-mode'))return;
   sa.classList.add('fields-mode');
-  // update back bar value
-  const bv=document.getElementById('back-val');
-  if(bv) bv.textContent=document.getElementById('add-vnum').textContent;
-  // scroll fields to top
   const fw=document.getElementById('add-fields-wrap');
   if(fw) fw.scrollTop=0;
 }
-
 function exitFieldsMode(){
   const sa=document.getElementById('screen-add');
   if(sa) sa.classList.remove('fields-mode');
-  // blur any active input
   document.activeElement?.blur();
   closeDrop();
 }
@@ -839,9 +824,9 @@ const START_OPTIONS=[
   {id:'add',  label:'Lançar',      sub:'Abre direto na tela de transação', ic:'＋'},
   {id:'hist', label:'Histórico',   sub:'Lista de todas as transações', ic:'≡'},
 ];
-let startScreen='dash';
+let startScreen='add';
 
-function loadStartScreen(){try{startScreen=localStorage.getItem('fluxo_start')||'dash';}catch(e){}}
+function loadStartScreen(){try{startScreen=localStorage.getItem('fluxo_start')||'add';}catch(e){}}
 function saveStartScreen(){try{localStorage.setItem('fluxo_start',startScreen);}catch(e){}}
 
 function setStartScreen(id){
@@ -905,6 +890,7 @@ function buildSettings(){
   const fl=document.getElementById('font-list');
   if(fl)fl.innerHTML=FONTS.map(f=>`<div class="font-option${prefs.font===f.id?' selected':''}" onclick="applyFont('${f.id}')"><div><div class="font-option-name" style="font-family:${f.body}">${f.label}</div><div class="font-option-sample" style="font-family:${f.display}">${f.sample}</div></div><span class="font-check">✓</span></div>`).join('');
   buildAccountsUI();
+  buildStartScreenUI();
 }
 function savePrefs(){try{localStorage.setItem('fluxo_p8',JSON.stringify(prefs));}catch(e){}}
 function loadPrefs(){
