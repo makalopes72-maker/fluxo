@@ -103,7 +103,6 @@
   .tx-check-ic{font-size:.65rem;font-weight:900;}
   .tx-check.on .tx-check-ic{color:var(--bg);}
   .tx-check.off .tx-check-ic{color:transparent;}
-  .tx-item.not-consolidated{opacity:.75;}
   .tx-item.not-consolidated .tx-desc{font-style:italic;}
 
   /* MODO DE LANÇAMENTO */
@@ -560,12 +559,12 @@
       </div>
       <!-- FILTROS RÁPIDOS -->
       <div class="extrato-filters">
+        <button class="ext-chip icon-chip" id="ext-filter-btn" onclick="toggleExtFilter()" title="Filtros">⚙</button>
         <button class="ext-chip active" onclick="setExtPeriod('mes',this)">Este mês</button>
         <button class="ext-chip" onclick="setExtPeriod('30d',this)">30 dias</button>
         <button class="ext-chip" onclick="setExtPeriod('ano',this)">Este ano</button>
         <button class="ext-chip" onclick="setExtPeriod('tudo',this)">Tudo</button>
-        <button class="ext-chip" onclick="setExtPeriod('futuras',this)">📆 Futuras</button>
-        <button class="ext-chip icon-chip" id="ext-filter-btn" onclick="toggleExtFilter()" title="Filtros">⚙</button>
+        <button class="ext-chip" onclick="setExtPeriod('futuras',this)">Futuras</button>
       </div>
       <!-- BUSCA -->
       <div class="extrato-search">
@@ -714,7 +713,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='2.6';
+const APP_VERSION='2.8';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -1573,7 +1572,9 @@ async function loadData(){
   }catch(e){seedDemo();renderDash();renderHistory();}
 }
 function seedDemo(){
-  const tipos=Object.keys(TIPOS);const accounts=['Nubank','Itaú','Carteira'];const now=new Date();let row=2;
+  const tipos=Object.keys(TIPOS);
+  const demoAccounts=['ALE Conta Itaú','ALE Crédito Itaú','ALE Wise','SI Conta Itaú','SI Crédito Itaú','XXX Carteira','Investimentos'];
+  const now=new Date();let row=2;
   for(let i=0;i<30;i++){
     const d=new Date(now);d.setDate(d.getDate()-Math.floor(Math.random()*60));
     const tipo=tipos[Math.floor(Math.random()*tipos.length)];
@@ -1584,7 +1585,7 @@ function seedDemo(){
     allData.push({_row:row++,date,desc:cat,value:type==='entrada'?val*5:val,cat,account:accounts[Math.floor(Math.random()*3)],type});
   }
   const today=new Date();
-  allData.push({_row:row++,date:`${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`,desc:'Receita Bruta (Cliente / Salário)',value:5000,cat:'Receita Bruta (Cliente / Salário)',account:'Nubank',type:'entrada'});
+  allData.push({_row:row++,date:`${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`,desc:'Receita Bruta (Cliente / Salário)',value:5000,cat:'Receita Bruta (Cliente / Salário)',tipo:'Receita',account:'ALE Conta Itaú',type:'entrada',consolidated:true});
 }
 function parseDate(s){if(!s)return null;const p=s.split('/');return p.length===3?new Date(p[2],p[1]-1,p[0]):new Date(s);}
 function getFiltered(period,cat){
