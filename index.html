@@ -128,11 +128,11 @@
   .kk.eq{font-size:1.1rem;font-weight:700;background:var(--btn);}
 
   /* FIELDS — flex:1, scrollable */
-  .add-fields-wrap{flex:1;overflow-y:hidden;background:var(--bg);padding:10px 12px;min-height:0;display:flex;flex-direction:column;gap:7px;}
+  .add-fields-wrap{flex:1;overflow-y:auto;background:var(--bg);padding:10px 12px;min-height:0;display:flex;flex-direction:column;gap:7px;}
   .add-fields-wrap::-webkit-scrollbar{display:none;}
 
   /* floating card grid */
-  .fields-grid{display:flex;flex-direction:column;gap:7px;flex:1;min-height:0;}
+  .fields-grid{display:flex;flex-direction:column;gap:7px;}
   .fields-row{display:flex;gap:7px;}
   .field-cell{background:var(--card);border-radius:12px;display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;position:relative;min-width:0;flex:1;box-shadow:0 1px 3px rgba(0,0,0,.06);}
   .field-cell.full{width:100%;}
@@ -147,8 +147,7 @@
 
   /* DROPDOWN */
   .drop-panel{background:var(--bg);border-radius:12px;border:1px solid var(--border);max-height:200px;overflow-y:auto;margin-top:-2px;box-shadow:0 4px 12px rgba(0,0,0,.08);}
-  #screen-add.fields-mode #drop-main .drop-panel{max-height:none;flex:1;overflow-y:auto;}
-  #screen-add.fields-mode #drop-main{flex:1;min-height:0;display:flex;flex-direction:column;}
+  #screen-add.fields-mode #drop-main .drop-panel{max-height:52vh;overflow-y:auto;}
   .drop-panel::-webkit-scrollbar{display:none;}
   .drop-item{padding:10px 16px;font-size:.82rem;cursor:pointer;color:var(--font);border-bottom:1px solid var(--border);}
   .drop-item:last-child{border-bottom:none;}
@@ -377,7 +376,7 @@
         <!-- Descrição full width -->
         <div class="field-cell full">
           <span class="field-ic">📝</span>
-          <input class="field-input" id="tx-desc" placeholder="Descrição (opcional)" onfocus="enterFieldsMode()">
+          <input class="field-input" id="tx-desc" placeholder="Descrição" onfocus="enterFieldsMode()">
         </div>
         <!-- Tipo + Categoria em linha -->
         <div class="fields-row">
@@ -537,7 +536,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='1.3';
+const APP_VERSION='1.4';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -983,7 +982,7 @@ function closeDrop(){
   const dm=document.getElementById('drop-main');dm.style.display='none';dm.innerHTML='';
   const dc=document.getElementById('drop-conta');dc.style.display='none';dc.innerHTML='';
   openDrop=null;
-  const fg=document.getElementById('fields-grid');if(fg)fg.style.justifyContent='';
+
 }
 function buildTipoDrop(){
   const slot=document.getElementById('drop-main');slot.style.display='block';
