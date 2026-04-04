@@ -107,7 +107,7 @@
 
   /* MODO DE LANÇAMENTO */
   .launch-seg{display:flex;background:var(--kp);border-radius:12px;padding:3px;gap:2px;flex-shrink:0;}
-  .launch-seg-btn{flex:1;padding:8px 4px;border-radius:9px;border:none;font-family:var(--font-body);font-size:.72rem;font-weight:600;cursor:pointer;transition:all .2s;background:transparent;color:var(--muted);}
+  .launch-seg-btn{flex:1;padding:8px 4px;border-radius:9px;border:none;font-family:var(--font-body);font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;background:transparent;color:var(--muted);}
   .launch-seg-btn.active{background:var(--bg);color:var(--font);box-shadow:0 1px 4px rgba(0,0,0,.12);}
   .launch-panel{display:none;flex-direction:column;gap:8px;}
   .launch-panel.active{display:flex;}
@@ -154,7 +154,7 @@
   .add-valor-row{cursor:pointer;}
   .kk{background:var(--kp);display:flex;align-items:center;justify-content:center;font-family:var(--font-body);font-size:1.6rem;font-weight:700;color:var(--font);cursor:pointer;user-select:none;transition:background .1s;}
   .kk:active{opacity:.7;}
-  .kk.op{font-size:1rem;color:var(--muted);background:var(--kp-dark);}
+  .kk.op{font-size:1.4rem;color:var(--muted);background:var(--kp-dark);}
   .kk.eq{font-size:1.1rem;font-weight:700;background:var(--btn);}
 
   /* FIELDS — flex:1, scrollable */
@@ -240,6 +240,104 @@
   .ext-sort-row{display:flex;gap:6px;}
   .ext-sort-btn{flex:1;padding:7px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.75rem;cursor:pointer;text-align:center;}
   .ext-sort-btn.active{background:var(--kp);color:var(--font);border-color:var(--font);}
+
+  /* INVESTIMENTOS */
+  .inv-screen{display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0;}
+  .inv-screen.active{display:flex;}
+  .inv-header{flex-shrink:0;background:var(--bg);padding:10px 16px;border-bottom:1px solid var(--border);}
+  .inv-total-bar{background:var(--font);border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+  .inv-total-lbl{font-size:.68rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;}
+  .inv-total-val{font-size:1.6rem;font-weight:700;color:#fff;letter-spacing:-1px;}
+  .inv-total-right{text-align:right;}
+  .inv-total-tag{font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:100px;}
+  .inv-body{flex:1;overflow-y:auto;padding:10px 16px 40px;}
+  .inv-body::-webkit-scrollbar{display:none;}
+  .inv-section-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:14px 0 8px;}
+  .inst-card{background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;border:1px solid var(--border);}
+  .inst-card:active{opacity:.8;}
+  .inst-ic{width:40px;height:40px;border-radius:12px;background:var(--kp);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+  .inst-info{flex:1;min-width:0;}
+  .inst-name{font-size:.95rem;font-weight:600;color:var(--font);}
+  .inst-sub{font-size:.75rem;color:var(--muted);margin-top:2px;}
+  .inst-val{text-align:right;}
+  .inst-val-num{font-size:.95rem;font-weight:700;color:var(--font);}
+  .inst-val-count{font-size:.7rem;color:var(--muted);margin-top:2px;}
+  .inst-arr{color:var(--muted);font-size:.9rem;flex-shrink:0;}
+  .inv-add-btn{width:100%;padding:12px;border-radius:12px;border:1.5px dashed var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.88rem;cursor:pointer;margin-top:4px;}
+
+  /* CARTEIRA (lista de ativos) */
+  .cart-header{flex-shrink:0;background:var(--font);padding:14px 16px;}
+  .cart-back{font-size:.8rem;color:rgba(255,255,255,.6);cursor:pointer;margin-bottom:4px;}
+  .cart-title{font-size:1.1rem;font-weight:700;color:#fff;font-family:var(--font-display);}
+  .cart-sub{font-size:.75rem;color:rgba(255,255,255,.5);margin-top:2px;}
+  .cart-val{font-size:1.4rem;font-weight:700;color:#fff;margin-top:8px;letter-spacing:-1px;}
+  .ativo-card{background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:8px;cursor:pointer;border:1px solid var(--border);}
+  .ativo-card:active{opacity:.8;}
+  .ativo-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+  .ativo-name{font-size:.9rem;font-weight:600;color:var(--font);flex:1;padding-right:8px;}
+  .ativo-badge{font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:100px;white-space:nowrap;flex-shrink:0;}
+  .badge-rf{background:rgba(16,185,129,.12);color:#059669;}
+  .badge-rv{background:rgba(239,68,68,.1);color:#dc2626;}
+  .badge-fi{background:rgba(59,130,246,.1);color:#2563eb;}
+  .badge-pp{background:rgba(139,92,246,.1);color:#7c3aed;}
+  .ativo-vals{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
+  .av-item{background:var(--kp);border-radius:8px;padding:7px 10px;}
+  .av-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:2px;}
+  .av-val{font-size:.9rem;font-weight:700;color:var(--font);}
+  .av-val.pos{color:var(--accent2);}
+  .av-val.neg{color:var(--red);}
+  .ativo-pills{display:flex;flex-wrap:wrap;gap:4px;}
+  .ativo-pill{font-size:.65rem;background:var(--bg);color:var(--muted);padding:2px 8px;border-radius:100px;border:1px solid var(--border);}
+  .ativo-updated{font-size:.68rem;color:var(--muted);margin-top:6px;}
+
+  /* DETALHE ATIVO */
+  .detail-header{flex-shrink:0;background:var(--font);padding:14px 16px 16px;}
+  .detail-back{font-size:.8rem;color:rgba(255,255,255,.6);cursor:pointer;margin-bottom:4px;}
+  .detail-name{font-size:1rem;font-weight:700;color:#fff;}
+  .detail-inst{font-size:.75rem;color:rgba(255,255,255,.45);margin-top:2px;}
+  .detail-vals{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+  .dv-item{background:rgba(255,255,255,.1);border-radius:10px;padding:9px 12px;}
+  .dv-lbl{font-size:.65rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;}
+  .dv-val{font-size:1rem;font-weight:700;color:#fff;}
+  .dv-val.pos{color:#6ee7b7;}
+  .detail-body{flex:1;overflow-y:auto;padding:10px 16px 40px;}
+  .detail-body::-webkit-scrollbar{display:none;}
+  .detail-info-card{background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:12px;border:1px solid var(--border);}
+  .detail-info-row{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);}
+  .detail-info-row:last-child{border-bottom:none;}
+  .dir-lbl{font-size:.8rem;color:var(--muted);}
+  .dir-val{font-size:.85rem;font-weight:600;color:var(--font);}
+  .log-card{background:var(--card);border-radius:14px;overflow:hidden;border:1px solid var(--border);}
+  .log-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);}
+  .log-row:last-child{border-bottom:none;}
+  .log-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .log-info{flex:1;}
+  .log-date{font-size:.7rem;color:var(--muted);margin-bottom:1px;}
+  .log-note{font-size:.7rem;color:var(--muted);font-style:italic;}
+  .log-val-num{font-size:.9rem;font-weight:700;color:var(--font);}
+  .log-delta{font-size:.78rem;font-weight:600;flex-shrink:0;}
+  .log-delta.pos{color:var(--accent2);}
+  .log-delta.neg{color:var(--red);}
+  .upd-btn{width:100%;padding:13px;border-radius:12px;border:none;background:var(--btn);font-family:var(--font-body);font-size:.95rem;font-weight:700;cursor:pointer;margin-bottom:8px;}
+
+  /* MODAL ATUALIZAR VALOR */
+  #upd-modal{position:fixed;inset:0;z-index:300;display:flex;align-items:flex-end;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .25s;}
+  #upd-modal.open{opacity:1;pointer-events:all;}
+  .upd-sheet{width:100%;background:var(--card);border-radius:24px 24px 0 0;padding:20px 20px 44px;transform:translateY(40px);transition:transform .25s cubic-bezier(.4,0,.2,1);}
+  #upd-modal.open .upd-sheet{transform:translateY(0);}
+  .upd-display{background:var(--font);border-radius:14px;padding:16px;text-align:center;margin-bottom:12px;}
+  .upd-display-lbl{font-size:.68rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;}
+  .upd-display-val{font-size:2rem;font-weight:700;color:#fff;letter-spacing:-1px;font-family:var(--font-display);}
+  .upd-display-delta{font-size:.8rem;margin-top:4px;font-weight:600;}
+  .upd-kp{display:grid;grid-template-columns:repeat(3,1fr) 56px;grid-template-rows:repeat(4,44px);gap:1px;background:var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;}
+  .upd-k{background:var(--kp);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;color:var(--font);cursor:pointer;user-select:none;}
+  .upd-k:active{opacity:.7;}
+  .upd-k.op{background:var(--kp-dark);font-size:1rem;color:var(--muted);}
+  .upd-k.del{background:var(--kp-dark);font-size:1.1rem;color:var(--muted);}
+  .upd-obs{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.88rem;outline:none;margin-bottom:10px;}
+  .upd-actions{display:flex;gap:8px;}
+  .upd-cancel{flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.9rem;cursor:pointer;}
+  .upd-save{flex:2;padding:12px;border-radius:12px;border:none;background:var(--btn);font-family:var(--font-body);font-size:.9rem;font-weight:700;cursor:pointer;}
 
   /* SETTINGS */
   .cfg-block{background:var(--card);border-radius:16px;padding:20px;margin-bottom:16px;}
@@ -400,6 +498,7 @@
     <button class="menu-item active" id="mitem-dash" onclick="goScreen('dash');closeMenu()"><span class="menu-item-icon">◎</span><span class="menu-item-label">Início</span></button>
     <button class="menu-item" id="mitem-add" onclick="goScreen('add');closeMenu()"><span class="menu-item-icon">＋</span><span class="menu-item-label">Lançar transação</span></button>
     <button class="menu-item" id="mitem-hist" onclick="goScreen('hist');closeMenu()"><span class="menu-item-icon">≡</span><span class="menu-item-label">Extrato</span></button>
+    <button class="menu-item" id="mitem-inv" onclick="goScreen('inv');closeMenu()"><span class="menu-item-icon">📈</span><span class="menu-item-label">Investimentos</span></button>
     <div class="menu-divider"></div>
     <button class="menu-item" id="mitem-cfg" onclick="goScreen('cfg');closeMenu()"><span class="menu-item-icon">⚙</span><span class="menu-item-label">Configurações</span></button>
     <button class="menu-item" onclick="loadData();closeMenu()"><span class="menu-item-icon">↻</span><span class="menu-item-label">Sincronizar dados</span></button>
@@ -561,6 +660,152 @@
     <!-- Salvar -->
     <div class="add-save-bar">
       <button class="add-save-btn" id="btn-save" onclick="saveTransaction()">Salvar transação</button>
+    </div>
+  </div>
+
+  <!-- INVESTIMENTOS — tela principal: lista instituições -->
+  <div id="screen-inv" class="inv-screen">
+    <div class="inv-header">
+      <div class="inv-total-bar">
+        <div>
+          <div class="inv-total-lbl">Total investido</div>
+          <div class="inv-total-val" id="inv-total-val">R$ 0</div>
+        </div>
+        <div class="inv-total-right">
+          <div class="inv-total-lbl">Ativos</div>
+          <div style="font-size:1rem;font-weight:700;color:#fff;" id="inv-total-count">0</div>
+        </div>
+      </div>
+    </div>
+    <div class="inv-body">
+      <div class="inv-section-title">Instituições</div>
+      <div id="inst-list"></div>
+      <button class="inv-add-btn" onclick="openInstModal()">+ Adicionar instituição</button>
+    </div>
+  </div>
+
+  <!-- CARTEIRA — ativos de uma instituição -->
+  <div id="screen-cart" class="inv-screen">
+    <div class="cart-header">
+      <div class="cart-back" onclick="goScreen('inv')">‹ Investimentos</div>
+      <div class="cart-title" id="cart-title">—</div>
+      <div class="cart-sub" id="cart-sub">—</div>
+      <div class="cart-val" id="cart-val">R$ 0</div>
+    </div>
+    <div class="inv-body">
+      <div id="ativo-list"></div>
+      <button class="inv-add-btn" onclick="openAtivoForm()">+ Novo ativo</button>
+    </div>
+  </div>
+
+  <!-- DETALHE ATIVO -->
+  <div id="screen-ativo" class="inv-screen">
+    <div class="detail-header">
+      <div class="detail-back" id="ativo-back-btn" onclick="goScreen('cart')">‹ Voltar</div>
+      <div class="detail-name" id="ativo-detail-name">—</div>
+      <div class="detail-inst" id="ativo-detail-inst">—</div>
+      <div class="detail-vals">
+        <div class="dv-item"><div class="dv-lbl">Aplicado</div><div class="dv-val" id="ativo-aplicado">—</div></div>
+        <div class="dv-item"><div class="dv-lbl">Valor atual</div><div class="dv-val pos" id="ativo-atual">—</div></div>
+        <div class="dv-item"><div class="dv-lbl">Rendimento</div><div class="dv-val pos" id="ativo-rend">—</div></div>
+        <div class="dv-item"><div class="dv-lbl">Atualizado</div><div class="dv-val" id="ativo-upd-date" style="font-size:.78rem;">—</div></div>
+      </div>
+    </div>
+    <div class="detail-body">
+      <button class="upd-btn" onclick="openUpdModal()">Atualizar valor</button>
+      <div class="inv-section-title">Detalhes</div>
+      <div class="detail-info-card" id="ativo-info-card"></div>
+      <div class="inv-section-title">Histórico de valores</div>
+      <div class="log-card" id="ativo-log-card"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: Adicionar/Editar Instituição -->
+  <div id="inst-modal" style="position:fixed;inset:0;z-index:300;display:flex;align-items:flex-end;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .25s;">
+    <div style="width:100%;background:var(--card);border-radius:24px 24px 0 0;padding:20px 20px 44px;transform:translateY(40px);transition:transform .25s cubic-bezier(.4,0,.2,1);" id="inst-modal-sheet">
+      <div style="font-family:var(--font-display);font-size:1.3rem;color:var(--font);margin-bottom:16px;" id="inst-modal-title">Nova instituição</div>
+      <div class="field"><label>Nome</label><input type="text" id="inst-name-input" placeholder="Ex: Safra, Itaú, Avenue…"></div>
+      <div class="field"><label>Ícone (emoji)</label><input type="text" id="inst-icon-input" placeholder="🏦" maxlength="2"></div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeInstModal()">Cancelar</button>
+        <button class="btn-update" onclick="saveInst()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Adicionar Ativo -->
+  <div id="ativo-modal" style="position:fixed;inset:0;z-index:300;display:flex;align-items:flex-end;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .25s;">
+    <div style="width:100%;background:var(--card);border-radius:24px 24px 0 0;padding:20px 20px 44px;max-height:90vh;overflow-y:auto;transform:translateY(40px);transition:transform .25s cubic-bezier(.4,0,.2,1);" id="ativo-modal-sheet">
+      <div style="font-family:var(--font-display);font-size:1.3rem;color:var(--font);margin-bottom:16px;">Novo ativo</div>
+      <div class="field"><label>Nome</label><input type="text" id="av-nome" placeholder="Ex: CDB Safra 110% CDI"></div>
+      <div class="field"><label>Classe</label>
+        <select id="av-classe" onchange="updAtivoTipos()">
+          <option value="">Selecione…</option>
+          <option>Renda Fixa</option><option>Renda Variável</option>
+          <option>Fundos de Investimento</option><option>Previdência Privada</option>
+        </select>
+      </div>
+      <div class="field"><label>Tipo</label><select id="av-tipo"><option value="">Selecione a classe primeiro</option></select></div>
+      <div class="field"><label>Valor aplicado (R$)</label><input type="number" id="av-aplicado" step="0.01" inputmode="decimal" placeholder="0,00"></div>
+      <div class="field"><label>Indexador / Rentabilidade</label>
+        <select id="av-indexador">
+          <option value="">Selecione…</option>
+          <option>% do CDI</option><option>SELIC</option><option>Prefixado (% a.a.)</option>
+          <option>IPCA + taxa</option><option>Dólar</option><option>Euro</option><option>Outro</option>
+        </select>
+      </div>
+      <div class="field"><label>Taxa / Percentual</label><input type="text" id="av-taxa" placeholder="Ex: 110% ou 12% a.a."></div>
+      <div class="field"><label>Data de aplicação</label><input type="date" id="av-data-aplic"></div>
+      <div class="field"><label>Vencimento</label><input type="date" id="av-vencimento"></div>
+      <div class="field"><label>Liquidez</label>
+        <select id="av-liquidez">
+          <option value="">Selecione…</option>
+          <option>Diária (D+0)</option><option>D+1</option>
+          <option>No vencimento</option><option>Perpétuo</option><option>Outro</option>
+        </select>
+      </div>
+      <div class="field"><label>Garantia</label>
+        <select id="av-garantia">
+          <option value="">Selecione…</option>
+          <option>FGC (até R$ 250 mil/CPF)</option><option>Risco Soberano (Tesouro)</option>
+          <option>Risco Privado (sem FGC)</option><option>N/A</option>
+        </select>
+      </div>
+      <div class="field"><label>Tributação (IR)</label>
+        <select id="av-ir">
+          <option value="">Selecione…</option>
+          <option>Isento (PF)</option><option>Tabela Regressiva</option>
+          <option>15% (ganho de capital)</option><option>20% (day trade)</option>
+          <option>Come-cotas</option><option>Outro</option>
+        </select>
+      </div>
+      <div class="field"><label>Observações</label><input type="text" id="av-obs" placeholder="Opcional…"></div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeAtivoModal()">Cancelar</button>
+        <button class="btn-update" onclick="saveAtivo()">Salvar ativo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Atualizar Valor -->
+  <div id="upd-modal">
+    <div class="upd-sheet">
+      <div style="font-size:.75rem;color:var(--muted);margin-bottom:8px;" id="upd-modal-title">Atualizar valor</div>
+      <div class="upd-display">
+        <div class="upd-display-lbl">Novo valor bruto</div>
+        <div class="upd-display-val" id="upd-val-display">R$ 0,00</div>
+        <div class="upd-display-delta" id="upd-delta-display" style="color:rgba(255,255,255,.5)">—</div>
+      </div>
+      <div class="upd-kp">
+        <div class="upd-k" onclick="updKp('7')">7</div><div class="upd-k" onclick="updKp('8')">8</div><div class="upd-k" onclick="updKp('9')">9</div><div class="upd-k del" onclick="updKp('del')">⌫</div>
+        <div class="upd-k" onclick="updKp('4')">4</div><div class="upd-k" onclick="updKp('5')">5</div><div class="upd-k" onclick="updKp('6')">6</div><div class="upd-k op" onclick="updKp('00')">,00</div>
+        <div class="upd-k" onclick="updKp('1')">1</div><div class="upd-k" onclick="updKp('2')">2</div><div class="upd-k" onclick="updKp('3')">3</div><div class="upd-k op" style="font-size:.7rem;color:var(--muted);">obs</div>
+        <div class="upd-k op" onclick="updKp('00')">,00</div><div class="upd-k" onclick="updKp('0')">0</div><div class="upd-k" style="grid-column:span 2;background:var(--btn);font-size:1rem;" onclick="saveUpdVal()">Salvar</div>
+      </div>
+      <input class="upd-obs" id="upd-obs-input" placeholder="Observação (opcional)…">
+      <div class="upd-actions">
+        <button class="upd-cancel" onclick="closeUpdModal()">Cancelar</button>
+      </div>
     </div>
   </div>
 
@@ -786,7 +1031,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='3.1';
+const APP_VERSION='3.3';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -1416,28 +1661,37 @@ function login(u){
   const sv=document.getElementById('splash-version');if(sv)sv.textContent='v'+APP_VERSION;
   document.getElementById('menu-user').textContent=u;
   const cfu=document.getElementById('cfg-user');if(cfu)cfu.textContent=u;const cu2=document.getElementById('cfg-user2');if(cu2)cu2.textContent=u;
-  loadAccounts();loadDefaultAccounts();loadStartScreen();initTiposData();setTodayDate();buildSettings();buildStartScreenUI();extMonth=new Date().getMonth();extYear=new Date().getFullYear();loadData();setTimeout(()=>goScreen(startScreen),100);
+  loadAccounts();loadDefaultAccounts();loadStartScreen();initTiposData();loadInvestimentos();setTodayDate();buildSettings();buildStartScreenUI();extMonth=new Date().getMonth();extYear=new Date().getFullYear();loadData();setTimeout(()=>goScreen(startScreen),100);
 }
 function logout(){currentUser=null;allData=[];document.getElementById('app').classList.remove('visible');document.getElementById('splash').style.display='flex';closeMenu();}
 
 // ── NAV ──
 function goScreen(name){
   try{exitFieldsMode();}catch(e){}
-  // no-op: consolidado is now in the valor row
+  // hide all special screens
+  const _sh=document.getElementById('screen-hist');if(_sh)_sh.style.display='none';
+  ['inv','cart','ativo'].forEach(s=>{const el=document.getElementById('screen-'+s);if(el)el.style.display='none';});
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-add').classList.remove('active');
+  document.querySelectorAll('.menu-item').forEach(b=>b.classList.remove('active'));
+  // inv screens
+  if(['inv','cart','ativo'].includes(name)){
+    const el=document.getElementById('screen-'+name);if(el)el.style.display='flex';
+    const mi=document.getElementById('mitem-inv');if(mi)mi.classList.add('active');
+    if(name==='inv')renderInv();
+    return;
+  }
   if(name==='add'){
-    // pre-fill conta with default
     const def=getDefaultAccount();
     selConta=def||null;
     const fv=document.getElementById('fv-conta');
     if(fv&&def){fv.textContent=def;fv.classList.remove('ph');}
+    document.getElementById('screen-add').classList.add('active');
+  } else if(name==='hist'){
+    const sh=document.getElementById('screen-hist');if(sh)sh.style.display='flex';
+  } else {
+    const sc=document.getElementById('screen-'+name);if(sc)sc.classList.add('active');
   }
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-add').classList.remove('active');
-  const _sh=document.getElementById('screen-hist');if(_sh)_sh.style.display='none';
-  document.querySelectorAll('.menu-item').forEach(b=>b.classList.remove('active'));
-  if(name==='add')document.getElementById('screen-add').classList.add('active');
-  else if(name==='hist'){const sh=document.getElementById('screen-hist');if(sh)sh.style.display='flex';}
-  else document.getElementById('screen-'+name).classList.add('active');
   const mi=document.getElementById('mitem-'+name);if(mi)mi.classList.add('active');
   if(name==='hist')renderHistory();
   if(name==='dash')renderDash();
@@ -1548,6 +1802,8 @@ function setTransType(t){
 // ── SAVE ──
 async function saveTransaction(){
   if(!amountCents){toast('Digite um valor','error');return;}
+  const _descCheck=document.getElementById('tx-desc')?.value.trim();
+  if(!_descCheck){toast('Digite uma descrição','error');document.getElementById('tx-desc')?.focus();return;}
   const desc=document.getElementById('tx-desc').value.trim();
   const cat=selCat||selTipo||'Outros';
   const tipo=selTipo||'';
@@ -1994,6 +2250,286 @@ async function deleteTx(idx){
 }
 function fmt(v){return 'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='show'+(type?' '+type:'');setTimeout(()=>t.className='',2500);}
+// ══════════════════════════════════════════════
+// ── INVESTIMENTOS ──
+// ══════════════════════════════════════════════
+
+const ATIVO_TIPOS={
+  'Renda Fixa':['CDB','LCI','LCA','Tesouro Selic','Tesouro IPCA+','Tesouro Prefixado','LC','LF','CRI','CRA','Debênture','Debênture Incentivada','Poupança'],
+  'Renda Variável':['Ação (Brasil)','Stock (Exterior)','FII','FIAGRO','ETF','BDR','Opções/Mercado Futuro'],
+  'Fundos de Investimento':['Fundo Renda Fixa','Fundo Multimercado','Fundo de Ações','Fundo Cambial'],
+  'Previdência Privada':['PGBL','VGBL'],
+};
+
+const ATIVO_BADGE={'Renda Fixa':'badge-rf','Renda Variável':'badge-rv','Fundos de Investimento':'badge-fi','Previdência Privada':'badge-pp'};
+
+let instituicoes=[], currentInstIdx=null, currentAtivoIdx=null, updCents=0;
+
+function loadInvestimentos(){
+  try{const s=localStorage.getItem('fluxo_inv');if(s){instituicoes=JSON.parse(s);}}catch(e){}
+  if(!instituicoes.length) seedInvestimentos();
+}
+function saveInvestimentos(){try{localStorage.setItem('fluxo_inv',JSON.stringify(instituicoes));}catch(e){}}
+
+function seedInvestimentos(){
+  instituicoes=[
+    {id:1,name:'Safra',icon:'🏦',ativos:[
+      {id:1,nome:'CDB Safra 110% CDI',classe:'Renda Fixa',tipo:'CDB',aplicado:25000,indexador:'% do CDI',taxa:'110%',dataAplic:'2025-10-15',vencimento:'2027-03-15',liquidez:'No vencimento',garantia:'FGC (até R$ 250 mil/CPF)',ir:'Tabela Regressiva',obs:'',log:[{date:'15/10/2025',value:25000,note:'Aplicação inicial'},{date:'01/01/2026',value:26580,note:''},{date:'01/02/2026',value:26500,note:''},{date:'01/03/2026',value:26920,note:''},{date:'01/04/2026',value:27100,note:''},{date:'04/04/2026',value:27340,note:''}]},
+      {id:2,nome:'LCI 92% CDI',classe:'Renda Fixa',tipo:'LCI',aplicado:12000,indexador:'% do CDI',taxa:'92%',dataAplic:'2025-08-01',vencimento:'2026-08-01',liquidez:'No vencimento',garantia:'FGC (até R$ 250 mil/CPF)',ir:'Isento (PF)',obs:'',log:[{date:'01/08/2025',value:12000,note:'Aplicação inicial'},{date:'01/04/2026',value:12890,note:''}]},
+      {id:3,nome:'PETR4',classe:'Renda Variável',tipo:'Ação (Brasil)',aplicado:5000,indexador:'Outro',taxa:'—',dataAplic:'2025-03-10',vencimento:'',liquidez:'Diária (D+0)',garantia:'N/A',ir:'15% (ganho de capital)',obs:'100 ações a R$ 50',log:[{date:'10/03/2025',value:5000,note:'Compra inicial'},{date:'01/04/2026',value:5420,note:''}]},
+    ]},
+    {id:2,name:'Itaú',icon:'🏦',ativos:[
+      {id:1,nome:'Tesouro IPCA+ 2029',classe:'Renda Fixa',tipo:'Tesouro IPCA+',aplicado:15000,indexador:'IPCA + taxa',taxa:'IPCA+6,2%',dataAplic:'2024-11-20',vencimento:'2029-05-15',liquidez:'Diária (D+0)',garantia:'Risco Soberano (Tesouro)',ir:'Tabela Regressiva',obs:'',log:[{date:'20/11/2024',value:15000,note:'Aplicação inicial'},{date:'01/04/2026',value:16200,note:''}]},
+      {id:2,nome:'CDB Itaú 108% CDI',classe:'Renda Fixa',tipo:'CDB',aplicado:12000,indexador:'% do CDI',taxa:'108%',dataAplic:'2025-06-01',vencimento:'2026-06-01',liquidez:'No vencimento',garantia:'FGC (até R$ 250 mil/CPF)',ir:'Tabela Regressiva',obs:'',log:[{date:'01/06/2025',value:12000,note:'Aplicação inicial'},{date:'01/04/2026',value:12650,note:''}]},
+    ]},
+    {id:3,name:'Avenue',icon:'🌎',ativos:[
+      {id:1,nome:'IVVB11',classe:'Renda Variável',tipo:'ETF',aplicado:8000,indexador:'Dólar',taxa:'S&P500',dataAplic:'2025-01-15',vencimento:'',liquidez:'Diária (D+0)',garantia:'N/A',ir:'15% (ganho de capital)',obs:'',log:[{date:'15/01/2025',value:8000,note:'Compra inicial'},{date:'01/04/2026',value:9100,note:''}]},
+      {id:2,nome:'Apple (AAPL)',classe:'Renda Variável',tipo:'Stock (Exterior)',aplicado:3500,indexador:'Dólar',taxa:'—',dataAplic:'2025-02-10',vencimento:'',liquidez:'Diária (D+0)',garantia:'N/A',ir:'15% (ganho de capital)',obs:'15 shares',log:[{date:'10/02/2025',value:3500,note:'Compra inicial'},{date:'01/04/2026',value:3820,note:''}]},
+    ]},
+  ];
+  saveInvestimentos();
+}
+
+function getAtivoAtual(a){return a.log.length?a.log[a.log.length-1].value:a.aplicado;}
+function getInstTotal(inst){return inst.ativos.reduce((s,a)=>s+getAtivoAtual(a),0);}
+function getTotalGeral(){return instituicoes.reduce((s,i)=>s+getInstTotal(i),0);}
+function fmtInv(v){return 'R$ '+Math.round(v).toLocaleString('pt-BR');}
+function fmtInvFull(v){return 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+// ── TELA PRINCIPAL ──
+function renderInv(){
+  const total=getTotalGeral();
+  const totalAtivos=instituicoes.reduce((s,i)=>s+i.ativos.length,0);
+  const tv=document.getElementById('inv-total-val');if(tv)tv.textContent=fmtInv(total);
+  const tc=document.getElementById('inv-total-count');if(tc)tc.textContent=totalAtivos;
+  const il=document.getElementById('inst-list');if(!il)return;
+  il.innerHTML=instituicoes.map((inst,i)=>{
+    const val=getInstTotal(inst);
+    return `<div class="inst-card" onclick="openCarteira(${i})">
+      <div class="inst-ic">${inst.icon||'🏦'}</div>
+      <div class="inst-info"><div class="inst-name">${inst.name}</div><div class="inst-sub">${inst.ativos.length} ativo${inst.ativos.length!==1?'s':''}</div></div>
+      <div class="inst-val"><div class="inst-val-num">${fmtInv(val)}</div></div>
+      <div class="inst-arr">›</div>
+    </div>`;
+  }).join('');
+}
+
+// ── CARTEIRA ──
+function openCarteira(idx){
+  currentInstIdx=idx;
+  const inst=instituicoes[idx];
+  const ct=document.getElementById('cart-title');if(ct)ct.textContent=inst.name;
+  const cs=document.getElementById('cart-sub');if(cs)cs.textContent=inst.ativos.length+' ativos';
+  const cv=document.getElementById('cart-val');if(cv)cv.textContent=fmtInv(getInstTotal(inst));
+  renderAtivos();
+  goScreen('cart');
+}
+function renderAtivos(){
+  const inst=instituicoes[currentInstIdx];
+  const al=document.getElementById('ativo-list');if(!al)return;
+  if(!inst.ativos.length){al.innerHTML='<div class="empty">Nenhum ativo cadastrado</div>';return;}
+  al.innerHTML=inst.ativos.map((a,i)=>{
+    const atual=getAtivoAtual(a);
+    const rend=atual-a.aplicado;
+    const pct=a.aplicado?((rend/a.aplicado)*100).toFixed(1):0;
+    const badge=ATIVO_BADGE[a.classe]||'badge-rf';
+    const updDate=a.log.length?a.log[a.log.length-1].date:'—';
+    return `<div class="ativo-card" onclick="openAtivo(${i})">
+      <div class="ativo-top">
+        <div class="ativo-name">${a.nome}</div>
+        <span class="ativo-badge ${badge}">${a.classe.split(' ')[0]}</span>
+      </div>
+      <div class="ativo-vals">
+        <div class="av-item"><div class="av-lbl">Aplicado</div><div class="av-val">${fmtInvFull(a.aplicado)}</div></div>
+        <div class="av-item"><div class="av-lbl">Atual</div><div class="av-val pos">${fmtInvFull(atual)}</div></div>
+        <div class="av-item"><div class="av-lbl">Rendimento</div><div class="av-val ${rend>=0?'pos':'neg'}">${rend>=0?'+':''}${fmtInvFull(rend)}</div></div>
+        <div class="av-item"><div class="av-lbl">Variação</div><div class="av-val ${rend>=0?'pos':'neg'}">${pct}%</div></div>
+      </div>
+      <div class="ativo-pills">
+        ${a.tipo?`<span class="ativo-pill">${a.tipo}</span>`:''}
+        ${a.taxa?`<span class="ativo-pill">${a.taxa}</span>`:''}
+        ${a.liquidez?`<span class="ativo-pill">${a.liquidez}</span>`:''}
+        ${a.garantia&&a.garantia!=='N/A'?`<span class="ativo-pill">FGC</span>`:''}
+        ${a.ir?`<span class="ativo-pill">${a.ir}</span>`:''}
+      </div>
+      <div class="ativo-updated">Atualizado em ${updDate}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── DETALHE ATIVO ──
+function openAtivo(idx){
+  currentAtivoIdx=idx;
+  const a=instituicoes[currentInstIdx].ativos[idx];
+  const atual=getAtivoAtual(a);
+  const rend=atual-a.aplicado;
+  const updDate=a.log.length?a.log[a.log.length-1].date:'—';
+  const dn=document.getElementById('ativo-detail-name');if(dn)dn.textContent=a.nome;
+  const di=document.getElementById('ativo-detail-inst');if(di)di.textContent=instituicoes[currentInstIdx].name+' · '+a.classe+' · '+a.tipo;
+  const da=document.getElementById('ativo-aplicado');if(da)da.textContent=fmtInvFull(a.aplicado);
+  const dav=document.getElementById('ativo-atual');if(dav)dav.textContent=fmtInvFull(atual);
+  const dr=document.getElementById('ativo-rend');if(dr){dr.textContent=(rend>=0?'+':'')+fmtInvFull(rend);dr.className='dv-val '+(rend>=0?'pos':'neg');}
+  const dd=document.getElementById('ativo-upd-date');if(dd)dd.textContent=updDate;
+  // info card
+  const ic=document.getElementById('ativo-info-card');
+  if(ic){
+    const rows=[
+      ['Classe',a.classe],['Tipo',a.tipo],['Indexador',a.indexador],
+      ['Taxa',a.taxa],['Liquidez',a.liquidez],['Garantia',a.garantia],
+      ['IR',a.ir],['Vencimento',a.vencimento||'—'],['Observações',a.obs||'—'],
+    ];
+    ic.innerHTML=rows.filter(r=>r[1]&&r[1]!=='').map((r,i,arr)=>`<div class="detail-info-row${i===arr.length-1?' last':''}"><span class="dir-lbl">${r[0]}</span><span class="dir-val">${r[1]}</span></div>`).join('');
+  }
+  renderLog();
+  goScreen('ativo');
+}
+
+function renderLog(){
+  const a=instituicoes[currentInstIdx].ativos[currentAtivoIdx];
+  const lc=document.getElementById('ativo-log-card');if(!lc)return;
+  const reversed=[...a.log].reverse();
+  lc.innerHTML=reversed.map((entry,i)=>{
+    const prev=reversed[i+1];
+    const delta=prev?entry.value-prev.value:null;
+    const isBase=i===reversed.length-1;
+    const dotColor=isBase?'var(--muted)':delta>=0?'var(--accent2)':'var(--red)';
+    const deltaStr=isBase?'base':delta!==null?((delta>=0?'+':'')+fmtInvFull(delta)):'—';
+    const deltaClass=isBase?'':delta>=0?'pos':'neg';
+    return `<div class="log-row">
+      <div class="log-dot" style="background:${dotColor}"></div>
+      <div class="log-info">
+        <div class="log-date">${entry.date}${entry.note?` · ${entry.note}`:''}</div>
+        <div class="log-val-num">${fmtInvFull(entry.value)}</div>
+      </div>
+      <div class="log-delta ${deltaClass}">${deltaStr}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── MODAL INSTITUIÇÃO ──
+function openInstModal(){
+  const m=document.getElementById('inst-modal');if(!m)return;
+  document.getElementById('inst-name-input').value='';
+  document.getElementById('inst-icon-input').value='🏦';
+  m.style.opacity='1';m.style.pointerEvents='all';
+  document.getElementById('inst-modal-sheet').style.transform='translateY(0)';
+}
+function closeInstModal(){
+  const m=document.getElementById('inst-modal');if(!m)return;
+  m.style.opacity='0';m.style.pointerEvents='none';
+  document.getElementById('inst-modal-sheet').style.transform='translateY(40px)';
+}
+function saveInst(){
+  const name=document.getElementById('inst-name-input').value.trim();
+  if(!name){alert('Digite o nome');return;}
+  const icon=document.getElementById('inst-icon-input').value.trim()||'🏦';
+  const newId=Date.now();
+  instituicoes.push({id:newId,name,icon,ativos:[]});
+  saveInvestimentos();renderInv();closeInstModal();
+}
+
+// ── MODAL ATIVO ──
+function updAtivoTipos(){
+  const classe=document.getElementById('av-classe').value;
+  const sel=document.getElementById('av-tipo');
+  const tipos=ATIVO_TIPOS[classe]||[];
+  sel.innerHTML='<option value="">Selecione…</option>'+tipos.map(t=>`<option>${t}</option>`).join('');
+}
+function openAtivoForm(){
+  const m=document.getElementById('ativo-modal');if(!m)return;
+  ['av-nome','av-taxa','av-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['av-classe','av-tipo','av-indexador','av-liquidez','av-garantia','av-ir'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('av-aplicado').value='';
+  const today=new Date();const iso=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  document.getElementById('av-data-aplic').value=iso;
+  document.getElementById('av-vencimento').value='';
+  m.style.opacity='1';m.style.pointerEvents='all';
+  document.getElementById('ativo-modal-sheet').style.transform='translateY(0)';
+}
+function closeAtivoModal(){
+  const m=document.getElementById('ativo-modal');if(!m)return;
+  m.style.opacity='0';m.style.pointerEvents='none';
+  document.getElementById('ativo-modal-sheet').style.transform='translateY(40px)';
+}
+function saveAtivo(){
+  const nome=document.getElementById('av-nome').value.trim();
+  const aplicadoVal=parseFloat(document.getElementById('av-aplicado').value);
+  if(!nome){toast('Digite o nome do ativo','error');return;}
+  if(!aplicadoVal||isNaN(aplicadoVal)){toast('Digite o valor aplicado','error');return;}
+  const dataAplic=document.getElementById('av-data-aplic').value;
+  const dateStr=dataAplic?(()=>{const[y,m,d]=dataAplic.split('-');return`${d}/${m}/${y}`;})():'—';
+  const novo={
+    id:Date.now(),
+    nome,
+    classe:document.getElementById('av-classe').value||'',
+    tipo:document.getElementById('av-tipo').value||'',
+    aplicado:aplicadoVal,
+    indexador:document.getElementById('av-indexador').value||'',
+    taxa:document.getElementById('av-taxa').value||'',
+    dataAplic:dataAplic||'',
+    vencimento:(()=>{const v=document.getElementById('av-vencimento').value;if(!v)return'';const[y,m,d]=v.split('-');return`${d}/${m}/${y}`;})(),
+    liquidez:document.getElementById('av-liquidez').value||'',
+    garantia:document.getElementById('av-garantia').value||'',
+    ir:document.getElementById('av-ir').value||'',
+    obs:document.getElementById('av-obs').value||'',
+    log:[{date:dateStr,value:aplicadoVal,note:'Aplicação inicial'}],
+  };
+  instituicoes[currentInstIdx].ativos.push(novo);
+  saveInvestimentos();
+  // update carteira header
+  const cv=document.getElementById('cart-val');if(cv)cv.textContent=fmtInv(getInstTotal(instituicoes[currentInstIdx]));
+  renderAtivos();closeAtivoModal();toast('Ativo salvo!','success');
+}
+
+// ── MODAL ATUALIZAR VALOR ──
+function openUpdModal(){
+  updCents=0;
+  const a=instituicoes[currentInstIdx].ativos[currentAtivoIdx];
+  const atual=getAtivoAtual(a);
+  updCents=Math.round(atual*100);
+  updVal2();
+  const m=document.getElementById('upd-modal');if(m){m.classList.add('open');}
+  const obs=document.getElementById('upd-obs-input');if(obs)obs.value='';
+}
+function closeUpdModal(){
+  const m=document.getElementById('upd-modal');if(m)m.classList.remove('open');
+}
+function updKp(k){
+  playClick();
+  if(k==='del'){updCents=Math.floor(updCents/10);}
+  else if(k==='00'){if(updCents<1e8)updCents*=100;}
+  else if(!isNaN(k)){if(updCents<1e7)updCents=updCents*10+parseInt(k);}
+  updVal2();
+}
+function updVal2(){
+  const el=document.getElementById('upd-val-display');
+  if(el)el.textContent='R$ '+(updCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const a=instituicoes[currentInstIdx]?.ativos[currentAtivoIdx];
+  if(!a)return;
+  const prev=getAtivoAtual(a);
+  const delta=(updCents/100)-prev;
+  const dd=document.getElementById('upd-delta-display');
+  if(dd){
+    dd.textContent=delta===0?'Sem variação':(delta>0?'+':'')+fmtInvFull(delta);
+    dd.style.color=delta>0?'#6ee7b7':delta<0?'#fca5a5':'rgba(255,255,255,.5)';
+  }
+}
+function saveUpdVal(){
+  if(!updCents){toast('Digite o valor','error');return;}
+  const a=instituicoes[currentInstIdx].ativos[currentAtivoIdx];
+  const today=new Date();
+  const dateStr=`${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`;
+  const obs=document.getElementById('upd-obs-input')?.value.trim()||'';
+  a.log.push({date:dateStr,value:updCents/100,note:obs});
+  saveInvestimentos();
+  // refresh detail screen
+  openAtivo(currentAtivoIdx);
+  closeUpdModal();
+  toast('Valor atualizado!','success');
+}
+
+
+
 loadPrefs();
 const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+APP_VERSION;
 </script>
