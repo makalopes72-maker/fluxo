@@ -203,6 +203,59 @@
   .field input,.field select{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.95rem;outline:none;}
   .field select option{background:var(--card);}
 
+  /* CFG SUBMENUS */
+  .cfg-tabs{display:flex;gap:6px;margin-bottom:16px;flex-shrink:0;}
+  .cfg-tab{flex:1;padding:10px 6px;border-radius:12px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.78rem;font-weight:600;cursor:pointer;text-align:center;transition:all .2s;}
+  .cfg-tab.active{background:var(--btn);color:#0f0f11;border-color:var(--btn);}
+  .cfg-panel{display:none;}.cfg-panel.active{display:block;}
+
+  /* TIPOS EDITOR */
+  .tipo-editor{display:flex;flex-direction:column;gap:10px;}
+  .tipo-block{background:var(--card);border-radius:14px;overflow:hidden;}
+  .tipo-header{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--border);}
+  .tipo-header-name{flex:1;font-size:.9rem;font-weight:600;color:var(--font);}
+  .tipo-header-count{font-size:.72rem;color:var(--muted);}
+  .tipo-header-toggle{font-size:.9rem;color:var(--muted);transition:transform .2s;}
+  .tipo-header-toggle.open{transform:rotate(90deg);}
+  .tipo-header.inactive-tipo .tipo-header-name{text-decoration:line-through;color:var(--muted);}
+  .tipo-cats{display:none;padding:6px 0;}
+  .tipo-cats.open{display:block;}
+  .tipo-cat-row{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);}
+  .tipo-cat-row:last-child{border-bottom:none;}
+  .tipo-cat-name{flex:1;font-size:.82rem;color:var(--font);}
+  .tipo-cat-name.inactive-cat{text-decoration:line-through;color:var(--muted);}
+  .tipo-cat-actions{display:flex;gap:5px;}
+  .tcat-btn{padding:3px 9px;border-radius:100px;border:1px solid var(--border);background:transparent;font-family:var(--font-body);font-size:.68rem;color:var(--muted);cursor:pointer;}
+  .tcat-btn.act{border-color:var(--btn);color:var(--btn);}
+  .tcat-btn.del{border-color:var(--red);color:var(--red);}
+  .tipo-add-cat{display:flex;gap:6px;padding:8px 14px;}
+  .tipo-add-cat input{flex:1;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.82rem;outline:none;}
+  .tipo-add-cat button{padding:6px 12px;border-radius:8px;border:none;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.8rem;font-weight:700;cursor:pointer;}
+  .tipo-actions{display:flex;gap:5px;margin-left:4px;}
+  .tipo-btn{padding:3px 9px;border-radius:100px;border:1px solid var(--border);background:transparent;font-family:var(--font-body);font-size:.68rem;color:var(--muted);cursor:pointer;}
+  .tipo-btn.del{border-color:var(--red);color:var(--red);}
+  .tipo-btn.act{border-color:var(--btn);color:var(--btn);}
+  .add-tipo-row-ui{display:flex;gap:8px;margin-top:10px;}
+  .add-tipo-row-ui input{flex:1;padding:9px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.85rem;outline:none;}
+  .add-tipo-row-ui button{padding:9px 14px;border-radius:10px;border:none;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.82rem;font-weight:700;cursor:pointer;}
+
+  /* ACCOUNT MANAGEMENT */
+  .acct-section{margin-bottom:12px;}
+  .acct-section-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+  .acct-section-label span{display:inline-block;padding:2px 8px;border-radius:100px;font-size:.6rem;font-weight:700;}
+  .acct-list{display:flex;flex-direction:column;gap:6px;}
+  .acct-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--kp);border-radius:10px;}
+  .acct-item.inactive{opacity:.45;}
+  .acct-name{flex:1;font-size:.88rem;font-weight:500;color:var(--font);}
+  .acct-actions{display:flex;gap:6px;}
+  .acct-btn{padding:4px 10px;border-radius:100px;border:1px solid var(--border);background:transparent;font-family:var(--font-body);font-size:.7rem;color:var(--muted);cursor:pointer;}
+  .acct-btn.danger{border-color:var(--red);color:var(--red);}
+  .acct-btn.restore{border-color:var(--btn);color:var(--btn);}
+  .acct-owner-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .acct-add-row{display:flex;gap:8px;margin-top:10px;}
+  .acct-add-row input{flex:1;padding:9px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.85rem;outline:none;}
+  .acct-add-row select{padding:9px 10px;border-radius:10px;border:1.5px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.85rem;outline:none;}
+  .acct-add-btn{padding:9px 14px;border-radius:10px;border:none;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.82rem;font-weight:700;cursor:pointer;}
   #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--border);color:var(--font);padding:10px 20px;border-radius:100px;font-size:.85rem;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;z-index:400;}
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
   #toast.success{border-color:var(--btn);color:var(--btn);}
@@ -352,23 +405,62 @@
   <!-- SETTINGS -->
   <div class="screen" id="screen-cfg">
     <div style="margin-top:8px">
-      <div class="cfg-block">
-        <div class="cfg-block-title">Paletas prontas</div>
-        <div class="palette-grid" id="palette-grid"></div>
+      <!-- SUBMENUS -->
+      <div class="cfg-tabs">
+        <button class="cfg-tab active" onclick="setCfgTab('aparencia',this)">🎨 Aparência</button>
+        <button class="cfg-tab" onclick="setCfgTab('contas',this)">🏦 Contas</button>
+        <button class="cfg-tab" onclick="setCfgTab('tipos',this)">🏷 Tipos</button>
       </div>
-      <div class="cfg-block">
-        <div class="cfg-block-title">Personalizar cores</div>
-        <div class="color-picker-grid" id="color-picker-grid"></div>
+
+      <!-- APARÊNCIA -->
+      <div class="cfg-panel active" id="cfgp-aparencia">
+        <div class="cfg-block">
+          <div class="cfg-block-title">Paletas prontas</div>
+          <div class="palette-grid" id="palette-grid"></div>
+        </div>
+        <div class="cfg-block">
+          <div class="cfg-block-title">Personalizar cores</div>
+          <div class="color-picker-grid" id="color-picker-grid"></div>
+        </div>
+        <div class="cfg-block">
+          <div class="cfg-block-title">Fonte</div>
+          <div class="font-list" id="font-list"></div>
+        </div>
+        <div class="cfg-block">
+          <div class="cfg-block-title">App</div>
+          <div class="setting-row"><div><div class="setting-label">Usuário ativo</div></div><div class="setting-val" id="cfg-user">—</div></div>
+          <div class="setting-row"><div><div class="setting-label">Planilha Google Sheets</div><div class="setting-sub">Conectada e sincronizada</div></div><div class="setting-val">✓</div></div>
+          <div class="setting-row"><div><div class="setting-label">Versão</div></div><div class="setting-val">1.9.0</div></div>
+        </div>
       </div>
-      <div class="cfg-block">
-        <div class="cfg-block-title">Fonte</div>
-        <div class="font-list" id="font-list"></div>
+
+      <!-- CONTAS -->
+      <div class="cfg-panel" id="cfgp-contas">
+        <div class="cfg-block">
+          <div class="cfg-block-title">Contas bancárias</div>
+          <div id="acct-list-ui"></div>
+          <div class="acct-add-row">
+            <input type="text" id="acct-new-name" placeholder="Nome da conta">
+            <select id="acct-new-owner">
+              <option value="ALE">ALE</option>
+              <option value="SI">SI</option>
+              <option value="AMBOS">Ambos</option>
+            </select>
+            <button class="acct-add-btn" onclick="addAccount()">+</button>
+          </div>
+        </div>
       </div>
-      <div class="cfg-block">
-        <div class="cfg-block-title">Conta</div>
-        <div class="setting-row"><div><div class="setting-label">Usuário ativo</div></div><div class="setting-val" id="cfg-user">—</div></div>
-        <div class="setting-row"><div><div class="setting-label">Planilha Google Sheets</div><div class="setting-sub">Conectada e sincronizada</div></div><div class="setting-val">✓</div></div>
-        <div class="setting-row"><div><div class="setting-label">Versão</div></div><div class="setting-val">1.7.0</div></div>
+
+      <!-- TIPOS / CATEGORIAS -->
+      <div class="cfg-panel" id="cfgp-tipos">
+        <div class="cfg-block">
+          <div class="cfg-block-title">Tipos e categorias</div>
+          <div class="tipo-editor" id="tipo-editor"></div>
+          <div class="add-tipo-row-ui">
+            <input type="text" id="new-tipo-name" placeholder="Novo tipo…">
+            <button onclick="addTipo()">+ Tipo</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -383,7 +475,7 @@
     <div class="field"><label>Tipo</label><input type="text" id="edit-tipo"></div>
     <div class="field"><label>Categoria</label><input type="text" id="edit-cat-field"></div>
     <div class="field"><label>Tipo de transação</label><select id="edit-type"><option value="saída">Saída</option><option value="entrada">Entrada</option></select></div>
-    <div class="field"><label>Conta</label><select id="edit-account"><option>Nubank</option><option>Itaú</option><option>Bradesco</option><option>Carteira</option><option>Outro</option></select></div>
+    <div class="field"><label>Conta</label><select id="edit-account"></select></div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
       <button class="btn-update" onclick="updateTransaction()">Salvar alterações</button>
@@ -417,7 +509,88 @@ const TIPOS={
   'Transporte':      ['Combustível (sem reembolso)','Compra carro','Estacionamento','IPVA (+ licenciamento)','Lavagem e Higienização','Multas','Ônibus Metrô (sem reembolso)','Revisão Anual / Manut / Cons','Seguro do Carro','Sem Parar','Táxi (sem reembolso) / Aplicativo'],
   'Viagens':         ['Alimentação Férias','Combustível Férias','Compras','Hospedagem Férias','Passagens / Transporte férias','Passeios Férias','Sem Parar Férias','X Outros'],
 };
-const CONTAS=['Nubank','Itaú','Bradesco','Carteira','Outro'];
+// ── CONTAS ──
+const DEFAULT_ACCOUNTS=[
+  {name:'ALE Conta Itaú',    owner:'ALE',   active:true},
+  {name:'ALE Crédito Itaú',  owner:'ALE',   active:true},
+  {name:'ALE Dinheiro',      owner:'ALE',   active:true},
+  {name:'ALE Wise',          owner:'ALE',   active:true},
+  {name:'AVENUE ALE',        owner:'ALE',   active:true},
+  {name:'SI Avenue',         owner:'SI',    active:true},
+  {name:'SI Conta Itaú',     owner:'SI',    active:true},
+  {name:'SI Crédito Itaú',   owner:'SI',    active:true},
+  {name:'SI Itaú PJ UNO',    owner:'SI',    active:true},
+  {name:'SI Wise',           owner:'SI',    active:true},
+  {name:'XXX Carteira',      owner:'ALE',   active:true},
+  {name:'xxx BOROROS',       owner:'ALE',   active:true},
+  {name:'xxx JAMBOREE',      owner:'ALE',   active:true},
+  {name:'Investimentos',     owner:'ALE',   active:true},
+  {name:'Warren',            owner:'ALE',   active:true},
+  {name:'acampamento',       owner:'ALE',   active:true},
+  {name:'filhos',            owner:'ALE',   active:true},
+  {name:'ALE TRANSIT',       owner:'ALE',   active:false},
+];
+let accounts=[...DEFAULT_ACCOUNTS];
+
+function loadAccounts(){
+  try{const s=localStorage.getItem('fluxo_accounts2');if(s)accounts=JSON.parse(s);}catch(e){}
+}
+function saveAccounts(){try{localStorage.setItem('fluxo_accounts2',JSON.stringify(accounts));}catch(e){}}
+
+function getActiveAccounts(){
+  const user=currentUser||'ALE';
+  return accounts.filter(a=>a.active&&(a.owner==='AMBOS'||a.owner===user));
+}
+
+function addAccount(){
+  const name=document.getElementById('acct-new-name').value.trim();
+  const owner=document.getElementById('acct-new-owner').value;
+  if(!name)return;
+  accounts.push({name,owner,active:true});
+  document.getElementById('acct-new-name').value='';
+  saveAccounts();buildAccountsUI();buildSettings();
+}
+function toggleAccount(idx){
+  accounts[idx].active=!accounts[idx].active;
+  saveAccounts();buildAccountsUI();
+}
+function deleteAccount(idx){
+  if(!confirm('Remover conta "'+accounts[idx].name+'"?'))return;
+  accounts.splice(idx,1);
+  saveAccounts();buildAccountsUI();
+}
+
+function buildAccountsUI(){
+  const el=document.getElementById('acct-list-ui');if(!el)return;
+  const ownerColors={ALE:'#5a8ff5',SI:'#ff6fa3',AMBOS:'#22c55e'};
+  const sections=[
+    {label:'ALE',key:'ALE'},
+    {label:'SI — Sílvia',key:'SI'},
+    {label:'Compartilhadas',key:'AMBOS'},
+  ];
+  let html='';
+  sections.forEach(sec=>{
+    const items=accounts.map((a,i)=>({...a,i})).filter(a=>a.owner===sec.key);
+    if(!items.length)return;
+    html+=`<div class="acct-section">
+      <div class="acct-section-label">
+        <div class="acct-owner-dot" style="background:${ownerColors[sec.key]}"></div>
+        ${sec.label}
+      </div>
+      <div class="acct-list">
+        ${items.map(a=>`
+          <div class="acct-item${a.active?'':' inactive'}">
+            <div class="acct-name">${a.name}</div>
+            <div class="acct-actions">
+              <button class="acct-btn ${a.active?'danger':'restore'}" onclick="toggleAccount(${a.i})">${a.active?'Inativar':'Ativar'}</button>
+              <button class="acct-btn danger" onclick="deleteAccount(${a.i})">✕</button>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  });
+  el.innerHTML=html;
+}
 
 // ── PALETTES ──
 const PALETTES=[
@@ -457,6 +630,120 @@ function applyTheme(){
 function pickPalette(id){prefs.paletteId=id;const p=PALETTES.find(x=>x.id===id);prefs.custom={...p};applyTheme();savePrefs();buildSettings();}
 function setCustomColor(key,val){prefs.custom[key]=val;prefs.paletteId='custom';applyTheme();savePrefs();buildSettings();}
 function applyFont(id){prefs.font=id;const f=FONTS.find(x=>x.id===id)||FONTS[0];document.documentElement.style.setProperty('--font-body',f.body);document.documentElement.style.setProperty('--font-display',f.display);savePrefs();buildSettings();}
+// ── CFG TABS ──
+function setCfgTab(tab, el){
+  document.querySelectorAll('.cfg-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.cfg-panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('cfgp-'+tab).classList.add('active');
+  if(tab==='tipos') buildTiposEditor();
+  if(tab==='contas') buildAccountsUI();
+}
+
+// ── TIPOS EDITOR ──
+// tiposData mirrors TIPOS but is editable + persisted
+let tiposData={};
+function initTiposData(){
+  try{const s=localStorage.getItem('fluxo_tipos');if(s){tiposData=JSON.parse(s);return;}}catch(e){}
+  // init from TIPOS
+  tiposData={};
+  Object.keys(TIPOS).forEach(t=>{
+    tiposData[t]={active:true,cats:(TIPOS[t]||[]).map(c=>({name:c,active:true}))};
+  });
+}
+function saveTiposData(){try{localStorage.setItem('fluxo_tipos',JSON.stringify(tiposData));}catch(e){}}
+
+function getActiveTipos(){return Object.keys(tiposData).filter(t=>tiposData[t].active);}
+function getActiveCats(tipo){return(tiposData[tipo]?.cats||[]).filter(c=>c.active).map(c=>c.name);}
+
+function addTipo(){
+  const name=document.getElementById('new-tipo-name').value.trim();
+  if(!name||tiposData[name])return;
+  tiposData[name]={active:true,cats:[]};
+  document.getElementById('new-tipo-name').value='';
+  saveTiposData();buildTiposEditor();
+}
+function toggleTipo(name){
+  if(tiposData[name])tiposData[name].active=!tiposData[name].active;
+  saveTiposData();buildTiposEditor();
+}
+function deleteTipo(name){
+  if(!confirm('Remover tipo "'+name+'" e todas as categorias?'))return;
+  delete tiposData[name];
+  saveTiposData();buildTiposEditor();
+}
+function toggleCat(tipo,idx){
+  if(tiposData[tipo]?.cats[idx])tiposData[tipo].cats[idx].active=!tiposData[tipo].cats[idx].active;
+  saveTiposData();buildTiposEditor();
+}
+function deleteCat(tipo,idx){
+  tiposData[tipo]?.cats.splice(idx,1);
+  saveTiposData();buildTiposEditor();
+}
+function addCat(tipo){
+  const inp=document.getElementById('new-cat-'+tipo.replace(/[^a-zA-Z0-9]/g,'_'));
+  if(!inp)return;
+  const name=inp.value.trim();if(!name)return;
+  if(!tiposData[tipo])return;
+  tiposData[tipo].cats.push({name,active:true});
+  inp.value='';
+  saveTiposData();buildTiposEditor();
+}
+let openTipo=null;
+function toggleTipoOpen(name){openTipo=openTipo===name?null:name;buildTiposEditor();}
+
+function buildTiposEditor(){
+  const el=document.getElementById('tipo-editor');if(!el)return;
+  const tipos=Object.keys(tiposData);
+  el.innerHTML=tipos.map(name=>{
+    const t=tiposData[name];
+    const isOpen=openTipo===name;
+    const safeId=name.replace(/[^a-zA-Z0-9]/g,'_');
+    const activeCats=t.cats.filter(c=>c.active).length;
+    return `<div class="tipo-block">
+      <div class="tipo-header${t.active?'':' inactive-tipo'}" onclick="toggleTipoOpen('${name.replace(/'/g,"\\'")}')">
+        <div class="tipo-header-name">${name}</div>
+        <div class="tipo-header-count">${activeCats}/${t.cats.length}</div>
+        <div class="tipo-actions" onclick="event.stopPropagation()">
+          <button class="tipo-btn act" onclick="toggleTipo('${name.replace(/'/g,"\\'")}')">
+            ${t.active?'Inativar':'Ativar'}
+          </button>
+          <button class="tipo-btn del" onclick="deleteTipo('${name.replace(/'/g,"\\'")}')">✕</button>
+        </div>
+        <div class="tipo-header-toggle${isOpen?' open':''}">›</div>
+      </div>
+      <div class="tipo-cats${isOpen?' open':''}">
+        ${t.cats.map((c,i)=>`
+          <div class="tipo-cat-row">
+            <div class="tipo-cat-name${c.active?'':' inactive-cat'}">${c.name}</div>
+            <div class="tipo-cat-actions">
+              <button class="tcat-btn act" onclick="toggleCat('${name.replace(/'/g,"\\'")}',${i})">${c.active?'Inativar':'Ativar'}</button>
+              <button class="tcat-btn del" onclick="deleteCat('${name.replace(/'/g,"\\'")}',${i})">✕</button>
+            </div>
+          </div>`).join('')}
+        <div class="tipo-add-cat">
+          <input type="text" id="new-cat-${safeId}" placeholder="Nova categoria…">
+          <button onclick="addCat('${name.replace(/'/g,"\\'")}')">+</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── CLICK SOUND (Web Audio API) ──
+const _ac=new (window.AudioContext||window.webkitAudioContext)();
+function playClick(){
+  try{
+    const o=_ac.createOscillator(),g=_ac.createGain();
+    o.connect(g);g.connect(_ac.destination);
+    o.frequency.setValueAtTime(900,_ac.currentTime);
+    o.frequency.exponentialRampToValueAtTime(400,_ac.currentTime+0.04);
+    g.gain.setValueAtTime(0.18,_ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,_ac.currentTime+0.06);
+    o.start(_ac.currentTime);o.stop(_ac.currentTime+0.06);
+  }catch(e){}
+}
+
 function buildSettings(){
   const pg=document.getElementById('palette-grid');
   if(pg)pg.innerHTML=PALETTES.map(p=>`<div class="palette-card${prefs.paletteId===p.id?' active':''}" onclick="pickPalette('${p.id}')"><div class="palette-preview"><div style="background:${p.bg};grid-row:1/3"></div><div style="background:${p.btn}"></div><div style="background:${p.kp}"></div></div><div class="palette-name" style="background:${p.kp};color:${p.font}80">${p.name}</div></div>`).join('');
@@ -464,6 +751,7 @@ function buildSettings(){
   if(cpg)cpg.innerHTML=COLOR_FIELDS.map(f=>`<div class="color-picker-row"><div class="color-dot" style="background:${prefs.custom[f.key]}"><input type="color" value="${prefs.custom[f.key]}" onchange="setCustomColor('${f.key}',this.value)"></div><div class="color-info"><div class="color-label">${f.label}</div><div class="color-hex">${prefs.custom[f.key]}</div></div></div>`).join('');
   const fl=document.getElementById('font-list');
   if(fl)fl.innerHTML=FONTS.map(f=>`<div class="font-option${prefs.font===f.id?' selected':''}" onclick="applyFont('${f.id}')"><div><div class="font-option-name" style="font-family:${f.body}">${f.label}</div><div class="font-option-sample" style="font-family:${f.display}">${f.sample}</div></div><span class="font-check">✓</span></div>`).join('');
+  buildAccountsUI();
 }
 function savePrefs(){try{localStorage.setItem('fluxo_p8',JSON.stringify(prefs));}catch(e){}}
 function loadPrefs(){
@@ -483,7 +771,7 @@ function login(u){
   document.getElementById('user-tag').textContent=u;
   document.getElementById('menu-user').textContent=u;
   document.getElementById('cfg-user').textContent=u;
-  setTodayDate();buildSettings();loadData();
+  loadAccounts();initTiposData();setTodayDate();buildSettings();loadData();
 }
 function logout(){currentUser=null;allData=[];document.getElementById('app').classList.remove('visible');document.getElementById('splash').style.display='flex';closeMenu();}
 
@@ -532,7 +820,8 @@ function buildCatDrop(){
 }
 function buildContaDrop(){
   const slot=document.getElementById('drop-conta');slot.style.display='block';
-  slot.innerHTML=`<div class="drop-panel">${CONTAS.map(c=>`<div class="drop-item${selConta===c?' selected':''}" onclick="pickConta('${c}')">${c}</div>`).join('')}</div>`;
+  const list=getActiveAccounts();
+  slot.innerHTML=`<div class="drop-panel">${list.map(a=>`<div class="drop-item${selConta===a.name?' selected':''}" onclick="pickConta('${a.name.replace(/'/g,"\\'")}')"> ${a.name}</div>`).join('')}</div>`;
 }
 function pickTipo(t){
   selTipo=t;selCat=null;
@@ -554,6 +843,7 @@ function pickConta(c){
 
 // ── KEYPAD ──
 function kp(k){
+  playClick();
   if(['÷','×','−','+'].includes(k)){if(!amountCents)return;opPending=k;prevCents=amountCents;amountCents=0;displayMode=(k==='×'||k==='÷')?'inteiro':'reais';secondInt=0;updVal();return;}
   if(k==='='){
     if(opPending&&prevCents>0){
@@ -588,7 +878,7 @@ async function saveTransaction(){
   const desc=document.getElementById('tx-desc').value.trim();
   const cat=selCat||selTipo||'Outros';
   const tipo=selTipo||'';
-  const acc=selConta||'Nubank';
+  const acc=selConta||(getActiveAccounts()[0]?.name||'—');
   const now=new Date();
   const date=`${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
   const value=(amountCents/100).toFixed(2).replace('.',',');
