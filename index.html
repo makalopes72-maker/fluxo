@@ -920,11 +920,9 @@ function goScreen(name){
   if(name==='add'){
     // pre-fill conta with default
     const def=getDefaultAccount();
-    if(def&&!selConta){
-      selConta=def;
-      const fv=document.getElementById('fv-conta');
-      if(fv){fv.textContent=def;fv.classList.remove('ph');}
-    }
+    selConta=def||null;
+    const fv=document.getElementById('fv-conta');
+    if(fv&&def){fv.textContent=def;fv.classList.remove('ph');}
   }
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-add').classList.remove('active');
@@ -941,8 +939,7 @@ function goScreen(name){
 function setTodayDate(){
   const n=new Date();
   const display=`${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`;
-  document.getElementById('add-date').textContent=display;
-  // set input value in yyyy-mm-dd format
+  const _ad=document.getElementById('add-date');if(_ad)_ad.textContent=display;
   const inp=document.getElementById('date-input');
   if(inp) inp.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
 }
@@ -988,19 +985,19 @@ function buildContaDrop(){
 }
 function pickTipo(t){
   selTipo=t;selCat=null;
-  const fv=document.getElementById('fv-tipo');fv.textContent=t;fv.classList.remove('ph');
-  const fc=document.getElementById('fv-cat');fc.textContent='Categoria';fc.classList.add('ph');
+  const fv=document.getElementById('fv-tipo');if(fv){fv.textContent=t;fv.classList.remove('ph');}
+  const fc=document.getElementById('fv-cat');if(fc){fc.textContent='Categoria';fc.classList.add('ph');}
   closeDrop();
-  if(TIPOS[t]&&TIPOS[t].length)setTimeout(()=>toggleDrop('cat'),100);
+  if(tiposData[t]&&getActiveCats(t).length)setTimeout(()=>toggleDrop('cat'),100);
 }
 function pickCat(c){
   selCat=c;
-  const fv=document.getElementById('fv-cat');fv.textContent=c;fv.classList.remove('ph');
+  const fv=document.getElementById('fv-cat');if(fv){fv.textContent=c;fv.classList.remove('ph');}
   closeDrop();
 }
 function pickConta(c){
   selConta=c;
-  const fv=document.getElementById('fv-conta');fv.textContent=c;fv.classList.remove('ph');
+  const fv=document.getElementById('fv-conta');if(fv){fv.textContent=c;fv.classList.remove('ph');}
   closeDrop();
 }
 
@@ -1056,9 +1053,9 @@ async function saveTransaction(){
   amountCents=0;opPending=null;prevCents=0;displayMode='reais';secondInt=0;updVal();
   document.getElementById('tx-desc').value='';
   selTipo=null;selCat=null;selConta=null;window._selectedDate=null;exitFieldsMode();
-  document.getElementById('fv-tipo').textContent='Tipo';document.getElementById('fv-tipo').classList.add('ph');
-  document.getElementById('fv-cat').textContent='Categoria';document.getElementById('fv-cat').classList.add('ph');
-  document.getElementById('fv-conta').textContent='Conta';document.getElementById('fv-conta').classList.add('ph');
+  const _ft=document.getElementById('fv-tipo');if(_ft){_ft.textContent='Pasta';_ft.classList.add('ph');}
+  const _fc=document.getElementById('fv-cat');if(_fc){_fc.textContent='Categoria';_fc.classList.add('ph');}
+  const _fco=document.getElementById('fv-conta');if(_fco){_fco.textContent='Conta';_fco.classList.add('ph');}
   closeDrop();
   btn.disabled=false;btn.textContent='Salvar transação';
   renderDash();setTimeout(()=>goScreen('dash'),600);
