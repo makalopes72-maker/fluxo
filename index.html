@@ -536,7 +536,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='1.5';
+const APP_VERSION='1.6';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -558,7 +558,137 @@ const TIPO_ICONS={
   'Transporte':     '🚗',
   'Viagens':        '✈️',
 };
-const CAT_ICONS={'Alimentação':'🍽','Transporte':'🚗','Moradia':'🏠','Saúde':'💊','Lazer':'🎉','Educação':'📚','Vestuário':'👕','Salário':'💰','Receita':'💵','Casa':'🏠','Investimentos':'📈','Outros':'📦'};
+const CAT_ICONS={
+  // Alimentação
+  'Café da Manhã / Padaria':'☕',
+  'Desconto VR':'🎫',
+  'Feira':'🥬',
+  'Lanches & Snacks':'🍟',
+  'Refeições em restaurante':'🍽',
+  'Supermercado':'🛒',
+  // Casa
+  'Celular Telefone':'📱',
+  'Combo TV + Internet + Tel':'📺',
+  'Condomínio':'🏢',
+  'Energia Elétrica':'⚡',
+  'Gás':'🔥',
+  'IPTU':'🏛',
+  'Limpeza / Faxina':'🧹',
+  'Móveis e decoração':'🛋',
+  'Reforma / Manutenção':'🔧',
+  'Utensílios e Eletrodomésticos':'🍳',
+  'X Outros Casa':'🏠',
+  // Dependentes
+  'Celular filhos':'📱',
+  'Clube filhos':'🏊',
+  'Escotismo':'⚜️',
+  'Escotismo Coreia':'🇰🇷',
+  'Pensão Alimentícia':'👶',
+  'Pensão Alimentícia Férias':'🏖',
+  'Plano saúde filhos':'💊',
+  'Taxi filhos':'🚕',
+  'X Outros Filhos':'👧',
+  // Educação
+  'Consultoria':'🧠',
+  'Cursos':'🎓',
+  'Livros e materiais':'📖',
+  // Empresa / Aut.
+  'Alimentação / Empresa':'🍱',
+  'AngelUs':'👼',
+  'Contabilidade':'🧾',
+  'CREF / TEF anuidade':'🏋',
+  'Cursos e Eventos / Empresa':'🎤',
+  'Estacionamento / Taxi / Empresa':'🅿️',
+  'Infraestrutura':'🖥',
+  'INSS':'📋',
+  'IR':'📊',
+  'Marketing':'📣',
+  'Material de Escritório':'✏️',
+  'Nexus / Vistage':'🤝',
+  'Taxa (banco / PJ)':'🏦',
+  'X Outros / Empresa':'💼',
+  // Gastos Pessoais
+  'Aplicativos / armazenamento':'📲',
+  'Doações':'❤️',
+  'Documentos':'📄',
+  'Eletrônicos Pessoais':'💻',
+  'Higiene / Estética':'🧴',
+  'INSS / IR (PF)':'📋',
+  'Loterias':'🎰',
+  'Presentes':'🎁',
+  'Salão Beleza / Manicure':'💅',
+  'Suplemento Alimentar':'💪',
+  'Transferências':'↔️',
+  'Vestuário Calçados Acessórios':'👟',
+  'X Outros Pessoais':'👤',
+  'XXX Escotismo':'⚜️',
+  // Investimentos
+  'Avenue':'🌎',
+  'Itaú':'🏦',
+  'Outros Investimentos':'💹',
+  'Safra':'🌾',
+  // Lazer
+  'APPs Netflix Spotify':'🎬',
+  'Bares e Restaurantes':'🍻',
+  'Bike / Artigos esportivos':'🚴',
+  'Cinema / Teatro / Show / Passeio':'🎭',
+  'Clube':'🏊',
+  // Receita
+  'Férias Adiantamento':'🏖',
+  'Juros Investimentos / Dividendos':'📈',
+  'Receita Bruta (Cliente / Salário)':'💰',
+  'Receita Salário 13º':'🎄',
+  'Receita Salário Bônus':'⭐',
+  'Reembolso':'↩️',
+  'Restituição':'💵',
+  'X Outras Receitas':'💵',
+  // Saúde
+  'Consultas Fora do Plano':'🩺',
+  'Dentista':'🦷',
+  'Exames':'🔬',
+  'Fisioterapia':'🦴',
+  'Medicamentos Farmácia':'💊',
+  'Plano de Saúde Ale':'🏥',
+  'Plano de Saúde Sílvia':'🏥',
+  'Reembolso Médico':'↩️',
+  'Seguro de Vida':'🛡',
+  'Terapia / Massagem / Tratamento':'🧘',
+  // Seguros
+  'Seguro Automóvel':'🚗',
+  'Seguro Residencial':'🏠',
+  'Outros Seguros':'🛡',
+  // Serv. Financeiros
+  'Anuidade Cartão Crédito':'💳',
+  'Contador':'🧮',
+  'Tarifas bancárias':'🏦',
+  'X Outros Serviços Financeiros':'💸',
+  // Transporte
+  'Combustível (sem reembolso)':'⛽',
+  'Compra carro':'🚘',
+  'Estacionamento':'🅿️',
+  'IPVA (+ licenciamento)':'📋',
+  'Lavagem e Higienização':'🚿',
+  'Multas':'🚨',
+  'Ônibus Metrô (sem reembolso)':'🚌',
+  'Revisão Anual / Manut / Cons':'🔧',
+  'Seguro do Carro':'🛡',
+  'Sem Parar':'🛣',
+  'Táxi (sem reembolso) / Aplicativo':'🚕',
+  // Viagens
+  'Alimentação Férias':'🍽',
+  'Combustível Férias':'⛽',
+  'Compras':'🛍',
+  'Hospedagem Férias':'🏨',
+  'Passagens / Transporte férias':'✈️',
+  'Passeios Férias':'🗺',
+  'Sem Parar Férias':'🛣',
+  'X Outros':'📦',
+  // fallback legacy
+  'Alimentação':'🍽','Transporte':'🚗','Moradia':'🏠','Saúde':'💊',
+  'Lazer':'🎉','Educação':'📚','Vestuário':'👕','Salário':'💰',
+  'Receita':'💵','Casa':'🏠','Investimentos':'📈','Outros':'📦',
+};
+const _UNUSED={'Alimentação':'🍽','Transporte':'🚗','Moradia':'🏠','Saúde':'💊','Lazer':'🎉','Educação':'📚','Vestuário':'👕','Salário':'💰','Receita':'💵','Casa':'🏠','Investimentos':'📈','Outros':'📦'};
 
 // ── TIPOS & CATEGORIAS ──
 const TIPOS={
@@ -1025,7 +1155,7 @@ function pickTipo(t){
 }
 function pickCat(c){
   selCat=c;
-  const fv=document.getElementById('fv-cat');if(fv){fv.textContent=c;fv.classList.remove('ph');}
+  const fv=document.getElementById('fv-cat');if(fv){fv.textContent=(CAT_ICONS[c]||'')+' '+c;fv.classList.remove('ph');}
   closeDrop();
 }
 function pickConta(c){
