@@ -213,23 +213,29 @@
   .ac-item-match{color:var(--btn);}
 
   /* KEYWORD EDITOR inside tipos */
-  .kw-section{padding:6px 14px 10px;border-top:1px solid var(--border);background:var(--bg);border-radius:0 0 12px 12px;}
-  .kw-section-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px;font-weight:600;}
-  .kw-list{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;}
-  .kw-tag{display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:100px;background:var(--kp);border:1px solid var(--border);font-size:.78rem;color:var(--font);}
+  /* KEYWORD OPTION 3 — key icon per category */
+  .kw-icon-btn{width:26px;height:26px;border-radius:7px;border:1.5px solid var(--border);background:var(--kp);display:flex;align-items:center;justify-content:center;font-size:.8rem;cursor:pointer;flex-shrink:0;transition:all .2s;}
+  .kw-icon-btn.has{background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.4);}
+  .kw-slide{margin:0 8px 4px 32px;background:rgba(16,185,129,.06);border-left:3px solid var(--btn);border-radius:0 10px 10px 0;padding:10px 12px;}
+  .kw-slide-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--btn);margin-bottom:6px;font-weight:700;}
+  .kw-list{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px;}
+  .kw-tag{display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:100px;background:var(--card);border:1px solid rgba(16,185,129,.3);font-size:.78rem;color:var(--font);}
   .kw-tag-del{color:var(--muted);cursor:pointer;font-size:.8rem;line-height:1;}
   .kw-add-row{display:flex;gap:6px;}
-  .kw-add-row input{flex:1;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--font);font-family:var(--font-body);font-size:.8rem;outline:none;}
+  .kw-add-row input{flex:1;padding:6px 10px;border-radius:8px;border:1px solid rgba(16,185,129,.3);background:var(--card);color:var(--font);font-family:var(--font-body);font-size:.8rem;outline:none;}
   .kw-add-row button{padding:6px 12px;border-radius:8px;border:none;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.8rem;font-weight:700;cursor:pointer;}
 
-  /* ADD KEYWORD TOAST MODAL */
-  #kw-toast-modal{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;z-index:500;display:none;min-width:280px;max-width:320px;box-shadow:0 4px 20px rgba(0,0,0,.15);}
-  #kw-toast-modal.show{display:block;animation:slideUp .3s ease;}
-  .ktm-title{font-size:.82rem;font-weight:600;color:var(--font);margin-bottom:8px;}
-  .ktm-desc{font-size:.78rem;color:var(--muted);margin-bottom:10px;line-height:1.4;}
-  .ktm-actions{display:flex;gap:8px;}
-  .ktm-btn{flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:transparent;font-family:var(--font-body);font-size:.8rem;color:var(--muted);cursor:pointer;}
-  .ktm-btn.primary{background:var(--btn);color:#0f0f11;border-color:var(--btn);font-weight:700;}
+  /* ADD KEYWORD MODAL */
+  #kw-toast-modal{position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);padding:24px;}
+  #kw-toast-modal.show{display:flex;animation:fadeIn .25s ease;}
+  .ktm-sheet{background:var(--card);border-radius:20px;padding:24px;width:100%;max-width:340px;box-shadow:0 8px 32px rgba(0,0,0,.2);}
+  .ktm-icon{font-size:2rem;text-align:center;margin-bottom:12px;}
+  .ktm-title{font-size:1.05rem;font-weight:700;color:var(--font);margin-bottom:8px;text-align:center;}
+  .ktm-desc{font-size:.88rem;color:var(--muted);margin-bottom:20px;line-height:1.5;text-align:center;}
+  .ktm-desc strong{color:var(--font);font-weight:600;}
+  .ktm-actions{display:flex;flex-direction:column;gap:8px;}
+  .ktm-btn{width:100%;padding:13px;border-radius:12px;border:1.5px solid var(--border);background:transparent;font-family:var(--font-body);font-size:.95rem;color:var(--muted);cursor:pointer;font-weight:500;}
+  .ktm-btn.primary{background:var(--btn);color:#0f0f11;border-color:var(--btn);font-weight:700;font-size:1rem;}
 
   /* EXTRATO */
   .extrato-header{flex-shrink:0;background:var(--bg);padding:10px 16px 0;border-bottom:1px solid var(--border);}
@@ -1149,17 +1155,20 @@
 </div>
 <!-- KEYWORD SUGGESTION MODAL -->
 <div id="kw-toast-modal">
-  <div class="ktm-title" id="ktm-title">Adicionar às palavras-chave?</div>
-  <div class="ktm-desc" id="ktm-desc">Deseja salvar esta descrição como palavra-chave?</div>
-  <div class="ktm-actions">
-    <button class="ktm-btn" onclick="closeKwToast()">Agora não</button>
-    <button class="ktm-btn primary" onclick="confirmAddKw()">Adicionar</button>
+  <div class="ktm-sheet">
+    <div class="ktm-icon">🔑</div>
+    <div class="ktm-title" id="ktm-title">Salvar palavra-chave?</div>
+    <div class="ktm-desc" id="ktm-desc">Deseja salvar esta descrição como palavra-chave?</div>
+    <div class="ktm-actions">
+      <button class="ktm-btn primary" onclick="confirmAddKw()">Sim, adicionar</button>
+      <button class="ktm-btn" onclick="closeKwToast()">Agora não</button>
+    </div>
   </div>
 </div>
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='4.1';
+const APP_VERSION='4.3';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -1551,7 +1560,6 @@ function buildTiposEditor(){
           <button onclick="addCat('${name.replace(/'/g,"\\'")}')">+</button>
         </div>
       </div>
-      ${isOpen ? buildKeywordsEditor(name) : ''}
     </div>`;
   }).join('');
 }
@@ -1566,6 +1574,12 @@ let _kwPendingDesc = null; // desc waiting to be added as keyword
 let _kwPendingTipo = null;
 let _kwPendingCat  = null;
 
+let openKwCat=null; // 'tipo|||cat'
+function toggleKwPanel(tipo,cat){
+  const key=tipo+'|||'+cat;
+  openKwCat=openKwCat===key?null:key;
+  buildTiposEditor();
+}
 function loadKeywords(){
   try{const s=localStorage.getItem('fluxo_kw');if(s)keywordsData=JSON.parse(s);}catch(e){}
   if(!Object.keys(keywordsData).length) seedKeywords();
@@ -1681,8 +1695,8 @@ function checkAddKeyword(desc, tipo, cat){
   _kwPendingDesc=desc;_kwPendingTipo=tipo;_kwPendingCat=cat;
   const modal=document.getElementById('kw-toast-modal');
   if(!modal)return;
-  document.getElementById('ktm-title').textContent='Salvar "'+desc+'" como palavra-chave?';
-  document.getElementById('ktm-desc').textContent='Categoria: '+tipo+' › '+cat;
+  document.getElementById('ktm-title').textContent='Salvar como palavra-chave?';
+  document.getElementById('ktm-desc').innerHTML='Adicionar <strong>"'+desc+'"</strong> à categoria<br><strong>'+tipo+' › '+cat+'</strong>?';
   modal.classList.add('show');
   setTimeout(()=>closeKwToast(),8000);
 }
@@ -1702,32 +1716,6 @@ function confirmAddKw(){
 }
 
 // ── KEYWORD EDITOR in settings ──
-function buildKeywordsEditor(tipoName){
-  // called inside buildTiposEditor for each expanded tipo
-  const cats=keywordsData[tipoName]||{};
-  const tipoData=tiposData[tipoName];
-  if(!tipoData)return'';
-  const catNames=tipoData.cats.filter(c=>c.active).map(c=>c.name);
-  if(!catNames.length)return'';
-  const safeT=tipoName.replace(/[^a-zA-Z0-9]/g,'_');
-  return `<div class="kw-section">
-    <div class="kw-section-title">🔑 Palavras-chave</div>
-    ${catNames.map(cat=>{
-      const kws=(cats[cat]||[]);
-      const safeC=cat.replace(/[^a-zA-Z0-9]/g,'_');
-      return `<div style="margin-bottom:8px;">
-        <div style="font-size:.72rem;color:var(--muted);margin-bottom:4px;">${cat}</div>
-        <div class="kw-list" id="kwlist_${safeT}_${safeC}">
-          ${kws.map((kw,ki)=>`<span class="kw-tag">${kw}<span class="kw-tag-del" onclick="deleteKw('${tipoName.replace(/'/g,"\'")}','${cat.replace(/'/g,"\'")}',${ki})">✕</span></span>`).join('')}
-        </div>
-        <div class="kw-add-row">
-          <input type="text" id="kwinput_${safeT}_${safeC}" placeholder="Nova palavra-chave…">
-          <button onclick="addKw('${tipoName.replace(/'/g,"\'")}','${cat.replace(/'/g,"\'")}','kwinput_${safeT}_${safeC}')">+</button>
-        </div>
-      </div>`;
-    }).join('')}
-  </div>`;
-}
 
 function addKw(tipo,cat,inputId){
   const inp=document.getElementById(inputId);if(!inp)return;
