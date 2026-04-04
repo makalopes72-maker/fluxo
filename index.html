@@ -88,7 +88,7 @@
   .tx-action-btn .act-icon{font-size:1.1rem;}
   .tx-action-edit{background:var(--kp);color:var(--font);}
   .tx-action-del{background:var(--red);color:#fff;}
-  .tx-item{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;position:relative;z-index:1;transition:transform .25s cubic-bezier(.4,0,.2,1);will-change:transform;touch-action:pan-y;user-select:none;}
+  .tx-item{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;position:relative;z-index:1;transition:transform .25s cubic-bezier(.4,0,.2,1);will-change:transform;touch-action:pan-y;user-select:none;cursor:pointer;}
   .tx-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;background:var(--kp);}
   .tx-info{flex:1;min-width:0;}
   .tx-desc{font-size:.88rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--font);}
@@ -272,8 +272,26 @@
   /* EDIT MODAL */
   #edit-modal{position:fixed;inset:0;z-index:300;display:flex;align-items:flex-end;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .25s;}
   #edit-modal.open{opacity:1;pointer-events:all;}
-  .modal-sheet{width:100%;background:var(--card);border-radius:24px 24px 0 0;padding:24px 24px 44px;border-top:1px solid var(--border);transform:translateY(40px);transition:transform .25s cubic-bezier(.4,0,.2,1);}
+  .modal-sheet{width:100%;background:var(--card);border-radius:24px 24px 0 0;padding:20px 20px 44px;border-top:1px solid var(--border);transform:translateY(40px);transition:transform .25s cubic-bezier(.4,0,.2,1);max-height:92vh;overflow-y:auto;}
+  .modal-sheet::-webkit-scrollbar{display:none;}
   #edit-modal.open .modal-sheet{transform:translateY(0);}
+  .edit-tipo-row{display:flex;gap:6px;margin-bottom:14px;}
+  .edit-tipo-btn{flex:1;padding:9px;border-radius:10px;border:1.5px solid var(--border);background:transparent;font-family:var(--font-body);font-size:.82rem;font-weight:600;cursor:pointer;color:var(--muted);transition:all .2s;text-align:center;}
+  .edit-tipo-btn.saida{border-color:var(--red);color:var(--red);}
+  .edit-tipo-btn.entrada{border-color:var(--accent2);color:var(--accent2);}
+  .edit-consol-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--kp);border-radius:12px;margin-bottom:14px;cursor:pointer;}
+  .edit-consol-label{flex:1;font-size:.88rem;font-weight:500;color:var(--font);}
+  .edit-drop{background:var(--bg);border-radius:10px;border:1px solid var(--border);max-height:180px;overflow-y:auto;margin-top:4px;display:none;}
+  .edit-drop.open{display:block;}
+  .edit-drop-item{padding:9px 14px;font-size:.82rem;color:var(--font);cursor:pointer;border-bottom:1px solid var(--border);}
+  .edit-drop-item:last-child{border-bottom:none;}
+  .edit-drop-item:active{background:var(--kp);}
+  .edit-drop-item.selected{color:var(--btn);font-weight:700;}
+  .edit-drop-item.grp{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);background:var(--card);cursor:default;padding:6px 14px;}
+  .edit-field-btn{width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.88rem;font-weight:500;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px;}
+  .edit-field-btn .efb-val{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .edit-field-btn .efb-arr{color:var(--muted);font-size:.8rem;}
+  .edit-field-btn.ph .efb-val{color:var(--muted);}
   .modal-title{font-family:var(--font-display);font-size:1.3rem;margin-bottom:20px;color:var(--font);}
   .modal-actions{display:flex;gap:10px;margin-top:16px;}
   .btn-cancel{flex:1;padding:14px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.95rem;cursor:pointer;}
@@ -697,23 +715,78 @@
 <!-- EDIT MODAL -->
 <div id="edit-modal">
   <div class="modal-sheet">
-    <div class="modal-title">Editar transação</div>
+    <div class="modal-title" style="margin-bottom:16px;">Editar transação</div>
+
+    <!-- Saída / Entrada -->
+    <div class="edit-tipo-row">
+      <button class="edit-tipo-btn saida" id="edit-btn-saida" onclick="setEditType('saída')">↓ Saída</button>
+      <button class="edit-tipo-btn entrada" id="edit-btn-entrada" onclick="setEditType('entrada')">↑ Entrada</button>
+    </div>
+
+    <!-- Descrição -->
     <div class="field"><label>Descrição</label><input type="text" id="edit-desc"></div>
+
+    <!-- Valor -->
     <div class="field"><label>Valor (R$)</label><input type="number" step="0.01" id="edit-value" inputmode="decimal"></div>
-    <div class="field"><label>Pasta</label><input type="text" id="edit-tipo"></div>
-    <div class="field"><label>Categoria</label><input type="text" id="edit-cat-field"></div>
-    <div class="field"><label>Tipo de transação</label><select id="edit-type"><option value="saída">Saída</option><option value="entrada">Entrada</option></select></div>
-    <div class="field"><label>Conta</label><select id="edit-account"></select></div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
-      <button class="btn-update" onclick="updateTransaction()">Salvar alterações</button>
+
+    <!-- Data -->
+    <div class="field">
+      <label>Data</label>
+      <div style="position:relative;">
+        <button class="edit-field-btn" onclick="document.getElementById('edit-date-input').showPicker&&document.getElementById('edit-date-input').showPicker()">
+          <span>📅</span><span class="efb-val" id="edit-date-display">—</span>
+        </button>
+        <input type="date" id="edit-date-input" style="position:absolute;opacity:0;width:100%;height:100%;top:0;left:0;pointer-events:all;" onchange="onEditDateChange(this.value)">
+      </div>
+    </div>
+
+    <!-- Pasta -->
+    <div class="field">
+      <label>Pasta</label>
+      <button class="edit-field-btn ph" id="edit-pasta-btn" onclick="toggleEditDrop('pasta')">
+        <span>📂</span><span class="efb-val" id="edit-pasta-val">Selecione</span><span class="efb-arr">›</span>
+      </button>
+      <div class="edit-drop" id="edit-drop-pasta"></div>
+    </div>
+
+    <!-- Categoria -->
+    <div class="field">
+      <label>Categoria</label>
+      <button class="edit-field-btn ph" id="edit-cat-btn" onclick="toggleEditDrop('cat')">
+        <span>🏷</span><span class="efb-val" id="edit-cat-val">Selecione</span><span class="efb-arr">›</span>
+      </button>
+      <div class="edit-drop" id="edit-drop-cat"></div>
+    </div>
+
+    <!-- Conta -->
+    <div class="field">
+      <label>Conta</label>
+      <button class="edit-field-btn ph" id="edit-conta-btn" onclick="toggleEditDrop('conta')">
+        <span>🏦</span><span class="efb-val" id="edit-conta-val">Selecione</span><span class="efb-arr">›</span>
+      </button>
+      <div class="edit-drop" id="edit-drop-conta"></div>
+    </div>
+
+    <!-- Consolidado -->
+    <div class="edit-consol-row" onclick="toggleEditConsol()">
+      <span>✓</span>
+      <div class="edit-consol-label">Consolidado</div>
+      <div class="tx-check on" id="edit-consol-check"><span class="tx-check-ic">✓</span></div>
+    </div>
+
+    <div class="modal-actions" style="flex-direction:column;gap:8px;">
+      <div style="display:flex;gap:8px;">
+        <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+        <button class="btn-update" onclick="updateTransaction()">Salvar</button>
+      </div>
+      <button onclick="deleteFromEdit()" style="width:100%;padding:12px;border-radius:12px;border:1.5px solid var(--red);background:transparent;color:var(--red);font-family:var(--font-body);font-size:.9rem;font-weight:600;cursor:pointer;">🗑 Excluir transação</button>
     </div>
   </div>
 </div>
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='2.8';
+const APP_VERSION='3.1';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -1566,26 +1639,51 @@ async function loadData(){
   try{
     const url=`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}!A2:F?key=${API_KEY}`;
     const res=await fetch(url);const json=await res.json();
-    allData=(json.values||[]).map((r,i)=>({_row:i+2,date:r[0]||'',desc:r[1]||'',value:parseFloat((r[2]||'0').replace(',','.')),cat:r[3]||'Outros',account:r[4]||'',type:r[5]||'saída',consolidated:r[6]!=='0'})).filter(r=>r.date);
+    allData=(json.values||[]).map((r,i)=>({_row:i+2,date:r[0]||'',desc:r[1]||'',value:parseFloat((r[2]||'0').replace(',','.')),cat:r[3]||'Outros',tipo:r[3]||'',account:String(r[4]||''),type:r[5]||'saída',consolidated:r[6]!=='0'})).filter(r=>r.date);
     if(!allData.length)seedDemo();
     renderDash();renderHistory();toast('Dados atualizados','success');
   }catch(e){seedDemo();renderDash();renderHistory();}
 }
 function seedDemo(){
-  const tipos=Object.keys(TIPOS);
-  const demoAccounts=['ALE Conta Itaú','ALE Crédito Itaú','ALE Wise','SI Conta Itaú','SI Crédito Itaú','XXX Carteira','Investimentos'];
   const now=new Date();let row=2;
-  for(let i=0;i<30;i++){
-    const d=new Date(now);d.setDate(d.getDate()-Math.floor(Math.random()*60));
-    const tipo=tipos[Math.floor(Math.random()*tipos.length)];
-    const cats=TIPOS[tipo];const cat=cats.length?cats[Math.floor(Math.random()*cats.length)]:tipo;
-    const val=parseFloat((Math.random()*300+10).toFixed(2));
-    const type=tipo==='Receita'?'entrada':'saída';
+  // Fixed demo transactions — all fields complete
+  const demos=[
+    {daysAgo:0, tipo:'Receita',        cat:'Receita Bruta (Cliente / Salário)', desc:'Salário',               value:8500,  type:'entrada', account:'ALE Conta Itaú',   consolidated:true},
+    {daysAgo:1, tipo:'Alimentação',    cat:'Supermercado',                       desc:'Supermercado',          value:342.5, type:'saída',   account:'ALE Crédito Itaú', consolidated:true},
+    {daysAgo:1, tipo:'Transporte',     cat:'Combustível (sem reembolso)',        desc:'Combustível',           value:180,   type:'saída',   account:'ALE Conta Itaú',   consolidated:true},
+    {daysAgo:2, tipo:'Alimentação',    cat:'Refeições em restaurante',           desc:'Almoço',                value:67.9,  type:'saída',   account:'ALE Crédito Itaú', consolidated:true},
+    {daysAgo:2, tipo:'Saúde',          cat:'Medicamentos Farmácia',              desc:'Farmácia',              value:89.4,  type:'saída',   account:'ALE Conta Itaú',   consolidated:true},
+    {daysAgo:3, tipo:'Lazer',          cat:'APPs Netflix Spotify',               desc:'Netflix',               value:55.9,  type:'saída',   account:'ALE Crédito Itaú', consolidated:false},
+    {daysAgo:4, tipo:'Casa',           cat:'Energia Elétrica',                   desc:'Conta de luz',          value:215.3, type:'saída',   account:'ALE Conta Itaú',   consolidated:true},
+    {daysAgo:4, tipo:'Casa',           cat:'Condomínio',                         desc:'Condomínio',            value:890,   type:'saída',   account:'ALE Conta Itaú',   consolidated:true},
+    {daysAgo:5, tipo:'Transporte',     cat:'Sem Parar',                          desc:'Sem Parar',             value:48.2,  type:'saída',   account:'ALE Crédito Itaú', consolidated:true},
+    {daysAgo:5, tipo:'Alimentação',    cat:'Lanches & Snacks',                   desc:'iFood',                 value:52.9,  type:'saída',   account:'ALE Crédito Itaú', consolidated:true},
+    {daysAgo:6, tipo:'Saúde',          cat:'Plano de Saúde Ale',                 desc:'Plano de Saúde',        value:430,   type:'saída',   account:'ALE Conta Itaú',   consolidated:true},
+    {daysAgo:7, tipo:'Dependentes',    cat:'Escotismo',                          desc:'Escotismo mensalidade', value:120,   type:'saída',   account:'XXX Carteira',     consolidated:true},
+    {daysAgo:8, tipo:'Gastos Pessoais',cat:'Vestuário Calçados Acessórios',      desc:'Tênis',                 value:299,   type:'saída',   account:'ALE Crédito Itaú', consolidated:false},
+    {daysAgo:9, tipo:'Educação',       cat:'Cursos',                             desc:'Curso online',          value:197,   type:'saída',   account:'ALE Crédito Itaú', consolidated:true},
+    {daysAgo:10,tipo:'Investimentos',  cat:'Itaú',                               desc:'Aporte Itaú',           value:1000,  type:'saída',   account:'ALE Conta Itaú',   consolidated:true},
+    {daysAgo:11,tipo:'Serv. Financeiros',cat:'Anuidade Cartão Crédito',          desc:'Anuidade cartão',       value:45,    type:'saída',   account:'ALE Crédito Itaú', consolidated:true},
+    {daysAgo:12,tipo:'Alimentação',    cat:'Feira',                              desc:'Feira livre',           value:98.5,  type:'saída',   account:'XXX Carteira',     consolidated:true},
+    {daysAgo:13,tipo:'Saúde',          cat:'Dentista',                           desc:'Dentista',              value:250,   type:'saída',   account:'ALE Conta Itaú',   consolidated:false},
+    {daysAgo:14,tipo:'Casa',           cat:'Limpeza / Faxina',                   desc:'Faxina',                value:150,   type:'saída',   account:'XXX Carteira',     consolidated:true},
+    {daysAgo:15,tipo:'Receita',        cat:'Reembolso',                          desc:'Reembolso empresa',     value:320,   type:'entrada', account:'ALE Conta Itaú',   consolidated:true},
+    {daysAgo:16,tipo:'Transporte',     cat:'Táxi (sem reembolso) / Aplicativo',  desc:'Uber',                  value:34.9,  type:'saída',   account:'ALE Crédito Itaú', consolidated:true},
+    {daysAgo:17,tipo:'Lazer',          cat:'Bares e Restaurantes',               desc:'Jantar fora',           value:187.6, type:'saída',   account:'ALE Crédito Itaú', consolidated:true},
+    {daysAgo:18,tipo:'Casa',           cat:'Gás',                                desc:'Botijão de gás',        value:120,   type:'saída',   account:'XXX Carteira',     consolidated:true},
+    {daysAgo:20,tipo:'Gastos Pessoais',cat:'Higiene / Estética',                 desc:'Farmácia higiene',      value:76.3,  type:'saída',   account:'ALE Crédito Itaú', consolidated:true},
+    {daysAgo:22,tipo:'Seguros',        cat:'Seguro Automóvel',                   desc:'Seguro carro',          value:312,   type:'saída',   account:'ALE Conta Itaú',   consolidated:true},
+    {daysAgo:24,tipo:'Investimentos',  cat:'Avenue',                             desc:'Aporte Avenue',         value:500,   type:'saída',   account:'ALE Wise',         consolidated:true},
+    {daysAgo:26,tipo:'Dependentes',    cat:'Plano saúde filhos',                 desc:'Plano saúde filhos',    value:280,   type:'saída',   account:'ALE Conta Itaú',   consolidated:true},
+    {daysAgo:28,tipo:'Casa',           cat:'Internet + TV',                      desc:'Internet',              value:149.9, type:'saída',   account:'ALE Conta Itaú',   consolidated:true},
+    {daysAgo:30,tipo:'Alimentação',    cat:'Café da Manhã / Padaria',            desc:'Padaria',               value:28.5,  type:'saída',   account:'XXX Carteira',     consolidated:true},
+    {daysAgo:32,tipo:'Receita',        cat:'Juros Investimentos / Dividendos',   desc:'Dividendos',            value:210,   type:'entrada', account:'Investimentos',    consolidated:true},
+  ];
+  demos.forEach(dm=>{
+    const d=new Date(now);d.setDate(d.getDate()-dm.daysAgo);
     const date=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
-    allData.push({_row:row++,date,desc:cat,value:type==='entrada'?val*5:val,cat,account:accounts[Math.floor(Math.random()*3)],type});
-  }
-  const today=new Date();
-  allData.push({_row:row++,date:`${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`,desc:'Receita Bruta (Cliente / Salário)',value:5000,cat:'Receita Bruta (Cliente / Salário)',tipo:'Receita',account:'ALE Conta Itaú',type:'entrada',consolidated:true});
+    allData.push({_row:row++,date,desc:dm.desc,value:dm.value,cat:dm.cat,tipo:dm.tipo,account:dm.account,type:dm.type,consolidated:dm.consolidated});
+  });
 }
 function parseDate(s){if(!s)return null;const p=s.split('/');return p.length===3?new Date(p[2],p[1]-1,p[0]):new Date(s);}
 function getFiltered(period,cat){
@@ -1661,6 +1759,7 @@ function buildExtChips(){
     pc.innerHTML=pastas.map(p=>`<button class="ext-fp-chip${extPastas.includes(p)?' active':''}" onclick="toggleExtPasta('${p.replace(/'/g,"\'")}')">${TIPO_ICONS[p]||'📁'} ${p}</button>`).join('');}
 }
 function toggleExtConta(c){
+  if(!c||typeof c!=='string')return;
   const i=extContas.indexOf(c);if(i>=0)extContas.splice(i,1);else extContas.push(c);
   buildExtChips();renderHistory();
 }
@@ -1715,7 +1814,14 @@ function txHTML(t,idx){
   const consol=t.consolidated!==false; // default true
   const checkCls='tx-check '+(consol?'on':'off');
   const itemCls='tx-item'+(consol?'':' not-consolidated');
-  return `<div class="tx-wrap"><div class="tx-actions"><button class="tx-action-btn tx-action-edit" onclick="openEdit(${idx})"><span class="act-icon">✏️</span>editar</button><button class="tx-action-btn tx-action-del" onclick="deleteTx(${idx})"><span class="act-icon">🗑</span>excluir</button></div><div class="${itemCls}"><div class="${checkCls}" onclick="toggleTxConsolidado(${idx},event)"><span class="tx-check-ic">✓</span></div><div class="tx-icon">${icon}</div><div class="tx-info"><div class="tx-desc">${t.desc||t.cat}</div><div class="tx-date">${t.date} · ${t.cat} · ${t.account}</div></div><div class="tx-val ${t.type==='entrada'?'in':'out'}">${t.type==='entrada'?'+':'-'}${fmt(t.value)}</div></div></div>`;
+  return `<div class="tx-wrap"><div class="tx-actions"><button class="tx-action-btn tx-action-edit" onclick="openEdit(${idx})"><span class="act-icon">✏️</span>editar</button><button class="tx-action-btn tx-action-del" onclick="deleteTx(${idx})"><span class="act-icon">🗑</span>excluir</button></div><div class="${itemCls}" onclick="openEditFromTap(${idx},event)"><div class="${checkCls}" onclick="toggleTxConsolidado(${idx},event)"><span class="tx-check-ic">✓</span></div><div class="tx-icon">${icon}</div><div class="tx-info"><div class="tx-desc">${t.desc||t.cat}</div><div class="tx-date">${t.date} · ${t.cat} · ${t.account}</div></div><div class="tx-val ${t.type==='entrada'?'in':'out'}">${t.type==='entrada'?'+':'-'}${fmt(t.value)}</div></div></div>`;
+}
+function openEditFromTap(idx,event){
+  if(event.target.closest('.tx-check'))return;
+  const item=event.currentTarget;
+  const transform=item.style.transform||'';
+  if(transform.includes('translateX(-'))return;
+  openEdit(idx);
 }
 function toggleTxConsolidado(idx,event){
   event.stopPropagation();
@@ -1734,33 +1840,150 @@ function attachSwipe(listId){
   });
   document.addEventListener('touchstart',e=>{if(!e.target.closest('.tx-wrap')&&!e.target.closest('#edit-modal'))document.querySelectorAll('.tx-item').forEach(el=>el.style.transform='translateX(0)');},{passive:true});
 }
+// ── EDIT MODAL STATE ──
+let editTransType='saída', editPasta=null, editCat=null, editConta=null, editConsol=true, editOpenDrop=null;
+
+function setEditType(t){
+  editTransType=t;
+  const bs=document.getElementById('edit-btn-saida'),be=document.getElementById('edit-btn-entrada');
+  if(bs)bs.className='edit-tipo-btn'+(t==='saída'?' saida':'');
+  if(be)be.className='edit-tipo-btn'+(t==='entrada'?' entrada':'');
+}
+function onEditDateChange(val){
+  if(!val)return;
+  const [y,m,d]=val.split('-');
+  const disp=`${d}/${m}/${y}`;
+  const el=document.getElementById('edit-date-display');if(el)el.textContent=disp;
+  window._editDate=disp;
+}
+function toggleEditConsol(){
+  editConsol=!editConsol;
+  const chk=document.getElementById('edit-consol-check');
+  if(chk)chk.className='tx-check '+(editConsol?'on':'off');
+}
+function toggleEditDrop(which){
+  if(editOpenDrop===which){closeEditDrops();return;}
+  closeEditDrops();
+  editOpenDrop=which;
+  if(which==='pasta') buildEditPastaDrop();
+  else if(which==='cat') buildEditCatDrop();
+  else if(which==='conta') buildEditContaDrop();
+}
+function closeEditDrops(){
+  ['pasta','cat','conta'].forEach(w=>{const d=document.getElementById('edit-drop-'+w);if(d)d.classList.remove('open');});
+  editOpenDrop=null;
+}
+function buildEditPastaDrop(){
+  const dp=document.getElementById('edit-drop-pasta');if(!dp)return;
+  const tipos=getActiveTipos();
+  dp.innerHTML=tipos.map(t=>`<div class="edit-drop-item${editPasta===t?' selected':''}" onclick="pickEditPasta('${t.replace(/'/g,"\'")}')">${TIPO_ICONS[t]||'📁'} ${t}</div>`).join('');
+  dp.classList.add('open');
+}
+function buildEditCatDrop(){
+  const dp=document.getElementById('edit-drop-cat');if(!dp)return;
+  if(!editPasta){buildEditPastaDrop();return;}
+  const cats=getActiveCats(editPasta);
+  dp.innerHTML=`<div class="edit-drop-item grp">${TIPO_ICONS[editPasta]||'📁'} ${editPasta}</div>`+
+    cats.map(c=>`<div class="edit-drop-item${editCat===c?' selected':''}" onclick="pickEditCat('${c.replace(/'/g,"\'")}')">${CAT_ICONS[c]||''} ${c}</div>`).join('');
+  dp.classList.add('open');
+}
+function buildEditContaDrop(){
+  const dp=document.getElementById('edit-drop-conta');if(!dp)return;
+  const list=accounts.filter(a=>a.active);
+  dp.innerHTML=list.map(a=>`<div class="edit-drop-item${editConta===a.name?' selected':''}" onclick="pickEditConta('${a.name.replace(/'/g,"\'")}')">${a.name}</div>`).join('');
+  dp.classList.add('open');
+}
+function pickEditPasta(t){
+  editPasta=t;editCat=null;
+  const btn=document.getElementById('edit-pasta-btn');const val=document.getElementById('edit-pasta-val');
+  if(btn)btn.classList.remove('ph');if(val)val.textContent=(TIPO_ICONS[t]||'📁')+' '+t;
+  const cv=document.getElementById('edit-cat-val');if(cv)cv.textContent='Selecione';
+  const cb=document.getElementById('edit-cat-btn');if(cb)cb.classList.add('ph');
+  closeEditDrops();
+  setTimeout(()=>toggleEditDrop('cat'),100);
+}
+function pickEditCat(c){
+  editCat=c;
+  const btn=document.getElementById('edit-cat-btn');const val=document.getElementById('edit-cat-val');
+  if(btn)btn.classList.remove('ph');if(val)val.textContent=(CAT_ICONS[c]||'')+' '+c;
+  closeEditDrops();
+}
+function pickEditConta(c){
+  editConta=c;
+  const btn=document.getElementById('edit-conta-btn');const val=document.getElementById('edit-conta-val');
+  if(btn)btn.classList.remove('ph');if(val)val.textContent=c;
+  closeEditDrops();
+}
+
 function openEdit(idx){
-  editingIndex=idx;const t=allData[idx];
-  document.getElementById('edit-desc').value=t.desc;
+  editingIndex=idx;
+  const t=allData[idx];
+  editTransType=t.type||'saída';
+  editPasta=t.tipo||null;
+  editCat=t.cat||null;
+  editConta=t.account||null;
+  editConsol=t.consolidated!==false;
+  window._editDate=t.date;
+  // populate fields
+  document.getElementById('edit-desc').value=t.desc||'';
   document.getElementById('edit-value').value=t.value.toFixed(2);
-  document.getElementById('edit-tipo').value=t.tipo||'';
-  document.getElementById('edit-cat-field').value=t.cat||'';
-  document.getElementById('edit-type').value=t.type;
-  document.getElementById('edit-account').value=t.account;
+  // date display + input
+  const dd=document.getElementById('edit-date-display');if(dd)dd.textContent=t.date||'—';
+  if(t.date){const [d,m,y]=t.date.split('/');const inp=document.getElementById('edit-date-input');if(inp)inp.value=`${y}-${m}-${d}`;}
+  // pasta
+  const pv=document.getElementById('edit-pasta-val'),pb=document.getElementById('edit-pasta-btn');
+  if(pv)pv.textContent=editPasta?(TIPO_ICONS[editPasta]||'📁')+' '+editPasta:'Selecione';
+  if(pb)pb.className='edit-field-btn'+(editPasta?'':' ph');
+  // cat
+  const cv=document.getElementById('edit-cat-val'),cb=document.getElementById('edit-cat-btn');
+  if(cv)cv.textContent=editCat?(CAT_ICONS[editCat]||'')+' '+editCat:'Selecione';
+  if(cb)cb.className='edit-field-btn'+(editCat?'':' ph');
+  // conta
+  const kov=document.getElementById('edit-conta-val'),kb=document.getElementById('edit-conta-btn');
+  if(kov)kov.textContent=editConta||'Selecione';
+  if(kb)kb.className='edit-field-btn'+(editConta?'':' ph');
+  // type buttons
+  setEditType(editTransType);
+  // consolidado
+  const chk=document.getElementById('edit-consol-check');
+  if(chk)chk.className='tx-check '+(editConsol?'on':'off');
+  // open modal
+  closeEditDrops();
   document.getElementById('edit-modal').classList.add('open');
   document.querySelectorAll('.tx-item').forEach(el=>el.style.transform='translateX(0)');
 }
-function closeModal(){document.getElementById('edit-modal').classList.remove('open');editingIndex=null;}
+
+function closeModal(){
+  document.getElementById('edit-modal').classList.remove('open');
+  closeEditDrops();
+  editingIndex=null;
+}
+
 async function updateTransaction(){
-  if(editingIndex===null)return;const t=allData[editingIndex];
+  if(editingIndex===null)return;
+  const t=allData[editingIndex];
   const newDesc=document.getElementById('edit-desc').value.trim();
   const newValue=parseFloat(document.getElementById('edit-value').value);
-  const newTipo=document.getElementById('edit-tipo').value.trim();
-  const newCat=document.getElementById('edit-cat-field').value.trim();
-  const newType=document.getElementById('edit-type').value;
-  const newAccount=document.getElementById('edit-account').value;
   if(!newValue||isNaN(newValue)){toast('Valor inválido','error');return;}
-  const newRow=[t.date,newDesc||newCat,newValue.toFixed(2).replace('.',','),newCat||newTipo,newAccount,newType];
+  const newDate=window._editDate||t.date;
+  const newTipo=editPasta||t.tipo||'';
+  const newCat=editCat||t.cat||'';
+  const newAccount=editConta||t.account||'';
+  const newType=editTransType;
+  const newConsol=editConsol;
+  const displayDesc=newDesc||(newCat||newTipo||'Transação');
+  const newRow=[newDate,displayDesc,newValue.toFixed(2).replace('.',','),newCat||newTipo,newAccount,newType,newConsol?'1':'0'];
   try{
     await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',row:t._row,data:newRow,sheet:SHEET_NAME})});
-    allData[editingIndex]={...t,desc:newDesc||newCat,value:newValue,cat:newCat||newTipo,tipo:newTipo,type:newType,account:newAccount};
+    allData[editingIndex]={...t,date:newDate,desc:displayDesc,value:newValue,cat:newCat||newTipo,tipo:newTipo,type:newType,account:newAccount,consolidated:newConsol};
     closeModal();renderDash();renderHistory();toast('Atualizado!','success');
   }catch(e){toast('Erro ao atualizar','error');}
+}
+async function deleteFromEdit(){
+  if(editingIndex===null)return;
+  const idx=editingIndex;
+  closeModal();
+  await deleteTx(idx);
 }
 async function deleteTx(idx){
   if(!confirm('Excluir esta transação?'))return;const t=allData[idx];
