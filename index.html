@@ -95,6 +95,31 @@
   .tx-date{font-size:.72rem;color:var(--muted);margin-top:2px;}
   .tx-val{font-size:.95rem;font-weight:600;flex-shrink:0;}
   .tx-val.in{color:var(--accent2);}.tx-val.out{color:var(--red);}
+
+  /* CONSOLIDADO */
+  .tx-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .2s;background:transparent;}
+  .tx-check.on{background:var(--btn);border-color:var(--btn);}
+  .tx-check.off{background:transparent;border-color:var(--muted);opacity:.5;}
+  .tx-check-ic{font-size:.6rem;color:#fff;font-weight:900;}
+  .tx-item.not-consolidated{opacity:.75;}
+  .tx-item.not-consolidated .tx-desc{font-style:italic;}
+
+  /* PARCELAMENTO */
+  .parcel-card{background:var(--card);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+  .parcel-card.active{border:2px solid var(--btn);}
+  .parcel-card-ic{font-size:1.1rem;}
+  .parcel-card-label{font-size:.9rem;font-weight:600;color:var(--font);flex:1;}
+  .parcel-card-toggle{width:36px;height:20px;border-radius:100px;border:none;cursor:pointer;transition:all .2s;position:relative;flex-shrink:0;}
+  .parcel-card-toggle.on{background:var(--btn);}
+  .parcel-card-toggle.off{background:var(--muted);}
+  .parcel-card-toggle::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:3px;transition:left .2s;}
+  .parcel-card-toggle.on::after{left:19px;}
+  .parcel-card-toggle.off::after{left:3px;}
+  .parcel-fields{display:flex;flex-direction:column;gap:8px;padding:8px 4px 0;}
+  .parcel-row{display:flex;gap:8px;align-items:center;}
+  .parcel-lbl{font-size:.75rem;color:var(--muted);width:90px;flex-shrink:0;text-transform:uppercase;letter-spacing:.04em;}
+  .parcel-input{flex:1;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.95rem;font-weight:600;outline:none;text-align:center;}
+  .parcel-total{font-size:.8rem;color:var(--muted);text-align:right;padding-top:2px;}
   .empty{text-align:center;color:var(--muted);font-size:.9rem;padding:40px 0;}
 
   /* ── ADD SCREEN ── */
@@ -326,7 +351,12 @@
       </button>
       <div class="logo">fluxo</div>
     </div>
-    <div class="user-tag" id="user-tag">ALE</div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div id="consolidado-toggle" style="display:none;align-items:center;gap:6px;cursor:pointer;" onclick="toggleConsolidado()">
+        <div class="tx-check on" id="consol-check"><span class="tx-check-ic">✓</span></div>
+      </div>
+      <div class="user-tag" id="user-tag">ALE</div>
+    </div>
   </header>
 
   <!-- DASHBOARD -->
@@ -408,6 +438,26 @@
         </div>
         <!-- dropdown conta slot -->
         <div id="drop-conta" style="display:none"></div>
+
+        <!-- PARCELAR -->
+        <div class="parcel-card" id="parcel-card" onclick="toggleParcel()">
+          <span class="parcel-card-ic">📆</span>
+          <span class="parcel-card-label">Parcelar</span>
+          <button class="parcel-card-toggle off" id="parcel-toggle"></button>
+        </div>
+        <div id="parcel-fields" style="display:none">
+          <div class="parcel-fields">
+            <div class="parcel-row">
+              <div class="parcel-lbl">Parcela início</div>
+              <input class="parcel-input" id="parc-ini" type="number" min="1" value="1" inputmode="numeric">
+            </div>
+            <div class="parcel-row">
+              <div class="parcel-lbl">Parcela fim</div>
+              <input class="parcel-input" id="parc-fim" type="number" min="2" value="" placeholder="Ex: 6" inputmode="numeric" oninput="updParcelTotal()">
+            </div>
+            <div class="parcel-total" id="parc-total"></div>
+          </div>
+        </div>
       </div>
     </div>
     <!-- Salvar -->
@@ -536,7 +586,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='1.6';
+const APP_VERSION='2.0';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -930,6 +980,56 @@ function buildTiposEditor(){
   }).join('');
 }
 
+// ── CONSOLIDADO ──
+let isConsolidado = true;
+function toggleConsolidado(){
+  isConsolidado = !isConsolidado;
+  const chk = document.getElementById('consol-check');
+  if(chk){ chk.className = 'tx-check '+(isConsolidado?'on':'off'); }
+}
+function resetConsolidado(){
+  isConsolidado = true;
+  const chk = document.getElementById('consol-check');
+  if(chk){ chk.className = 'tx-check on'; }
+}
+
+// ── PARCELAMENTO ──
+let isParcel = false;
+function toggleParcel(){
+  isParcel = !isParcel;
+  const tog = document.getElementById('parcel-toggle');
+  const fields = document.getElementById('parcel-fields');
+  const card = document.getElementById('parcel-card');
+  if(tog) tog.className = 'parcel-card-toggle '+(isParcel?'on':'off');
+  if(fields) fields.style.display = isParcel?'block':'none';
+  if(card) card.className = 'parcel-card'+(isParcel?' active':'');
+  updParcelTotal();
+}
+function updParcelTotal(){
+  if(!isParcel) return;
+  const ini = parseInt(document.getElementById('parc-ini')?.value)||1;
+  const fim = parseInt(document.getElementById('parc-fim')?.value)||0;
+  const tot = document.getElementById('parc-total');
+  if(!tot) return;
+  if(fim < ini+1){ tot.textContent=''; return; }
+  const qty = fim - ini + 1;
+  const each = amountCents/100;
+  const total = each * qty;
+  tot.textContent = `${qty} parcelas × R$ ${each.toLocaleString('pt-BR',{minimumFractionDigits:2})} = R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
+}
+function resetParcel(){
+  isParcel = false;
+  const tog = document.getElementById('parcel-toggle');
+  const fields = document.getElementById('parcel-fields');
+  const card = document.getElementById('parcel-card');
+  if(tog) tog.className = 'parcel-card-toggle off';
+  if(fields) fields.style.display = 'none';
+  if(card) card.className = 'parcel-card';
+  const ini = document.getElementById('parc-ini'); if(ini) ini.value=1;
+  const fim = document.getElementById('parc-fim'); if(fim) fim.value='';
+  const tot = document.getElementById('parc-total'); if(tot) tot.textContent='';
+}
+
 // ── FIELDS MODE ──
 function enterFieldsMode(){
   try{
@@ -1079,6 +1179,9 @@ function logout(){currentUser=null;allData=[];document.getElementById('app').cla
 // ── NAV ──
 function goScreen(name){
   try{exitFieldsMode();}catch(e){}
+  // show consolidado toggle only on add screen
+  const ct=document.getElementById('consolidado-toggle');
+  if(ct) ct.style.display=name==='add'?'flex':'none';
   if(name==='add'){
     // pre-fill conta with default
     const def=getDefaultAccount();
@@ -1204,21 +1307,46 @@ async function saveTransaction(){
   const cat=selCat||selTipo||'Outros';
   const tipo=selTipo||'';
   const acc=selConta||getDefaultAccount();
-  const now=new Date();
-  const date=window._selectedDate||`${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
-  const value=(amountCents/100).toFixed(2).replace('.',',');
   const displayDesc=desc||(selCat||selTipo||'Transação');
   const btn=document.getElementById('btn-save');
   if(!btn)return;
   btn.disabled=true;btn.textContent='Salvando…';
-  allData.push({_row:allData.length+2,date,desc:displayDesc,value:amountCents/100,cat,tipo,account:acc,type:txType});
+
+  // parse base date
+  const baseDate=window._selectedDate||(()=>{const n=new Date();return `${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`;})();
+  const [bd,bm,by]=baseDate.split('/').map(Number);
+
+  // parcelamento
+  const parcIni=parseInt(document.getElementById('parc-ini')?.value)||1;
+  const parcFim=parseInt(document.getElementById('parc-fim')?.value)||0;
+  const doParcel=isParcel&&parcFim>=parcIni+1;
+  const qty=doParcel?(parcFim-parcIni+1):1;
+  const consol=doParcel?false:isConsolidado; // parcelado = não consolidado
+
+  const rows=[];
+  for(let i=0;i<qty;i++){
+    const parcN=parcIni+i;
+    // advance month
+    const d=new Date(by,bm-1+i,bd);
+    const dateStr=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    const parcDesc=doParcel?`${displayDesc} (${parcN}/${parcFim})`:displayDesc;
+    const val=(amountCents/100).toFixed(2).replace('.',',');
+    rows.push({date:dateStr,desc:parcDesc,value:amountCents/100,cat,tipo,account:acc,type:txType,consolidated:doParcel?false:consol});
+  }
+
   try{
-    await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'append',row:[date,displayDesc,value,cat,acc,txType],sheet:SHEET_NAME})});
-    toast('Salvo!','success');
+    for(const r of rows){
+      allData.push({_row:allData.length+2,...r});
+      await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'append',row:[r.date,r.desc,r.value.toFixed(2).replace('.',','),r.cat,r.account,r.type,r.consolidated?'1':'0'],sheet:SHEET_NAME})});
+    }
+    toast(doParcel?`${qty} parcelas salvas!`:'Salvo!','success');
   }catch(e){toast('Salvo localmente','');}
+
   amountCents=0;opPending=null;prevCents=0;displayMode='reais';secondInt=0;updVal();
   document.getElementById('tx-desc').value='';
-  selTipo=null;selCat=null;selConta=null;window._selectedDate=null;exitFieldsMode();
+  selTipo=null;selCat=null;selConta=null;window._selectedDate=null;
+  exitFieldsMode();resetConsolidado();resetParcel();
   const _ft=document.getElementById('fv-tipo');if(_ft){_ft.textContent='Pasta';_ft.classList.add('ph');}
   const _fc=document.getElementById('fv-cat');if(_fc){_fc.textContent='Categoria';_fc.classList.add('ph');}
   const _fco=document.getElementById('fv-conta');if(_fco){_fco.textContent='Conta';_fco.classList.add('ph');}
@@ -1232,7 +1360,7 @@ async function loadData(){
   try{
     const url=`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}!A2:F?key=${API_KEY}`;
     const res=await fetch(url);const json=await res.json();
-    allData=(json.values||[]).map((r,i)=>({_row:i+2,date:r[0]||'',desc:r[1]||'',value:parseFloat((r[2]||'0').replace(',','.')),cat:r[3]||'Outros',account:r[4]||'',type:r[5]||'saída'})).filter(r=>r.date);
+    allData=(json.values||[]).map((r,i)=>({_row:i+2,date:r[0]||'',desc:r[1]||'',value:parseFloat((r[2]||'0').replace(',','.')),cat:r[3]||'Outros',account:r[4]||'',type:r[5]||'saída',consolidated:r[6]!=='0'})).filter(r=>r.date);
     if(!allData.length)seedDemo();
     renderDash();renderHistory();toast('Dados atualizados','success');
   }catch(e){seedDemo();renderDash();renderHistory();}
@@ -1294,7 +1422,16 @@ function renderHistory(){
 function setCatFilter(cat){currentCatFilter=cat;renderHistory();}
 function txHTML(t,idx){
   const icon=CAT_ICONS[t.cat]||TIPO_ICONS[t.tipo]||'📦';
-  return `<div class="tx-wrap"><div class="tx-actions"><button class="tx-action-btn tx-action-edit" onclick="openEdit(${idx})"><span class="act-icon">✏️</span>editar</button><button class="tx-action-btn tx-action-del" onclick="deleteTx(${idx})"><span class="act-icon">🗑</span>excluir</button></div><div class="tx-item"><div class="tx-icon">${icon}</div><div class="tx-info"><div class="tx-desc">${t.desc||t.cat}</div><div class="tx-date">${t.date} · ${t.cat} · ${t.account}</div></div><div class="tx-val ${t.type==='entrada'?'in':'out'}">${t.type==='entrada'?'+':'-'}${fmt(t.value)}</div></div></div>`;
+  const consol=t.consolidated!==false; // default true
+  const checkCls='tx-check '+(consol?'on':'off');
+  const itemCls='tx-item'+(consol?'':' not-consolidated');
+  return `<div class="tx-wrap"><div class="tx-actions"><button class="tx-action-btn tx-action-edit" onclick="openEdit(${idx})"><span class="act-icon">✏️</span>editar</button><button class="tx-action-btn tx-action-del" onclick="deleteTx(${idx})"><span class="act-icon">🗑</span>excluir</button></div><div class="${itemCls}"><div class="${checkCls}" onclick="toggleTxConsolidado(${idx},event)"><span class="tx-check-ic">✓</span></div><div class="tx-icon">${icon}</div><div class="tx-info"><div class="tx-desc">${t.desc||t.cat}</div><div class="tx-date">${t.date} · ${t.cat} · ${t.account}</div></div><div class="tx-val ${t.type==='entrada'?'in':'out'}">${t.type==='entrada'?'+':'-'}${fmt(t.value)}</div></div></div>`;
+}
+function toggleTxConsolidado(idx,event){
+  event.stopPropagation();
+  if(!allData[idx])return;
+  allData[idx].consolidated=!allData[idx].consolidated;
+  renderDash();renderHistory();
 }
 const SWIPE_OPEN=160,SWIPE_THRESHOLD=60;
 function attachSwipe(listId){
