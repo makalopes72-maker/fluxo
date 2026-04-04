@@ -755,8 +755,22 @@
         </select>
       </div>
       <div class="field"><label>Taxa / Percentual</label><input type="text" id="av-taxa" placeholder="Ex: 110% ou 12% a.a."></div>
-      <div class="field"><label>Data de aplicação</label><input type="date" id="av-data-aplic"></div>
-      <div class="field"><label>Vencimento</label><input type="date" id="av-vencimento"></div>
+      <div class="field"><label>Data de aplicação</label>
+        <div style="position:relative;">
+          <button class="edit-field-btn" onclick="document.getElementById('av-data-aplic').showPicker&&document.getElementById('av-data-aplic').showPicker()">
+            <span>📅</span><span class="efb-val" id="av-data-aplic-display">Selecione</span>
+          </button>
+          <input type="date" id="av-data-aplic" style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;" onchange="(function(v){if(!v)return;const[y,m,d]=v.split('-');document.getElementById('av-data-aplic-display').textContent=d+'/'+m+'/'+y;})(this.value)">
+        </div>
+      </div>
+      <div class="field"><label>Vencimento</label>
+        <div style="position:relative;">
+          <button class="edit-field-btn" onclick="document.getElementById('av-vencimento').showPicker&&document.getElementById('av-vencimento').showPicker()">
+            <span>📅</span><span class="efb-val" id="av-vencimento-display">Selecione (opcional)</span>
+          </button>
+          <input type="date" id="av-vencimento" style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;" onchange="(function(v){if(!v)return;const[y,m,d]=v.split('-');document.getElementById('av-vencimento-display').textContent=d+'/'+m+'/'+y;})(this.value)">
+        </div>
+      </div>
       <div class="field"><label>Liquidez</label>
         <select id="av-liquidez">
           <option value="">Selecione…</option>
@@ -1031,7 +1045,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='3.3';
+const APP_VERSION='3.4';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2442,7 +2456,9 @@ function openAtivoForm(){
   document.getElementById('av-aplicado').value='';
   const today=new Date();const iso=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
   document.getElementById('av-data-aplic').value=iso;
+  const _dd=document.getElementById('av-data-aplic-display');if(_dd)_dd.textContent=`${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`;
   document.getElementById('av-vencimento').value='';
+  const _vd=document.getElementById('av-vencimento-display');if(_vd)_vd.textContent='Selecione (opcional)';
   m.style.opacity='1';m.style.pointerEvents='all';
   document.getElementById('ativo-modal-sheet').style.transform='translateY(0)';
 }
@@ -2467,7 +2483,7 @@ function saveAtivo(){
     indexador:document.getElementById('av-indexador').value||'',
     taxa:document.getElementById('av-taxa').value||'',
     dataAplic:dataAplic||'',
-    vencimento:(()=>{const v=document.getElementById('av-vencimento').value;if(!v)return'';const[y,m,d]=v.split('-');return`${d}/${m}/${y}`;})(),
+    vencimento:document.getElementById('av-vencimento-display')?.textContent==='Selecione (opcional)'?'':document.getElementById('av-vencimento-display')?.textContent||'',
     liquidez:document.getElementById('av-liquidez').value||'',
     garantia:document.getElementById('av-garantia').value||'',
     ir:document.getElementById('av-ir').value||'',
