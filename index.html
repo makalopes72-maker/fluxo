@@ -199,6 +199,38 @@
   .period-tab{padding:6px 14px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.78rem;cursor:pointer;}
   .period-tab.active{background:var(--kp);color:var(--font);}
 
+  /* AUTOCOMPLETE */
+  .desc-wrap{position:relative;flex:1;display:flex;align-items:center;}
+  .ac-drop{position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);max-height:220px;overflow-y:auto;margin-top:4px;}
+  .ac-drop::-webkit-scrollbar{display:none;}
+  .ac-item{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);}
+  .ac-item:last-child{border-bottom:none;}
+  .ac-item:active{background:var(--kp);}
+  .ac-item-ic{font-size:1rem;flex-shrink:0;}
+  .ac-item-info{flex:1;min-width:0;}
+  .ac-item-desc{font-size:.88rem;font-weight:600;color:var(--font);}
+  .ac-item-cat{font-size:.72rem;color:var(--muted);margin-top:1px;}
+  .ac-item-match{color:var(--btn);}
+
+  /* KEYWORD EDITOR inside tipos */
+  .kw-section{padding:6px 14px 10px;border-top:1px solid var(--border);background:var(--bg);border-radius:0 0 12px 12px;}
+  .kw-section-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px;font-weight:600;}
+  .kw-list{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;}
+  .kw-tag{display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:100px;background:var(--kp);border:1px solid var(--border);font-size:.78rem;color:var(--font);}
+  .kw-tag-del{color:var(--muted);cursor:pointer;font-size:.8rem;line-height:1;}
+  .kw-add-row{display:flex;gap:6px;}
+  .kw-add-row input{flex:1;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--font);font-family:var(--font-body);font-size:.8rem;outline:none;}
+  .kw-add-row button{padding:6px 12px;border-radius:8px;border:none;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.8rem;font-weight:700;cursor:pointer;}
+
+  /* ADD KEYWORD TOAST MODAL */
+  #kw-toast-modal{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;z-index:500;display:none;min-width:280px;max-width:320px;box-shadow:0 4px 20px rgba(0,0,0,.15);}
+  #kw-toast-modal.show{display:block;animation:slideUp .3s ease;}
+  .ktm-title{font-size:.82rem;font-weight:600;color:var(--font);margin-bottom:8px;}
+  .ktm-desc{font-size:.78rem;color:var(--muted);margin-bottom:10px;line-height:1.4;}
+  .ktm-actions{display:flex;gap:8px;}
+  .ktm-btn{flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:transparent;font-family:var(--font-body);font-size:.8rem;color:var(--muted);cursor:pointer;}
+  .ktm-btn.primary{background:var(--btn);color:#0f0f11;border-color:var(--btn);font-weight:700;}
+
   /* EXTRATO */
   .extrato-header{flex-shrink:0;background:var(--bg);padding:10px 16px 0;border-bottom:1px solid var(--border);}
   .extrato-totals{display:flex;gap:0;margin-bottom:10px;background:var(--card);border-radius:12px;overflow:hidden;}
@@ -605,7 +637,10 @@
         <!-- Descrição full width -->
         <div class="field-cell full">
           <span class="field-ic">📝</span>
-          <input class="field-input" id="tx-desc" placeholder="Descrição" onfocus="enterFieldsMode()">
+          <div class="desc-wrap">
+            <input class="field-input" id="tx-desc" placeholder="Descrição" onfocus="enterFieldsMode()" oninput="onDescInput(this.value)" autocomplete="off">
+            <div class="ac-drop" id="ac-drop" style="display:none;"></div>
+          </div>
         </div>
         <!-- Tipo + Categoria em linha -->
         <div class="fields-row">
@@ -1112,10 +1147,19 @@
     </div>
   </div>
 </div>
+<!-- KEYWORD SUGGESTION MODAL -->
+<div id="kw-toast-modal">
+  <div class="ktm-title" id="ktm-title">Adicionar às palavras-chave?</div>
+  <div class="ktm-desc" id="ktm-desc">Deseja salvar esta descrição como palavra-chave?</div>
+  <div class="ktm-actions">
+    <button class="ktm-btn" onclick="closeKwToast()">Agora não</button>
+    <button class="ktm-btn primary" onclick="confirmAddKw()">Adicionar</button>
+  </div>
+</div>
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='3.14';
+const APP_VERSION='4.0';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -1511,6 +1555,195 @@ function buildTiposEditor(){
   }).join('');
 }
 
+// ══════════════════════════════════════════════
+// ── PALAVRAS-CHAVE / AUTOCOMPLETE ──
+// ══════════════════════════════════════════════
+
+// keywords structure: {tipoPasta: {catName: ['palavra1','palavra2'...]}}
+let keywordsData = {};
+let _kwPendingDesc = null; // desc waiting to be added as keyword
+let _kwPendingTipo = null;
+let _kwPendingCat  = null;
+
+function loadKeywords(){
+  try{const s=localStorage.getItem('fluxo_kw');if(s)keywordsData=JSON.parse(s);}catch(e){}
+  if(!Object.keys(keywordsData).length) seedKeywords();
+}
+function saveKeywords(){try{localStorage.setItem('fluxo_kw',JSON.stringify(keywordsData));}catch(e){}}
+
+function seedKeywords(){
+  keywordsData={
+    'Alimentação':{
+      'Supermercado':['Pão de Açúcar','Carrefour','Extra','Mercado','Supermercado'],
+      'Refeições em restaurante':['Restaurante','Almoço','Jantar','Lanchonete'],
+      'Lanches & Snacks':['iFood','Rappi','Uber Eats','Lanche','Hamburguer'],
+      'Feira':['Feira','Banana','Legume','Hortifruti'],
+      'Café da Manhã / Padaria':['Padaria','Café','Pão'],
+    },
+    'Transporte':{
+      'Táxi (sem reembolso) / Aplicativo':['Uber','99','Cabify','Táxi'],
+      'Combustível (sem reembolso)':['Posto','Gasolina','Combustível','Shell','Ipiranga'],
+      'Sem Parar':['Sem Parar','Pedágio'],
+      'Estacionamento':['Estacionamento','Parking'],
+    },
+    'Casa':{
+      'Energia Elétrica':['Enel','Cemig','Copel','Luz','Energia'],
+      'Limpeza / Faxina':['Faxina','Diarista','Limpeza'],
+      'Condomínio':['Condomínio'],
+      'Internet + TV':['Claro','Vivo','Oi','Tim','Internet'],
+    },
+    'Saúde':{
+      'Medicamentos Farmácia':['Farmácia','Droga Raia','Ultrafarma','Remédio'],
+      'Dentista':['Dentista','Ortodontia'],
+      'Consultas Fora do Plano':['Consulta','Médico','Clínica'],
+    },
+    'Lazer':{
+      'APPs Netflix Spotify':['Netflix','Spotify','Amazon Prime','Disney'],
+      'Bares e Restaurantes':['Bar','Cerveja','Happy Hour'],
+      'Cinema / Teatro / Show / Passeio':['Cinema','Teatro','Show','Ingresso'],
+    },
+    'Receita':{
+      'Receita Bruta (Cliente / Salário)':['Salário','Pagamento','Cliente','Freelance'],
+      'Reembolso':['Reembolso'],
+    },
+  };
+  saveKeywords();
+}
+
+function getAllKeywords(){
+  // returns flat array of {desc, tipo, cat, keywords[]}
+  const result=[];
+  Object.keys(keywordsData).forEach(tipo=>{
+    const cats=keywordsData[tipo]||{};
+    Object.keys(cats).forEach(cat=>{
+      (cats[cat]||[]).forEach(kw=>{
+        result.push({kw:kw.toLowerCase(),kwOrig:kw,tipo,cat});
+      });
+    });
+  });
+  return result;
+}
+
+function onDescInput(val){
+  const ac=document.getElementById('ac-drop');if(!ac)return;
+  if(!val||val.length<2){ac.style.display='none';return;}
+  const q=val.toLowerCase();
+  const all=getAllKeywords();
+  const matches=all.filter(k=>k.kw.includes(q)||q.includes(k.kw.substring(0,3)));
+  // deduplicate by kwOrig
+  const seen=new Set();
+  const uniq=matches.filter(m=>{if(seen.has(m.kwOrig))return false;seen.add(m.kwOrig);return true;});
+  if(!uniq.length){ac.style.display='none';return;}
+  const hi=(text,q)=>{const i=text.toLowerCase().indexOf(q);if(i<0)return text;return text.slice(0,i)+'<span class="ac-item-match">'+text.slice(i,i+q.length)+'</span>'+text.slice(i+q.length);};
+  ac.innerHTML=uniq.slice(0,8).map(m=>`
+    <div class="ac-item" onclick="selectKeyword('${m.kwOrig.replace(/'/g,"\'")}','${m.tipo.replace(/'/g,"\'")}','${m.cat.replace(/'/g,"\'")}')">
+      <span class="ac-item-ic">${TIPO_ICONS[m.tipo]||'📁'}</span>
+      <div class="ac-item-info">
+        <div class="ac-item-desc">${hi(m.kwOrig,q)}</div>
+        <div class="ac-item-cat">${m.tipo} › ${m.cat}</div>
+      </div>
+    </div>`).join('');
+  ac.style.display='block';
+}
+
+function selectKeyword(kw, tipo, cat){
+  // fill description
+  const inp=document.getElementById('tx-desc');if(inp)inp.value=kw;
+  // fill pasta
+  selTipo=tipo;
+  const fvt=document.getElementById('fv-tipo');
+  if(fvt){fvt.textContent=(TIPO_ICONS[tipo]||'📁')+' '+tipo;fvt.classList.remove('ph');}
+  // fill categoria
+  selCat=cat;
+  const fvc=document.getElementById('fv-cat');
+  if(fvc){fvc.textContent=(CAT_ICONS[cat]||'')+' '+cat;fvc.classList.remove('ph');}
+  // close dropdown
+  const ac=document.getElementById('ac-drop');if(ac)ac.style.display='none';
+  playClick();
+}
+
+// close ac-drop on outside tap
+document.addEventListener('touchstart',e=>{
+  if(!e.target.closest('.desc-wrap'))closeAcDrop();
+},{passive:true});
+document.addEventListener('mousedown',e=>{
+  if(!e.target.closest('.desc-wrap'))closeAcDrop();
+});
+function closeAcDrop(){const ac=document.getElementById('ac-drop');if(ac)ac.style.display='none';}
+
+// ── AFTER SAVE: suggest adding keyword ──
+function checkAddKeyword(desc, tipo, cat){
+  if(!desc||!tipo||!cat)return;
+  const all=getAllKeywords();
+  const exists=all.some(k=>k.kwOrig.toLowerCase()===desc.toLowerCase()&&k.tipo===tipo&&k.cat===cat);
+  if(exists)return;
+  _kwPendingDesc=desc;_kwPendingTipo=tipo;_kwPendingCat=cat;
+  const modal=document.getElementById('kw-toast-modal');
+  if(!modal)return;
+  document.getElementById('ktm-title').textContent='Salvar "'+desc+'" como palavra-chave?';
+  document.getElementById('ktm-desc').textContent='Categoria: '+tipo+' › '+cat;
+  modal.classList.add('show');
+  setTimeout(()=>closeKwToast(),8000);
+}
+function closeKwToast(){
+  const modal=document.getElementById('kw-toast-modal');
+  if(modal)modal.classList.remove('show');
+  _kwPendingDesc=null;_kwPendingTipo=null;_kwPendingCat=null;
+}
+function confirmAddKw(){
+  if(!_kwPendingDesc||!_kwPendingTipo||!_kwPendingCat){closeKwToast();return;}
+  if(!keywordsData[_kwPendingTipo])keywordsData[_kwPendingTipo]={};
+  if(!keywordsData[_kwPendingTipo][_kwPendingCat])keywordsData[_kwPendingTipo][_kwPendingCat]=[];
+  keywordsData[_kwPendingTipo][_kwPendingCat].push(_kwPendingDesc);
+  saveKeywords();
+  closeKwToast();
+  toast('"'+_kwPendingDesc+'" adicionado!','success');
+}
+
+// ── KEYWORD EDITOR in settings ──
+function buildKeywordsEditor(tipoName){
+  // called inside buildTiposEditor for each expanded tipo
+  const cats=keywordsData[tipoName]||{};
+  const tipoData=tiposData[tipoName];
+  if(!tipoData)return'';
+  const catNames=tipoData.cats.filter(c=>c.active).map(c=>c.name);
+  if(!catNames.length)return'';
+  const safeT=tipoName.replace(/[^a-zA-Z0-9]/g,'_');
+  return `<div class="kw-section">
+    <div class="kw-section-title">🔑 Palavras-chave</div>
+    ${catNames.map(cat=>{
+      const kws=(cats[cat]||[]);
+      const safeC=cat.replace(/[^a-zA-Z0-9]/g,'_');
+      return `<div style="margin-bottom:8px;">
+        <div style="font-size:.72rem;color:var(--muted);margin-bottom:4px;">${cat}</div>
+        <div class="kw-list" id="kwlist_${safeT}_${safeC}">
+          ${kws.map((kw,ki)=>`<span class="kw-tag">${kw}<span class="kw-tag-del" onclick="deleteKw('${tipoName.replace(/'/g,"\'")}','${cat.replace(/'/g,"\'")}',${ki})">✕</span></span>`).join('')}
+        </div>
+        <div class="kw-add-row">
+          <input type="text" id="kwinput_${safeT}_${safeC}" placeholder="Nova palavra-chave…">
+          <button onclick="addKw('${tipoName.replace(/'/g,"\'")}','${cat.replace(/'/g,"\'")}','kwinput_${safeT}_${safeC}')">+</button>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function addKw(tipo,cat,inputId){
+  const inp=document.getElementById(inputId);if(!inp)return;
+  const val=inp.value.trim();if(!val)return;
+  if(!keywordsData[tipo])keywordsData[tipo]={};
+  if(!keywordsData[tipo][cat])keywordsData[tipo][cat]=[];
+  if(keywordsData[tipo][cat].includes(val)){toast('Já existe!','');return;}
+  keywordsData[tipo][cat].push(val);
+  saveKeywords();inp.value='';
+  buildTiposEditor();
+}
+function deleteKw(tipo,cat,idx){
+  if(!keywordsData[tipo]?.[cat])return;
+  keywordsData[tipo][cat].splice(idx,1);
+  saveKeywords();buildTiposEditor();
+}
+
 // ── CONSOLIDADO ──
 let isConsolidado = true;
 function toggleConsolidado(){
@@ -1745,7 +1978,7 @@ function login(u){
   const sv=document.getElementById('splash-version');if(sv)sv.textContent='v'+APP_VERSION;
   document.getElementById('menu-user').textContent=u;
   const cfu=document.getElementById('cfg-user');if(cfu)cfu.textContent=u;const cu2=document.getElementById('cfg-user2');if(cu2)cu2.textContent=u;
-  loadAccounts();loadDefaultAccounts();loadStartScreen();initTiposData();loadInvestimentos();setTodayDate();buildSettings();buildStartScreenUI();extMonth=new Date().getMonth();extYear=new Date().getFullYear();loadData();setTimeout(()=>goScreen(startScreen),100);
+  loadAccounts();loadDefaultAccounts();loadStartScreen();initTiposData();loadKeywords();loadInvestimentos();setTodayDate();buildSettings();buildStartScreenUI();extMonth=new Date().getMonth();extYear=new Date().getFullYear();loadData();setTimeout(()=>goScreen(startScreen),100);
 }
 function logout(){currentUser=null;allData=[];document.getElementById('app').classList.remove('visible');document.getElementById('splash').style.display='flex';closeMenu();}
 
@@ -1972,6 +2205,8 @@ async function saveTransaction(){
   closeDrop();
   btn.disabled=false;btn.textContent='Salvar transação';
   renderDash();setTimeout(()=>goScreen('dash'),600);
+  // suggest adding keyword
+  setTimeout(()=>checkAddKeyword(displayDesc,tipo,cat),700);
 }
 
 // ── DATA ──
@@ -2698,79 +2933,39 @@ function saveAtivo(){
   const aplicadoVal=parseFloat(document.getElementById('av-aplicado').value);
   if(!nome){toast('Digite o nome do ativo','error');return;}
   if(!aplicadoVal||isNaN(aplicadoVal)){toast('Digite o valor aplicado','error');return;}
-  const dataAplic=document.getElementById('av-data-aplic').value;
+  const dataAplic=document.getElementById('av-data-aplic')?.value||'';
   const dateStr=dataAplic?(()=>{const[y,m,d]=dataAplic.split('-');return`${d}/${m}/${y}`;})():'—';
-  const novo={
-    id:Date.now(),
+  const vencRaw=document.getElementById('av-vencimento')?.value||'';
+  const venc=vencRaw?(()=>{const[y,m,d]=vencRaw.split('-');return`${d}/${m}/${y}`;})():'';
+  const getFields=()=>({
     nome,
-    classe:document.getElementById('av-classe').value||'',
-    tipo:document.getElementById('av-tipo').value||'',
+    classe:document.getElementById('av-classe')?.value||'',
+    tipo:document.getElementById('av-tipo')?.value||'',
     aplicado:aplicadoVal,
-    indexador:document.getElementById('av-indexador').value||'',
-    taxa:document.getElementById('av-taxa').value||'',
-    dataAplic:dataAplic||'',
+    indexador:document.getElementById('av-indexador')?.value||'',
+    taxa:document.getElementById('av-taxa')?.value||'',
+    dataAplic,
     vencimento:venc,
-    liquidez:document.getElementById('av-liquidez').value||'',
-    garantia:document.getElementById('av-garantia').value||'',
-    ir:document.getElementById('av-ir').value||'',
-    obs:document.getElementById('av-obs').value||'',
-    log:[{date:dateStr,value:aplicadoVal,note:'Aplicação inicial'}],
-  };
-  instituicoes[currentInstIdx].ativos.push(novo);
-  saveInvestimentos();
-  // update carteira header
-  const cv=document.getElementById('cart-val');if(cv)cv.textContent=fmtInv(getInstTotal(instituicoes[currentInstIdx]));
-  renderAtivos();closeAtivoModal();toast('Ativo salvo!','success');
-}
-
-// ── MODAL ATUALIZAR VALOR ──
-function openUpdModal(){
-  updCents=0;
-  const a=instituicoes[currentInstIdx].ativos[currentAtivoIdx];
-  const atual=getAtivoAtual(a);
-  updCents=Math.round(atual*100);
-  updVal2();
-  const m=document.getElementById('upd-modal');if(m){m.classList.add('open');}
-  const obs=document.getElementById('upd-obs-input');if(obs)obs.value='';
-}
-function closeUpdModal(){
-  const m=document.getElementById('upd-modal');if(m)m.classList.remove('open');
-}
-function updKp(k){
-  playClick();
-  if(k==='del'){updCents=Math.floor(updCents/10);}
-  else if(k==='00'){if(updCents<1e8)updCents*=100;}
-  else if(!isNaN(k)){if(updCents<1e7)updCents=updCents*10+parseInt(k);}
-  updVal2();
-}
-function updVal2(){
-  const el=document.getElementById('upd-val-display');
-  if(el)el.textContent='R$ '+(updCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
-  const a=instituicoes[currentInstIdx]?.ativos[currentAtivoIdx];
-  if(!a)return;
-  const prev=getAtivoAtual(a);
-  const delta=(updCents/100)-prev;
-  const dd=document.getElementById('upd-delta-display');
-  if(dd){
-    dd.textContent=delta===0?'Sem variação':(delta>0?'+':'')+fmtInvFull(delta);
-    dd.style.color=delta>0?'#6ee7b7':delta<0?'#fca5a5':'rgba(255,255,255,.5)';
+    liquidez:document.getElementById('av-liquidez')?.value||'',
+    garantia:document.getElementById('av-garantia')?.value||'',
+    ir:document.getElementById('av-ir')?.value||'',
+    obs:document.getElementById('av-obs')?.value||'',
+  });
+  const modal=document.getElementById('ativo-modal');
+  const isEdit=modal?.dataset.editMode==='1';
+  if(isEdit){
+    Object.assign(instituicoes[currentInstIdx].ativos[currentAtivoIdx],getFields());
+    saveInvestimentos();
+    const cv=document.getElementById('cart-val');if(cv)cv.textContent=fmtInv(getInstTotal(instituicoes[currentInstIdx]));
+    renderAtivos();closeAtivoModal();openAtivo(currentAtivoIdx);toast('Atualizado!','success');
+  } else {
+    const novo={id:Date.now(),...getFields(),log:[{date:dateStr,value:aplicadoVal,note:'Aplicação inicial'}]};
+    instituicoes[currentInstIdx].ativos.push(novo);
+    saveInvestimentos();
+    const cv=document.getElementById('cart-val');if(cv)cv.textContent=fmtInv(getInstTotal(instituicoes[currentInstIdx]));
+    renderAtivos();closeAtivoModal();toast('Ativo salvo!','success');
   }
 }
-function saveUpdVal(){
-  if(!updCents){toast('Digite o valor','error');return;}
-  const a=instituicoes[currentInstIdx].ativos[currentAtivoIdx];
-  const today=new Date();
-  const dateStr=`${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`;
-  const obs=document.getElementById('upd-obs-input')?.value.trim()||'';
-  a.log.push({date:dateStr,value:updCents/100,note:obs});
-  saveInvestimentos();
-  // refresh detail screen
-  openAtivo(currentAtivoIdx);
-  closeUpdModal();
-  toast('Valor atualizado!','success');
-}
-
-
 
 loadPrefs();
 const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+APP_VERSION;
