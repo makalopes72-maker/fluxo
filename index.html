@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(145deg,#0D1B4B,#B8860B);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFF8DC !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
-  #splash .splash-sub{color:rgba(255,248,220,.65) !important;}
-  #splash .splash-version{color:rgba(255,248,220,.35) !important;}
-  #splash .splash-btn{background:#FFF8DC !important;color:#0D1B4B !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFF8DC !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(125deg,#006D5B,#722F37);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F0FFF8 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(240,255,248,.65) !important;}
+  #splash .splash-version{color:rgba(240,255,248,.35) !important;}
+  #splash .splash-btn{background:#F0FFF8 !important;color:#006D5B !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F0FFF8 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1701,7 +1701,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.14';
+const APP_VERSION='12.16';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3017,17 +3017,19 @@ async function loadData(){
     // Use Apps Script GET to read all 10 columns
     const rows=await sheetsRead(SHEET_NAME);
     // Skip header row if present (check if first cell looks like a date)
-    const dataRows=rows.filter(r=>{
-      if(!r[0])return false;
+    // map rows with their REAL Sheets row numbers (1-indexed, +1 for header)
+    const dataRows=[];
+    rows.forEach((r,i)=>{
+      if(!r[0])return;
       const s=String(r[0]);
-      if(!s.match(/\d{2}\/\d{2}\/\d{4}|\d{4}-\d{2}/))return false;
-      // filter by syncYear
+      if(!s.match(/\d{2}\/\d{2}\/\d{4}|\d{4}-\d{2}/))return;
       const d=new Date(normalizeDate(s).split('/').reverse().join('-'));
-      return isNaN(d)||syncYears.length===0||syncYears.includes(d.getFullYear());
+      if(!isNaN(d)&&syncYears.length>0&&!syncYears.includes(d.getFullYear()))return;
+      dataRows.push({row:r, sheetsRow:i+2}); // i+2: +1 for 0-index, +1 for header
     });
     if(!dataRows.length){seedDemo();renderDash();renderHistory();return;}
-    allData=dataRows.map((r,i)=>({
-      _row:i+2,
+    allData=dataRows.map(({row:r,sheetsRow})=>({
+      _row:sheetsRow,
       date:normalizeDate(r[0]),
       desc:String(r[1]||'').trim(),
       value:parseBRNumber(r[2]),
@@ -3552,11 +3554,11 @@ async function deleteTx(idx){
   // remove locally immediately
   const deletedRow=t._row;
   allData.splice(idx,1);
-  // update _row for all rows above the deleted one
-  allData.forEach(r=>{if(r._row&&r._row>deletedRow)r._row--;});
+  // NOTE: do NOT adjust _row of remaining items locally
+  // Next loadData() will get correct row numbers from Sheets
   renderDash();renderHistory();
   toast('Excluído','success');
-  // send delete to Sheets in background
+  // send delete to Sheets then reload to get fresh row numbers
   if(deletedRow){
     try{
       await fetch(APPS_SCRIPT_URL,{
@@ -3564,8 +3566,10 @@ async function deleteTx(idx){
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({action:'delete',row:deletedRow,sheet:SHEET_NAME})
       });
+      // reload after short delay to get fresh _row numbers from Sheets
+      setTimeout(()=>loadData(),1500);
     }catch(e){
-      console.warn('Delete failed on sheets, will resync',e);
+      console.warn('Delete failed on sheets',e);
     }
   }
 }
