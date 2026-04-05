@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(150deg,#1a0533,#c0392b);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFE5E5 !important;text-shadow:0 2px 24px rgba(0,0,0,.35);}
-  #splash .splash-sub{color:rgba(255,229,229,.65) !important;}
-  #splash .splash-version{color:rgba(255,229,229,.35) !important;}
-  #splash .splash-btn{background:#FFE5E5 !important;color:#1a0533 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFE5E5 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(135deg,#D35400,#1A5276);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FDEBD0 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(253,235,208,.7) !important;}
+  #splash .splash-version{color:rgba(253,235,208,.35) !important;}
+  #splash .splash-btn{background:#FDEBD0 !important;color:#D35400 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.13) !important;color:#FDEBD0 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1706,7 +1706,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.11';
+const APP_VERSION='12.12';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2635,12 +2635,12 @@ function login(u){
   const sv=document.getElementById('splash-version');if(sv)sv.textContent='v'+APP_VERSION;
   const _mu=document.getElementById('menu-user');if(_mu)_mu.textContent=u;
   const cfu=document.getElementById('cfg-user');if(cfu)cfu.textContent=u;const cu2=document.getElementById('cfg-user2');if(cu2)cu2.textContent=u;
-  loadAccounts();seedInstLinks();loadDefaultAccounts();loadStartScreen();initTiposData();loadKeywords();loadOrc();loadInvestimentos();
-  setTodayDate();buildSettings();buildStartScreenUI();extMonth=new Date().getMonth();extYear=new Date().getFullYear();
-  // load transactions then go to add screen
-  loadData().finally(()=>{
-    setTimeout(()=>{goScreen('add');setTodayDate();},100);
-  });
+  loadAccounts();seedInstLinks();loadDefaultAccounts();initTiposData();loadKeywords();loadOrc();loadInvestimentos();
+  setTodayDate();buildSettings();buildStartScreenUI();
+  extMonth=new Date().getMonth();extYear=new Date().getFullYear();
+  goScreen('add');
+  setTodayDate();
+  loadData();
 }
 function logout(){
   currentUser=null;allData=[];
@@ -3819,7 +3819,11 @@ function renderInv(){
   const totalAtivos=instituicoes.reduce((s,i)=>s+i.ativos.length,0);
   const tv=document.getElementById('inv-total-val');if(tv)tv.textContent=fmtInv(total);
   const tc=document.getElementById('inv-total-count');if(tc)tc.textContent=totalAtivos;
-  const il=document.getElementById('inst-list');if(!il)return;
+  const il=document.getElementById('inst-list');if(!il){console.warn('[INV] inst-list not found');return;}
+  if(!instituicoes||!instituicoes.length){
+    il.innerHTML='<div class="empty">Nenhuma instituição. Clique em Sincronizar.</div>';
+    return;
+  }
   il.innerHTML=instituicoes.map((inst,i)=>{
     const val=getInstTotal(inst);
     return `<div class="inst-card" onclick="openCarteira(${i})">
@@ -4646,7 +4650,7 @@ async function loadInvFromSheets(){
   toast('Carregando investimentos…','');
   try{
     // fetch raw from Apps Script
-    const url=APPS_SCRIPT_URL+'?sheet='+encodeURIComponent('Investimentos');
+    const url=APPS_SCRIPT_URL+'?sheet=Investimentos';
     const res=await fetch(url);
     const json=await res.json();
     if(!json.ok){toast('Erro ao ler Sheets: '+json.error,'error');return;}
@@ -4690,7 +4694,7 @@ async function loadInvFromSheets(){
 
     // fetch log
     try{
-      const logUrl=APPS_SCRIPT_URL+'?sheet='+encodeURIComponent('InvestimentosLog');
+      const logUrl=APPS_SCRIPT_URL+'?sheet=InvestimentosLog';
       const logRes=await fetch(logUrl);
       const logJson=await logRes.json();
       if(logJson.ok&&logJson.data&&logJson.data.length>1){
