@@ -1001,8 +1001,8 @@
       <button class="cart-tab active" id="cart-tab-ativos" onclick="setCartTab('ativos')">Ativos</button>
       <button class="cart-tab" id="cart-tab-encerrados" onclick="setCartTab('encerrados')">Encerrados</button>
     </div>
+    <div id="cc-card-wrap" style="flex-shrink:0;padding:10px 16px 0;overflow-y:visible;"></div>
     <div class="inv-body">
-      <div id="cc-card-wrap"></div>
       <div id="ativo-list"></div>
       <button class="inv-add-btn" id="cart-add-btn" onclick="openAtivoForm()">+ Novo ativo</button>
     </div>
@@ -1487,7 +1487,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='10.6';
+const APP_VERSION='10.7';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3333,8 +3333,7 @@ function renderCcCard(){
   const lastAdj=inst[lastAdjKey]?`Último ajuste (${user}): ${inst[lastAdjKey]}`:'Sem ajuste manual ainda';
   const linkedNames=linked.map(a=>a.name);
   wrap.innerHTML=`
-    <div class="inv-section-title">Conta corrente — ${user}</div>
-    <div class="cc-card">
+    <div class="cc-card" style="margin-bottom:0;">
       <div class="cc-top">
         <div class="cc-title">💰 Saldo disponível</div>
         <span style="font-size:.7rem;color:var(--muted);">${inst.name} · ${user}</span>
