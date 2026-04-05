@@ -434,6 +434,9 @@
   .inst-val-num{font-size:.95rem;font-weight:700;color:var(--font);}
   .inst-val-count{font-size:.7rem;color:var(--muted);margin-top:2px;}
   .inst-arr{color:var(--muted);font-size:.9rem;flex-shrink:0;}
+  .cart-tabs{display:flex;flex-shrink:0;background:var(--kp);border-bottom:1px solid var(--border);}
+  .cart-tab{flex:1;padding:10px 0;border:none;background:transparent;font-family:var(--font-body);font-size:.82rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;}
+  .cart-tab.active{color:var(--font);border-bottom-color:var(--btn);}
   .inv-add-btn{width:100%;padding:12px;border-radius:12px;border:1.5px dashed var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.88rem;cursor:pointer;margin-top:4px;}
 
   /* CARTEIRA (lista de ativos) */
@@ -994,10 +997,14 @@
         <button class="cc-mini-btn" onclick="openCcAjuste()">⚙ Ajustar</button>
       </div>
     </div>
+    <div class="cart-tabs">
+      <button class="cart-tab active" id="cart-tab-ativos" onclick="setCartTab('ativos')">Ativos</button>
+      <button class="cart-tab" id="cart-tab-encerrados" onclick="setCartTab('encerrados')">Encerrados</button>
+    </div>
     <div class="inv-body">
       <div id="cc-card-wrap"></div>
       <div id="ativo-list"></div>
-      <button class="inv-add-btn" onclick="openAtivoForm()">+ Novo ativo</button>
+      <button class="inv-add-btn" id="cart-add-btn" onclick="openAtivoForm()">+ Novo ativo</button>
     </div>
   </div>
 
@@ -1480,7 +1487,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='10.5';
+const APP_VERSION='10.6';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3495,6 +3502,10 @@ function renderInv(){
 // ── CARTEIRA ──
 function openCarteira(idx){
   currentInstIdx=idx;
+  cartTab='ativos';
+  document.querySelectorAll('.cart-tab').forEach(b=>b.classList.remove('active'));
+  const tabBtn=document.getElementById('cart-tab-ativos');if(tabBtn)tabBtn.classList.add('active');
+  const addBtn=document.getElementById('cart-add-btn');if(addBtn)addBtn.style.display='';
   const inst=instituicoes[idx];
   setTimeout(()=>renderCcCard(),50);
   const ct=document.getElementById('cart-title');if(ct)ct.textContent=inst.name;
@@ -3502,6 +3513,17 @@ function openCarteira(idx){
   const cv=document.getElementById('cart-val');if(cv)cv.textContent=fmtInv(getInstTotal(inst));
   renderAtivos();
   goScreen('cart');
+}
+let cartTab='ativos';
+function setCartTab(tab){
+  cartTab=tab;
+  document.querySelectorAll('.cart-tab').forEach(b=>b.classList.remove('active'));
+  const btn=document.getElementById('cart-tab-'+tab);
+  if(btn)btn.classList.add('active');
+  // show/hide add button
+  const addBtn=document.getElementById('cart-add-btn');
+  if(addBtn)addBtn.style.display=tab==='ativos'?'':'none';
+  renderAtivos();
 }
 function renderAtivos(){
   const inst=instituicoes[currentInstIdx];
@@ -3574,17 +3596,21 @@ function renderAtivos(){
   const ativos=inst.ativos.map((a,i)=>({a,i})).filter(x=>!x.a.encerrado);
   const encerrados=inst.ativos.map((a,i)=>({a,i})).filter(x=>x.a.encerrado);
 
+  // update tab counters
+  const tabAtivos=document.getElementById('cart-tab-ativos');
+  const tabEnc=document.getElementById('cart-tab-encerrados');
+  if(tabAtivos)tabAtivos.textContent=`Ativos (${ativos.length})`;
+  if(tabEnc)tabEnc.textContent=`Encerrados (${encerrados.length})`;
+
   let html='';
-  if(ativos.length){
-    html+=ativos.map(x=>buildCard(x.a,x.i)).join('');
+  if(cartTab==='ativos'){
+    html=ativos.length
+      ? ativos.map(x=>buildCard(x.a,x.i)).join('')
+      : '<div class="empty" style="padding:20px 0;">Nenhum ativo cadastrado</div>';
   } else {
-    html+='<div class="empty" style="padding:20px 0;">Nenhum ativo ativo</div>';
-  }
-  if(encerrados.length){
-    html+=`<div style="margin-top:20px;padding-top:12px;border-top:1px solid var(--border);">
-      <div class="inv-section-title" style="margin-top:0;">Encerrados (${encerrados.length})</div>
-      <div style="opacity:.55;">${encerrados.map(x=>buildCard(x.a,x.i)).join('')}</div>
-    </div>`;
+    html=encerrados.length
+      ? `<div style="opacity:.7;">${encerrados.map(x=>buildCard(x.a,x.i)).join('')}</div>`
+      : '<div class="empty" style="padding:20px 0;">Nenhum investimento encerrado</div>';
   }
   al.innerHTML=html;
 }
