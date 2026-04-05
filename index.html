@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(135deg,#8B0045,#006D77);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFF0F7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(255,240,247,.65) !important;}
-  #splash .splash-version{color:rgba(255,240,247,.35) !important;}
-  #splash .splash-btn{background:#FFF0F7 !important;color:#8B0045 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.13) !important;color:#FFF0F7 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(125deg,#556B2F,#C71585);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F5FFFA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(245,255,250,.65) !important;}
+  #splash .splash-version{color:rgba(245,255,250,.35) !important;}
+  #splash .splash-btn{background:#F5FFFA !important;color:#556B2F !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.13) !important;color:#F5FFFA !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1701,12 +1701,12 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.21';
+const APP_VERSION='12.23';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
 let syncYears=[new Date().getFullYear()]; // years being synced (multi)
-const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbw6Ywheqprj4QISrJq_cj1F2tCNZ90xjDLa2HMNP9jyfICWQ6FrK7ezXLWB3K2qd29H/exec';
+const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbzTBUos32sJI8j6PyUT4zmvCPUNuc6025y72wuwILJaxQIF3-QtAcIeUIY-4PIY44yK/exec';
 
 const TIPO_ICONS={
   'Alimentação':    '🍽',
@@ -4613,16 +4613,13 @@ async function sheetsWrite(sheetName, rows){
     body:JSON.stringify({action:'write',sheet:sheetName,rows})
   });
 }
-// ── sheetsPost: POST to Apps Script following redirects ──
-function sheetsPost(payload){
-  return new Promise((resolve,reject)=>{
-    const xhr=new XMLHttpRequest();
-    xhr.open('POST',APPS_SCRIPT_URL,true);
-    xhr.setRequestHeader('Content-Type','text/plain');
-    xhr.onload=()=>resolve(xhr.responseText);
-    xhr.onerror=()=>reject(new Error('XHR error'));
-    xhr.send(JSON.stringify(payload));
-  });
+// ── sheetsPost: encode payload as GET request (reliable with Apps Script) ──
+async function sheetsPost(payload){
+  const params=new URLSearchParams({data:JSON.stringify(payload)});
+  const url=APPS_SCRIPT_URL+'?'+params.toString();
+  const res=await fetch(url);
+  const txt=await res.text();
+  try{return JSON.parse(txt);}catch(e){return {ok:true};}
 }
 
 // ── Generate unique transaction ID locally ──
