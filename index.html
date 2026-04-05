@@ -711,7 +711,7 @@
     <div class="menu-divider"></div>
     <button class="menu-item" id="mitem-orc" onclick="goScreen('orc');closeMenu()"><span class="menu-item-icon">🎯</span><span class="menu-item-label">Orçamento</span></button>
     <button class="menu-item" id="mitem-cfg" onclick="goScreen('cfg');closeMenu()"><span class="menu-item-icon">⚙</span><span class="menu-item-label">Configurações</span></button>
-    <button class="menu-item" onclick="syncAll(true);closeMenu()"><span class="menu-item-icon">↻</span><span class="menu-item-label">Sincronizar dados</span></button>
+    <button class="menu-item" onclick="openSyncYearModal();closeMenu()"><span class="menu-item-icon">↻</span><span class="menu-item-label">Sincronizar dados</span></button>
     <div class="menu-divider"></div>
     <button class="menu-item" onclick="logout()"><span class="menu-item-icon">←</span><span class="menu-item-label">Trocar usuário</span></button>
   </div>
@@ -1360,6 +1360,18 @@
 </div>
 
 <!-- EDIT MODAL -->
+<!-- SYNC YEAR MODAL -->
+<div id="sync-year-modal" style="position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);padding:24px;">
+  <div style="background:var(--card);border-radius:20px;padding:24px;width:100%;max-width:320px;">
+    <div style="font-family:var(--font-display);font-size:1.1rem;color:var(--font);margin-bottom:6px;">Sincronizar transações</div>
+    <div style="font-size:.82rem;color:var(--muted);margin-bottom:16px;">Selecione o ano a carregar:</div>
+    <div id="sync-year-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+    <button onclick="document.getElementById('sync-year-modal').style.display='none';"
+      style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.9rem;cursor:pointer;">
+      Cancelar
+    </button>
+  </div>
+</div>
 <div id="edit-modal">
   <div class="modal-sheet">
     <div class="modal-title" style="margin-bottom:16px;">Editar transação</div>
@@ -1461,10 +1473,11 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='9.9';
+const APP_VERSION='10.0';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
+let syncYear=new Date().getFullYear(); // year being synced
 const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbw6Ywheqprj4QISrJq_cj1F2tCNZ90xjDLa2HMNP9jyfICWQ6FrK7ezXLWB3K2qd29H/exec';
 
 const TIPO_ICONS={
@@ -2723,7 +2736,14 @@ async function loadData(){
     // Use Apps Script GET to read all 10 columns
     const rows=await sheetsRead(SHEET_NAME);
     // Skip header row if present (check if first cell looks like a date)
-    const dataRows=rows.filter(r=>r[0]&&String(r[0]).match(/\d{2}\/\d{2}\/\d{4}|\d{4}-\d{2}/));
+    const dataRows=rows.filter(r=>{
+      if(!r[0])return false;
+      const s=String(r[0]);
+      if(!s.match(/\d{2}\/\d{2}\/\d{4}|\d{4}-\d{2}/))return false;
+      // filter by syncYear
+      const d=new Date(normalizeDate(s).split('/').reverse().join('-'));
+      return isNaN(d)||d.getFullYear()===syncYear||syncYear===0;
+    });
     if(!dataRows.length){seedDemo();renderDash();renderHistory();return;}
     allData=dataRows.map((r,i)=>({
       _row:i+2,
@@ -3012,10 +3032,17 @@ function renderHistory(){
   attachSwipe('hist-list');
 }
 function txIdx(t){
-  if(t._row!==undefined){
+  // first try by _row (most reliable)
+  if(t._row!==undefined&&t._row!==null){
     const i=allData.findIndex(x=>x._row===t._row);
     if(i>=0)return i;
   }
+  // fallback: match by key fields
+  const i=allData.findIndex(x=>
+    x.date===t.date&&x.desc===t.desc&&
+    Math.abs(x.value-t.value)<0.01&&x.account===t.account
+  );
+  if(i>=0)return i;
   return allData.indexOf(t);
 }
 function txHTML(t,idx){
@@ -4098,6 +4125,25 @@ function deserializeKV(rows){
 }
 
 // ── FULL SYNC: read everything from Sheets → update localStorage + memory ──
+function openSyncYearModal(){
+  const modal=document.getElementById('sync-year-modal');
+  if(!modal)return;
+  const curYear=new Date().getFullYear();
+  const years=[curYear,curYear-1,curYear-2,curYear-3];
+  const list=document.getElementById('sync-year-list');
+  if(list){
+    list.innerHTML=years.map(y=>`
+      <button onclick="syncYear=${y};document.getElementById('sync-year-modal').style.display='none';syncAll(true);"
+        style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);
+        background:${y===syncYear?'var(--font)':'transparent'};
+        color:${y===syncYear?'var(--bg)':'var(--font)'};
+        font-family:var(--font-body);font-size:.95rem;font-weight:${y===syncYear?'700':'400'};cursor:pointer;text-align:left;">
+        ${y}${y===curYear?' (ano atual)':''}${y===syncYear?' ✓':''}
+      </button>`).join('');
+  }
+  modal.style.display='flex';
+}
+
 async function syncAll(manual=false){
   showSyncBar('Sincronizando…',false,true);
   try {
