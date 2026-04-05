@@ -1220,22 +1220,13 @@
           <div class="orc-title">🎯 Orçamento</div>
           <div class="orc-user-tag" id="orc-user-lbl">—</div>
         </div>
-        <div style="display:flex;gap:6px;">
-          <button style="background:rgba(255,255,255,.15);border:none;color:#fff;padding:5px 10px;border-radius:8px;font-family:var(--font-body);font-size:.75rem;cursor:pointer;" onclick="openOrcEdit(null,null)">+ Nova categoria</button>
-        </div>
       </div>
     </div>
     <div class="orc-tbl-outer">
-      <!-- head row -->
-      <div class="orc-tbl-head">
-        <div class="orc-fix-col orc-hcell-fix">Pasta / Categoria</div>
-        <div class="orc-scroll-head" id="orc-scroll-head"><div style="display:flex;" id="orc-head-row"></div></div>
-      </div>
-      <!-- body -->
-      <div class="orc-tbl-body">
-        <div class="orc-fix-body" id="orc-fix-body"></div>
-        <div class="orc-months-body" id="orc-months-body"><div id="orc-months-rows"></div></div>
-      </div>
+      <table id="orc-table">
+        <thead><tr id="orc-thead-row"><th class="col-fix">Pasta / Categoria</th></tr></thead>
+        <tbody id="orc-tbody"></tbody>
+      </table>
     </div>
   </div>
 
@@ -1466,7 +1457,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='8.5';
+const APP_VERSION='8.6';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3777,68 +3768,51 @@ function renderOrc(){
   loadOrc();
   const user=currentUser||'ALE';
   const ulbl=document.getElementById('orc-user-lbl');
-  if(ulbl)ulbl.textContent=user+' · '+ORC_YEAR;
+  if(ulbl)ulbl.textContent=user+' · '+new Date().getFullYear();
 
   const MONTHS=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  const today=new Date();
-  const curMonth=today.getMonth();
+  const year=new Date().getFullYear();
+  const curM=new Date().getMonth();
   const tipos=Object.keys(tiposData).filter(t=>tiposData[t].active);
 
-  // build head
-  const headRow=document.getElementById('orc-head-row');
-  if(headRow)headRow.innerHTML=MONTHS.map((m,i)=>
-    `<span class="orc-hcell${i===curMonth?' cur-month':''}">${m}</span>`
-  ).join('');
+  // thead
+  const thead=document.getElementById('orc-thead-row');
+  if(thead){
+    thead.innerHTML='<th class="col-fix">Pasta / Categoria</th>'+
+      MONTHS.map((m,i)=>`<th class="${i===curM?'cur-m':''}">${m}</th>`).join('');
+  }
 
-  let fixHtml='', monthsRows='';
-
+  // tbody
+  const tbody=document.getElementById('orc-tbody');
+  if(!tbody)return;
+  let rows='';
   tipos.forEach(tipo=>{
     const cats=(tiposData[tipo]?.cats||[]).filter(c=>c.active).map(c=>c.name);
     if(!cats.length)return;
     const tSafe=tipo.replace(/'/g,"\'");
-
-    // grupo totals row
-    const grupoTotals=MONTHS.map((_,mi)=>
-      cats.reduce((s,cat)=>s+getOrcValForMonth(tipo,cat,ORC_YEAR,mi),0)
-    );
-    fixHtml+=`<div class="orc-row grupo-row"><div class="orc-fix-cell grupo-cell">${TIPO_ICONS[tipo]||'📁'} ${tipo}</div></div>`;
-    monthsRows+=`<div class="orc-row grupo-row">${grupoTotals.map((v,i)=>
-      `<div class="orc-data-cell grupo-total${i===curMonth?' cur-month':''}">${v>0?fmtOrc(v):'—'}</div>`
-    ).join('')}</div>`;
-
+    // grupo row
+    const gTotals=MONTHS.map((_,mi)=>cats.reduce((s,cat)=>s+getOrcValForMonth(tipo,cat,year,mi),0));
+    rows+=`<tr class="grupo-row"><td class="col-fix">${TIPO_ICONS[tipo]||'📁'} ${tipo}</td>`+
+      gTotals.map((v,i)=>`<td class="${i===curM?'cur-m':''}${v>0?' has-val':''}">${v>0?fmtOrc(v):'—'}</td>`).join('')+
+      '</tr>';
     // cat rows
     cats.forEach(cat=>{
       const o=getOrcCat(tipo,cat);
       const cSafe=cat.replace(/'/g,"\'");
-      const vals=MONTHS.map((_,mi)=>getOrcValForMonth(tipo,cat,ORC_YEAR,mi));
-      fixHtml+=`<div class="orc-row">
-        <div class="orc-fix-cell cat-cell" onclick="openOrcEdit('${tSafe}','${cSafe}')">
-          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${cat}</span>
-          <span class="orc-badge ${o.tipo==='F'?'fixo':'var'}">${o.tipo==='F'?'F':'V'}</span>
-        </div>
-      </div>`;
-      monthsRows+=`<div class="orc-row">${vals.map((v,i)=>
-        `<div class="orc-data-cell${v>0?' has-val':' empty'}${i===curMonth?' cur-month':''}"
-          onclick="openOrcEditMonth('${tSafe}','${cSafe}',${i})">${v>0?fmtOrc(v):'·'}</div>`
-      ).join('')}</div>`;
+      const badge=`<span class="orc-badge ${o.tipo==='F'?'fixo':'var'}" style="margin-left:4px;">${o.tipo==='F'?'F':'V'}</span>`;
+      rows+=`<tr><td class="col-fix indent" onclick="openOrcEdit('${tSafe}','${cSafe}')" style="cursor:pointer;">${cat}${badge}</td>`+
+        MONTHS.map((_,mi)=>{
+          const v=getOrcValForMonth(tipo,cat,year,mi);
+          return `<td class="${i===curM?'cur-m':''}${v>0?' has-val':' empty'}" onclick="openOrcEdit('${tSafe}','${cSafe}')" style="cursor:pointer;">${v>0?fmtOrc(v):'·'}</td>`;
+        }).join('')+
+        '</tr>';
     });
   });
+  tbody.innerHTML=rows;
 
-  const fb=document.getElementById('orc-fix-body');if(fb)fb.innerHTML=fixHtml;
-  const mr=document.getElementById('orc-months-rows');if(mr)mr.innerHTML=monthsRows;
-
-  // sync horizontal scroll head ↔ body
-  const mb=document.getElementById('orc-months-body');
-  const sh=document.getElementById('orc-scroll-head');
-  const fb2=document.getElementById('orc-fix-body');
-  if(mb&&sh){
-    mb.addEventListener('scroll',()=>{
-      sh.scrollLeft=mb.scrollLeft;
-      if(fb2)fb2.scrollTop=mb.scrollTop;
-    });
-    // scroll to current month minus 1
-    setTimeout(()=>{if(mb)mb.scrollLeft=Math.max(0,(curMonth-1)*68);},150);
-  }
+  // scroll to current month
+  const wrap=document.querySelector('.orc-tbl-outer');
+  if(wrap)setTimeout(()=>{wrap.scrollLeft=Math.max(0,(curM-1)*64);},150);
 }
 
 const ORC_YEAR=new Date().getFullYear();
