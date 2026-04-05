@@ -363,6 +363,13 @@
   .orc-edit-months{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:4px;}
   .orc-month-chip{padding:5px;border-radius:8px;border:1px solid var(--border);background:transparent;font-family:var(--font-body);font-size:.65rem;text-align:center;cursor:pointer;color:var(--muted);}
   .orc-month-chip.has-val{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.4);color:var(--font);font-weight:600;}
+  /* SYNC */
+  .sync-bar{position:fixed;top:0;left:0;right:0;z-index:999;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.78rem;font-weight:700;text-align:center;padding:6px;transform:translateY(-100%);transition:transform .3s;}
+  .sync-bar.show{transform:translateY(0);}
+  .sync-bar.error{background:var(--red);color:#fff;}
+  .sync-icon{display:inline-block;margin-right:6px;}
+  .sync-icon.spin{animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
   /* EXTRATO */
   .extrato-header{flex-shrink:0;background:var(--bg);padding:10px 16px 0;border-bottom:1px solid var(--border);}
   .extrato-totals{display:flex;gap:0;margin-bottom:10px;background:var(--card);border-radius:12px;overflow:hidden;}
@@ -689,6 +696,7 @@
   </div>
 </div>
 
+<div id="sync-bar" class="sync-bar"><span class="sync-icon" id="sync-icon">↻</span><span id="sync-msg">Sincronizando…</span></div>
 <div id="menu-overlay" onclick="closeMenu()"></div>
 <div id="side-menu">
   <div class="menu-header">
@@ -703,7 +711,7 @@
     <div class="menu-divider"></div>
     <button class="menu-item" id="mitem-orc" onclick="goScreen('orc');closeMenu()"><span class="menu-item-icon">🎯</span><span class="menu-item-label">Orçamento</span></button>
     <button class="menu-item" id="mitem-cfg" onclick="goScreen('cfg');closeMenu()"><span class="menu-item-icon">⚙</span><span class="menu-item-label">Configurações</span></button>
-    <button class="menu-item" onclick="loadData();closeMenu()"><span class="menu-item-icon">↻</span><span class="menu-item-label">Sincronizar dados</span></button>
+    <button class="menu-item" onclick="syncAll(true);closeMenu()"><span class="menu-item-icon">↻</span><span class="menu-item-label">Sincronizar dados</span></button>
     <div class="menu-divider"></div>
     <button class="menu-item" onclick="logout()"><span class="menu-item-icon">←</span><span class="menu-item-label">Trocar usuário</span></button>
   </div>
@@ -1453,7 +1461,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='8.9';
+const APP_VERSION='9.0';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -1651,7 +1659,7 @@ function loadAccounts(){
   try{const s=localStorage.getItem('fluxo_accounts2');if(s){accounts=JSON.parse(s);accounts.forEach(a=>{if(!a.instituicao)a.instituicao='';});return;}}catch(e){}
   accounts=DEFAULT_ACCOUNTS.map(a=>({...a,instituicao:''}));
 }
-function saveAccounts(){try{localStorage.setItem('fluxo_accounts2',JSON.stringify(accounts));}catch(e){}}
+function saveAccounts(){try{localStorage.setItem('fluxo_accounts2',JSON.stringify(accounts));}catch(e){}pushToSheets('accounts');}
 
 function getActiveAccounts(){
   const user=currentUser||'ALE';
@@ -1778,7 +1786,7 @@ function initTiposData(){
     tiposData[t]={active:true,cats:(TIPOS[t]||[]).map(c=>({name:c,active:true}))};
   });
 }
-function saveTiposData(){try{localStorage.setItem('fluxo_tipos',JSON.stringify(tiposData));}catch(e){}}
+function saveTiposData(){try{localStorage.setItem('fluxo_tipos',JSON.stringify(tiposData));}catch(e){}pushToSheets('pastas');}
 
 function getActiveTipos(){return Object.keys(tiposData).filter(t=>tiposData[t].active);}
 function getActiveCats(tipo){return(tiposData[tipo]?.cats||[]).filter(c=>c.active).map(c=>c.name);}
@@ -1896,7 +1904,7 @@ function loadKeywords(){
   try{const s=localStorage.getItem('fluxo_kw');if(s)keywordsData=JSON.parse(s);}catch(e){}
   if(!Object.keys(keywordsData).length) seedKeywords();
 }
-function saveKeywords(){try{localStorage.setItem('fluxo_kw',JSON.stringify(keywordsData));}catch(e){}}
+function saveKeywords(){try{localStorage.setItem('fluxo_kw',JSON.stringify(keywordsData));}catch(e){}pushToSheets('kw');}
 
 function seedKeywords(){
   keywordsData={
@@ -2343,7 +2351,9 @@ function login(u){
   const sv=document.getElementById('splash-version');if(sv)sv.textContent='v'+APP_VERSION;
   document.getElementById('menu-user').textContent=u;
   const cfu=document.getElementById('cfg-user');if(cfu)cfu.textContent=u;const cu2=document.getElementById('cfg-user2');if(cu2)cu2.textContent=u;
-  loadAccounts();seedInstLinks();loadDefaultAccounts();loadStartScreen();initTiposData();loadKeywords();loadOrc();loadInvestimentos();setTodayDate();buildSettings();buildStartScreenUI();extMonth=new Date().getMonth();extYear=new Date().getFullYear();loadData();setTimeout(()=>goScreen(startScreen),100);
+  loadAccounts();seedInstLinks();loadDefaultAccounts();loadStartScreen();initTiposData();loadKeywords();loadOrc();loadInvestimentos();
+  // auto-sync on login
+  setTimeout(()=>syncAll(false),1500);setTodayDate();buildSettings();buildStartScreenUI();extMonth=new Date().getMonth();extYear=new Date().getFullYear();loadData();setTimeout(()=>goScreen(startScreen),100);
 }
 function logout(){
   currentUser=null;allData=[];
@@ -3163,7 +3173,7 @@ function setAcctInstituicao(idx,instName){
   saveAccounts2();buildAccountsUI();
   if(currentInstIdx!==null)renderCcCard();
 }
-function saveAccounts2(){try{localStorage.setItem('fluxo_accounts2',JSON.stringify(accounts));}catch(e){}}
+function saveAccounts2(){try{localStorage.setItem('fluxo_accounts2',JSON.stringify(accounts));}catch(e){}pushToSheets('accounts');}
 
 function getInstLinkedAccounts(instName){
   const user=currentUser||'ALE';
@@ -3303,7 +3313,7 @@ function loadInvestimentos(){
   try{const s=localStorage.getItem('fluxo_inv2');if(s){instituicoes=JSON.parse(s);}}catch(e){}
   if(!instituicoes.length) seedInvestimentos();
 }
-function saveInvestimentos(){try{localStorage.setItem('fluxo_inv2',JSON.stringify(instituicoes));}catch(e){}}
+function saveInvestimentos(){try{localStorage.setItem('fluxo_inv2',JSON.stringify(instituicoes));}catch(e){}pushToSheets('inv');}
 
 function seedInstLinks(){
   // auto-link accounts to institutions based on name
@@ -3689,7 +3699,7 @@ function loadOrc(){
   const user=currentUser||'ALE';
   if(!orcData[user]||Object.keys(orcData[user]).length===0) seedOrcForUser(user);
 }
-function saveOrc(){try{localStorage.setItem('fluxo_orc',JSON.stringify(orcData));}catch(e){}}
+function saveOrc(){try{localStorage.setItem('fluxo_orc',JSON.stringify(orcData));}catch(e){}pushToSheets('orc');}
 function getUserOrc(){
   const user=currentUser||'ALE';
   if(!orcData[user])orcData[user]={};
@@ -3924,6 +3934,173 @@ function renderDashFarois(){
         <div class="dash-farol-vals">${fmt(a.real)} / ${fmt(a.prev)}</div>
       </div>`).join('')}
     </div>`;
+}
+
+// ══════════════════════════════════════════════
+// ── SYNC ENGINE v2.0 ──
+// ══════════════════════════════════════════════
+
+const SHEETS = {
+  transacoes: 'Transações',
+  orcamento:  'Orçamento',
+  investimentos: 'Investimentos',
+  contas:     'Contas',
+  pastas:     'Pastas',
+  keywords:   'PalavrasChave',
+};
+
+// ── UI feedback ──
+function showSyncBar(msg, isError=false, spin=true){
+  const bar=document.getElementById('sync-bar');
+  const ic=document.getElementById('sync-icon');
+  const sm=document.getElementById('sync-msg');
+  if(!bar)return;
+  if(sm)sm.textContent=msg;
+  if(ic){ic.textContent='↻';ic.className='sync-icon'+(spin?' spin':'');}
+  bar.className='sync-bar show'+(isError?' error':'');
+}
+function hideSyncBar(){
+  const bar=document.getElementById('sync-bar');
+  if(bar)bar.classList.remove('show');
+}
+function syncSuccess(msg){
+  const bar=document.getElementById('sync-bar');
+  const ic=document.getElementById('sync-icon');
+  const sm=document.getElementById('sync-msg');
+  if(sm)sm.textContent=msg;
+  if(ic){ic.textContent='✓';ic.className='sync-icon';}
+  if(bar)bar.className='sync-bar show';
+  setTimeout(hideSyncBar,2500);
+}
+function syncError(msg){
+  showSyncBar(msg,true,false);
+  setTimeout(hideSyncBar,3000);
+}
+
+// ── READ from Sheets via GET ──
+async function sheetsRead(sheetName){
+  const url=APPS_SCRIPT_URL+'?sheet='+encodeURIComponent(sheetName);
+  const r=await fetch(url);
+  const j=await r.json();
+  if(!j.ok)throw new Error(j.error||'read error');
+  return j.data; // array of arrays
+}
+
+// ── WRITE to Sheets via POST ──
+async function sheetsWrite(sheetName, rows){
+  await fetch(APPS_SCRIPT_URL,{
+    method:'POST',mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'write',sheet:sheetName,rows})
+  });
+}
+
+// ── SERIALIZE / DESERIALIZE ──
+// Each "config" sheet stores key|value rows where value is JSON
+function serializeKV(obj){
+  return Object.entries(obj).map(([k,v])=>[k, JSON.stringify(v)]);
+}
+function deserializeKV(rows){
+  const obj={};
+  rows.forEach(r=>{
+    if(r[0]){try{obj[r[0]]=JSON.parse(r[1]);}catch(e){obj[r[0]]=r[1];}}
+  });
+  return obj;
+}
+
+// ── FULL SYNC: read everything from Sheets → update localStorage + memory ──
+async function syncAll(manual=false){
+  showSyncBar('Sincronizando…',false,true);
+  try {
+    // 1. Transações
+    await loadData();
+
+    // 2. Orçamento
+    try{
+      const rows=await sheetsRead(SHEETS.orcamento);
+      if(rows&&rows.length>0){
+        const obj=deserializeKV(rows);
+        if(Object.keys(obj).length>0){
+          orcData=obj;
+          localStorage.setItem('fluxo_orc',JSON.stringify(orcData));
+        }
+      }
+    }catch(e){console.warn('orc read fail',e);}
+
+    // 3. Investimentos
+    try{
+      const rows=await sheetsRead(SHEETS.investimentos);
+      if(rows&&rows.length>0){
+        const obj=deserializeKV(rows);
+        if(obj.instituicoes){
+          instituicoes=obj.instituicoes;
+          localStorage.setItem('fluxo_inv2',JSON.stringify(instituicoes));
+        }
+      }
+    }catch(e){console.warn('inv read fail',e);}
+
+    // 4. Contas
+    try{
+      const rows=await sheetsRead(SHEETS.contas);
+      if(rows&&rows.length>0){
+        const obj=deserializeKV(rows);
+        if(obj.accounts){
+          accounts=obj.accounts;
+          localStorage.setItem('fluxo_accounts2',JSON.stringify(accounts));
+        }
+      }
+    }catch(e){console.warn('accounts read fail',e);}
+
+    // 5. Pastas
+    try{
+      const rows=await sheetsRead(SHEETS.pastas);
+      if(rows&&rows.length>0){
+        const obj=deserializeKV(rows);
+        if(obj.tiposData){
+          tiposData=obj.tiposData;
+          localStorage.setItem('fluxo_tipos',JSON.stringify(tiposData));
+        }
+      }
+    }catch(e){console.warn('pastas read fail',e);}
+
+    // 6. Palavras-chave
+    try{
+      const rows=await sheetsRead(SHEETS.keywords);
+      if(rows&&rows.length>0){
+        const obj=deserializeKV(rows);
+        if(obj.keywords){
+          keywordsData=obj.keywords;
+          localStorage.setItem('fluxo_kw',JSON.stringify(keywordsData));
+        }
+      }
+    }catch(e){console.warn('kw read fail',e);}
+
+    // Refresh UI
+    renderDash();
+    if(currentInstIdx!==null)renderCcCard();
+    syncSuccess('Sincronizado ✓');
+    localStorage.setItem('fluxo_last_sync',new Date().toISOString());
+  } catch(e){
+    syncError('Erro ao sincronizar — usando dados locais');
+    console.error('syncAll error',e);
+  }
+}
+
+// ── PUSH single dataset to Sheets ──
+async function pushToSheets(dataset){
+  try{
+    if(dataset==='orc'){
+      await sheetsWrite(SHEETS.orcamento, serializeKV(orcData));
+    } else if(dataset==='inv'){
+      await sheetsWrite(SHEETS.investimentos, serializeKV({instituicoes}));
+    } else if(dataset==='accounts'){
+      await sheetsWrite(SHEETS.contas, serializeKV({accounts}));
+    } else if(dataset==='pastas'){
+      await sheetsWrite(SHEETS.pastas, serializeKV({tiposData}));
+    } else if(dataset==='kw'){
+      await sheetsWrite(SHEETS.keywords, serializeKV({keywords:keywordsData}));
+    }
+  }catch(e){console.warn('push failed silently',dataset,e);}
 }
 
 loadPrefs();
