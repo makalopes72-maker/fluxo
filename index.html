@@ -38,8 +38,42 @@
 
   #menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:150;opacity:0;pointer-events:none;transition:opacity .3s;}
   #menu-overlay.open{opacity:1;pointer-events:all;}
-  #side-menu{position:fixed;top:0;left:0;bottom:0;width:280px;background:var(--card);z-index:160;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;}
+  #side-menu{
+    position:fixed;top:0;left:0;bottom:0;width:260px;
+    background:var(--card);z-index:160;
+    transform:translateX(-100%);
+    transition:transform .3s cubic-bezier(.4,0,.2,1);
+    display:flex;flex-direction:column;
+    overflow:hidden;
+  }
   #side-menu.open{transform:translateX(0);}
+  /* nav takes all available space and scrolls if needed */
+  .menu-nav{flex:1;overflow-y:auto;padding:4px 0;min-height:0;}
+  .menu-nav::-webkit-scrollbar{display:none;}
+  /* footer always visible at bottom */
+  .menu-footer{flex-shrink:0;}
+  /* item sizing — clamp so it never grows too big */
+  .menu-item{
+    display:flex;align-items:center;gap:10px;
+    padding:clamp(6px,1.5vh,12px) 18px;
+    cursor:pointer;border:none;background:transparent;
+    width:100%;text-align:left;
+    font-family:var(--font-body);
+    font-size:clamp(.75rem,1.8vh,.9rem);
+    font-weight:500;color:var(--font);
+    transition:background .15s;
+  }
+  .menu-item:active{background:var(--kp);}
+  .menu-item.active .menu-item-label{color:var(--btn);font-weight:700;}
+  .menu-item.active .menu-item-icon{color:var(--btn);}
+  .menu-item-icon{font-size:clamp(.85rem,1.8vh,1.1rem);width:20px;text-align:center;flex-shrink:0;}
+  .menu-item-label{font-size:clamp(.75rem,1.8vh,.88rem);font-weight:500;white-space:nowrap;}
+  .menu-divider{height:1px;background:var(--border);margin:3px 14px;}
+  .menu-brand{display:flex;align-items:center;gap:8px;padding:8px 16px 16px;}
+  .menu-brand-logo{font-family:var(--font-display);font-size:.88rem;color:var(--font);}
+  .menu-brand-user{font-size:.68rem;font-weight:600;color:var(--btn);background:rgba(34,197,94,.1);padding:2px 7px;border-radius:100px;margin-left:auto;}
+  .side-menu-top{display:flex;justify-content:flex-end;padding:4px 6px 0;flex-shrink:0;}
+  .menu-collapse-btn{display:none;width:26px;height:26px;border:1px solid var(--border);background:transparent;border-radius:7px;cursor:pointer;align-items:center;justify-content:center;font-size:.85rem;color:var(--muted);flex-shrink:0;}
   .menu-nav{flex:1;padding:4px 0;overflow-y:auto;}
   .menu-nav::-webkit-scrollbar{display:none;}
   .menu-footer{flex-shrink:0;}
@@ -386,38 +420,26 @@
   .orc-month-chip.has-val{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.4);color:var(--font);font-weight:600;}
   /* ═══ LANDSCAPE / DESKTOP LAYOUT ═══ */
   @media (min-width:600px){
-    /* App becomes flex-row */
     #app{flex-direction:row !important;}
-    /* Hide mobile header */
     #app > header{display:none !important;}
-    /* Hide mobile menu overlay */
     #menu-overlay{display:none !important;}
-    /* Side menu: always visible, not fixed */
     #side-menu{
       position:relative !important;
       transform:none !important;
-      width:220px;
-      min-width:220px;
-      flex-shrink:0;
-      z-index:10;
-      border-right:1px solid var(--border);
+      width:200px;min-width:200px;flex-shrink:0;
+      z-index:10;border-right:1px solid var(--border);
       transition:width .25s cubic-bezier(.4,0,.2,1),min-width .25s;
     }
-    #side-menu.collapsed{width:60px;min-width:60px;}
+    #side-menu.collapsed{width:52px;min-width:52px;}
     #side-menu.collapsed .menu-item-label{display:none;}
-    #side-menu.collapsed .menu-item-icon{width:100%;text-align:center;font-size:1.2rem;}
-    #side-menu.collapsed .menu-item{justify-content:center;padding:10px 0;}
+    #side-menu.collapsed .menu-item{justify-content:center;padding:8px 0;}
     #side-menu.collapsed .menu-brand-logo{display:none;}
     #side-menu.collapsed .menu-brand-user{display:none;}
-    #side-menu.collapsed .menu-brand{justify-content:center;padding:12px 0 20px;}
+    #side-menu.collapsed .menu-brand{justify-content:center;padding:8px 0 12px;}
     #side-menu.collapsed .side-menu-top{justify-content:center;}
-    /* Main content area */
     #app-content{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
-    /* Screens inside content */
-    .screen{padding:20px 28px 40px;}
-    /* Desktop header inside content */
+    .screen{padding:16px 24px 40px;}
     #desktop-header{display:flex !important;}
-    /* Collapse button */
     .menu-collapse-btn{display:flex !important;}
   }
   @media (max-width:599px){
@@ -1636,7 +1658,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='11.3';
+const APP_VERSION='11.4';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
