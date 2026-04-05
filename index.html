@@ -1697,7 +1697,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='11.8';
+const APP_VERSION='11.9';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2651,6 +2651,7 @@ function goScreen(name){
   if(name==='dash')renderDash();
   if(name==='cfg')buildSettings();
   closeDrop();
+  updateDesktopHeader(name);
 }
 
 function setTodayDate(){
@@ -4719,12 +4720,7 @@ function updateUserTags(){
   });
 }
 
-// patch goScreen to update desktop header
-const _goScreenOrig=goScreen;
-function goScreen(name){
-  _goScreenOrig(name);
-  updateDesktopHeader(name);
-}
+// desktop header updated inside goScreen directly
 
 // on resize, close mobile menu if switching to desktop
 window.addEventListener('resize',()=>{
