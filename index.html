@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(150deg,#B5A000,#003580);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFFDE0 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(255,253,224,.65) !important;}
-  #splash .splash-version{color:rgba(255,253,224,.35) !important;}
-  #splash .splash-btn{background:#FFFDE0 !important;color:#003580 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.4);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.13) !important;color:#FFFDE0 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(135deg,#8B0045,#006D77);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFF0F7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(255,240,247,.65) !important;}
+  #splash .splash-version{color:rgba(255,240,247,.35) !important;}
+  #splash .splash-btn{background:#FFF0F7 !important;color:#8B0045 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.13) !important;color:#FFF0F7 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1701,7 +1701,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.20';
+const APP_VERSION='12.21';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3383,13 +3383,11 @@ function toggleTxConsolidado(idx,event){
   t.consolidated=!t.consolidated;
   // save consolidado to Sheets
   if(t._id||t._row){
-    const row=[t.date,t.desc,(t.value||0).toFixed(2).replace('.',','),t.cat,t.tipo||t.cat,t.account,t.type,t.consolidated?'1':'0',t._transferId||'',t._isAdjust?'1':'',''];
+    const row=[t.date,t.desc,(t.value||0).toFixed(2).replace('.',','),t.cat,t.tipo||t.cat,t.account,t.type,t.consolidated?'1':'0',t._transferId||'',t._isAdjust?'1':'',t._id||''];
     const payload=t._id
-      ? {action:'update',id:t._id,data:row,sheet:SHEET_NAME}
+      ? {action:'update',id:String(t._id),data:row,sheet:SHEET_NAME}
       : {action:'update',row:t._row,data:row,sheet:SHEET_NAME};
-    fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
-    }).catch(()=>{});
+    sheetsPost(payload).catch(()=>{});
   }
   renderDash();renderHistory();
 }
@@ -3561,27 +3559,35 @@ async function deleteTx(idx){
   if(!confirm('Excluir esta transação?'))return;
   const t=allData[idx];
   if(!t){toast('Transação não encontrada','error');return;}
-  // remove locally immediately
-  const deletedRow=t._row;
+  if(!t._id&&!t._row){toast('Sem referência para excluir','error');return;}
+
+  // remove locally
   allData.splice(idx,1);
-  // NOTE: do NOT adjust _row of remaining items locally
-  // Next loadData() will get correct row numbers from Sheets
   renderDash();renderHistory();
-  toast('Excluído','success');
-  // send delete to Sheets by ID_TRANS (reliable) or row fallback
+
+  // send to Sheets via redirected POST (follow redirect)
+  const payload=t._id
+    ? {action:'delete',id:String(t._id),sheet:SHEET_NAME}
+    : {action:'delete',row:t._row,sheet:SHEET_NAME};
+
   try{
-    const payload=t._id
-      ? {action:'delete',id:t._id,sheet:SHEET_NAME}
-      : {action:'delete',row:deletedRow,sheet:SHEET_NAME};
-    await fetch(APPS_SCRIPT_URL,{
-      method:'POST',mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
+    // use XMLHttpRequest to follow redirect and send body
+    await new Promise((resolve,reject)=>{
+      const xhr=new XMLHttpRequest();
+      xhr.open('POST',APPS_SCRIPT_URL,true);
+      xhr.setRequestHeader('Content-Type','text/plain'); // bypass preflight
+      xhr.onload=()=>{
+        console.log('[DELETE] response:',xhr.responseText);
+        resolve();
+      };
+      xhr.onerror=()=>reject(new Error('XHR error'));
+      xhr.send(JSON.stringify(payload));
     });
-    // reload to get fresh data
+    toast('Excluído da base!','success');
     setTimeout(()=>loadData(),1500);
   }catch(e){
-    console.warn('Delete failed on sheets',e);
+    console.warn('[DELETE] failed',e);
+    toast('Excluído localmente (sync pendente)','');
   }
 }
 function fmt(v){return 'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -4607,6 +4613,18 @@ async function sheetsWrite(sheetName, rows){
     body:JSON.stringify({action:'write',sheet:sheetName,rows})
   });
 }
+// ── sheetsPost: POST to Apps Script following redirects ──
+function sheetsPost(payload){
+  return new Promise((resolve,reject)=>{
+    const xhr=new XMLHttpRequest();
+    xhr.open('POST',APPS_SCRIPT_URL,true);
+    xhr.setRequestHeader('Content-Type','text/plain');
+    xhr.onload=()=>resolve(xhr.responseText);
+    xhr.onerror=()=>reject(new Error('XHR error'));
+    xhr.send(JSON.stringify(payload));
+  });
+}
+
 // ── Generate unique transaction ID locally ──
 function generateTxId(){
   const n=new Date();
@@ -4618,9 +4636,7 @@ function generateTxId(){
 }
 // ── Append to Sheets (ID already embedded in row[10]) ──
 async function sheetsAppend(row){
-  await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({action:'append',row,sheet:SHEET_NAME})});
+  await sheetsPost({action:'append',row,sheet:SHEET_NAME});
 }
 
 // ── SERIALIZE / DESERIALIZE ──
