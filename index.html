@@ -1466,7 +1466,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='8.3';
+const APP_VERSION='8.5';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3697,9 +3697,10 @@ let orcYear=new Date().getFullYear();
 let _orcEditTipo=null,_orcEditCat=null,_orcEditPeriod='mensal',_orcEditTipoFC='F',_orcEditFarol='A';
 
 function loadOrc(){
-  try{const s=localStorage.getItem('fluxo_orc');if(s){orcData=JSON.parse(s);return;}}catch(e){}
+  try{const s=localStorage.getItem('fluxo_orc');if(s)orcData=JSON.parse(s);}catch(e){orcData={};}
+  if(!orcData||typeof orcData!=='object')orcData={};
   const user=currentUser||'ALE';
-  if(!orcData[user])orcData[user]={};
+  if(!orcData[user]||Object.keys(orcData[user]).length===0) seedOrcForUser(user);
 }
 function saveOrc(){try{localStorage.setItem('fluxo_orc',JSON.stringify(orcData));}catch(e){}}
 function getUserOrc(){
@@ -3714,7 +3715,8 @@ function getOrcCat(tipo,cat){
   return uorc[tipo][cat];
 }
 function seedOrcForUser(user){
-  orcData={"Alimentação": {"Café da Manhã / Padaria": {"default": 400, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Desconto VR": {"default": 350, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Feira": {"default": 350, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Lanches & Snacks": {"default": 40, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Refeições em restaurante": {"default": 1100, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Supermercado": {"default": 800, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Casa": {"Celular / Telefone": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Combo TV + Internet + Telefone": {"default": 2850, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Condomínio": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Energia Elétrica": {"default": 240, "period": "mensal", "tipo": "V", "farol": "A", "months": {}}, "Gás": {"default": 240, "period": "mensal", "tipo": "V", "farol": "A", "months": {}}, "IPTU": {"default": 1040, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Limpeza / Faxina": {"default": 1000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Móveis e Decoração": {"default": 200, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Reforma / Manutenção": {"default": 150, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Seguro Residencial": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Utensílios / Eletrodomésticos": {"default": 100, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Moradia": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Dependentes": {"Celular Filhos": {"default": 590, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Clube Filhos": {"default": 590, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Escotismo": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Escotismo Corrida": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Pensão Alimentícia": {"default": 8840, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Pensão Alimentícia Férias": {"default": 8840, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Plano Saúde Filhos": {"default": 1500, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Táxi Filhos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Filhos": {"default": 100, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Educação": {"Consultorias": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Cursos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Material Escolar": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Empresa / Atividade Autônoma": {"Alimentação Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Contabilidade": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "CRF / TRF Anuidade": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Cursos e Eventos Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Estacionamento Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Infraestrutura": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "INSS": {"default": 92, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "INSS Férias": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "IR": {"default": 6000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Férias": {"default": 6000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Materiais de Escritório Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "NEXUS": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Outros Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Gastos Pessoais": {"Aplicativos / Armazenamento": {"default": 30, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Doações": {"default": 30, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Documentos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Eletrônicos Pessoais": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Higiene / Estética / Produtos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "IMSS / IR (PF)": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Loterias": {"default": 20, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Presentes": {"default": 300, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Salão de Beleza / Manicure": {"default": 40, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Transferências": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Transporte": {"Combustível (sem reembolso)": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Estacionamento": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Sem Parar": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Táxi (sem reembolso) / Aplicativo": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Transporte": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Saúde": {"Medicamentos Farmácia": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Plano de Saúde": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Consultas Fora do Plano": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Academia / Esporte": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}}, "Lazer": {"APPs Netflix Spotify": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Bares e Restaurantes": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Cinema / Teatro / Show / Passeio": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Lazer": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Receita": {"Receita Bruta (Cliente / Salário)": {"default": 34000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Reembolso": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Receita": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}};
+  if(!orcData[user])orcData[user]={};
+  orcData[user]={"Alimentação": {"Café da Manhã / Padaria": {"default": 400, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Desconto VR": {"default": 350, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Feira": {"default": 350, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Lanches & Snacks": {"default": 40, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Refeições em restaurante": {"default": 1100, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Supermercado": {"default": 800, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Casa": {"Celular / Telefone": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Combo TV + Internet + Telefone": {"default": 2850, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Condomínio": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Energia Elétrica": {"default": 240, "period": "mensal", "tipo": "V", "farol": "A", "months": {}}, "Gás": {"default": 240, "period": "mensal", "tipo": "V", "farol": "A", "months": {}}, "IPTU": {"default": 1040, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Limpeza / Faxina": {"default": 1000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Móveis e Decoração": {"default": 200, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Reforma / Manutenção": {"default": 150, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Seguro Residencial": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Utensílios / Eletrodomésticos": {"default": 100, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Moradia": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Dependentes": {"Celular Filhos": {"default": 590, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Clube Filhos": {"default": 590, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Escotismo": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Escotismo Corrida": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Pensão Alimentícia": {"default": 8840, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Pensão Alimentícia Férias": {"default": 8840, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Plano Saúde Filhos": {"default": 1500, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Táxi Filhos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Filhos": {"default": 100, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Educação": {"Consultorias": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Cursos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Material Escolar": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Empresa / Atividade Autônoma": {"Alimentação Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Contabilidade": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "CRF / TRF Anuidade": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Cursos e Eventos Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Estacionamento Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Infraestrutura": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "INSS": {"default": 92, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "INSS Férias": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "IR": {"default": 6000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Férias": {"default": 6000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Materiais de Escritório Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "NEXUS": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Outros Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Gastos Pessoais": {"Aplicativos / Armazenamento": {"default": 30, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Doações": {"default": 30, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Documentos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Eletrônicos Pessoais": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Higiene / Estética / Produtos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "IMSS / IR (PF)": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Loterias": {"default": 20, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Presentes": {"default": 300, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Salão de Beleza / Manicure": {"default": 40, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Transferências": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Transporte": {"Combustível (sem reembolso)": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Estacionamento": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Sem Parar": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Táxi (sem reembolso) / Aplicativo": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Transporte": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Saúde": {"Medicamentos Farmácia": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Plano de Saúde": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Consultas Fora do Plano": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Academia / Esporte": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}}, "Lazer": {"APPs Netflix Spotify": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Bares e Restaurantes": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Cinema / Teatro / Show / Passeio": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Lazer": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Receita": {"Receita Bruta (Cliente / Salário)": {"default": 34000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Reembolso": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Receita": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}};
   saveOrc();
 }
 
@@ -3771,68 +3773,91 @@ function orcNavMonth(dir){
 }
 
 function renderOrc(){
-  // header month label
-  const lbl=document.getElementById('orc-month-lbl');
-  if(lbl){const d=new Date(orcYear,orcMonth,1);lbl.textContent=d.toLocaleString('pt-BR',{month:'long',year:'numeric'});}
-  const ulbl=document.getElementById('orc-user-lbl');if(ulbl)ulbl.textContent=currentUser||'ALE';
-  const body=document.getElementById('orc-body');if(!body)return;
+  if(!tiposData||!Object.keys(tiposData).length)initTiposData();
+  loadOrc();
+  const user=currentUser||'ALE';
+  const ulbl=document.getElementById('orc-user-lbl');
+  if(ulbl)ulbl.textContent=user+' · '+ORC_YEAR;
+
+  const MONTHS=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const today=new Date();
+  const curMonth=today.getMonth();
   const tipos=Object.keys(tiposData).filter(t=>tiposData[t].active);
-  let totalPrev=0,totalReal=0;
-  let html='';
+
+  // build head
+  const headRow=document.getElementById('orc-head-row');
+  if(headRow)headRow.innerHTML=MONTHS.map((m,i)=>
+    `<span class="orc-hcell${i===curMonth?' cur-month':''}">${m}</span>`
+  ).join('');
+
+  let fixHtml='', monthsRows='';
+
   tipos.forEach(tipo=>{
     const cats=(tiposData[tipo]?.cats||[]).filter(c=>c.active).map(c=>c.name);
     if(!cats.length)return;
-    let tipoPrev=0,tipoReal=0;
-    const catsHtml=cats.map(cat=>{
+    const tSafe=tipo.replace(/'/g,"\'");
+
+    // grupo totals row
+    const grupoTotals=MONTHS.map((_,mi)=>
+      cats.reduce((s,cat)=>s+getOrcValForMonth(tipo,cat,ORC_YEAR,mi),0)
+    );
+    fixHtml+=`<div class="orc-row grupo-row"><div class="orc-fix-cell grupo-cell">${TIPO_ICONS[tipo]||'📁'} ${tipo}</div></div>`;
+    monthsRows+=`<div class="orc-row grupo-row">${grupoTotals.map((v,i)=>
+      `<div class="orc-data-cell grupo-total${i===curMonth?' cur-month':''}">${v>0?fmtOrc(v):'—'}</div>`
+    ).join('')}</div>`;
+
+    // cat rows
+    cats.forEach(cat=>{
       const o=getOrcCat(tipo,cat);
-      const prev=getOrcValForMonth(tipo,cat,orcYear,orcMonth);
-      const real=getRealForMonth(cat,tipo,orcYear,orcMonth);
-      tipoPrev+=prev;tipoReal+=real;
-      const farol=getFarol(tipo,cat,orcYear,orcMonth);
-      const pct=prev>0?Math.min(100,(real/prev)*100):0;
-      const barColor=farol||'verde';
-      const periodoLabel=o.period==='semanal'?'Sem.':o.period==='anual'?'Anual':'Mensal';
-      const dotColor=farol==='verde'?'#22c55e':farol==='laranja'?'#f59e0b':farol==='vermelho'?'#ef4444':'var(--border)';
-      return `<div class="orc-cat-card">
-        <div class="orc-cat-top">
-          <div style="display:flex;align-items:center;gap:6px;">
-            ${farol?`<div style="width:8px;height:8px;border-radius:50%;background:${dotColor};flex-shrink:0;"></div>`:''}
-            <div class="orc-cat-name">${cat}</div>
-          </div>
-          <div class="orc-cat-badges">
-            <span class="orc-badge ${o.tipo==='F'?'fixo':'var'}">${o.tipo==='F'?'Fixo':'Var'}</span>
-            <span class="orc-badge ${o.farol==='A'?'abs':'rel'}">${o.farol}</span>
-          </div>
-        </div>
-        <div class="orc-cat-vals">
-          <div class="orc-val-box"><div class="orc-val-lbl">Previsto</div><div class="orc-val-num">${prev>0?fmt(prev):'—'}</div></div>
-          <div class="orc-val-box"><div class="orc-val-lbl">Realizado</div><div class="orc-val-num" style="${real>0?'color:var(--red)':''}">${real>0?fmt(real):'—'}</div></div>
-        </div>
-        ${prev>0?`<div class="orc-progress-wrap"><div class="orc-progress-bar ${barColor}" style="width:${pct}%"></div></div>`:''}
-        <div class="orc-cat-footer">
-          <div class="orc-cat-info">${periodoLabel}${o.default>0?' · padrão '+fmt(o.default):''}</div>
-          <button class="orc-edit-btn" onclick="openOrcEdit('${tipo.replace(/'/g,"\'")}','${cat.replace(/'/g,"\'")}')">✏️ Editar</button>
+      const cSafe=cat.replace(/'/g,"\'");
+      const vals=MONTHS.map((_,mi)=>getOrcValForMonth(tipo,cat,ORC_YEAR,mi));
+      fixHtml+=`<div class="orc-row">
+        <div class="orc-fix-cell cat-cell" onclick="openOrcEdit('${tSafe}','${cSafe}')">
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${cat}</span>
+          <span class="orc-badge ${o.tipo==='F'?'fixo':'var'}">${o.tipo==='F'?'F':'V'}</span>
         </div>
       </div>`;
-    }).join('');
-    totalPrev+=tipoPrev;totalReal+=tipoReal;
-    html+=`<div class="orc-pasta-block">
-      <div class="orc-pasta-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'flex':'none';this.querySelector('.orc-pasta-arr').classList.toggle('open')">
-        <span class="orc-pasta-icon">${TIPO_ICONS[tipo]||'📁'}</span>
-        <span class="orc-pasta-name">${tipo}</span>
-        <span class="orc-pasta-total">${tipoPrev>0?fmt(tipoPrev):''}</span>
-        <span class="orc-pasta-arr open">›</span>
-      </div>
-      <div class="orc-cat-list" style="display:flex;">${catsHtml}</div>
-    </div>`;
+      monthsRows+=`<div class="orc-row">${vals.map((v,i)=>
+        `<div class="orc-data-cell${v>0?' has-val':' empty'}${i===curMonth?' cur-month':''}"
+          onclick="openOrcEditMonth('${tSafe}','${cSafe}',${i})">${v>0?fmtOrc(v):'·'}</div>`
+      ).join('')}</div>`;
+    });
   });
-  body.innerHTML=html;
-  // totals
-  const tp=document.getElementById('orc-tot-prev');if(tp)tp.textContent=fmt(totalPrev);
-  const tr=document.getElementById('orc-tot-real');if(tr)tr.textContent=fmt(totalReal);
-  const ts=document.getElementById('orc-tot-saldo');if(ts){const sal=totalPrev-totalReal;ts.textContent=(sal>=0?'':'-')+fmt(Math.abs(sal));ts.style.color=sal>=0?'#22c55e':'#ef4444';}
+
+  const fb=document.getElementById('orc-fix-body');if(fb)fb.innerHTML=fixHtml;
+  const mr=document.getElementById('orc-months-rows');if(mr)mr.innerHTML=monthsRows;
+
+  // sync horizontal scroll head ↔ body
+  const mb=document.getElementById('orc-months-body');
+  const sh=document.getElementById('orc-scroll-head');
+  const fb2=document.getElementById('orc-fix-body');
+  if(mb&&sh){
+    mb.addEventListener('scroll',()=>{
+      sh.scrollLeft=mb.scrollLeft;
+      if(fb2)fb2.scrollTop=mb.scrollTop;
+    });
+    // scroll to current month minus 1
+    setTimeout(()=>{if(mb)mb.scrollLeft=Math.max(0,(curMonth-1)*68);},150);
+  }
 }
 
+const ORC_YEAR=new Date().getFullYear();
+
+function fmtOrc(v){
+  if(!v||v===0)return'';
+  if(v>=10000)return Math.round(v/1000)+'k';
+  if(v>=1000)return(v/1000).toFixed(1).replace('.0','')+'k';
+  return v.toLocaleString('pt-BR',{maximumFractionDigits:0});
+}
+
+function openOrcEditMonth(tipo,cat,monthIdx){
+  openOrcEdit(tipo,cat);
+  // highlight that month's chip after modal opens
+  setTimeout(()=>{
+    const chips=document.querySelectorAll('.orc-month-chip');
+    if(chips[monthIdx]){chips[monthIdx].style.outline='2px solid var(--btn)';}
+  },300);
+}
 // ── ORC EDIT ──
 function openOrcEdit(tipo,cat){
   _orcEditTipo=tipo;_orcEditCat=cat;
