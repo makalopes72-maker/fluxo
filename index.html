@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(125deg,#556B2F,#C71585);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F5FFFA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(245,255,250,.65) !important;}
-  #splash .splash-version{color:rgba(245,255,250,.35) !important;}
-  #splash .splash-btn{background:#F5FFFA !important;color:#556B2F !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.13) !important;color:#F5FFFA !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(160deg,#2F4F4F,#7FFF00);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F0FFF0 !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
+  #splash .splash-sub{color:rgba(240,255,240,.65) !important;}
+  #splash .splash-version{color:rgba(240,255,240,.35) !important;}
+  #splash .splash-btn{background:#F0FFF0 !important;color:#2F4F4F !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.13) !important;color:#F0FFF0 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1701,7 +1701,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.23';
+const APP_VERSION='12.25';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3368,7 +3368,8 @@ function txHTML(t,idx){
   const isTransf=!!t._transferId;
   const itemCls='tx-item'+(consol?'':' not-consolidated')+(isTransf?' transf-tx':'');
   const routeHtml=isTransf?`<div class="tx-transf-route">⇄ ${t._transferRoute||''}</div>`:'';
-  return `<div class="tx-wrap"><div class="tx-actions"><button class="tx-action-btn tx-action-edit" onclick="openEdit(${idx})"><span class="act-icon">✏️</span>editar</button><button class="tx-action-btn tx-action-del" onclick="deleteTx(${idx})"><span class="act-icon">🗑</span>excluir</button></div><div class="${itemCls}" onclick="openEditFromTap(${idx},event)"><div class="${checkCls}" onclick="toggleTxConsolidado(${idx},event)"><span class="tx-check-ic">✓</span></div><div class="tx-icon" style="${isTransf?'background:rgba(124,58,237,.12);color:#7c3aed;':''}">${icon}</div><div class="tx-info"><div class="tx-desc">${t.desc||t.cat}</div><div class="tx-date">${t.date} · ${t.cat} · ${t.account}</div>${routeHtml}</div><div class="tx-val ${t.type==='entrada'?'in':'out'}" style="${isTransf?'color:#7c3aed;':''}">${t.type==='entrada'?'+':'-'}${fmt(t.value)}</div></div></div>`;
+  const idBadge=t._id?`<span style="font-size:.58rem;color:var(--muted);opacity:.5;margin-left:4px;letter-spacing:.02em;">#${t._id}</span>`:'';
+  return `<div class="tx-wrap"><div class="tx-actions"><button class="tx-action-btn tx-action-edit" onclick="openEdit(${idx})"><span class="act-icon">✏️</span>editar</button><button class="tx-action-btn tx-action-del" onclick="deleteTx(${idx})"><span class="act-icon">🗑</span>excluir</button></div><div class="${itemCls}" onclick="openEditFromTap(${idx},event)"><div class="${checkCls}" onclick="toggleTxConsolidado(${idx},event)"><span class="tx-check-ic">✓</span></div><div class="tx-icon" style="${isTransf?'background:rgba(124,58,237,.12);color:#7c3aed;':''}">${icon}</div><div class="tx-info"><div class="tx-desc">${t.desc||t.cat}</div><div class="tx-date">${t.date} · ${t.cat} · ${t.account}${idBadge}</div>${routeHtml}</div><div class="tx-val ${t.type==='entrada'?'in':'out'}" style="${isTransf?'color:#7c3aed;':''}">${t.type==='entrada'?'+':'-'}${fmt(t.value)}</div></div></div>`;
 }
 function openEditFromTap(idx,event){
   if(event.target.closest('.tx-check'))return;
@@ -3534,20 +3535,17 @@ async function updateTransaction(){
   const newType=editTransType;
   const newConsol=editConsol;
   const displayDesc=newDesc||(newCat||newTipo||'Transação');
-  const newRow=[newDate,displayDesc,newValue.toFixed(2).replace('.',','),newCat||newTipo,newTipo||newCat,newAccount,newType,newConsol?'1':'0','',''];
+  // keep _id in col K
+  const newRow=[newDate,displayDesc,newValue.toFixed(2).replace('.',','),newCat||newTipo,newTipo||newCat,newAccount,newType,newConsol?'1':'0',t._transferId||'',t._isAdjust?'1':'',t._id||''];
   try{
-    if(t._row){
-      // existing row — update in place
-      await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({action:'update',row:t._row,data:newRow,sheet:SHEET_NAME})});
-    } else {
-      // new row without _row — append
-      await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({action:'append',row:newRow,sheet:SHEET_NAME})});
+    if(t._id){
+      await sheetsPost({action:'update',id:String(t._id),data:newRow,sheet:SHEET_NAME});
+    } else if(t._row){
+      await sheetsPost({action:'update',row:t._row,data:newRow,sheet:SHEET_NAME});
     }
     allData[editingIndex]={...t,date:newDate,desc:displayDesc,value:newValue,cat:newCat||newTipo,tipo:newTipo,type:newType,account:newAccount,consolidated:newConsol};
     closeModal();renderDash();renderHistory();toast('Atualizado!','success');
-  }catch(e){toast('Erro ao atualizar','error');}
+  }catch(e){toast('Erro ao atualizar','error');console.error('update error',e);}
 }
 async function deleteFromEdit(){
   if(editingIndex===null)return;
