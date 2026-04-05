@@ -1461,11 +1461,11 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='9.0';
+const APP_VERSION='9.2';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
-const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbxZmzOQhV3EKREbD97mHo353FXxKj75Vl98I78Xn6-zCnOAQGFnwxW2lxm3qco6MtI7/exec';
+const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbxx5rQi-oZUo3rlWN5TZGbzFVnko9NymBGK1PIO7Y-m3r1ufLqjJq2Xv1QLRPrXgHpQ/exec';
 
 const TIPO_ICONS={
   'Alimentação':    '🍽',
@@ -2582,8 +2582,8 @@ async function saveTransaction(){
     updInv(transfOrigem,-val);
     updInv(transfDestino,+val);
     try{
-      await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'append',row:[date,desc,val.toFixed(2).replace('.',','),'Transferência',transfOrigem.label,'saída','1'],sheet:SHEET_NAME})});
-      await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'append',row:[date,desc,val.toFixed(2).replace('.',','),'Transferência',transfDestino.label,'entrada','1'],sheet:SHEET_NAME})});
+      await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'append',row:[date,desc,val.toFixed(2).replace('.',','),'Transferência','Transferências',transfOrigem.label,'saída','1',tId,''],sheet:SHEET_NAME})});
+      await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'append',row:[date,desc,val.toFixed(2).replace('.',','),'Transferência','Transferências',transfDestino.label,'entrada','1',tId,''],sheet:SHEET_NAME})});
       toast('Transferência realizada!','success');
     }catch(e){toast('Salvo localmente','');}
     amountCents=0;opPending=null;prevCents=0;displayMode='reais';secondInt=0;updVal();
@@ -2667,7 +2667,7 @@ async function saveTransaction(){
     for(const r of rows){
       allData.push({_row:allData.length+2,...r});
       await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({action:'append',row:[r.date,r.desc,r.value.toFixed(2).replace('.',','),r.cat,r.account,r.type,r.consolidated?'1':'0'],sheet:SHEET_NAME})});
+        body:JSON.stringify({action:'append',row:[r.date,r.desc,r.value.toFixed(2).replace('.',','),r.cat,r.tipo||r.cat,r.account,r.type,r.consolidated?'1':'0',r._transferId||'',r._isAdjust?'1':''],sheet:SHEET_NAME})});
     }
     toast(doParcel?`${qty} parcelas salvas!`:'Salvo!','success');
   }catch(e){toast('Salvo localmente','');}
@@ -2691,7 +2691,7 @@ async function loadData(){
   try{
     const url=`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}!A2:F?key=${API_KEY}`;
     const res=await fetch(url);const json=await res.json();
-    allData=(json.values||[]).map((r,i)=>({_row:i+2,date:r[0]||'',desc:r[1]||'',value:parseFloat((r[2]||'0').replace(',','.')),cat:r[3]||'Outros',tipo:r[3]||'',account:String(r[4]||''),type:r[5]||'saída',consolidated:r[6]!=='0'})).filter(r=>r.date);
+    allData=(json.values||[]).map((r,i)=>({_row:i+2,date:r[0]||'',desc:r[1]||'',value:parseFloat((r[2]||'0').replace(',','.')),cat:r[3]||'Outros',tipo:r[4]||r[3]||'',account:String(r[5]||''),type:r[6]||'saída',consolidated:r[7]!=='0',_transferId:r[8]||'',_transferRoute:r[8]?r[1]:'',_isAdjust:r[9]==='1'})).filter(r=>r.date);
     if(!allData.length)seedDemo();
     renderDash();renderHistory();toast('Dados atualizados','success');
   }catch(e){seedDemo();renderDash();renderHistory();}
@@ -3109,7 +3109,7 @@ async function updateTransaction(){
   const newType=editTransType;
   const newConsol=editConsol;
   const displayDesc=newDesc||(newCat||newTipo||'Transação');
-  const newRow=[newDate,displayDesc,newValue.toFixed(2).replace('.',','),newCat||newTipo,newAccount,newType,newConsol?'1':'0'];
+  const newRow=[newDate,displayDesc,newValue.toFixed(2).replace('.',','),newCat||newTipo,newTipo||newCat,newAccount,newType,newConsol?'1':'0','',''];
   try{
     await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',row:t._row,data:newRow,sheet:SHEET_NAME})});
     allData[editingIndex]={...t,date:newDate,desc:displayDesc,value:newValue,cat:newCat||newTipo,tipo:newTipo,type:newType,account:newAccount,consolidated:newConsol};
@@ -3277,7 +3277,7 @@ function confirmCcAjuste(){
     const desc='Ajuste de saldo — '+inst.name;
     allData.push({_row:allData.length+2,date,desc,value:Math.abs(diff),cat:'Ajuste',tipo:'Ajuste de Saldo',account:accName,type:tipo,consolidated:true,_isAdjust:true});
     fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'append',row:[date,desc,Math.abs(diff).toFixed(2).replace('.',','),'Ajuste',accName,tipo,'1'],sheet:SHEET_NAME})
+      body:JSON.stringify({action:'append',row:[date,desc,Math.abs(diff).toFixed(2).replace('.',','),'Ajuste','Ajuste de Saldo',accName,tipo,'1','','1'],sheet:SHEET_NAME})
     }).catch(()=>{});
     // 3. Popup de confirmação
     const sinal=diff>0?'+':'-';
