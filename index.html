@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(125deg,#006D5B,#722F37);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F0FFF8 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(240,255,248,.65) !important;}
-  #splash .splash-version{color:rgba(240,255,248,.35) !important;}
-  #splash .splash-btn{background:#F0FFF8 !important;color:#006D5B !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F0FFF8 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(155deg,#1C1C1C,#CC0000);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFFFFF !important;text-shadow:0 2px 28px rgba(0,0,0,.6);}
+  #splash .splash-sub{color:rgba(255,255,255,.65) !important;}
+  #splash .splash-version{color:rgba(255,255,255,.35) !important;}
+  #splash .splash-btn{background:#FFFFFF !important;color:#CC0000 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFFFFF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1701,7 +1701,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.16';
+const APP_VERSION='12.17';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2961,7 +2961,7 @@ async function saveTransaction(syncAfter=false){
     for(const r of rows){
       allData.push({_row:allData.length+2,...r});
       await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({action:'append',row:[r.date,r.desc,r.value.toFixed(2).replace('.',','),r.cat,r.tipo||r.cat,r.account,r.type,r.consolidated?'1':'0',r._transferId||'',r._isAdjust?'1':''],sheet:SHEET_NAME})});
+        body:JSON.stringify({action:'append',row:[r.date,r.desc,r.value.toFixed(2).replace('.',','),r.cat,r.tipo||r.cat,r.account,r.type,r.consolidated?'1':'0',r._transferId||'',r._isAdjust?'1':'',''],sheet:SHEET_NAME})});
     }
     toast(doParcel?`${qty} parcelas salvas!`:'Salvo!','success');
   }catch(e){toast('Salvo localmente','');}
@@ -3030,6 +3030,7 @@ async function loadData(){
     if(!dataRows.length){seedDemo();renderDash();renderHistory();return;}
     allData=dataRows.map(({row:r,sheetsRow})=>({
       _row:sheetsRow,
+      _id:String(r[10]||'').trim(), // ID_TRANS col K
       date:normalizeDate(r[0]),
       desc:String(r[1]||'').trim(),
       value:parseBRNumber(r[2]),
@@ -3375,10 +3376,13 @@ function toggleTxConsolidado(idx,event){
   const t=allData[idx];if(!t)return;
   t.consolidated=!t.consolidated;
   // save consolidado to Sheets
-  if(t._row){
-    const row=[t.date,t.desc,(t.value||0).toFixed(2).replace('.',','),t.cat,t.tipo||t.cat,t.account,t.type,t.consolidated?'1':'0',t._transferId||'',t._isAdjust?'1':''];
+  if(t._id||t._row){
+    const row=[t.date,t.desc,(t.value||0).toFixed(2).replace('.',','),t.cat,t.tipo||t.cat,t.account,t.type,t.consolidated?'1':'0',t._transferId||'',t._isAdjust?'1':'',''];
+    const payload=t._id
+      ? {action:'update',id:t._id,data:row,sheet:SHEET_NAME}
+      : {action:'update',row:t._row,data:row,sheet:SHEET_NAME};
     fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'update',row:t._row,data:row,sheet:SHEET_NAME})
+      body:JSON.stringify(payload)
     }).catch(()=>{});
   }
   renderDash();renderHistory();
@@ -3558,19 +3562,20 @@ async function deleteTx(idx){
   // Next loadData() will get correct row numbers from Sheets
   renderDash();renderHistory();
   toast('Excluído','success');
-  // send delete to Sheets then reload to get fresh row numbers
-  if(deletedRow){
-    try{
-      await fetch(APPS_SCRIPT_URL,{
-        method:'POST',mode:'no-cors',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({action:'delete',row:deletedRow,sheet:SHEET_NAME})
-      });
-      // reload after short delay to get fresh _row numbers from Sheets
-      setTimeout(()=>loadData(),1500);
-    }catch(e){
-      console.warn('Delete failed on sheets',e);
-    }
+  // send delete to Sheets by ID_TRANS (reliable) or row fallback
+  try{
+    const payload=t._id
+      ? {action:'delete',id:t._id,sheet:SHEET_NAME}
+      : {action:'delete',row:deletedRow,sheet:SHEET_NAME};
+    await fetch(APPS_SCRIPT_URL,{
+      method:'POST',mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    // reload to get fresh data
+    setTimeout(()=>loadData(),1500);
+  }catch(e){
+    console.warn('Delete failed on sheets',e);
   }
 }
 function fmt(v){return 'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
