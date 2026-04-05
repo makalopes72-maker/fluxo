@@ -1473,7 +1473,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='10.0';
+const APP_VERSION='10.1';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4057,12 +4057,13 @@ function renderDashFarois(){
 // ══════════════════════════════════════════════
 
 const SHEETS = {
-  transacoes: 'Transações',
-  orcamento:  'Orçamento',
+  transacoes:    'Transações',
+  orcamento:     'Orçamento',
   investimentos: 'Investimentos',
-  contas:     'Contas',
-  pastas:     'Pastas',
-  keywords:   'PalavrasChave',
+  invlog:        'InvestimentosLog',
+  contas:        'Contas',
+  pastas:        'Pastas',
+  keywords:      'PalavrasChave',
 };
 
 // ── UI feedback ──
@@ -4163,15 +4164,44 @@ async function syncAll(manual=false){
       }
     }catch(e){console.warn('orc read fail',e);}
 
-    // 3. Investimentos
+    // 3. Investimentos — read table format
     try{
       const rows=await sheetsRead(SHEETS.investimentos);
-      if(rows&&rows.length>0){
-        const obj=deserializeKV(rows);
-        if(obj.instituicoes){
-          instituicoes=obj.instituicoes;
-          localStorage.setItem('fluxo_inv2',JSON.stringify(instituicoes));
+      const logRows=await sheetsRead(SHEETS.invlog);
+      if(rows&&rows.length>1){
+        // rebuild instituicoes from table
+        const instMap={};
+        rows.slice(1).forEach(r=>{
+          if(!r[0])return;
+          const instName=String(r[0]);
+          if(!instMap[instName])instMap[instName]={id:Date.now()+Math.random(),name:instName,icon:'🏦',ativos:[]};
+          const ativoNome=String(r[1]||'');
+          if(!ativoNome)return;
+          instMap[instName].ativos.push({
+            id:Date.now()+Math.random(),
+            nome:ativoNome,
+            classe:String(r[2]||''),tipo:String(r[3]||''),
+            aplicado:parseBRNumber(r[4]),
+            indexador:String(r[6]||''),taxa:String(r[7]||''),
+            dataAplic:String(r[8]||''),vencimento:String(r[9]||''),
+            liquidez:String(r[10]||''),garantia:String(r[11]||''),
+            ir:String(r[12]||''),obs:String(r[13]||''),
+            encerrado:String(r[14]||'')==='Sim',
+            log:[],
+          });
+        });
+        // attach log entries
+        if(logRows&&logRows.length>1){
+          logRows.slice(1).forEach(l=>{
+            const instName=String(l[0]||'');
+            const ativoNome=String(l[1]||'');
+            if(!instMap[instName])return;
+            const ativo=instMap[instName].ativos.find(a=>a.nome===ativoNome);
+            if(ativo)ativo.log.push({date:String(l[2]||''),value:parseBRNumber(l[3]),note:String(l[4]||'')});
+          });
         }
+        instituicoes=Object.values(instMap);
+        localStorage.setItem('fluxo_inv2',JSON.stringify(instituicoes));
       }
     }catch(e){console.warn('inv read fail',e);}
 
@@ -4228,7 +4258,30 @@ async function pushToSheets(dataset){
     if(dataset==='orc'){
       await sheetsWrite(SHEETS.orcamento, serializeKV(orcData));
     } else if(dataset==='inv'){
-      await sheetsWrite(SHEETS.investimentos, serializeKV({instituicoes}));
+      // write ativos as table rows
+      const header=['Instituição','Nome','Classe','Tipo','Aplicado','Valor Atual','Indexador','Taxa','Data Aplic','Vencimento','Liquidez','Garantia','IR','Obs','Encerrado'];
+      const ativoRows=[header];
+      const logHeader=['Instituição','Ativo','Data','Valor','Nota'];
+      const logRows=[logHeader];
+      instituicoes.forEach(inst=>{
+        (inst.ativos||[]).forEach(a=>{
+          const cur=a.log&&a.log.length?a.log[a.log.length-1].value:a.aplicado;
+          ativoRows.push([
+            inst.name, a.nome, a.classe||'', a.tipo||'',
+            a.aplicado||0, cur,
+            a.indexador||'', a.taxa||'',
+            a.dataAplic||'', a.vencimento||'',
+            a.liquidez||'', a.garantia||'',
+            a.ir||'', a.obs||'',
+            a.encerrado?'Sim':'Não'
+          ]);
+          (a.log||[]).forEach(l=>{
+            logRows.push([inst.name, a.nome, l.date, l.value, l.note||'']);
+          });
+        });
+      });
+      await sheetsWrite(SHEETS.investimentos, ativoRows);
+      await sheetsWrite(SHEETS.invlog, logRows);
     } else if(dataset==='accounts'){
       await sheetsWrite(SHEETS.contas, serializeKV({accounts}));
     } else if(dataset==='pastas'){
