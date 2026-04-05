@@ -363,6 +363,57 @@
   .orc-edit-months{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:4px;}
   .orc-month-chip{padding:5px;border-radius:8px;border:1px solid var(--border);background:transparent;font-family:var(--font-body);font-size:.65rem;text-align:center;cursor:pointer;color:var(--muted);}
   .orc-month-chip.has-val{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.4);color:var(--font);font-weight:600;}
+  /* ═══ LANDSCAPE / DESKTOP LAYOUT ═══ */
+  @media (min-width:600px){
+    /* App becomes flex-row */
+    #app{flex-direction:row !important;}
+    /* Hide mobile header */
+    #app > header{display:none !important;}
+    /* Hide mobile menu overlay */
+    #menu-overlay{display:none !important;}
+    /* Side menu: always visible, not fixed */
+    #side-menu{
+      position:relative !important;
+      transform:none !important;
+      width:220px;
+      min-width:220px;
+      flex-shrink:0;
+      z-index:10;
+      border-right:1px solid var(--border);
+      transition:width .25s cubic-bezier(.4,0,.2,1),min-width .25s;
+    }
+    #side-menu.collapsed{width:60px;min-width:60px;}
+    #side-menu.collapsed .menu-item-label{display:none;}
+    #side-menu.collapsed .menu-item-icon{width:100%;text-align:center;font-size:1.2rem;}
+    #side-menu.collapsed .menu-item{justify-content:center;padding:14px 0;}
+    #side-menu.collapsed .side-menu-header{padding:10px 0;justify-content:center;}
+    #side-menu.collapsed .side-menu-logo{display:none;}
+    #side-menu.collapsed .side-menu-user{display:none;}
+    /* Main content area */
+    #app-content{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+    /* Screens inside content */
+    .screen{padding:20px 28px 40px;}
+    /* Desktop header inside content */
+    #desktop-header{display:flex !important;}
+    /* Collapse button */
+    .menu-collapse-btn{display:flex !important;}
+  }
+  @media (max-width:599px){
+    #app-content{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+    #desktop-header{display:none !important;}
+    .menu-collapse-btn{display:none !important;}
+  }
+  /* Side menu header area (desktop) */
+  .side-menu-header{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0;}
+  .side-menu-logo{font-family:var(--font-display);font-size:1.1rem;color:var(--font);}
+  .side-menu-user{font-size:.72rem;font-weight:600;color:var(--btn);background:rgba(34,197,94,.1);padding:3px 8px;border-radius:100px;margin-left:auto;}
+  .menu-collapse-btn{display:none;width:28px;height:28px;border:1px solid var(--border);background:transparent;border-radius:8px;cursor:pointer;align-items:center;justify-content:center;font-size:.9rem;color:var(--muted);flex-shrink:0;margin-left:auto;}
+  /* Desktop top bar inside content */
+  #desktop-header{display:none;padding:10px 28px;border-bottom:1px solid var(--border);background:var(--bg);align-items:center;justify-content:space-between;flex-shrink:0;}
+  .desktop-title{font-family:var(--font-display);font-size:1.1rem;color:var(--font);}
+  .desktop-actions{display:flex;align-items:center;gap:8px;}
+  .desktop-sync-btn{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;font-family:var(--font-body);font-size:.78rem;color:var(--muted);cursor:pointer;}
+  .desktop-sync-btn:hover{background:var(--kp);}
   /* SYNC */
   .sync-bar{position:fixed;top:0;left:0;right:0;z-index:999;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.78rem;font-weight:700;text-align:center;padding:6px;transform:translateY(-100%);transition:transform .3s;}
   .sync-bar.show{transform:translateY(0);}
@@ -370,6 +421,29 @@
   .sync-icon{display:inline-block;margin-right:6px;}
   .sync-icon.spin{animation:spin .8s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg);}}
+  /* LANDSCAPE EXTRATO TABLE */
+  @media (min-width:600px){
+    #hist-list .day-group{display:contents;}
+    #hist-list .day-header{display:none;}
+    #hist-list-table{display:table !important;}
+    #hist-list{display:none !important;}
+    .ext-table{width:100%;border-collapse:collapse;font-size:.82rem;}
+    .ext-table th{padding:8px 12px;text-align:left;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1.5px solid var(--border);background:var(--kp);position:sticky;top:0;z-index:2;}
+    .ext-table th.right{text-align:right;}
+    .ext-table td{padding:8px 12px;border-bottom:0.5px solid var(--border);vertical-align:middle;}
+    .ext-table td.right{text-align:right;font-weight:600;}
+    .ext-table td.val-in{color:var(--accent2);text-align:right;font-weight:700;}
+    .ext-table td.val-out{color:var(--red);text-align:right;font-weight:700;}
+    .ext-table tr:hover td{background:var(--kp);}
+    .ext-table tr.not-consolidated td{opacity:.6;}
+    .ext-table .ext-check{cursor:pointer;font-size:.9rem;}
+    .ext-table .ext-actions{display:flex;gap:4px;}
+    .ext-table .ext-act-btn{padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:transparent;font-size:.7rem;cursor:pointer;color:var(--muted);}
+    .ext-table .ext-act-btn:hover{background:var(--kp);}
+  }
+  @media (max-width:599px){
+    #hist-list-table{display:none !important;}
+  }
   /* EXTRATO */
   .extrato-header{flex-shrink:0;background:var(--bg);padding:10px 16px 0;border-bottom:1px solid var(--border);}
   .extrato-totals{display:flex;gap:0;margin-bottom:10px;background:var(--card);border-radius:12px;overflow:hidden;}
@@ -702,6 +776,11 @@
 <div id="sync-bar" class="sync-bar"><span class="sync-icon" id="sync-icon">↻</span><span id="sync-msg">Sincronizando…</span></div>
 <div id="menu-overlay" onclick="closeMenu()"></div>
 <div id="side-menu">
+  <div class="side-menu-header">
+    <div class="side-menu-logo">fluxo</div>
+    <div class="side-menu-user" id="side-menu-user">ALE</div>
+    <button class="menu-collapse-btn" onclick="toggleMenuCollapse()" id="collapse-btn">‹</button>
+  </div>
   <div class="menu-header">
     <div class="menu-logo">fluxo</div>
     <div class="menu-user" id="menu-user">—</div>
@@ -731,6 +810,15 @@
     </div>
     <div class="user-tag" id="user-tag">ALE</div>
   </header>
+  <div id="app-content">
+  <!-- desktop top bar -->
+  <div id="desktop-header">
+    <div class="desktop-title" id="desktop-screen-title">Início</div>
+    <div class="desktop-actions">
+      <button class="desktop-sync-btn" onclick="openSyncYearModal()">↻ Sincronizar</button>
+      <div class="user-tag" id="user-tag-desktop">ALE</div>
+    </div>
+  </div>
 
   <!-- DASHBOARD -->
   <div class="screen active" id="screen-dash">
@@ -1487,7 +1575,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='10.7';
+const APP_VERSION='11.0';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2371,6 +2459,7 @@ function closeMenu(){document.getElementById('menu-overlay').classList.remove('o
 // ── LOGIN ──
 function login(u){
   currentUser=u;
+  updateUserTags();
   loadOrc();
   document.getElementById('splash').style.display='none';
   document.getElementById('app').classList.add('visible');
@@ -3044,6 +3133,31 @@ function renderHistory(){
   });
   hl.innerHTML=html;
   attachSwipe('hist-list');
+  // populate desktop table
+  const tb=document.getElementById('hist-table-body');
+  if(tb){
+    tb.innerHTML=sorted.map((t,i)=>{
+      const idx=txIdx(t);
+      const consol=t.consolidated!==false;
+      const cls=consol?'':'not-consolidated';
+      const valCls=t.type==='entrada'?'val-in':'val-out';
+      const sign=t.type==='entrada'?'+':'-';
+      return `<tr class="${cls}" onclick="openEdit(${idx})" style="cursor:pointer;">
+        <td class="ext-check" onclick="event.stopPropagation();toggleTxConsolidado(${idx},event)">
+          <span style="color:${consol?'var(--accent2)':'var(--border)'}">✓</span>
+        </td>
+        <td style="white-space:nowrap;">${t.date}</td>
+        <td>${t.desc||''}</td>
+        <td style="color:var(--muted);font-size:.78rem;">${t.cat||''}</td>
+        <td style="color:var(--muted);font-size:.78rem;">${t.account||''}</td>
+        <td class="${valCls}">${sign}${fmt(t.value)}</td>
+        <td><div class="ext-actions">
+          <button class="ext-act-btn" onclick="event.stopPropagation();openEdit(${idx})">✏️</button>
+          <button class="ext-act-btn" onclick="event.stopPropagation();deleteTx(${idx})" style="color:var(--red);">🗑</button>
+        </div></td>
+      </tr>`;
+    }).join('');
+  }
 }
 function txIdx(t){
   // first try by _row (most reliable)
@@ -4395,6 +4509,53 @@ async function pushToSheets(dataset){
     }
   }catch(e){console.warn('push failed silently',dataset,e);}
 }
+
+// ── LANDSCAPE / DESKTOP ──
+let menuCollapsed=false;
+
+function toggleMenuCollapse(){
+  menuCollapsed=!menuCollapsed;
+  const m=document.getElementById('side-menu');
+  const btn=document.getElementById('collapse-btn');
+  if(m)m.classList.toggle('collapsed',menuCollapsed);
+  if(btn)btn.textContent=menuCollapsed?'›':'‹';
+}
+
+function isLandscape(){return window.innerWidth>=600;}
+
+function updateDesktopHeader(screenName){
+  const titles={
+    dash:'Início', add:'Lançar transação', hist:'Extrato',
+    inv:'Investimentos', cart:'Investimentos', ativo:'Investimentos',
+    orc:'Orçamento', cfg:'Configurações'
+  };
+  const el=document.getElementById('desktop-screen-title');
+  if(el)el.textContent=titles[screenName]||'Fluxo';
+}
+
+function updateUserTags(){
+  const user=currentUser||'';
+  ['user-tag','user-tag-desktop','side-menu-user'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.textContent=user;
+  });
+}
+
+// patch goScreen to update desktop header
+const _goScreenOrig=goScreen;
+function goScreen(name){
+  _goScreenOrig(name);
+  updateDesktopHeader(name);
+}
+
+// on resize, close mobile menu if switching to desktop
+window.addEventListener('resize',()=>{
+  if(isLandscape()){
+    const overlay=document.getElementById('menu-overlay');
+    if(overlay)overlay.style.display='none';
+    const menu=document.getElementById('side-menu');
+    if(menu)menu.classList.remove('open');
+  }
+});
 
 loadPrefs();
 const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+APP_VERSION;
