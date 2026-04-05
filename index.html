@@ -1457,7 +1457,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='8.6';
+const APP_VERSION='8.7';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3803,7 +3803,7 @@ function renderOrc(){
       rows+=`<tr><td class="col-fix indent" onclick="openOrcEdit('${tSafe}','${cSafe}')" style="cursor:pointer;">${cat}${badge}</td>`+
         MONTHS.map((_,mi)=>{
           const v=getOrcValForMonth(tipo,cat,year,mi);
-          return `<td class="${i===curM?'cur-m':''}${v>0?' has-val':' empty'}" onclick="openOrcEdit('${tSafe}','${cSafe}')" style="cursor:pointer;">${v>0?fmtOrc(v):'·'}</td>`;
+          return `<td class="${mi===curM?'cur-m':''}${v>0?' has-val':' empty'}" onclick="openOrcEdit('${tSafe}','${cSafe}')" style="cursor:pointer;">${v>0?fmtOrc(v):'·'}</td>`;
         }).join('')+
         '</tr>';
     });
