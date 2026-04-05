@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(135deg,#D35400,#1A5276);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FDEBD0 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(253,235,208,.7) !important;}
-  #splash .splash-version{color:rgba(253,235,208,.35) !important;}
-  #splash .splash-btn{background:#FDEBD0 !important;color:#D35400 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.13) !important;color:#FDEBD0 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(160deg,#8E0E6B,#1B6B3A);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFE6F7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(255,230,247,.65) !important;}
+  #splash .splash-version{color:rgba(255,230,247,.35) !important;}
+  #splash .splash-btn{background:#FFE6F7 !important;color:#8E0E6B !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.13) !important;color:#FFE6F7 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -315,8 +315,9 @@
     #screen-ativo .detail-body{flex:1;}
   }
   @media (max-width:599px){
-    .inv-sidebar{display:none;}
-    .inv-main{flex:1;}
+    /* portrait: sidebar IS the full screen, hide the main panel */
+    .inv-sidebar{display:flex;flex-direction:column;flex:1;width:100%;}
+    .inv-main{display:none;}
   }
   /* CONTA CORRENTE */
   .cc-card{background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:10px;border:1px solid var(--border);}
@@ -577,6 +578,7 @@
 
   /* INVESTIMENTOS */
   .inv-screen{display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0;}
+  @media (max-width:599px){.inv-screen{flex-direction:column !important;}}
   .inv-screen.active{display:flex;}
   .inv-header{flex-shrink:0;background:var(--bg);padding:10px 16px;border-bottom:1px solid var(--border);}
   .inv-total-bar{background:var(--font);border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
@@ -1706,7 +1708,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.12';
+const APP_VERSION='12.13';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
