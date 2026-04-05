@@ -25,7 +25,7 @@
   .user-btn{padding:14px 28px;border-radius:100px;border:1.5px solid var(--border);background:transparent;color:var(--font);font-family:var(--font-body);font-size:1rem;font-weight:500;cursor:pointer;}
   .user-btn:active{border-color:var(--btn);color:var(--btn);}
 
-  #app{display:none;height:100%;flex-direction:column;overflow:hidden;}
+  #app{display:none;height:100%;flex-direction:column;overflow:hidden;position:relative;}
   #app.visible{display:flex;}
 
   header{padding:6px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;border-bottom:1px solid var(--border);background:var(--bg);}
@@ -90,9 +90,10 @@
   .menu-divider{height:1px;background:var(--border);margin:4px 16px;}
 
   .screen{display:none;flex:1;overflow-y:auto;padding:20px 24px 40px;min-height:0;}
-  .screen.active{display:block;animation:slideUp .3s ease;}
+  .screen.active{display:flex;flex-direction:column;animation:slideUp .3s ease;}
   #screen-add{display:none;flex-direction:column;flex:1;overflow:hidden;padding:0;min-height:0;}
   #screen-add.active{display:flex;}
+  #screen-dash.active{display:flex;flex-direction:column;}
   @keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
@@ -333,7 +334,7 @@
   .acct-inst-sel.linked{background:rgba(59,130,246,.1);color:#185fa5;border-color:rgba(59,130,246,.3);}
 
   /* DASHBOARD 7.0 */
-  .dash-scroll{flex:1;overflow-y:auto;padding:0 0 40px;}
+  .dash-scroll{flex:1;overflow-y:auto;padding:0 0 40px;min-height:0;}
   .dash-scroll::-webkit-scrollbar{display:none;}
   .dash-quick-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:12px 16px 4px;}
   .dash-qbtn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 6px;border-radius:14px;border:none;background:var(--card);cursor:pointer;font-family:var(--font-body);box-shadow:0 1px 3px rgba(0,0,0,.06);}
@@ -420,14 +421,16 @@
   .orc-month-chip.has-val{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.4);color:var(--font);font-weight:600;}
   /* ═══ LANDSCAPE / DESKTOP LAYOUT ═══ */
   @media (min-width:600px){
-    #app{flex-direction:row !important;}
+    #app{flex-direction:row !important;align-items:stretch;}
     #app > header{display:none !important;}
     #menu-overlay{display:none !important;}
     #side-menu{
       position:relative !important;
       transform:none !important;
-      width:200px;min-width:200px;flex-shrink:0;
-      z-index:10;border-right:1px solid var(--border);
+      width:200px;min-width:200px;
+      height:100%;
+      flex-shrink:0;z-index:10;
+      border-right:1px solid var(--border);
       transition:width .25s cubic-bezier(.4,0,.2,1),min-width .25s;
     }
     #side-menu.collapsed{width:52px;min-width:52px;}
@@ -437,13 +440,17 @@
     #side-menu.collapsed .menu-brand-user{display:none;}
     #side-menu.collapsed .menu-brand{justify-content:center;padding:8px 0 12px;}
     #side-menu.collapsed .side-menu-top{justify-content:center;}
-    #app-content{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+    #app-content{
+      flex:1;min-width:0;min-height:0;
+      display:flex;flex-direction:column;
+      overflow:hidden;height:100%;
+    }
     .screen{padding:16px 24px 40px;}
     #desktop-header{display:flex !important;}
     .menu-collapse-btn{display:flex !important;}
   }
   @media (max-width:599px){
-    #app-content{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+    #app-content{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;height:100%;}
     #desktop-header{display:none !important;}
     .menu-collapse-btn{display:none !important;}
   }
@@ -465,7 +472,7 @@
   @keyframes spin{to{transform:rotate(360deg);}}
   /* LANDSCAPE DASHBOARD */
   @media (min-width:600px){
-    .dash-scroll{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto;gap:0;overflow-y:auto;padding:0;}
+    .dash-scroll{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto;gap:0;overflow-y:auto;padding:0;min-height:0;}
     .dash-col-left{padding:20px 16px 20px 24px;border-right:1px solid var(--border);overflow-y:auto;}
     .dash-col-right{padding:20px 24px 20px 16px;overflow-y:auto;}
     .dash-col-left::-webkit-scrollbar,.dash-col-right::-webkit-scrollbar{display:none;}
@@ -485,10 +492,10 @@
   }
   /* LANDSCAPE EXTRATO TABLE */
   @media (min-width:600px){
-    #hist-list .day-group{display:contents;}
-    #hist-list .day-header{display:none;}
-    #hist-list-table{display:table !important;}
     #hist-list{display:none !important;}
+    #hist-list-table{display:flex !important;flex-direction:column;}
+    /* sticky header in table */
+    .ext-table thead th{position:sticky;top:0;z-index:2;background:var(--kp);}
     .ext-table{width:100%;border-collapse:collapse;font-size:.82rem;}
     .ext-table th{padding:8px 12px;text-align:left;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1.5px solid var(--border);background:var(--kp);position:sticky;top:0;z-index:2;}
     .ext-table th.right{text-align:right;}
@@ -508,6 +515,21 @@
   }
   /* EXTRATO */
   .extrato-header{flex-shrink:0;background:var(--bg);padding:10px 16px 0;border-bottom:1px solid var(--border);}
+  @media (min-width:600px){
+    #screen-hist{flex-direction:row !important;}
+    .extrato-header{
+      width:240px;flex-shrink:0;border-bottom:none;
+      border-right:1px solid var(--border);
+      overflow-y:auto;padding:14px 14px 20px;
+      display:flex;flex-direction:column;gap:12px;
+    }
+    .extrato-totals{flex-direction:column;gap:8px;background:var(--card);border-radius:12px;padding:12px;}
+    .extrato-filters{flex-direction:column;overflow-x:visible;padding-bottom:0;}
+    .ext-chip{width:100%;text-align:left;border-radius:8px;justify-content:flex-start;}
+    .extrato-search{margin:0;}
+    .ext-filter-panel{position:static;border:none;box-shadow:none;padding:0;display:block !important;opacity:1 !important;max-height:none !important;}
+    .extrato-body{border-radius:0;}
+  }
   .extrato-totals{display:flex;gap:0;margin-bottom:10px;background:var(--card);border-radius:12px;overflow:hidden;}
   .extrato-total-item{flex:1;padding:10px 14px;display:flex;flex-direction:column;gap:2px;}
   .extrato-total-item:not(:last-child){border-right:1px solid var(--border);}
@@ -1390,8 +1412,25 @@
       </div>
     </div>
 
-    <!-- LISTA AGRUPADA -->
+    <!-- LISTA AGRUPADA (mobile) / TABELA (landscape) -->
     <div class="extrato-body" id="hist-list"><div class="empty">Carregando…</div></div>
+    <div id="hist-list-table" style="display:none;flex:1;overflow:auto;min-height:0;">
+      <table class="ext-table" style="width:100%;border-collapse:collapse;">
+        <thead id="ext-table-head">
+          <tr>
+            <th style="width:32px;text-align:center;">✓</th>
+            <th>Data</th>
+            <th>Descrição</th>
+            <th>Categoria</th>
+            <th>Pasta</th>
+            <th>Conta</th>
+            <th class="right">Valor</th>
+            <th style="width:70px;"></th>
+          </tr>
+        </thead>
+        <tbody id="hist-table-body"></tbody>
+      </table>
+    </div>
   </div>
 
   <!-- SETTINGS -->
@@ -1658,7 +1697,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='11.4';
+const APP_VERSION='11.8';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3226,14 +3265,15 @@ function renderHistory(){
       const valCls=t.type==='entrada'?'val-in':'val-out';
       const sign=t.type==='entrada'?'+':'-';
       return `<tr class="${cls}" onclick="openEdit(${idx})" style="cursor:pointer;">
-        <td class="ext-check" onclick="event.stopPropagation();toggleTxConsolidado(${idx},event)">
-          <span style="color:${consol?'var(--accent2)':'var(--border)'}">✓</span>
+        <td class="ext-check" onclick="event.stopPropagation();toggleTxConsolidado(${idx},event)" style="text-align:center;">
+          <span style="color:${consol?'var(--accent2)':'var(--border)'};font-size:1rem;">✓</span>
         </td>
-        <td style="white-space:nowrap;">${t.date}</td>
-        <td>${t.desc||''}</td>
-        <td style="color:var(--muted);font-size:.78rem;">${t.cat||''}</td>
-        <td style="color:var(--muted);font-size:.78rem;">${t.account||''}</td>
-        <td class="${valCls}">${sign}${fmt(t.value)}</td>
+        <td style="white-space:nowrap;font-size:.8rem;">${t.date}</td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.desc||''}</td>
+        <td style="color:var(--muted);font-size:.78rem;white-space:nowrap;">${t.cat||''}</td>
+        <td style="color:var(--muted);font-size:.75rem;white-space:nowrap;">${t.tipo||''}</td>
+        <td style="color:var(--muted);font-size:.78rem;white-space:nowrap;">${t.account||''}</td>
+        <td class="${valCls}" style="white-space:nowrap;">${sign}${fmt(t.value)}</td>
         <td><div class="ext-actions">
           <button class="ext-act-btn" onclick="event.stopPropagation();openEdit(${idx})">✏️</button>
           <button class="ext-act-btn" onclick="event.stopPropagation();deleteTx(${idx})" style="color:var(--red);">🗑</button>
@@ -4699,5 +4739,7 @@ window.addEventListener('resize',()=>{
 loadPrefs();
 const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+APP_VERSION;
 </script>
+</div><!-- /app-content -->
+</div><!-- /app -->
 </body>
 </html>
