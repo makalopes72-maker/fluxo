@@ -1461,7 +1461,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='9.4';
+const APP_VERSION='9.5';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2878,7 +2878,7 @@ function renderCatGrid(data){
 }
 function renderRecent(){
   const recent=[...allData].sort((a,b)=>parseDate(b.date)-parseDate(a.date)).slice(0,5);
-  const rl=document.getElementById('recent-list');if(rl)rl.innerHTML=recent.length?recent.map(t=>txHTML(t,allData.indexOf(t))).join(''):'<div class="empty">Sem transações</div>';
+  const rl=document.getElementById('recent-list');if(rl)rl.innerHTML=recent.length?recent.map(t=>txHTML(t,txIdx(t))).join(''):'<div class="empty">Sem transações</div>';
   attachSwipe('recent-list');
 }
 function setExtPeriod(p,el){
@@ -2975,10 +2975,17 @@ function renderHistory(){
     const dBal=dIn-dOut;
     const dp=parseDate(dk);
     const dlbl=dp?dp.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'}).replace('.',''):dk;
-    html+=`<div class="day-group"><div class="day-header"><div class="day-header-date">${dlbl}</div><div class="day-header-total" style="color:${dBal>=0?'var(--accent2)':'var(--red)'}">${dBal>=0?'+':''}${fmt(dBal)}</div></div><div class="tx-list">${items.map(t=>txHTML(t,allData.indexOf(t))).join('')}</div></div>`;
+    html+=`<div class="day-group"><div class="day-header"><div class="day-header-date">${dlbl}</div><div class="day-header-total" style="color:${dBal>=0?'var(--accent2)':'var(--red)'}">${dBal>=0?'+':''}${fmt(dBal)}</div></div><div class="tx-list">${items.map(t=>txHTML(t,txIdx(t))).join('')}</div></div>`;
   });
   hl.innerHTML=html;
   attachSwipe('hist-list');
+}
+function txIdx(t){
+  if(t._row!==undefined){
+    const i=allData.findIndex(x=>x._row===t._row);
+    if(i>=0)return i;
+  }
+  return allData.indexOf(t);
 }
 function txHTML(t,idx){
   const icon=t._transferId?'⇄':(CAT_ICONS[t.cat]||TIPO_ICONS[t.tipo]||'📦');
