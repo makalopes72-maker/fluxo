@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(160deg,#8E0E6B,#1B6B3A);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFE6F7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(255,230,247,.65) !important;}
-  #splash .splash-version{color:rgba(255,230,247,.35) !important;}
-  #splash .splash-btn{background:#FFE6F7 !important;color:#8E0E6B !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.13) !important;color:#FFE6F7 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(145deg,#0D1B4B,#B8860B);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFF8DC !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
+  #splash .splash-sub{color:rgba(255,248,220,.65) !important;}
+  #splash .splash-version{color:rgba(255,248,220,.35) !important;}
+  #splash .splash-btn{background:#FFF8DC !important;color:#0D1B4B !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFF8DC !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1193,20 +1193,13 @@
         <div class="cart-sub" id="cart-sub">—</div>
         <div class="cart-val" id="cart-val">R$ 0</div>
       </div>
-      <div class="cc-mini" id="cc-mini-bar">
-        <div>
-          <div class="cc-mini-lbl">Conta Corrente</div>
-          <div class="cc-mini-val" id="cc-mini-val">R$ 0,00</div>
-        </div>
-        <button class="cc-mini-btn" onclick="openCcAjuste()">⚙ Ajustar</button>
-      </div>
     </div>
     <div class="cart-tabs">
       <button class="cart-tab active" id="cart-tab-ativos" onclick="setCartTab('ativos')">Ativos</button>
       <button class="cart-tab" id="cart-tab-encerrados" onclick="setCartTab('encerrados')">Encerrados</button>
     </div>
-    <div id="cc-card-wrap" style="flex-shrink:0;padding:10px 16px 0;overflow-y:visible;"></div>
     <div class="inv-body">
+      <div id="cc-card-wrap"></div>
       <div id="ativo-list"></div>
       <button class="inv-add-btn" id="cart-add-btn" onclick="openAtivoForm()">+ Novo ativo</button>
     </div>
@@ -1708,7 +1701,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.13';
+const APP_VERSION='12.14';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3863,9 +3856,12 @@ function setCartTab(tab){
   document.querySelectorAll('.cart-tab').forEach(b=>b.classList.remove('active'));
   const btn=document.getElementById('cart-tab-'+tab);
   if(btn)btn.classList.add('active');
-  // show/hide add button
+  // show/hide add button only on ativos tab
   const addBtn=document.getElementById('cart-add-btn');
   if(addBtn)addBtn.style.display=tab==='ativos'?'':'none';
+  // show/hide cc-card only on ativos tab
+  const ccWrap=document.getElementById('cc-card-wrap');
+  if(ccWrap)ccWrap.style.display=tab==='ativos'?'':'none';
   renderAtivos();
 }
 function renderCartInPanel(){
@@ -3884,13 +3880,6 @@ function renderCartInPanel(){
       <div class="cart-header-bottom">
         <div class="cart-sub" id="cart-sub">${inst.ativos.length} ativos</div>
         <div class="cart-val" id="cart-val">${fmtInv(getInstTotal(inst))}</div>
-      </div>
-      <div class="cc-mini" id="cc-mini-bar">
-        <div>
-          <div class="cc-mini-lbl">Conta Corrente</div>
-          <div class="cc-mini-val" id="cc-mini-val">R$ 0,00</div>
-        </div>
-        <button class="cc-mini-btn" onclick="openCcAjuste()">⚙ Ajustar</button>
       </div>
     </div>
     <div class="cart-tabs">
