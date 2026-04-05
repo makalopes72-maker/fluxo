@@ -880,7 +880,7 @@
     <button class="menu-item" id="mitem-cfg" onclick="goScreen('cfg');closeMenu()"><span class="menu-item-icon">⚙</span><span class="menu-item-label">Configurações</span></button>
     <div class="menu-divider"></div>
     <button class="menu-item" onclick="openSyncYearModal();closeMenu()"><span class="menu-item-icon">↻</span><span class="menu-item-label">Sincronizar</span></button>
-    <button class="menu-item" onclick="pushToSheets('inv');toast('Investimentos enviados!','success');closeMenu()"><span class="menu-item-icon">💾</span><span class="menu-item-label">Regravar investimentos</span></button>
+    <button class="menu-item" onclick="loadInvFromSheets().then(()=>toast('Investimentos carregados!','success')).catch(e=>toast('Erro: '+e,'error'));closeMenu()"><span class="menu-item-icon">📈</span><span class="menu-item-label">Carregar investimentos</span></button>
   </div>
   <!-- footer — logo + user + logout sempre visível no fundo -->
   <div class="menu-footer">
@@ -1706,7 +1706,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.0';
+const APP_VERSION='12.10';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4709,55 +4709,8 @@ async function syncAll(manual=false){
       }
     }catch(e){console.warn('orc read fail',e);}
 
-    // 3. Investimentos — read table format
-    try{
-      const rows=await sheetsRead(SHEETS.investimentos);
-      const logRows=await sheetsRead(SHEETS.invlog);
-      if(rows&&rows.length>1){
-        // rebuild instituicoes from table
-        const instMap={};
-        const syncUser=currentUser||'ALE';
-        rows.slice(1).forEach(r=>{
-          if(!r[0])return;
-          // filter by user — col 0 is Usuário
-          if(String(r[0])!==syncUser)return;
-          const instName=String(r[1]);
-          if(!instMap[instName])instMap[instName]={id:Date.now()+Math.random(),name:instName,icon:'🏦',ativos:[]};
-          const ativoNome=String(r[2]||'');
-          if(!ativoNome)return;
-          const aplicado=parseBRNumber(r[5]);
-          const valorAtual=parseBRNumber(r[6])||aplicado;
-          instMap[instName].ativos.push({
-            id:Date.now()+Math.random(),
-            nome:ativoNome,
-            classe:String(r[3]||''),tipo:String(r[4]||''),
-            aplicado:aplicado,
-            indexador:String(r[7]||''),taxa:String(r[8]||''),
-            dataAplic:normalizeDate(r[9]),vencimento:normalizeDate(r[10]),
-            liquidez:String(r[11]||''),garantia:String(r[12]||''),
-            ir:String(r[13]||''),obs:String(r[14]||''),
-            encerrado:String(r[15]||'')==='Sim',
-            log:valorAtual&&valorAtual!==aplicado?[{date:new Date().toLocaleDateString('pt-BR'),value:valorAtual,note:'Valor atual (Sheets)'}]:[],
-          });
-        });
-        // attach log entries — col 0=Usuário, 1=Inst, 2=Ativo, 3=Data, 4=Valor, 5=Nota
-        if(logRows&&logRows.length>1){
-          logRows.slice(1).forEach(l=>{
-            if(String(l[0])!==(currentUser||'ALE'))return;
-            const instName=String(l[1]||'');
-            const ativoNome=String(l[2]||'');
-            if(!instMap[instName])return;
-            const ativo=instMap[instName].ativos.find(a=>a.nome===ativoNome);
-            if(ativo)ativo.log.push({date:normalizeDate(l[3])||String(l[3]||''),value:parseBRNumber(l[4]),note:String(l[5]||'')});
-          });
-        }
-        instituicoes=Object.values(instMap);
-        console.log('[INV] Loaded',instituicoes.length,'institutions from Sheets');
-        const invKey='fluxo_inv2_'+(currentUser||'ALE');
-        localStorage.setItem(invKey,JSON.stringify(instituicoes));
-        localStorage.setItem('fluxo_inv2',JSON.stringify(instituicoes));
-      }
-    }catch(e){console.warn('inv read fail',e);}
+    // 3. Investimentos
+    try{await loadInvFromSheets();}catch(e){console.warn('inv read fail',e);}
 
     // 4. Contas
     try{
