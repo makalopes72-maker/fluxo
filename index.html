@@ -1461,7 +1461,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='9.3';
+const APP_VERSION='9.4';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2759,7 +2759,18 @@ function seedDemo(){
 function parseDate(s){if(!s)return null;const p=s.split('/');return p.length===3?new Date(p[2],p[1]-1,p[0]):new Date(s);}
 function getFiltered(period,cat){
   const now=new Date();const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-  return allData.filter(tx=>{const d=parseDate(tx.date);if(!d)return false;let ok=true;if(period==='mes')ok=d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();else if(period==='3m'){const m=new Date(now);m.setMonth(m.getMonth()-3);ok=d>=m;}else if(period==='ano')ok=d.getFullYear()===now.getFullYear();else if(period==='futuras')ok=d>today;return ok&&((!cat||cat==='Todas')||tx.cat===cat);});
+  const user=currentUser||'ALE';
+  const userAccts=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).map(a=>a.name);
+  return allData.filter(tx=>{
+    const d=parseDate(tx.date);if(!d)return false;
+    if(userAccts.length&&!userAccts.includes(tx.account))return false;
+    let ok=true;
+    if(period==='mes')ok=d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+    else if(period==='3m'){const m=new Date(now);m.setMonth(m.getMonth()-3);ok=d>=m;}
+    else if(period==='ano')ok=d.getFullYear()===now.getFullYear();
+    else if(period==='futuras')ok=d>today;
+    return ok&&((!cat||cat==='Todas')||tx.cat===cat);
+  });
 }
 let dashPeriodDays=30;
 let dashCustomIni=null,dashCustomFim=null;
@@ -2924,9 +2935,15 @@ function toggleExtPasta(p){
 function getExtFiltered(){
   const now=new Date();const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   const search=(document.getElementById('ext-search')?.value||'').toLowerCase().trim();
+  // filter by current user's accounts
+  const user=currentUser||'ALE';
+  const userAccts=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).map(a=>a.name);
   return allData.filter(t=>{
     const d=parseDate(t.date);if(!d)return false;
     let ok=true;
+    // user account filter — only show transactions belonging to this user
+    if(userAccts.length&&!userAccts.includes(t.account))ok=false;
+    if(!ok)return false;
     if(extPeriod==='mes')ok=d.getMonth()===extMonth&&d.getFullYear()===extYear;
     else if(extPeriod==='30d'){const m=new Date(today);m.setDate(m.getDate()-30);ok=d>=m;}
     else if(extPeriod==='ano')ok=d.getFullYear()===now.getFullYear();
