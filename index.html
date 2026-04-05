@@ -1363,13 +1363,19 @@
 <!-- SYNC YEAR MODAL -->
 <div id="sync-year-modal" style="position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);padding:24px;">
   <div style="background:var(--card);border-radius:20px;padding:24px;width:100%;max-width:320px;">
-    <div style="font-family:var(--font-display);font-size:1.1rem;color:var(--font);margin-bottom:6px;">Sincronizar transações</div>
-    <div style="font-size:.82rem;color:var(--muted);margin-bottom:16px;">Selecione o ano a carregar:</div>
-    <div id="sync-year-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
-    <button onclick="document.getElementById('sync-year-modal').style.display='none';"
-      style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.9rem;cursor:pointer;">
-      Cancelar
-    </button>
+    <div style="font-family:var(--font-display);font-size:1.1rem;color:var(--font);margin-bottom:4px;">Sincronizar transações</div>
+    <div style="font-size:.78rem;color:var(--muted);margin-bottom:14px;">Selecione um ou mais anos. Investimentos e configurações são sempre sincronizados completos.</div>
+    <div id="sync-year-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="document.getElementById('sync-year-modal').style.display='none';"
+        style="flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.88rem;cursor:pointer;">
+        Cancelar
+      </button>
+      <button onclick="document.getElementById('sync-year-modal').style.display='none';syncAll(true);"
+        style="flex:2;padding:12px;border-radius:12px;border:none;background:var(--font);color:var(--bg);font-family:var(--font-body);font-size:.88rem;font-weight:700;cursor:pointer;">
+        ↻ Sincronizar
+      </button>
+    </div>
   </div>
 </div>
 <div id="edit-modal">
@@ -1473,11 +1479,11 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='10.1';
+const APP_VERSION='10.2';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
-let syncYear=new Date().getFullYear(); // year being synced
+let syncYears=[new Date().getFullYear()]; // years being synced (multi)
 const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbw6Ywheqprj4QISrJq_cj1F2tCNZ90xjDLa2HMNP9jyfICWQ6FrK7ezXLWB3K2qd29H/exec';
 
 const TIPO_ICONS={
@@ -2742,7 +2748,7 @@ async function loadData(){
       if(!s.match(/\d{2}\/\d{2}\/\d{4}|\d{4}-\d{2}/))return false;
       // filter by syncYear
       const d=new Date(normalizeDate(s).split('/').reverse().join('-'));
-      return isNaN(d)||d.getFullYear()===syncYear||syncYear===0;
+      return isNaN(d)||syncYears.length===0||syncYears.includes(d.getFullYear());
     });
     if(!dataRows.length){seedDemo();renderDash();renderHistory();return;}
     allData=dataRows.map((r,i)=>({
@@ -4130,19 +4136,30 @@ function openSyncYearModal(){
   const modal=document.getElementById('sync-year-modal');
   if(!modal)return;
   const curYear=new Date().getFullYear();
-  const years=[curYear,curYear-1,curYear-2,curYear-3];
-  const list=document.getElementById('sync-year-list');
-  if(list){
-    list.innerHTML=years.map(y=>`
-      <button onclick="syncYear=${y};document.getElementById('sync-year-modal').style.display='none';syncAll(true);"
-        style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);
-        background:${y===syncYear?'var(--font)':'transparent'};
-        color:${y===syncYear?'var(--bg)':'var(--font)'};
-        font-family:var(--font-body);font-size:.95rem;font-weight:${y===syncYear?'700':'400'};cursor:pointer;text-align:left;">
-        ${y}${y===curYear?' (ano atual)':''}${y===syncYear?' ✓':''}
-      </button>`).join('');
-  }
+  const years=[curYear,curYear-1,curYear-2,curYear-3,curYear-4];
+  buildSyncYearList(years);
   modal.style.display='flex';
+}
+function buildSyncYearList(years){
+  const list=document.getElementById('sync-year-list');
+  if(!list)return;
+  const curYear=new Date().getFullYear();
+  list.innerHTML=years.map(y=>{
+    const sel=syncYears.includes(y);
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1.5px solid ${sel?'var(--btn)':'var(--border)'};background:${sel?'rgba(34,197,94,.08)':'transparent'};cursor:pointer;" onclick="toggleSyncYear(${y})">
+      <div style="width:20px;height:20px;border-radius:6px;border:2px solid ${sel?'var(--btn)':'var(--border)'};background:${sel?'var(--btn)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        ${sel?'<span style="color:#0f0f11;font-size:.75rem;font-weight:900;">✓</span>':''}
+      </div>
+      <div style="flex:1;font-family:var(--font-body);font-size:.95rem;color:var(--font);">${y}${y===curYear?' <span style="font-size:.75rem;color:var(--muted);">(ano atual)</span>':''}</div>
+    </div>`;
+  }).join('');
+}
+function toggleSyncYear(y){
+  const idx=syncYears.indexOf(y);
+  if(idx>=0)syncYears.splice(idx,1);
+  else syncYears.push(y);
+  const curYear=new Date().getFullYear();
+  buildSyncYearList([curYear,curYear-1,curYear-2,curYear-3,curYear-4]);
 }
 
 async function syncAll(manual=false){
