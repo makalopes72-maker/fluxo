@@ -18,11 +18,11 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:#2D5016;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F0F7E6 !important;}
-  #splash .splash-sub{color:rgba(240,247,230,.65) !important;}
-  #splash .splash-version{color:rgba(240,247,230,.4) !important;}
-  #splash .splash-btn{background:#F0F7E6 !important;color:#2D5016 !important;font-weight:700;}
+  #splash{position:fixed;inset:0;background:#5B2D8E;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F0E6FF !important;}
+  #splash .splash-sub{color:rgba(240,230,255,.6) !important;}
+  #splash .splash-version{color:rgba(240,230,255,.4) !important;}
+  #splash .splash-btn{background:#F0E6FF !important;color:#5B2D8E !important;font-weight:700;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1704,7 +1704,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.7';
+const APP_VERSION='12.9';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3328,7 +3328,7 @@ function renderHistory(){
         <td class="${valCls}" style="white-space:nowrap;">${sign}${fmt(t.value)}</td>
         <td><div class="ext-actions">
           <button class="ext-act-btn" onclick="event.stopPropagation();openEdit(${idx})">✏️</button>
-          <button class="ext-act-btn" onclick="event.stopPropagation();deleteTx(${idx})" style="color:var(--red);">🗑</button>
+          <button class="ext-act-btn" onclick="event.stopPropagation();deleteTx(${idx})" style="color:var(--red);" title="Excluir">🗑</button>
         </div></td>
       </tr>`;
     }).join('');
@@ -3542,11 +3542,28 @@ async function deleteFromEdit(){
   await deleteTx(idx);
 }
 async function deleteTx(idx){
-  if(!confirm('Excluir esta transação?'))return;const t=allData[idx];
-  try{
-    await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',row:t._row,sheet:SHEET_NAME})});
-    allData.splice(idx,1);allData.forEach(r=>{if(r._row>t._row)r._row--;});renderDash();renderHistory();toast('Excluído','success');
-  }catch(e){toast('Erro ao excluir','error');}
+  if(!confirm('Excluir esta transação?'))return;
+  const t=allData[idx];
+  if(!t){toast('Transação não encontrada','error');return;}
+  // remove locally immediately
+  const deletedRow=t._row;
+  allData.splice(idx,1);
+  // update _row for all rows above the deleted one
+  allData.forEach(r=>{if(r._row&&r._row>deletedRow)r._row--;});
+  renderDash();renderHistory();
+  toast('Excluído','success');
+  // send delete to Sheets in background
+  if(deletedRow){
+    try{
+      await fetch(APPS_SCRIPT_URL,{
+        method:'POST',mode:'no-cors',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'delete',row:deletedRow,sheet:SHEET_NAME})
+      });
+    }catch(e){
+      console.warn('Delete failed on sheets, will resync',e);
+    }
+  }
 }
 function fmt(v){return 'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='show'+(type?' '+type:'');setTimeout(()=>t.className='',2500);}
@@ -4651,17 +4668,19 @@ async function syncAll(manual=false){
           if(!instMap[instName])instMap[instName]={id:Date.now()+Math.random(),name:instName,icon:'🏦',ativos:[]};
           const ativoNome=String(r[2]||'');
           if(!ativoNome)return;
+          const aplicado=parseBRNumber(r[5]);
+          const valorAtual=parseBRNumber(r[6])||aplicado;
           instMap[instName].ativos.push({
             id:Date.now()+Math.random(),
             nome:ativoNome,
             classe:String(r[3]||''),tipo:String(r[4]||''),
-            aplicado:parseBRNumber(r[5]),
+            aplicado:aplicado,
             indexador:String(r[7]||''),taxa:String(r[8]||''),
-            dataAplic:String(r[9]||''),vencimento:String(r[10]||''),
+            dataAplic:normalizeDate(r[9]),vencimento:normalizeDate(r[10]),
             liquidez:String(r[11]||''),garantia:String(r[12]||''),
             ir:String(r[13]||''),obs:String(r[14]||''),
             encerrado:String(r[15]||'')==='Sim',
-            log:[],
+            log:valorAtual&&valorAtual!==aplicado?[{date:new Date().toLocaleDateString('pt-BR'),value:valorAtual,note:'Valor atual (Sheets)'}]:[],
           });
         });
         // attach log entries — col 0=Usuário, 1=Inst, 2=Ativo, 3=Data, 4=Valor, 5=Nota
@@ -4672,14 +4691,16 @@ async function syncAll(manual=false){
             const ativoNome=String(l[2]||'');
             if(!instMap[instName])return;
             const ativo=instMap[instName].ativos.find(a=>a.nome===ativoNome);
-            if(ativo)ativo.log.push({date:String(l[3]||''),value:parseBRNumber(l[4]),note:String(l[5]||'')});
+            if(ativo)ativo.log.push({date:normalizeDate(l[3])||String(l[3]||''),value:parseBRNumber(l[4]),note:String(l[5]||'')});
           });
         }
         instituicoes=Object.values(instMap);
-        // save per-user key
         const invKey='fluxo_inv2_'+(currentUser||'ALE');
         localStorage.setItem(invKey,JSON.stringify(instituicoes));
         localStorage.setItem('fluxo_inv2',JSON.stringify(instituicoes));
+        // refresh inv screen if open
+        const invEl=document.getElementById('screen-inv');
+        if(invEl&&invEl.style.display!=='none')renderInv();
       }
     }catch(e){console.warn('inv read fail',e);}
 
