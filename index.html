@@ -1461,7 +1461,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='9.2';
+const APP_VERSION='9.3';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2689,12 +2689,31 @@ async function saveTransaction(){
 // ── DATA ──
 async function loadData(){
   try{
-    const url=`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}!A2:F?key=${API_KEY}`;
-    const res=await fetch(url);const json=await res.json();
-    allData=(json.values||[]).map((r,i)=>({_row:i+2,date:r[0]||'',desc:r[1]||'',value:parseFloat((r[2]||'0').replace(',','.')),cat:r[3]||'Outros',tipo:r[4]||r[3]||'',account:String(r[5]||''),type:r[6]||'saída',consolidated:r[7]!=='0',_transferId:r[8]||'',_transferRoute:r[8]?r[1]:'',_isAdjust:r[9]==='1'})).filter(r=>r.date);
+    // Use Apps Script GET to read all 10 columns
+    const rows=await sheetsRead(SHEET_NAME);
+    // Skip header row if present (check if first cell looks like a date)
+    const dataRows=rows.filter(r=>r[0]&&String(r[0]).match(/\d{2}\/\d{2}\/\d{4}|\d{4}-\d{2}/));
+    if(!dataRows.length){seedDemo();renderDash();renderHistory();return;}
+    allData=dataRows.map((r,i)=>({
+      _row:i+2,
+      date:String(r[0]||'').trim(),
+      desc:String(r[1]||'').trim(),
+      value:parseFloat(String(r[2]||'0').replace(/\./g,'').replace(',','.')),
+      cat:String(r[3]||'Outros').trim(),
+      tipo:String(r[4]||r[3]||'').trim(),
+      account:String(r[5]||'').trim(),
+      type:String(r[6]||'saída').trim().toLowerCase(),
+      consolidated:String(r[7]||'1')!=='0',
+      _transferId:String(r[8]||'').trim(),
+      _isAdjust:String(r[9]||'')==='1',
+    })).filter(r=>r.date);
     if(!allData.length)seedDemo();
-    renderDash();renderHistory();toast('Dados atualizados','success');
-  }catch(e){seedDemo();renderDash();renderHistory();}
+    renderDash();renderHistory();
+  }catch(e){
+    console.warn('loadData error, using cache or demo',e);
+    if(!allData.length)seedDemo();
+    renderDash();renderHistory();
+  }
 }
 function seedDemo(){
   const now=new Date();let row=2;
@@ -4014,6 +4033,7 @@ async function syncAll(manual=false){
   try {
     // 1. Transações
     await loadData();
+    toast('Transações carregadas','');
 
     // 2. Orçamento
     try{
@@ -4078,7 +4098,7 @@ async function syncAll(manual=false){
     // Refresh UI
     renderDash();
     if(currentInstIdx!==null)renderCcCard();
-    syncSuccess('Sincronizado ✓');
+    syncSuccess('Tudo sincronizado ✓');
     localStorage.setItem('fluxo_last_sync',new Date().toISOString());
   } catch(e){
     syncError('Erro ao sincronizar — usando dados locais');
