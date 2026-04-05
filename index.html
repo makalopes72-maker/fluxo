@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(155deg,#1C1C1C,#CC0000);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFFFFF !important;text-shadow:0 2px 28px rgba(0,0,0,.6);}
-  #splash .splash-sub{color:rgba(255,255,255,.65) !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0077B6,#F77F00);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFFFFF !important;text-shadow:0 2px 24px rgba(0,0,0,.35);}
+  #splash .splash-sub{color:rgba(255,255,255,.7) !important;}
   #splash .splash-version{color:rgba(255,255,255,.35) !important;}
-  #splash .splash-btn{background:#FFFFFF !important;color:#CC0000 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.4);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFFFFF !important;}
+  #splash .splash-btn{background:#FFFFFF !important;color:#0077B6 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.15) !important;color:#FFFFFF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1701,7 +1701,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.17';
+const APP_VERSION='12.18';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -1876,7 +1876,7 @@ const TIPOS={
 // ── CONTAS ──
 const DEFAULT_ACCOUNTS=[
   {name:'ALE Conta Itaú',    owner:'ALE',   active:true},
-  {name:'ALE Crédito Itaú',  owner:'ALE',   active:true},
+  {name:'ALE Credito Itaú',  owner:'ALE',   active:true},
   {name:'ALE Dinheiro',      owner:'ALE',   active:true},
   {name:'ALE Wise',          owner:'ALE',   active:true},
   {name:'AVENUE ALE',        owner:'ALE',   active:true},
@@ -2564,7 +2564,7 @@ let defaultAccounts={ALE:'',SI:''};
 function loadDefaultAccounts(){
   try{const s=localStorage.getItem('fluxo_default_accts');if(s)defaultAccounts={...defaultAccounts,...JSON.parse(s)};}catch(e){}
   // seed defaults if not yet defined
-  if(!defaultAccounts.ALE)defaultAccounts.ALE='ALE Crédito Itaú';
+  if(!defaultAccounts.ALE)defaultAccounts.ALE='ALE Credito Itaú';
   if(!defaultAccounts.SI)defaultAccounts.SI='SI Conta Itaú';
   saveDefaultAccounts();
 }
@@ -3000,6 +3000,11 @@ function normalizeDate(v){
   }
   return s;
 }
+function normalizeAcct(s){
+  // normalize for comparison — remove accents, lowercase
+  return String(s||'').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+}
 function parseBRNumber(v){
   // handles: 1018.62 (JS number), "1.018,62" (BR string), "1018,62", "1018.62"
   if(v===null||v===undefined||v==='')return 0;
@@ -3095,10 +3100,10 @@ function parseDate(s){if(!s)return null;const p=s.split('/');return p.length===3
 function getFiltered(period,cat){
   const now=new Date();const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   const user=currentUser||'ALE';
-  const userAccts=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).map(a=>a.name);
+  const userAccts=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).map(a=>normalizeAcct(a.name));
   return allData.filter(tx=>{
     const d=parseDate(tx.date);if(!d)return false;
-    if(userAccts.length&&!userAccts.includes(tx.account))return false;
+    if(userAccts.length&&!userAccts.includes(normalizeAcct(tx.account)))return false;
     let ok=true;
     if(period==='mes')ok=d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
     else if(period==='3m'){const m=new Date(now);m.setMonth(m.getMonth()-3);ok=d>=m;}
@@ -3272,12 +3277,12 @@ function getExtFiltered(){
   const search=(document.getElementById('ext-search')?.value||'').toLowerCase().trim();
   // filter by current user's accounts
   const user=currentUser||'ALE';
-  const userAccts=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).map(a=>a.name);
+  const userAccts=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).map(a=>normalizeAcct(a.name));
   return allData.filter(t=>{
     const d=parseDate(t.date);if(!d)return false;
     let ok=true;
-    // user account filter — only show transactions belonging to this user
-    if(userAccts.length&&!userAccts.includes(t.account))ok=false;
+    // user account filter — normalized comparison (accent-insensitive)
+    if(userAccts.length&&!userAccts.includes(normalizeAcct(t.account)))ok=false;
     if(!ok)return false;
     if(extPeriod==='mes')ok=d.getMonth()===extMonth&&d.getFullYear()===extYear;
     else if(extPeriod==='30d'){const m=new Date(today);m.setDate(m.getDate()-30);ok=d>=m;}
