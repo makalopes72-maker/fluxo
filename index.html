@@ -4643,57 +4643,95 @@ function toggleSyncYear(y){
 }
 
 async function loadInvFromSheets(){
-  const rows=await sheetsRead(SHEETS.investimentos);
-  const logRows=await sheetsRead(SHEETS.invlog);
-  if(!rows||rows.length<2)return;
-  const instMap={};
-  const user=currentUser||'ALE';
-  rows.slice(1).forEach(r=>{
-    if(!r[0]||String(r[0]).trim()!==user)return;
-    const instName=String(r[1]||'').trim();if(!instName)return;
-    if(!instMap[instName])instMap[instName]={id:Date.now()+Math.random(),name:instName,icon:'🏦',ativos:[]};
-    const nome=String(r[2]||'').trim();if(!nome)return;
-    const aplicado=parseBRNumber(r[5]);
-    const valorAtual=parseBRNumber(r[6])||aplicado;
-    instMap[instName].ativos.push({
-      id:Date.now()+Math.random(),
-      nome,
-      classe:String(r[3]||''),tipo:String(r[4]||''),
-      aplicado,
-      indexador:String(r[7]||''),taxa:String(r[8]||''),
-      dataAplic:normalizeDate(r[9]),vencimento:normalizeDate(r[10]),
-      liquidez:String(r[11]||''),garantia:String(r[12]||''),
-      ir:String(r[13]||''),obs:String(r[14]||''),
-      encerrado:String(r[15]||'')==='Sim',
-      log:[],
-    });
-  });
-  if(logRows&&logRows.length>1){
-    logRows.slice(1).forEach(l=>{
-      if(!l[0]||String(l[0]).trim()!==user)return;
-      const inst=String(l[1]||'').trim();
-      const nome=String(l[2]||'').trim();
-      if(!instMap[inst])return;
-      const ativo=instMap[inst].ativos.find(a=>a.nome===nome);
-      if(ativo)ativo.log.push({
-        date:normalizeDate(l[3])||String(l[3]||''),
-        value:parseBRNumber(l[4]),
-        note:String(l[5]||'')
+  toast('Carregando investimentos…','');
+  try{
+    // fetch raw from Apps Script
+    const url=APPS_SCRIPT_URL+'?sheet='+encodeURIComponent('Investimentos');
+    const res=await fetch(url);
+    const json=await res.json();
+    if(!json.ok){toast('Erro ao ler Sheets: '+json.error,'error');return;}
+    const rows=json.data;
+    if(!rows||rows.length<2){toast('Aba Investimentos vazia','error');return;}
+
+    const user=currentUser||'ALE';
+    const instMap={};
+
+    // skip header row
+    rows.slice(1).forEach(r=>{
+      const rowUser=String(r[0]||'').trim();
+      if(rowUser!==user)return;
+      const instName=String(r[1]||'').trim();
+      if(!instName)return;
+      if(!instMap[instName])instMap[instName]={
+        id:'inst_'+instName,name:instName,icon:'🏦',ativos:[]
+      };
+      const nome=String(r[2]||'').trim();
+      if(!nome)return;
+      const aplicado=parseBRNumber(r[5]);
+      const valorAtual=parseBRNumber(r[6])||aplicado;
+      instMap[instName].ativos.push({
+        id:'atv_'+instName+'_'+nome,
+        nome,
+        classe:String(r[3]||''),
+        tipo:String(r[4]||''),
+        aplicado:aplicado,
+        indexador:String(r[7]||''),
+        taxa:String(r[8]||''),
+        dataAplic:normalizeDate(r[9]),
+        vencimento:normalizeDate(r[10]),
+        liquidez:String(r[11]||''),
+        garantia:String(r[12]||''),
+        ir:String(r[13]||''),
+        obs:String(r[14]||''),
+        encerrado:String(r[15]||'')==='Sim',
+        log:valorAtual>0?[{date:new Date().toLocaleDateString('pt-BR'),value:valorAtual,note:'Valor atual'}]:[],
       });
     });
-  }
-  const result=Object.values(instMap);
-  console.log('[INV] parsed',result.length,'institutions for user',user);
-  if(result.length>0){
+
+    // fetch log
+    try{
+      const logUrl=APPS_SCRIPT_URL+'?sheet='+encodeURIComponent('InvestimentosLog');
+      const logRes=await fetch(logUrl);
+      const logJson=await logRes.json();
+      if(logJson.ok&&logJson.data&&logJson.data.length>1){
+        logJson.data.slice(1).forEach(l=>{
+          if(String(l[0]||'').trim()!==user)return;
+          const inst=String(l[1]||'').trim();
+          const nome=String(l[2]||'').trim();
+          if(!instMap[inst])return;
+          const ativo=instMap[inst].ativos.find(a=>a.nome===nome);
+          if(!ativo)return;
+          const logVal=parseBRNumber(l[4]);
+          const logDate=normalizeDate(l[3])||String(l[3]||'');
+          // avoid duplicate from valorAtual
+          const alreadyHas=ativo.log.some(x=>Math.abs(x.value-logVal)<0.01&&x.date===logDate);
+          if(!alreadyHas)ativo.log.push({date:logDate,value:logVal,note:String(l[5]||'')});
+        });
+        // sort logs by date
+        Object.values(instMap).forEach(inst=>{
+          inst.ativos.forEach(a=>{
+            a.log.sort((x,y)=>{
+              const dx=parseDate(x.date),dy=parseDate(y.date);
+              return (dx||0)-(dy||0);
+            });
+          });
+        });
+      }
+    }catch(e){console.warn('log fetch failed',e);}
+
+    const result=Object.values(instMap);
+    if(result.length===0){
+      toast('Nenhum dado encontrado para '+user,'error');
+      return;
+    }
     instituicoes=result;
-    const key='fluxo_inv2_'+user;
-    localStorage.setItem(key,JSON.stringify(instituicoes));
+    localStorage.setItem('fluxo_inv2_'+user,JSON.stringify(instituicoes));
     localStorage.setItem('fluxo_inv2',JSON.stringify(instituicoes));
     renderInv();
-    toast(result.length+' instituição(ões) carregada(s)','success');
-  } else {
-    console.warn('[INV] no institutions found for user',user,'in',rows.length,'rows');
-    toast('Nenhum investimento encontrado para '+user,'error');
+    toast(result.length+' instituição(ões) · '+result.reduce((s,i)=>s+i.ativos.length,0)+' ativos','success');
+  }catch(e){
+    toast('Erro: '+e.message,'error');
+    console.error('[INV] loadInvFromSheets error:',e);
   }
 }
 
