@@ -1700,7 +1700,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.0';
+const APP_VERSION='12.2';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2019,12 +2019,20 @@ function setCfgTab(tab, el){
 // tiposData mirrors TIPOS but is editable + persisted
 let tiposData={};
 function initTiposData(){
-  try{const s=localStorage.getItem('fluxo_tipos');if(s){tiposData=JSON.parse(s);return;}}catch(e){}
-  // init from TIPOS
+  try{
+    const s=localStorage.getItem('fluxo_tipos');
+    if(s){
+      tiposData=JSON.parse(s);
+      // if loaded but empty, re-seed
+      if(Object.keys(tiposData).length>0)return;
+    }
+  }catch(e){}
+  // seed from TIPOS default
   tiposData={};
   Object.keys(TIPOS).forEach(t=>{
     tiposData[t]={active:true,cats:(TIPOS[t]||[]).map(c=>({name:c,active:true}))};
   });
+  saveTiposData();
 }
 function saveTiposData(){try{localStorage.setItem('fluxo_tipos',JSON.stringify(tiposData));}catch(e){}pushToSheets('pastas');}
 
@@ -2532,6 +2540,10 @@ let defaultAccounts={ALE:'',SI:''};
 
 function loadDefaultAccounts(){
   try{const s=localStorage.getItem('fluxo_default_accts');if(s)defaultAccounts={...defaultAccounts,...JSON.parse(s)};}catch(e){}
+  // seed defaults if not yet defined
+  if(!defaultAccounts.ALE)defaultAccounts.ALE='ALE Crédito Itaú';
+  if(!defaultAccounts.SI)defaultAccounts.SI='SI Conta Itaú';
+  saveDefaultAccounts();
 }
 function saveDefaultAccounts(){try{localStorage.setItem('fluxo_default_accts',JSON.stringify(defaultAccounts));}catch(e){}}
 
@@ -2569,6 +2581,8 @@ function buildSettings(){
   const fl=document.getElementById('font-list');
   if(fl)fl.innerHTML=FONTS.map(f=>`<div class="font-option${prefs.font===f.id?' selected':''}" onclick="applyFont('${f.id}')"><div><div class="font-option-name" style="font-family:${f.body}">${f.label}</div><div class="font-option-sample" style="font-family:${f.display}">${f.sample}</div></div><span class="font-check">✓</span></div>`).join('');
   buildAccountsUI();
+  // ensure tiposData is populated before rendering editor
+  if(!tiposData||Object.keys(tiposData).length===0)initTiposData();
   buildTiposEditor();
   buildStartScreenUI();
 }
@@ -2653,7 +2667,7 @@ function goScreen(name){
   const mi=document.getElementById('mitem-'+name);if(mi)mi.classList.add('active');
   if(name==='hist')renderHistory();
   if(name==='dash')renderDash();
-  if(name==='cfg')buildSettings();
+  if(name==='cfg'){initTiposData();buildSettings();}
   closeDrop();
   updateDesktopHeader(name);
 }
