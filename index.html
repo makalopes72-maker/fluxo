@@ -1037,7 +1037,7 @@
         <div id="drop-main" style="display:none"></div>
         <!-- Data + Conta em linha -->
         <div class="fields-row" id="date-conta-row">
-          <div class="field-cell" onclick="openDatePicker('date-input')">
+          <div class="field-cell" onclick="openDatePicker('date-input')" ontouchend="event.preventDefault();openDatePicker('date-input')">
             <span class="field-ic">📅</span>
             <span class="field-val" id="add-date">—</span>
             <input type="date" id="date-input" lang="pt-BR" tabindex="-1" style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;" onchange="onDateChange(this.value)">
@@ -1700,7 +1700,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.2';
+const APP_VERSION='12.4';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2149,13 +2149,21 @@ function toggleKwPanel(tipo,cat){
   buildTiposEditor();
 }
 function loadKeywords(){
-  try{const s=localStorage.getItem('fluxo_kw');if(s)keywordsData=JSON.parse(s);}catch(e){}
-  if(!Object.keys(keywordsData).length) seedKeywords();
+  try{
+    const s=localStorage.getItem('fluxo_kw');
+    if(s){
+      keywordsData=JSON.parse(s);
+      if(Object.keys(keywordsData).length>0)return;
+    }
+  }catch(e){}
+  // seed defaults and save
+  seedKeywords();
 }
 function saveKeywords(){try{localStorage.setItem('fluxo_kw',JSON.stringify(keywordsData));}catch(e){}pushToSheets('kw');}
 
 function seedKeywords(){
-  keywordsData={
+  // merge with any existing data — don't overwrite custom keywords
+  const defaults={
     'Alimentação':{
       'Supermercado':['Pão de Açúcar','Carrefour','Extra','Mercado','Supermercado'],
       'Refeições em restaurante':['Restaurante','Almoço','Jantar','Lanchonete'],
@@ -2190,6 +2198,15 @@ function seedKeywords(){
       'Reembolso':['Reembolso'],
     },
   };
+  // merge: keep existing custom keywords, add defaults for missing cats
+  Object.keys(defaults).forEach(tipo=>{
+    if(!keywordsData[tipo])keywordsData[tipo]={};
+    Object.keys(defaults[tipo]).forEach(cat=>{
+      if(!keywordsData[tipo][cat]||keywordsData[tipo][cat].length===0){
+        keywordsData[tipo][cat]=defaults[tipo][cat];
+      }
+    });
+  });
   saveKeywords();
 }
 
@@ -2674,10 +2691,14 @@ function goScreen(name){
 
 function setTodayDate(){
   const n=new Date();
-  const display=`${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`;
+  const d=String(n.getDate()).padStart(2,'0');
+  const m=String(n.getMonth()+1).padStart(2,'0');
+  const y=n.getFullYear();
+  const display=`${d}/${m}/${y}`;
+  window._selectedDate=display;
   const _ad=document.getElementById('add-date');if(_ad)_ad.textContent=display;
   const inp=document.getElementById('date-input');
-  if(inp) inp.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
+  if(inp)inp.value=`${y}-${m}-${d}`;
 }
 function onDateChange(val){
   if(!val)return;
@@ -3549,9 +3570,15 @@ function syncDateDisplay(inputId, displayId){
 }
 function openDatePicker(id){
   const el=document.getElementById(id);if(!el)return;
-  el.style.pointerEvents='all';el.style.width='100%';el.style.height='100%';
-  if(el.showPicker)el.showPicker();else el.focus();
-  setTimeout(()=>{el.style.pointerEvents='none';el.style.width='1px';el.style.height='1px';},500);
+  // make visible and interactive
+  el.style.cssText='position:absolute;opacity:0.01;width:100%;height:100%;top:0;left:0;pointer-events:all;z-index:99;';
+  try{
+    if(el.showPicker)el.showPicker();
+    else el.focus();
+  }catch(e){el.click();}
+  setTimeout(()=>{
+    el.style.cssText='position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;';
+  },800);
 }
 // ── CONTA CORRENTE ──
 function setAcctInstituicao(idx,instName){
@@ -4664,9 +4691,16 @@ async function syncAll(manual=false){
       if(rows&&rows.length>0){
         const obj=deserializeKV(rows);
         if(obj.keywords&&Object.keys(obj.keywords).length>0){
-          keywordsData=obj.keywords;
+          // merge sheets data with local — sheets wins for existing, local keeps extras
+          Object.keys(obj.keywords).forEach(tipo=>{
+            if(!keywordsData[tipo])keywordsData[tipo]={};
+            Object.keys(obj.keywords[tipo]).forEach(cat=>{
+              keywordsData[tipo][cat]=obj.keywords[tipo][cat];
+            });
+          });
           localStorage.setItem('fluxo_kw',JSON.stringify(keywordsData));
         } else {
+          // sheets empty — push local up
           pushToSheets('kw');
         }
       } else {
