@@ -1461,7 +1461,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='9.7';
+const APP_VERSION='9.8';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2687,6 +2687,18 @@ async function saveTransaction(){
 }
 
 // ── DATA ──
+function parseBRNumber(v){
+  // handles: 1018.62 (JS number), "1.018,62" (BR string), "1018,62", "1018.62"
+  if(v===null||v===undefined||v==='')return 0;
+  if(typeof v==='number')return v;
+  const s=String(v).trim();
+  // if has comma and dot: "1.018,62" → remove dots, replace comma
+  if(s.includes(',')&&s.includes('.'))return parseFloat(s.replace(/\./g,'').replace(',','.'));
+  // if only comma: "1018,62" → replace comma
+  if(s.includes(','))return parseFloat(s.replace(',','.'));
+  // if only dot or plain number: "1018.62"
+  return parseFloat(s)||0;
+}
 async function loadData(){
   try{
     // Use Apps Script GET to read all 10 columns
@@ -2698,7 +2710,7 @@ async function loadData(){
       _row:i+2,
       date:String(r[0]||'').trim(),
       desc:String(r[1]||'').trim(),
-      value:parseFloat(String(r[2]||'0').replace(/\./g,'').replace(',','.')),
+      value:parseBRNumber(r[2]),
       cat:String(r[3]||'Outros').trim(),
       tipo:String(r[4]||r[3]||'').trim(),
       account:String(r[5]||'').trim(),
