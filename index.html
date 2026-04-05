@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:#5B2D8E;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F0E6FF !important;}
-  #splash .splash-sub{color:rgba(240,230,255,.6) !important;}
-  #splash .splash-version{color:rgba(240,230,255,.4) !important;}
-  #splash .splash-btn{background:#F0E6FF !important;color:#5B2D8E !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(240,230,255,.2) !important;color:#F0E6FF !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(135deg,#0F4C2A,#1A7A42);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E6FFF0 !important;text-shadow:0 2px 20px rgba(0,0,0,.25);}
+  #splash .splash-sub{color:rgba(230,255,240,.7) !important;}
+  #splash .splash-version{color:rgba(255,255,255,.35) !important;}
+  #splash .splash-btn{background:#E6FFF0 !important;color:#0F4C2A !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.2);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E6FFF0 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1145,8 +1145,9 @@
       </div>
     </div>
     <!-- Salvar -->
-    <div class="add-save-bar">
-      <button class="add-save-btn" id="btn-save" onclick="saveTransaction()">Salvar transação</button>
+    <div class="add-save-bar" style="display:flex;flex-direction:column;gap:6px;">
+      <button class="add-save-btn" id="btn-save" onclick="saveTransaction(false)">Salvar</button>
+      <button class="add-save-btn" id="btn-save-sync" onclick="saveTransaction(true)" style="background:transparent;border:1.5px solid var(--btn);color:var(--btn);font-size:.82rem;">Salvar e Sincronizar</button>
     </div>
     </div><!-- end add-right-panel -->
   </div>
@@ -1705,7 +1706,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.9';
+const APP_VERSION='13.0';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2636,8 +2637,7 @@ function login(u){
   const cfu=document.getElementById('cfg-user');if(cfu)cfu.textContent=u;const cu2=document.getElementById('cfg-user2');if(cu2)cu2.textContent=u;
   loadAccounts();seedInstLinks();loadDefaultAccounts();loadStartScreen();initTiposData();loadKeywords();loadOrc();loadInvestimentos();
   // auto-sync on login
-  setTodayDate();buildSettings();buildStartScreenUI();extMonth=new Date().getMonth();extYear=new Date().getFullYear();loadData();
-  setTimeout(()=>syncAll(false),1500);
+  setTodayDate();buildSettings();buildStartScreenUI();extMonth=new Date().getMonth();extYear=new Date().getFullYear();
   setTimeout(()=>{goScreen('add');setTodayDate();},200);
 }
 function logout(){
@@ -2839,7 +2839,7 @@ function setTransType(t){
 }
 
 // ── SAVE ──
-async function saveTransaction(){
+async function saveTransaction(syncAfter=false){
   if(!amountCents){toast('Digite um valor','error');return;}
   const _descCheck=document.getElementById('tx-desc')?.value.trim();
   if(!_descCheck){toast('Digite uma descrição','error');document.getElementById('tx-desc')?.focus();return;}
@@ -2890,7 +2890,9 @@ async function saveTransaction(){
     const _fco=document.getElementById('fv-conta');if(_fco){_fco.textContent='Conta';_fco.classList.add('ph');}
     setTransType('saída');
     const btn=document.getElementById('btn-save');if(btn){btn.disabled=false;btn.textContent='Salvar transação';}
-    renderDash();setTimeout(()=>goScreen('dash'),600);
+    renderDash();
+  if(syncAfter){toast('Sincronizando…','');setTimeout(()=>syncAll(true),400);}
+  else{setTimeout(()=>goScreen('dash'),600);}
     return;
   }
   const desc=document.getElementById('tx-desc').value.trim();
@@ -4636,6 +4638,56 @@ function toggleSyncYear(y){
   else syncYears.push(y);
   const curYear=new Date().getFullYear();
   buildSyncYearList([curYear,curYear-1,curYear-2,curYear-3,curYear-4]);
+}
+
+async function loadInvFromSheets(){
+  const rows=await sheetsRead(SHEETS.investimentos);
+  const logRows=await sheetsRead(SHEETS.invlog);
+  if(!rows||rows.length<2)return;
+  const instMap={};
+  const user=currentUser||'ALE';
+  rows.slice(1).forEach(r=>{
+    if(!r[0]||String(r[0]).trim()!==user)return;
+    const instName=String(r[1]||'').trim();if(!instName)return;
+    if(!instMap[instName])instMap[instName]={id:Date.now()+Math.random(),name:instName,icon:'🏦',ativos:[]};
+    const nome=String(r[2]||'').trim();if(!nome)return;
+    const aplicado=parseBRNumber(r[5]);
+    const valorAtual=parseBRNumber(r[6])||aplicado;
+    instMap[instName].ativos.push({
+      id:Date.now()+Math.random(),
+      nome,
+      classe:String(r[3]||''),tipo:String(r[4]||''),
+      aplicado,
+      indexador:String(r[7]||''),taxa:String(r[8]||''),
+      dataAplic:normalizeDate(r[9]),vencimento:normalizeDate(r[10]),
+      liquidez:String(r[11]||''),garantia:String(r[12]||''),
+      ir:String(r[13]||''),obs:String(r[14]||''),
+      encerrado:String(r[15]||'')==='Sim',
+      log:[],
+    });
+  });
+  if(logRows&&logRows.length>1){
+    logRows.slice(1).forEach(l=>{
+      if(!l[0]||String(l[0]).trim()!==user)return;
+      const inst=String(l[1]||'').trim();
+      const nome=String(l[2]||'').trim();
+      if(!instMap[inst])return;
+      const ativo=instMap[inst].ativos.find(a=>a.nome===nome);
+      if(ativo)ativo.log.push({
+        date:normalizeDate(l[3])||String(l[3]||''),
+        value:parseBRNumber(l[4]),
+        note:String(l[5]||'')
+      });
+    });
+  }
+  const result=Object.values(instMap);
+  if(result.length>0){
+    instituicoes=result;
+    const key='fluxo_inv2_'+user;
+    localStorage.setItem(key,JSON.stringify(instituicoes));
+    localStorage.setItem('fluxo_inv2',JSON.stringify(instituicoes));
+    renderInv();
+  }
 }
 
 async function syncAll(manual=false){
