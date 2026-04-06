@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(130deg,#FF6B00,#1A1A2E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFF3E0 !important;text-shadow:0 2px 28px rgba(0,0,0,.5);}
-  #splash .splash-sub{color:rgba(255,243,224,.65) !important;}
-  #splash .splash-version{color:rgba(255,243,224,.35) !important;}
-  #splash .splash-btn{background:#FFF3E0 !important;color:#FF6B00 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.4);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFF3E0 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#008080,#800020);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F0FFFF !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(240,255,255,.65) !important;}
+  #splash .splash-version{color:rgba(240,255,255,.35) !important;}
+  #splash .splash-btn{background:#F0FFFF !important;color:#008080 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.13) !important;color:#F0FFFF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -98,6 +98,23 @@
   .screen.active{display:flex;flex-direction:column;animation:slideUp .3s ease;}
   #screen-add{display:none;flex-direction:column;flex:1;overflow:hidden;padding:0;min-height:0;}
   #screen-add.active{display:flex;}
+  /* new layout: tipo + valor + keypad always visible, desc at bottom */
+  .add-desc-bar{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-top:1px solid var(--border);}
+  .add-desc-bar input{flex:1;border:none;background:transparent;font-family:var(--font-body);font-size:1.05rem;font-weight:500;color:var(--font);outline:none;padding:6px 0;}
+  .add-desc-bar input::placeholder{color:var(--muted);font-weight:400;}
+  .add-desc-bar .desc-ic{font-size:1.1rem;flex-shrink:0;}
+  /* fields mode: keypad hides, valor becomes tap-to-edit, desc bar stays */
+  #screen-add.fields-mode .add-kp{display:none !important;}
+  #screen-add.fields-mode .add-tipo-row{display:none !important;}
+  #screen-add.fields-mode .add-valor-row{cursor:pointer;flex-shrink:0;}
+  #screen-add.fields-mode .add-fields-wrap{flex:1;}
+  #screen-add.fields-mode .add-desc-bar{display:none !important;}
+  /* save bar horizontal */
+  .add-save-bar{flex-shrink:0;padding:8px 12px 12px;background:var(--bg);border-top:1px solid var(--border);display:flex;gap:8px;}
+  .btn-save-sync{flex:1;padding:13px;border-radius:12px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.82rem;cursor:pointer;}
+  .btn-save-main{flex:2;padding:13px;border-radius:12px;border:none;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.95rem;font-weight:800;letter-spacing:.04em;cursor:pointer;text-transform:uppercase;}
+  .btn-save-main.saving{opacity:.6;pointer-events:none;}
+  .btn-save-main.saved{background:#22c55e !important;}
   #screen-dash.active{display:flex;flex-direction:column;}
   @keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -210,10 +227,7 @@
   .add-kp{flex-shrink:0;display:grid;grid-template-columns:repeat(3,1fr) 56px;grid-template-rows:repeat(4,1fr);gap:1px;background:var(--border);height:200px;}
 
   /* FIELDS MODE — hides keypad, expands fields area */
-  #screen-add.fields-mode .add-kp{display:none !important;}
-  #screen-add.fields-mode .add-tipo-row{display:none !important;}
-  #screen-add.fields-mode .add-valor-row{flex-shrink:0;cursor:pointer;}
-  #screen-add.fields-mode .add-fields-wrap{flex:1;}
+  /* fields-mode handled above */
   .add-valor-row{cursor:pointer;}
   .kk{background:var(--kp);display:flex;align-items:center;justify-content:center;font-family:var(--font-body);font-size:1.6rem;font-weight:700;color:var(--font);cursor:pointer;user-select:none;transition:background .1s;}
   .kk:active{opacity:.7;}
@@ -1028,18 +1042,16 @@
       <div class="kk" onclick="kp('00')">,00</div><div class="kk" onclick="kp('0')">0</div><div class="kk eq" id="kk-eq" onclick="kp('=')">=</div><div class="kk op" onclick="kp('+')">+</div>
     </div>
     </div><!-- end add-left-panel -->
+    <!-- Description bar — always visible below keypad in portrait -->
+    <div class="add-desc-bar" id="add-desc-bar" style="position:relative;">
+      <span class="desc-ic">📝</span>
+      <input type="text" id="tx-desc" placeholder="Descrição da transação…" onfocus="enterFieldsMode()" oninput="onDescInput(this.value)" autocomplete="off">
+      <div class="ac-drop" id="ac-drop" style="display:none;position:absolute;bottom:100%;left:0;right:0;z-index:50;"></div>
+    </div>
     <div class="add-right-panel">
     <!-- Campos -->
     <div class="add-fields-wrap" id="add-fields-wrap">
       <div class="fields-grid" id="fields-grid">
-        <!-- Descrição full width -->
-        <div class="field-cell full">
-          <span class="field-ic">📝</span>
-          <div class="desc-wrap">
-            <input class="field-input" id="tx-desc" placeholder="Descrição" onfocus="enterFieldsMode()" oninput="onDescInput(this.value)" autocomplete="off">
-            <div class="ac-drop" id="ac-drop" style="display:none;"></div>
-          </div>
-        </div>
         <!-- Tipo + Categoria em linha -->
         <div class="fields-row">
           <div class="field-cell" id="fc-tipo" onclick="enterFieldsMode();toggleDrop('tipo')">
@@ -1160,9 +1172,9 @@
       </div>
     </div>
     <!-- Salvar -->
-    <div class="add-save-bar" style="display:flex;flex-direction:column;gap:6px;">
-      <button class="add-save-btn" id="btn-save" onclick="saveTransaction(false)">Salvar</button>
-      <button class="add-save-btn" id="btn-save-sync" onclick="saveTransaction(true)" style="background:transparent;border:1.5px solid var(--btn);color:var(--btn);font-size:.82rem;">Salvar e Sincronizar</button>
+    <div class="add-save-bar">
+      <button class="btn-save-sync" id="btn-save-sync" onclick="saveTransaction(true)">↻ Salvar e Sincronizar</button>
+      <button class="btn-save-main" id="btn-save" onclick="saveTransaction(false)">SALVAR</button>
     </div>
     </div><!-- end add-right-panel -->
   </div>
@@ -1735,7 +1747,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.27';
+const APP_VERSION='12.28';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2034,7 +2046,7 @@ function applyTheme(){
   r.style.setProperty('--muted',light?'rgba(0,0,0,0.4)':'rgba(255,255,255,0.4)');
   r.style.setProperty('--border',light?'rgba(0,0,0,0.08)':'rgba(255,255,255,0.08)');
   const eq=document.getElementById('kk-eq');if(eq)eq.style.color=contrastText(t.btn);
-  const sb=document.getElementById('btn-save');if(sb)sb.style.color=contrastText(t.btn);
+  const sb=document.getElementById('btn-save');if(sb){sb.style.background=t.btn;sb.style.color=contrastText(t.btn);}
 }
 function pickPalette(id){prefs.paletteId=id;const p=PALETTES.find(x=>x.id===id);prefs.custom={...p};applyTheme();savePrefs();buildSettings();}
 function setCustomColor(key,val){prefs.custom[key]=val;prefs.paletteId='custom';applyTheme();savePrefs();buildSettings();}
@@ -2519,16 +2531,23 @@ function enterFieldsMode(){
     const sa=document.getElementById('screen-add');
     if(!sa||sa.classList.contains('fields-mode'))return;
     sa.classList.add('fields-mode');
+    // scroll fields to top
     const fw=document.getElementById('add-fields-wrap');
-    if(fw) fw.scrollTop=0;
+    if(fw)fw.scrollTop=0;
+    // focus stays on tx-desc (already focused)
   }catch(e){}
 }
 function exitFieldsMode(){
   try{
     const sa=document.getElementById('screen-add');
-    if(sa) sa.classList.remove('fields-mode');
-    if(document.activeElement) document.activeElement.blur();
+    if(sa)sa.classList.remove('fields-mode');
+    if(document.activeElement)document.activeElement.blur();
     closeDrop();
+    // re-focus on desc bar
+    setTimeout(()=>{
+      const d=document.getElementById('tx-desc');
+      if(d)d.blur();
+    },50);
   }catch(e){}
 }
 
@@ -2934,7 +2953,7 @@ async function saveTransaction(syncAfter=false){
   const displayDesc=desc||(selCat||selTipo||'Transação');
   const btn=document.getElementById('btn-save');
   if(!btn)return;
-  btn.disabled=true;btn.textContent='Salvando…';btn.style.opacity='.6';
+  btn.disabled=true;btn.textContent='SALVANDO…';btn.classList.add('saving');
 
   // parse base date
   const baseDate=window._selectedDate||(()=>{const n=new Date();return `${String(n.getDate()).padStart(2,'0')}/${String(n.getMonth()+1).padStart(2,'0')}/${n.getFullYear()}`;})();
@@ -3010,7 +3029,7 @@ async function saveTransaction(syncAfter=false){
   const _fc=document.getElementById('fv-cat');if(_fc){_fc.textContent='Categoria';_fc.classList.add('ph');}
   const _fco=document.getElementById('fv-conta');if(_fco){_fco.textContent='Conta';_fco.classList.add('ph');}
   closeDrop();
-  btn.disabled=false;btn.textContent='Salvar transação';btn.style.opacity='';
+  btn.disabled=false;btn.textContent='SALVAR';btn.classList.remove('saving','saved');
   renderDash();setTimeout(()=>goScreen('dash'),600);
   // suggest adding keyword
   setTimeout(()=>checkAddKeyword(displayDesc,tipo,cat),700);
@@ -3649,7 +3668,7 @@ async function updateTransaction(){
     }
     allData[editingIndex]={...t,date:newDate,desc:displayDesc,value:newValue,cat:newCat||newTipo,tipo:newTipo,type:newType,account:newAccount,consolidated:newConsol};
     // ── feedback: saved ──
-    if(btn){btn.textContent='✓ Salvo!';btn.classList.remove('saving','btn-saving-pulse');btn.classList.add('saved');}
+    if(btn){btn.textContent='✓ SALVO!';btn.classList.remove('saving','btn-saving-pulse');btn.classList.add('saved');}
     setTimeout(()=>{closeModal();renderDash();renderHistory();},600);
     toast('Atualizado!','success');
   }catch(e){
