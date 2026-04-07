@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(135deg,#0F172A,#059669);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F0FDF4 !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
-  #splash .splash-sub{color:rgba(240,253,244,.65) !important;}
-  #splash .splash-version{color:rgba(240,253,244,.35) !important;}
-  #splash .splash-btn{background:#F0FDF4 !important;color:#0F172A !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.4);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F0FDF4 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#D97706,#3730A3);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFFBEB !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(255,251,235,.65) !important;}
+  #splash .splash-version{color:rgba(255,251,235,.35) !important;}
+  #splash .splash-btn{background:#FFFBEB !important;color:#3730A3 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFFBEB !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1783,7 +1783,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.50';
+const APP_VERSION='12.52';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4065,7 +4065,7 @@ function fmtInvFull(v){return 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDig
 // ── TELA PRINCIPAL ──
 function renderInv(){
   const total=getTotalGeral();
-  const totalAtivos=instituicoes.reduce((s,i)=>s+i.ativos.length,0);
+  const totalAtivos=instituicoes.reduce((s,i)=>s+getInstAtivos(i).filter(a=>!a.encerrado).length,0);
   const tv=document.getElementById('inv-total-val');if(tv)tv.textContent=fmtInv(total);
   const tc=document.getElementById('inv-total-count');if(tc)tc.textContent=totalAtivos;
   console.log('[renderInv] instituicoes:',instituicoes?.length,'user:',currentUser,'ativos:',JSON.stringify(ativosPorUser[currentUser||'ALE']));
@@ -4521,7 +4521,7 @@ function saveAtivo(){
     renderAtivos();closeAtivoModal();openAtivo(currentAtivoIdx);toast('Atualizado!','success');
   } else {
     const novo={id:Date.now(),...getFields(),log:[{date:dateStr,value:aplicadoVal,note:'Aplicação inicial'}]};
-    instituicoes[currentInstIdx].ativos.push(novo);
+    getInstAtivos(instituicoes[currentInstIdx]).push(novo);
     saveInvestimentos();
     const cv=document.getElementById('cart-val');if(cv)cv.textContent=fmtInv(getInstTotal(instituicoes[currentInstIdx]));
     renderAtivos();closeAtivoModal();toast('Ativo salvo!','success');
@@ -4834,11 +4834,14 @@ function syncError(msg){
 
 // ── READ from Sheets via GET ──
 async function sheetsRead(sheetName){
-  const url=APPS_SCRIPT_URL+'?sheet='+encodeURIComponent(sheetName);
-  const r=await fetch(url);
-  const j=await r.json();
+  // encode manually to ensure mobile compatibility
+  const encoded=encodeURIComponent(sheetName);
+  const url=APPS_SCRIPT_URL+'?sheet='+encoded;
+  const r=await fetch(url,{cache:'no-store'});
+  const txt=await r.text();
+  const j=JSON.parse(txt);
   if(!j.ok)throw new Error(j.error||'read error');
-  return j.data; // array of arrays
+  return j.data;
 }
 
 // ── WRITE to Sheets via POST ──
@@ -4917,16 +4920,17 @@ function toggleSyncYear(y){
 }
 
 async function loadInstituicoesFromSheets(){
-  // load global institutions
   try{
-    const rows=await sheetsRead('Instituições');
-    if(rows&&rows.length>1){
-      instituicoes=rows.slice(1).filter(r=>r[1]).map(r=>({
+    const res=await fetch(APPS_SCRIPT_URL+'?sheet=Institui%C3%A7%C3%B5es');
+    const json=await res.json();
+    if(json.ok&&json.data&&json.data.length>1){
+      instituicoes=json.data.slice(1).filter(r=>r[1]).map(r=>({
         id:String(r[0]||r[1]),name:String(r[1]),icon:String(r[2]||'🏦')
       }));
       localStorage.setItem('fluxo_insts',JSON.stringify(instituicoes));
     }
   }catch(e){console.warn('inst read fail',e);}
+  if(!instituicoes.length)seedInstituicoes();
 }
 async function loadInvFromSheets(){
   toast('Carregando investimentos…','');
