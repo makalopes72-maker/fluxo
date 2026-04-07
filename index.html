@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#008080,#800020);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F0FFFF !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(240,255,255,.65) !important;}
-  #splash .splash-version{color:rgba(240,255,255,.35) !important;}
-  #splash .splash-btn{background:#F0FFFF !important;color:#008080 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.13) !important;color:#F0FFFF !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(150deg,#9B1B30,#003153);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFF0F0 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(255,240,240,.65) !important;}
+  #splash .splash-version{color:rgba(255,240,240,.35) !important;}
+  #splash .splash-btn{background:#FFF0F0 !important;color:#9B1B30 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFF0F0 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -100,7 +100,7 @@
   #screen-add.active{display:flex;}
   /* new layout: tipo + valor + keypad always visible, desc at bottom */
   .add-desc-bar{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-top:1px solid var(--border);}
-  .add-desc-bar input{flex:1;border:none;background:transparent;font-family:var(--font-body);font-size:1.05rem;font-weight:500;color:var(--font);outline:none;padding:6px 0;}
+  .add-desc-bar input{flex:1;border:none;background:transparent;font-family:var(--font-body);font-size:1.15rem;font-weight:500;color:var(--font);outline:none;padding:8px 0;}
   .add-desc-bar input::placeholder{color:var(--muted);font-weight:400;}
   .add-desc-bar .desc-ic{font-size:1.1rem;flex-shrink:0;}
   /* fields mode: keypad hides, valor becomes tap-to-edit, desc bar stays */
@@ -110,9 +110,9 @@
   #screen-add.fields-mode .add-fields-wrap{flex:1;}
   #screen-add.fields-mode .add-desc-bar{display:none !important;}
   /* save bar horizontal */
-  .add-save-bar{flex-shrink:0;padding:8px 12px 12px;background:var(--bg);border-top:1px solid var(--border);display:flex;gap:8px;}
-  .btn-save-sync{flex:1;padding:13px;border-radius:12px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.82rem;cursor:pointer;}
-  .btn-save-main{flex:2;padding:13px;border-radius:12px;border:none;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.95rem;font-weight:800;letter-spacing:.04em;cursor:pointer;text-transform:uppercase;}
+  .add-save-bar{flex-shrink:0;padding:10px 12px 20px;background:var(--bg);border-top:1px solid var(--border);display:flex;gap:8px;}
+  .btn-save-sync{flex:1;padding:14px 8px;border-radius:12px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.78rem;cursor:pointer;}
+  .btn-save-main{flex:1;padding:14px 8px;border-radius:12px;border:none;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.88rem;font-weight:800;letter-spacing:.04em;cursor:pointer;text-transform:uppercase;}
   .btn-save-main.saving{opacity:.6;pointer-events:none;}
   .btn-save-main.saved{background:#22c55e !important;}
   #screen-dash.active{display:flex;flex-direction:column;}
@@ -188,8 +188,18 @@
   .empty{text-align:center;color:var(--muted);font-size:.9rem;padding:40px 0;}
 
   /* ── ADD SCREEN ── */
+  /* ETAPA 1: keypad view */
+  #screen-add:not(.fields-mode) .add-fields-wrap{display:none;}
+  #screen-add:not(.fields-mode) .add-save-bar{display:none;}
+  /* ETAPA 2: fields view */
+  #screen-add.fields-mode .add-kp{display:none !important;}
+  #screen-add.fields-mode .add-tipo-row{display:none !important;}
+  #screen-add.fields-mode .add-desc-bar{display:none !important;}
+  #screen-add.fields-mode .add-valor-row{flex-shrink:0;cursor:pointer;}
+  #screen-add.fields-mode .add-fields-wrap{display:flex;flex:1;}
+  #screen-add.fields-mode .add-save-bar{display:flex;}
   .add-tipo-row{flex-shrink:0;display:flex;}
-  .add-tipo-btn{flex:1;border:none;cursor:pointer;font-family:var(--font-body);font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:6px 0;display:flex;align-items:center;justify-content:center;gap:4px;transition:all .2s;}
+  .add-tipo-btn{flex:1;border:none;cursor:pointer;font-family:var(--font-body);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:10px 0;display:flex;align-items:center;justify-content:center;gap:4px;transition:all .2s;}
   .add-tipo-btn.saida-on{background:var(--red);color:#fff;}
   .add-tipo-btn.saida-off{background:var(--bg);color:var(--muted);}
   .add-tipo-btn.entrada-on{background:var(--accent2);color:#fff;}
@@ -221,15 +231,18 @@
   .add-valor-area.c-entrada{background:var(--accent2);}
   .add-valor-lbl{font-size:.65rem;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px;}
   .add-valor-num{font-family:var(--font-display);font-size:2rem;color:#fff;letter-spacing:-1px;line-height:1;}
+  #screen-add.fields-mode .add-valor-num{font-size:1.5rem;}
+  #screen-add.fields-mode .add-valor-area{padding:6px 12px;flex-direction:row;align-items:center;gap:10px;justify-content:space-between;}
+  #screen-add.fields-mode .add-valor-lbl{margin-bottom:0;font-size:.62rem;}
+  #screen-add.fields-mode .add-del-btn{display:none;}
   .add-del-btn{width:56px;border:none;cursor:pointer;background:var(--kp-dark);color:var(--muted);font-size:1.3rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .add-del-btn:active{opacity:.6;}
 
-  .add-kp{flex-shrink:0;display:grid;grid-template-columns:repeat(3,1fr) 56px;grid-template-rows:repeat(4,1fr);gap:1px;background:var(--border);height:200px;}
+  .add-kp{flex-shrink:0;display:grid;grid-template-columns:repeat(3,1fr) 64px;grid-template-rows:repeat(4,1fr);gap:1px;background:var(--border);flex:1;min-height:180px;}
 
-  /* FIELDS MODE — hides keypad, expands fields area */
-  /* fields-mode handled above */
+  /* FIELDS MODE — handled in ADD SCREEN section above */
   .add-valor-row{cursor:pointer;}
-  .kk{background:var(--kp);display:flex;align-items:center;justify-content:center;font-family:var(--font-body);font-size:1.6rem;font-weight:700;color:var(--font);cursor:pointer;user-select:none;transition:background .1s;}
+  .kk{background:var(--kp);display:flex;align-items:center;justify-content:center;font-family:var(--font-body);font-size:1.9rem;font-weight:700;color:var(--font);cursor:pointer;user-select:none;transition:background .1s;}
   .kk:active{opacity:.7;}
   .kk.op{font-size:1.4rem;color:var(--muted);background:var(--kp-dark);}
   .kk.eq{font-size:1.1rem;font-weight:700;background:var(--btn);}
@@ -250,6 +263,7 @@
 
   /* text input inside field */
   .field-input{width:100%;border:none;background:transparent;color:var(--font);font-family:var(--font-body);font-size:.98rem;font-weight:500;outline:none;}
+  .field-input.desc-big{font-size:1.2rem;font-weight:500;}
   .field-input::placeholder{color:var(--muted);}
 
   /* DROPDOWN */
@@ -1045,13 +1059,21 @@
     <!-- Description bar — always visible below keypad in portrait -->
     <div class="add-desc-bar" id="add-desc-bar" style="position:relative;">
       <span class="desc-ic">📝</span>
-      <input type="text" id="tx-desc" placeholder="Descrição da transação…" onfocus="enterFieldsMode()" oninput="onDescInput(this.value)" autocomplete="off">
+      <input type="text" id="tx-desc" placeholder="Descrição…" onfocus="enterFieldsMode()" oninput="syncDesc(this.value)" autocomplete="off">
       <div class="ac-drop" id="ac-drop" style="display:none;position:absolute;bottom:100%;left:0;right:0;z-index:50;"></div>
     </div>
     <div class="add-right-panel">
     <!-- Campos -->
     <div class="add-fields-wrap" id="add-fields-wrap">
       <div class="fields-grid" id="fields-grid">
+        <!-- Descrição grande no topo dos campos -->
+        <div class="field-cell full">
+          <span class="field-ic">📝</span>
+          <div class="desc-wrap" style="flex:1;">
+            <input class="field-input desc-big" id="tx-desc-fields" placeholder="Descrição" oninput="syncDesc(this.value)" onblur="syncDesc(this.value)" autocomplete="off">
+            <div class="ac-drop" id="ac-drop-fields" style="display:none;"></div>
+          </div>
+        </div>
         <!-- Tipo + Categoria em linha -->
         <div class="fields-row">
           <div class="field-cell" id="fc-tipo" onclick="enterFieldsMode();toggleDrop('tipo')">
@@ -1173,7 +1195,7 @@
     </div>
     <!-- Salvar -->
     <div class="add-save-bar">
-      <button class="btn-save-sync" id="btn-save-sync" onclick="saveTransaction(true)">↻ Salvar e Sincronizar</button>
+      <button class="btn-save-sync" id="btn-save-sync" onclick="saveTransaction(true)">↻ Salvar e Atualizar</button>
       <button class="btn-save-main" id="btn-save" onclick="saveTransaction(false)">SALVAR</button>
     </div>
     </div><!-- end add-right-panel -->
@@ -1747,7 +1769,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.28';
+const APP_VERSION='12.30';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2526,15 +2548,25 @@ function resetTransfFields(){
 }
 
 // ── FIELDS MODE ──
+function syncDesc(val){
+  // sync both desc inputs
+  const d1=document.getElementById('tx-desc');
+  const d2=document.getElementById('tx-desc-fields');
+  if(d1&&d1.value!==val)d1.value=val;
+  if(d2&&d2.value!==val)d2.value=val;
+  onDescInput(val);
+}
 function enterFieldsMode(){
   try{
     const sa=document.getElementById('screen-add');
     if(!sa||sa.classList.contains('fields-mode'))return;
     sa.classList.add('fields-mode');
-    // scroll fields to top
     const fw=document.getElementById('add-fields-wrap');
     if(fw)fw.scrollTop=0;
-    // focus stays on tx-desc (already focused)
+    // sync desc value and focus fields version
+    const d1=document.getElementById('tx-desc');
+    const d2=document.getElementById('tx-desc-fields');
+    if(d1&&d2){d2.value=d1.value;setTimeout(()=>{d2.focus();d2.setSelectionRange(d2.value.length,d2.value.length);},100);}
   }catch(e){}
 }
 function exitFieldsMode(){
@@ -2892,7 +2924,9 @@ function setTransType(t){
 // ── SAVE ──
 async function saveTransaction(syncAfter=false){
   if(!amountCents){toast('Digite um valor','error');return;}
-  const _descCheck=document.getElementById('tx-desc')?.value.trim();
+  const _d1=document.getElementById('tx-desc')?.value.trim()||'';
+  const _d2=document.getElementById('tx-desc-fields')?.value.trim()||'';
+  const _descCheck=_d1||_d2;
   if(!_descCheck){toast('Digite uma descrição','error');document.getElementById('tx-desc')?.focus();return;}
 
   // ── TRANSFERÊNCIA ──
@@ -2933,7 +2967,8 @@ async function saveTransaction(syncAfter=false){
       toast('Transferência realizada!','success');
     }catch(e){toast('Salvo localmente','');}
     amountCents=0;opPending=null;prevCents=0;displayMode='reais';secondInt=0;updVal();
-    document.getElementById('tx-desc').value='';
+    const _dEl=document.getElementById('tx-desc');if(_dEl)_dEl.value='';
+  const _dEl2=document.getElementById('tx-desc-fields');if(_dEl2)_dEl2.value='';
     window._selectedDate=null;
     resetTransfFields();exitFieldsMode();resetConsolidado();resetParcel();
     const _ft=document.getElementById('fv-tipo');if(_ft){_ft.textContent='Pasta';_ft.classList.add('ph');}
@@ -2946,7 +2981,7 @@ async function saveTransaction(syncAfter=false){
   else{setTimeout(()=>goScreen('dash'),600);}
     return;
   }
-  const desc=document.getElementById('tx-desc').value.trim();
+  const desc=(document.getElementById('tx-desc')?.value.trim()||document.getElementById('tx-desc-fields')?.value.trim()||'');
   const cat=selCat||selTipo||'Outros';
   const tipo=selTipo||'';
   const acc=selConta||getDefaultAccount();
