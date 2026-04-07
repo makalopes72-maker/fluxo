@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(145deg,#FF007F,#006060);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFF0F8 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(255,240,248,.65) !important;}
-  #splash .splash-version{color:rgba(255,240,248,.35) !important;}
-  #splash .splash-btn{background:#FFF0F8 !important;color:#FF007F !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFF0F8 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(135deg,#064E3B,#1D4ED8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECFDF5 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(236,253,245,.65) !important;}
+  #splash .splash-version{color:rgba(236,253,245,.35) !important;}
+  #splash .splash-btn{background:#ECFDF5 !important;color:#064E3B !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECFDF5 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -232,14 +232,16 @@
   .add-valor-area.c-entrada{background:var(--accent2);}
   .add-valor-lbl{font-size:.65rem;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px;}
   .add-valor-num{font-family:var(--font-display);font-size:2rem;color:#fff;letter-spacing:-1px;line-height:1;}
-  #screen-add.fields-mode .add-valor-num{font-size:1.5rem;}
-  #screen-add.fields-mode .add-valor-area{padding:6px 12px;flex-direction:row;align-items:center;gap:10px;justify-content:space-between;}
+  #screen-add.fields-mode .add-valor-num{font-size:1.4rem;}
+  #screen-add.fields-mode .add-valor-area{padding:6px 14px;flex-direction:row;align-items:center;gap:10px;justify-content:space-between;}
   #screen-add.fields-mode .add-valor-lbl{margin-bottom:0;font-size:.62rem;}
-  #screen-add.fields-mode .add-del-btn{display:none;}
+  #screen-add.fields-mode #add-del-btn{display:none;}
+  /* etapa 2: hint to tap back */
+  #screen-add.fields-mode #add-valor-row::after{content:'↩ toque para editar';font-size:.6rem;color:rgba(255,255,255,.45);padding-right:12px;white-space:nowrap;}
   .add-del-btn{width:56px;border:none;cursor:pointer;background:var(--kp-dark);color:var(--muted);font-size:1.3rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .add-del-btn:active{opacity:.6;}
 
-  .add-kp{display:grid;grid-template-columns:repeat(3,1fr) 64px;grid-template-rows:repeat(4,minmax(80px,1fr));gap:1px;background:var(--border);flex:1;}
+  .add-kp{display:grid;grid-template-columns:repeat(3,1fr) 64px;grid-template-rows:repeat(4,minmax(110px,1fr));gap:1px;background:var(--border);flex:1;}
 
   /* FIELDS MODE — handled in ADD SCREEN section above */
   .add-valor-row{cursor:pointer;}
@@ -1041,13 +1043,13 @@
         <span class="tx-check-ic" style="font-size:.75rem;">✓</span>
       </div>
     </div>
-    <!-- Valor -->
-    <div class="add-valor-row" onclick="exitFieldsMode()">
+    <!-- Valor dentro do left-panel — visível na etapa 1 -->
+    <div class="add-valor-row" id="add-valor-row" onclick="exitFieldsMode()">
       <div class="add-valor-area c-saida" id="add-varea">
         <div class="add-valor-lbl" id="add-vlbl">Nova despesa</div>
         <div class="add-valor-num" id="add-vnum">R$ 0,00</div>
       </div>
-      <button class="add-del-btn" onclick="kp('del')">⌫</button>
+      <button class="add-del-btn" id="add-del-btn" onclick="event.stopPropagation();kp('del')">⌫</button>
     </div>
     <!-- Teclado -->
     <div class="add-kp">
@@ -1065,6 +1067,10 @@
     </div>
     <!-- Right panel: campos + salvar (etapa 2) -->
     <div class="add-right-panel">
+    <!-- Valor compacto etapa 2 — toque para voltar -->
+    <div id="add-valor-compact" onclick="exitFieldsMode()" style="flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--border);background:var(--red);">
+      <div id="add-vnum2" style="font-family:var(--font-display);font-size:1.8rem;color:#fff;letter-spacing:-0.5px;text-align:center;">R$ 0,00</div>
+    </div>
     <div class="add-fields-wrap" id="add-fields-wrap">
       <div class="fields-grid" id="fields-grid">
         <!-- Descrição grande no topo dos campos -->
@@ -1770,7 +1776,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.37';
+const APP_VERSION='12.42';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2896,15 +2902,26 @@ function kp(k){
 }
 function updVal(){
   const el=document.getElementById('add-vnum');
+  const el2=document.getElementById('add-vnum2');
   if(!el)return;
-  if(!opPending){el.textContent='R$ '+(amountCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});}
-  else{const f=(prevCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});const s=displayMode==='inteiro'?(secondInt>0?String(secondInt):''):(amountCents>0?(amountCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2}):'');el.textContent=f+' '+opPending+(s?' '+s:'');}
+  let txt;
+  if(!opPending){txt='R$ '+(amountCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});}
+  else{const f=(prevCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});const s=displayMode==='inteiro'?(secondInt>0?String(secondInt):''):(amountCents>0?(amountCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2}):'');txt=f+' '+opPending+(s?' '+s:'');}
+  el.textContent=txt;
+  if(el2)el2.textContent=txt;
   updParcelTotal();updAdvTotal();
 }
 function setTransType(t){
   txType=t;
   const va=document.getElementById('add-varea'),bs=document.getElementById('btn-saida'),be=document.getElementById('btn-entrada'),bt=document.getElementById('btn-transf'),sb=document.getElementById('btn-save'),lbl=document.getElementById('add-vlbl');
   if(!va||!bs||!be||!sb||!lbl)return;
+  // update compact valor background
+  const vc=document.getElementById('add-valor-compact');
+  if(vc){
+    if(t==='entrada')vc.style.background='var(--accent2)';
+    else if(t==='transferência')vc.style.background='#7c3aed';
+    else vc.style.background='var(--red)';
+  }
   // reset all
   bs.className='add-tipo-btn saida-off';
   be.className='add-tipo-btn entrada-off';
