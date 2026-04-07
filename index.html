@@ -1783,7 +1783,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.48';
+const APP_VERSION='12.49';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3987,6 +3987,18 @@ function confirmCcAjuste(){
 }
 
 
+function seedInstituicoes(){
+  if(instituicoes.length)return;
+  instituicoes=[
+    {id:'safra',name:'Safra',icon:'🏦'},
+    {id:'itau',name:'Itaú',icon:'🏦'},
+    {id:'avenue',name:'Avenue',icon:'🌎'},
+  ];
+  try{localStorage.setItem('fluxo_insts',JSON.stringify(instituicoes));}catch(e){}
+}
+function saveInstituicoes(){
+  try{localStorage.setItem('fluxo_insts',JSON.stringify(instituicoes));}catch(e){}
+}
 function loadInvestimentos(){
   // load global institutions
   try{
@@ -4231,7 +4243,7 @@ function renderAtivos(){
 // ── DETALHE ATIVO ──
 function openAtivo(idx){
   currentAtivoIdx=idx;
-  const a=instituicoes[currentInstIdx].ativos[idx];
+  const a=getInstAtivos(instituicoes[currentInstIdx])[idx];
   const atual=getAtivoAtual(a);
   const rend=atual-a.aplicado;
   const updDate=a.log.length?a.log[a.log.length-1].date:'—';
@@ -4284,7 +4296,7 @@ function openAtivo(idx){
   renderLog();
   const eb=document.getElementById('encerrar-btn');
   if(eb){
-    const _a=instituicoes[currentInstIdx].ativos[idx];
+    const _a=getInstAtivos(instituicoes[currentInstIdx])[idx];
     if(_a&&_a.encerrado){eb.textContent='Reativar investimento';eb.style.borderColor='var(--accent2)';eb.style.color='var(--accent2)';eb.onclick=reativarAtivo;}
     else{eb.textContent='Encerrar investimento';eb.style.borderColor='var(--red)';eb.style.color='var(--red)';eb.onclick=encerrarAtivo;}
   }
@@ -4306,7 +4318,7 @@ function openAtivo(idx){
 }
 
 function renderLog(){
-  const a=instituicoes[currentInstIdx].ativos[currentAtivoIdx];
+  const a=getInstAtivos(instituicoes[currentInstIdx])[currentAtivoIdx];
   const lc=document.getElementById('ativo-log-card');if(!lc)return;
   const reversed=[...a.log].reverse();
   lc.innerHTML=reversed.map((entry,i)=>{
@@ -4357,7 +4369,7 @@ function updAtivoTipos(){
   sel.innerHTML='<option value="">Selecione…</option>'+tipos.map(t=>`<option>${t}</option>`).join('');
 }
 function editAtivo(){
-  const a=instituicoes[currentInstIdx].ativos[currentAtivoIdx];
+  const a=getInstAtivos(instituicoes[currentInstIdx])[currentAtivoIdx];
   const m=document.getElementById('ativo-modal');if(!m)return;
   m.dataset.editMode='1';
   const t=document.getElementById('ativo-modal-title');if(t)t.textContent='Editar ativo';
@@ -4389,7 +4401,7 @@ function editAtivo(){
 }
 function encerrarAtivo(){
   if(!confirm('Encerrar este investimento? O histórico será mantido.'))return;
-  const a=instituicoes[currentInstIdx].ativos[currentAtivoIdx];
+  const a=getInstAtivos(instituicoes[currentInstIdx])[currentAtivoIdx];
   const n=new Date();
   const ds=String(n.getDate()).padStart(2,'0')+'/'+String(n.getMonth()+1).padStart(2,'0')+'/'+n.getFullYear();
   a.encerrado=true;a.dataEncerramento=ds;
@@ -4398,7 +4410,7 @@ function encerrarAtivo(){
 }
 function reativarAtivo(){
   if(!confirm('Reativar este investimento?'))return;
-  const a=instituicoes[currentInstIdx].ativos[currentAtivoIdx];
+  const a=getInstAtivos(instituicoes[currentInstIdx])[currentAtivoIdx];
   a.encerrado=false;delete a.dataEncerramento;
   saveInvestimentos();renderAtivos();openAtivo(currentAtivoIdx);toast('Reativado','success');
 }
@@ -4446,7 +4458,7 @@ function updVal2(){
 
 function saveUpdVal(){
   if(!updCents){toast('Digite o valor','error');return;}
-  const a=instituicoes[currentInstIdx]?.ativos[currentAtivoIdx];
+  const a=getInstAtivos(instituicoes[currentInstIdx])?.[currentAtivoIdx];
   if(!a)return;
   const today=new Date();
   const dateStr=`${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`;
@@ -4502,7 +4514,7 @@ function saveAtivo(){
   const modal=document.getElementById('ativo-modal');
   const isEdit=modal?.dataset.editMode==='1';
   if(isEdit){
-    Object.assign(instituicoes[currentInstIdx].ativos[currentAtivoIdx],getFields());
+    Object.assign(getInstAtivos(instituicoes[currentInstIdx])[currentAtivoIdx],getFields());
     saveInvestimentos();
     const cv=document.getElementById('cart-val');if(cv)cv.textContent=fmtInv(getInstTotal(instituicoes[currentInstIdx]));
     renderAtivos();closeAtivoModal();openAtivo(currentAtivoIdx);toast('Atualizado!','success');
