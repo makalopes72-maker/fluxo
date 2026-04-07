@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(135deg,#14532D,#0891B2);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#ECFDF5 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(236,253,245,.65) !important;}
-  #splash .splash-version{color:rgba(236,253,245,.35) !important;}
-  #splash .splash-btn{background:#ECFDF5 !important;color:#14532D !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECFDF5 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(135deg,#E55B4D,#4A6FA5);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFF5F5 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(255,245,245,.65) !important;}
+  #splash .splash-version{color:rgba(255,245,245,.35) !important;}
+  #splash .splash-btn{background:#FFF5F5 !important;color:#E55B4D !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFF5F5 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1783,7 +1783,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.46';
+const APP_VERSION='12.48';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2540,7 +2540,7 @@ function openTransfDrop(side){
   } else {
     // investimentos
     instituicoes.forEach(inst=>{
-      inst.ativos.filter(a=>!a.encerrado).forEach(a=>{
+      getInstAtivos(inst).filter(a=>!a.encerrado).forEach(a=>{
         items.push({label:inst.name+' › '+a.nome,icon:'📈',id:'inv:'+inst.name+':::'+a.nome});
       });
     });
@@ -2991,7 +2991,7 @@ async function saveTransaction(syncAfter=false){
       if(parts.length<2)return;
       const [instName,ativoNome]=parts;
       const inst=instituicoes.find(i=>i.name===instName);if(!inst)return;
-      const ativo=inst.ativos.find(a=>a.nome===ativoNome);if(!ativo)return;
+      const ativo=getInstAtivos(inst).find(a=>a.nome===ativoNome);if(!ativo)return;
       const prev=getAtivoAtual(ativo);
       const newVal=prev+delta;
       const now2=new Date();
@@ -3988,16 +3988,23 @@ function confirmCcAjuste(){
 
 
 function loadInvestimentos(){
+  // load global institutions
   try{
-    // try per-user key first
-    const userKey='fluxo_inv2_'+(currentUser||'ALE');
-    const su=localStorage.getItem(userKey);
-    if(su){const p=JSON.parse(su);if(p&&p.length>0){instituicoes=p;return;}}
-    // fallback to generic key
-    const s=localStorage.getItem('fluxo_inv2');
-    if(s){const p=JSON.parse(s);if(p&&p.length>0){instituicoes=p;return;}}
+    const s=localStorage.getItem('fluxo_insts');
+    if(s){const p=JSON.parse(s);if(p&&p.length>0)instituicoes=p;}
   }catch(e){}
-  instituicoes=[];
+  if(!instituicoes.length)seedInstituicoes();
+  const u=currentUser||'ALE';
+  // load user ativos
+  try{
+    const s=localStorage.getItem('fluxo_ativos_'+u);
+    if(s)ativosPorUser[u]=JSON.parse(s)||{};
+  }catch(e){}
+  // load user cc
+  try{
+    const s=localStorage.getItem('fluxo_cc_'+u);
+    if(s)ccPorUser[u]=JSON.parse(s)||{};
+  }catch(e){}
 }
 function saveInvestimentos(){
   const u=currentUser||'ALE';
@@ -4081,7 +4088,7 @@ function openCarteira(idx){
   const inst=instituicoes[idx];
   setTimeout(()=>renderCcCard(),50);
   const ct=document.getElementById('cart-title');if(ct)ct.textContent=inst.name;
-  const cs=document.getElementById('cart-sub');if(cs)cs.textContent=inst.ativos.length+' ativos';
+  const cs=document.getElementById('cart-sub');if(cs)cs.textContent=getInstAtivos(inst).filter(a=>!a.encerrado).length+' ativos';
   const cv=document.getElementById('cart-val');if(cv)cv.textContent=fmtInv(getInstTotal(inst));
   renderAtivos();
   goScreen('cart');
@@ -4110,11 +4117,11 @@ function renderCartInPanel(){
   panel.innerHTML=`
     <div class="cart-header" style="flex-shrink:0;">
       <div class="cart-header-top">
-        <div style="font-size:.75rem;color:rgba(255,255,255,.5);">${inst.ativos.length} ativos</div>
+        <div style="font-size:.75rem;color:rgba(255,255,255,.5);">${getInstAtivos(inst).filter(a=>!a.encerrado).length} ativos</div>
         <div class="cart-title">${inst.name}</div>
       </div>
       <div class="cart-header-bottom">
-        <div class="cart-sub" id="cart-sub">${inst.ativos.length} ativos</div>
+        <div class="cart-sub" id="cart-sub">${getInstAtivos(inst).filter(a=>!a.encerrado).length} ativos</div>
         <div class="cart-val" id="cart-val">${fmtInv(getInstTotal(inst))}</div>
       </div>
     </div>
@@ -4133,7 +4140,7 @@ function renderCartInPanel(){
 function renderAtivos(){
   const inst=instituicoes[currentInstIdx];
   const al=document.getElementById('ativo-list');if(!al)return;
-  if(!inst.ativos.length){al.innerHTML='<div class="empty">Nenhum ativo cadastrado</div>';return;}
+  if(!getInstAtivos(inst).length){al.innerHTML='<div class="empty">Nenhum ativo cadastrado</div>';return;}
 
   const buildCard=(a,i)=>{
     const atual=getAtivoAtual(a);
@@ -4911,90 +4918,81 @@ async function loadInstituicoesFromSheets(){
 async function loadInvFromSheets(){
   toast('Carregando investimentos…','');
   try{
-    // fetch raw from Apps Script
-    const url=APPS_SCRIPT_URL+'?sheet=Investimentos';
-    const res=await fetch(url);
-    const json=await res.json();
-    if(!json.ok){toast('Erro ao ler Sheets: '+json.error,'error');return;}
-    const rows=json.data;
-    if(!rows||rows.length<2){toast('Aba Investimentos vazia','error');return;}
-
     const user=currentUser||'ALE';
-    const instMap={};
 
-    // skip header row
-    rows.slice(1).forEach(r=>{
-      const rowUser=String(r[0]||'').trim();
-      if(rowUser!==user)return;
-      const instName=String(r[1]||'').trim();
-      if(!instName)return;
-      if(!instMap[instName])instMap[instName]={
-        id:'inst_'+instName,name:instName,icon:'🏦',ativos:[]
-      };
-      const nome=String(r[2]||'').trim();
-      if(!nome)return;
-      const aplicado=parseBRNumber(r[5]);
-      const valorAtual=parseBRNumber(r[6])||aplicado;
-      instMap[instName].ativos.push({
-        id:'atv_'+instName+'_'+nome,
-        nome,
-        classe:String(r[3]||''),
-        tipo:String(r[4]||''),
-        aplicado:aplicado,
-        indexador:String(r[7]||''),
-        taxa:String(r[8]||''),
-        dataAplic:normalizeDate(r[9]),
-        vencimento:normalizeDate(r[10]),
-        liquidez:String(r[11]||''),
-        garantia:String(r[12]||''),
-        ir:String(r[13]||''),
-        obs:String(r[14]||''),
-        encerrado:String(r[15]||'')==='Sim',
-        log:valorAtual>0?[{date:new Date().toLocaleDateString('pt-BR'),value:valorAtual,note:'Valor atual'}]:[],
+    // 1. load global institutions
+    await loadInstituicoesFromSheets();
+
+    // 2. load user ativos
+    const res=await fetch(APPS_SCRIPT_URL+'?sheet='+encodeURIComponent('Investimentos'));
+    const json=await res.json();
+    const rows=json.ok?json.data:[];
+    const userAtivos={};
+    if(rows.length>1){
+      rows.slice(1).forEach(r=>{
+        if(String(r[0]||'').trim()!==user)return;
+        const instName=String(r[1]||'').trim();if(!instName)return;
+        const nome=String(r[2]||'').trim();if(!nome)return;
+        if(!userAtivos[instName])userAtivos[instName]=[];
+        const aplicado=parseBRNumber(r[5]);
+        const valorAtual=parseBRNumber(r[6])||aplicado;
+        userAtivos[instName].push({
+          id:'atv_'+instName+'_'+nome,nome,
+          classe:String(r[3]||''),tipo:String(r[4]||''),
+          aplicado,indexador:String(r[7]||''),taxa:String(r[8]||''),
+          dataAplic:normalizeDate(r[9]),vencimento:normalizeDate(r[10]),
+          liquidez:String(r[11]||''),garantia:String(r[12]||''),
+          ir:String(r[13]||''),obs:String(r[14]||''),
+          encerrado:String(r[15]||'')==='Sim',
+          log:valorAtual>0?[{date:new Date().toLocaleDateString('pt-BR'),value:valorAtual,note:'Valor atual'}]:[],
+        });
       });
-    });
+    }
 
-    // fetch log
+    // 3. load log
     try{
-      const logUrl=APPS_SCRIPT_URL+'?sheet=InvestimentosLog';
-      const logRes=await fetch(logUrl);
+      const logRes=await fetch(APPS_SCRIPT_URL+'?sheet='+encodeURIComponent('InvestimentosLog'));
       const logJson=await logRes.json();
       if(logJson.ok&&logJson.data&&logJson.data.length>1){
         logJson.data.slice(1).forEach(l=>{
           if(String(l[0]||'').trim()!==user)return;
           const inst=String(l[1]||'').trim();
           const nome=String(l[2]||'').trim();
-          if(!instMap[inst])return;
-          const ativo=instMap[inst].ativos.find(a=>a.nome===nome);
-          if(!ativo)return;
+          const arr=userAtivos[inst];if(!arr)return;
+          const ativo=arr.find(a=>a.nome===nome);if(!ativo)return;
           const logVal=parseBRNumber(l[4]);
           const logDate=normalizeDate(l[3])||String(l[3]||'');
-          // avoid duplicate from valorAtual
-          const alreadyHas=ativo.log.some(x=>Math.abs(x.value-logVal)<0.01&&x.date===logDate);
-          if(!alreadyHas)ativo.log.push({date:logDate,value:logVal,note:String(l[5]||'')});
+          if(!ativo.log.some(x=>Math.abs(x.value-logVal)<0.01&&x.date===logDate))
+            ativo.log.push({date:logDate,value:logVal,note:String(l[5]||'')});
         });
-        // sort logs by date
-        Object.values(instMap).forEach(inst=>{
-          inst.ativos.forEach(a=>{
-            a.log.sort((x,y)=>{
-              const dx=parseDate(x.date),dy=parseDate(y.date);
-              return (dx||0)-(dy||0);
-            });
-          });
-        });
+        Object.values(userAtivos).forEach(arr=>arr.forEach(a=>
+          a.log.sort((x,y)=>(parseDate(x.date)||0)-(parseDate(y.date)||0))
+        ));
       }
-    }catch(e){console.warn('log fetch failed',e);}
+    }catch(e){console.warn('log fetch fail',e);}
 
-    const result=Object.values(instMap);
-    if(result.length===0){
-      toast('Nenhum dado encontrado para '+user,'error');
-      return;
-    }
-    instituicoes=result;
-    localStorage.setItem('fluxo_inv2_'+user,JSON.stringify(instituicoes));
-    localStorage.setItem('fluxo_inv2',JSON.stringify(instituicoes));
+    // 4. load CC
+    try{
+      const ccRes=await fetch(APPS_SCRIPT_URL+'?sheet='+encodeURIComponent('ContasCorrente'));
+      const ccJson=await ccRes.json();
+      if(ccJson.ok&&ccJson.data&&ccJson.data.length>1){
+        const userCc={};
+        ccJson.data.slice(1).forEach(r=>{
+          if(String(r[0]||'').trim()!==user)return;
+          const inst=String(r[1]||'').trim();if(!inst)return;
+          userCc[inst]={saldo:parseBRNumber(r[2])||0,lastAdj:String(r[3]||'')};
+        });
+        ccPorUser[user]=userCc;
+        localStorage.setItem('fluxo_cc_'+user,JSON.stringify(userCc));
+      }
+    }catch(e){console.warn('CC fetch fail',e);}
+
+    // 5. save and render
+    ativosPorUser[user]=userAtivos;
+    localStorage.setItem('fluxo_ativos_'+user,JSON.stringify(userAtivos));
     renderInv();
-    toast(result.length+' instituição(ões) · '+result.reduce((s,i)=>s+i.ativos.length,0)+' ativos','success');
+    const total=Object.values(userAtivos).reduce((s,a)=>s+a.length,0);
+    toast(instituicoes.length+' institui\u00e7\u00f5es · '+total+' ativos','success');
   }catch(e){
     toast('Erro: '+e.message,'error');
     console.error('[INV] loadInvFromSheets error:',e);
@@ -5105,7 +5103,7 @@ async function pushToSheets(dataset){
       const logHeader=['Usuário','Instituição','Ativo','Data','Valor','Nota'];
       const logRows=[logHeader];
       instituicoes.forEach(inst=>{
-        (inst.ativos||[]).forEach(a=>{
+        (getInstAtivos(inst)||[]).forEach(a=>{
           const cur=a.log&&a.log.length?a.log[a.log.length-1].value:a.aplicado;
           ativoRows.push([
             user, inst.name, a.nome, a.classe||'', a.tipo||'',
