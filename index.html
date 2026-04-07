@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(135deg,#064E3B,#1D4ED8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#ECFDF5 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(236,253,245,.65) !important;}
-  #splash .splash-version{color:rgba(236,253,245,.35) !important;}
-  #splash .splash-btn{background:#ECFDF5 !important;color:#064E3B !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECFDF5 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(150deg,#92400E,#1E3A5F);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFFBEB !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(255,251,235,.65) !important;}
+  #splash .splash-version{color:rgba(255,251,235,.35) !important;}
+  #splash .splash-btn{background:#FFFBEB !important;color:#92400E !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFFBEB !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1034,22 +1034,29 @@
   <!-- ADD -->
   <div id="screen-add">
     <div class="add-left-panel">
-    <!-- Saída / Entrada -->
-    <div class="add-tipo-row">
-      <button class="add-tipo-btn saida-on" id="btn-saida" onclick="setTransType('saída')">↓ Saída</button>
-      <button class="add-tipo-btn entrada-off" id="btn-entrada" onclick="setTransType('entrada')">↑ Entrada</button>
-      <button class="add-tipo-btn transf-off" id="btn-transf" onclick="setTransType('transferência')">⇄ Transf.</button>
-      <div id="consol-check" class="tx-check on" onclick="toggleConsolidado()" style="width:46px;height:100%;border-radius:0;border:none;border-left:1px solid var(--border);background:var(--kp-dark);flex-shrink:0;">
-        <span class="tx-check-ic" style="font-size:.75rem;">✓</span>
+    <!-- Saída/Entrada + Valor com coluna lateral de ações -->
+    <div style="display:flex;flex-direction:row;flex-shrink:0;">
+      <!-- Botões tipo + valor (coluna principal) -->
+      <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
+        <div class="add-tipo-row" style="flex-shrink:0;">
+          <button class="add-tipo-btn saida-on" id="btn-saida" onclick="setTransType('saída')">↓ Saída</button>
+          <button class="add-tipo-btn entrada-off" id="btn-entrada" onclick="setTransType('entrada')">↑ Entrada</button>
+          <button class="add-tipo-btn transf-off" id="btn-transf" onclick="setTransType('transferência')">⇄ Transf.</button>
+        </div>
+        <div class="add-valor-row" id="add-valor-row" onclick="exitFieldsMode()" style="flex:1;">
+          <div class="add-valor-area c-saida" id="add-varea" style="min-height:60px;">
+            <div class="add-valor-lbl" id="add-vlbl">Nova despesa</div>
+            <div class="add-valor-num" id="add-vnum">R$ 0,00</div>
+          </div>
+        </div>
       </div>
-    </div>
-    <!-- Valor dentro do left-panel — visível na etapa 1 -->
-    <div class="add-valor-row" id="add-valor-row" onclick="exitFieldsMode()">
-      <div class="add-valor-area c-saida" id="add-varea">
-        <div class="add-valor-lbl" id="add-vlbl">Nova despesa</div>
-        <div class="add-valor-num" id="add-vnum">R$ 0,00</div>
+      <!-- Coluna lateral: consolidado em cima, backspace embaixo, mesma altura total -->
+      <div style="display:flex;flex-direction:column;width:56px;flex-shrink:0;border-left:1px solid var(--border);align-self:stretch;">
+        <div id="consol-check" class="tx-check on" onclick="toggleConsolidado()" style="flex:1;border-radius:0;border:none;border-bottom:1px solid var(--border);background:var(--kp-dark);display:flex;align-items:center;justify-content:center;cursor:pointer;min-height:40px;">
+          <span class="tx-check-ic" style="font-size:.75rem;">✓</span>
+        </div>
+        <button class="add-del-btn" id="add-del-btn" onclick="kp('del')" style="flex:1;width:100%;min-height:40px;">⌫</button>
       </div>
-      <button class="add-del-btn" id="add-del-btn" onclick="event.stopPropagation();kp('del')">⌫</button>
     </div>
     <!-- Teclado -->
     <div class="add-kp">
@@ -1776,7 +1783,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.42';
+const APP_VERSION='12.44';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
