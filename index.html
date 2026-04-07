@@ -238,7 +238,8 @@
   .add-del-btn{width:56px;border:none;cursor:pointer;background:var(--kp-dark);color:var(--muted);font-size:1.3rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .add-del-btn:active{opacity:.6;}
 
-  .add-kp{display:grid;grid-template-columns:repeat(3,1fr) 64px;grid-template-rows:repeat(4,1fr);gap:1px;background:var(--border);flex:1;min-height:220px;}
+  .add-kp{display:grid;grid-template-columns:repeat(3,1fr) 64px;grid-template-rows:repeat(4,1fr);gap:1px;background:var(--border);flex:1;min-height:240px;}
+    #screen-add .add-kp{flex:1 !important;flex-shrink:0;}
 
   /* FIELDS MODE — handled in ADD SCREEN section above */
   .add-valor-row{cursor:pointer;}
@@ -1769,7 +1770,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.34';
+const APP_VERSION='12.35';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2299,34 +2300,28 @@ function getAllKeywords(){
 }
 
 function onDescInput(val){
-  // update both dropdowns
-  const acFields=document.getElementById('ac-drop-fields');
-  const ac=document.getElementById('ac-drop');
-  const activeAc=document.getElementById('screen-add')?.classList.contains('fields-mode')?acFields:ac;
-  if(!activeAc)return;
-  // hide the other one
-  if(ac&&ac!==activeAc)ac.style.display='none';
-  if(acFields&&acFields!==activeAc)acFields.style.display='none';
-  const acUse=activeAc;
-  if(!acUse)return;
-  if(!val||val.length<2){acUse.style.display='none';return;}
+  const isFields=document.getElementById('screen-add')?.classList.contains('fields-mode');
+  const acShow=document.getElementById(isFields?'ac-drop-fields':'ac-drop');
+  const acHide=document.getElementById(isFields?'ac-drop':'ac-drop-fields');
+  if(acHide)acHide.style.display='none';
+  if(!acShow)return;
+  if(!val||val.length<2){acShow.style.display='none';return;}
   const q=val.toLowerCase();
   const all=getAllKeywords();
   const matches=all.filter(k=>k.kw.includes(q)||q.includes(k.kw.substring(0,3)));
-  // deduplicate by kwOrig
   const seen=new Set();
   const uniq=matches.filter(m=>{if(seen.has(m.kwOrig))return false;seen.add(m.kwOrig);return true;});
-  if(!uniq.length){ac.style.display='none';return;}
-  const hi=(text,q)=>{const i=text.toLowerCase().indexOf(q);if(i<0)return text;return text.slice(0,i)+'<span class="ac-item-match">'+text.slice(i,i+q.length)+'</span>'+text.slice(i+q.length);};
+  if(!uniq.length){acShow.style.display='none';return;}
+  const hi=(txt,q)=>{const i=txt.toLowerCase().indexOf(q);if(i<0)return txt;return txt.slice(0,i)+'<span class="ac-item-match">'+txt.slice(i,i+q.length)+'</span>'+txt.slice(i+q.length);};
   acShow.innerHTML=uniq.slice(0,8).map(m=>`
-    <div class="ac-item" onclick="selectKeyword('${m.kwOrig.replace(/'/g,"\'")}','${m.tipo.replace(/'/g,"\'")}','${m.cat.replace(/'/g,"\'")}')">
+    <div class="ac-item" onclick="selectKeyword('${m.kwOrig.replace(/'/g,"\\'")}','${m.tipo.replace(/'/g,"\\'")}','${m.cat.replace(/'/g,"\\'")}')">
       <span class="ac-item-ic">${TIPO_ICONS[m.tipo]||'📁'}</span>
       <div class="ac-item-info">
         <div class="ac-item-desc">${hi(m.kwOrig,q)}</div>
         <div class="ac-item-cat">${m.tipo} › ${m.cat}</div>
       </div>
     </div>`).join('');
-  ac.style.display='block';
+  acShow.style.display='block';
 }
 
 function selectKeyword(kw, tipo, cat){
