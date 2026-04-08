@@ -18,7 +18,7 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#365314,#0EA5E9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash{position:fixed;inset:0;background:linear-gradient(135deg,#0F172A,#059669);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
   #splash .splash-logo{color:#F7FEE7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
   #splash .splash-sub{color:rgba(247,254,231,.65) !important;}
   #splash .splash-version{color:rgba(247,254,231,.35) !important;}
@@ -894,154 +894,6 @@
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
   #toast.success{border-color:var(--btn);color:var(--btn);}
   #toast.error{border-color:var(--red);color:var(--red);}
-  /* ═══════════════════════════════════════════
-     WEB MODE — orientation: landscape
-     Mobile (portrait) untouched
-  ═══════════════════════════════════════════ */
-  @media (orientation:landscape){
-
-    /* hide mobile header and hamburger */
-    #app>header{display:none !important;}
-
-    /* app becomes full-screen flex row */
-    #app{flex-direction:row !important;height:100vh !important;overflow:hidden !important;}
-
-    /* side-menu becomes fixed left sidebar */
-    #side-menu{
-      position:relative !important;
-      transform:none !important;
-      width:180px !important;
-      height:100vh !important;
-      flex-shrink:0;
-      display:flex !important;
-      flex-direction:column;
-      background:var(--bg);
-      border-right:1px solid var(--border);
-      z-index:10;
-      overflow:hidden;
-    }
-    /* hide mobile-only elements inside menu */
-    #side-menu .menu-collapse-btn{display:none;}
-    /* always show labels in web */
-    #side-menu .menu-item-label{display:inline !important;opacity:1 !important;}
-    /* logo at top */
-    #side-menu .menu-brand{
-      padding:14px 16px 10px;
-      border-bottom:1px solid var(--border);
-      order:-1;
-      display:flex;
-      flex-direction:column;
-      gap:2px;
-    }
-    #side-menu .menu-brand-logo{font-family:var(--font-display);font-size:1.2rem;color:var(--font);}
-    #side-menu .menu-brand-user{font-size:.72rem;color:var(--muted);}
-    #side-menu .menu-nav{flex:1;overflow-y:auto;padding:6px 0;}
-    #side-menu .menu-footer{order:99;}
-    /* menu overlay off */
-    #menu-overlay{display:none !important;}
-
-    /* app-content becomes flex row filling remaining space */
-    #app-content{
-      flex:1;
-      min-width:0;
-      overflow:hidden;
-    }
-
-    /* desktop header visible */
-    #desktop-header{display:flex !important;}
-
-    /* all screens fill the content area */
-    .screen,#screen-add,#screen-hist,#screen-inv,#screen-orc,#screen-cfg{
-      flex:1;
-      min-height:0;
-      overflow:hidden;
-    }
-
-    /* web right panel — initially hidden, shown per screen */
-    #web-right-panel{
-      width:300px;
-      flex-shrink:0;
-      display:flex;
-      flex-direction:column;
-      background:var(--bg);
-      border-left:1px solid var(--border);
-      overflow:hidden;
-    }
-
-    /* wrap content + right panel horizontally */
-    #web-body{
-      flex:1;
-      display:flex;
-      flex-direction:row;
-      overflow:hidden;
-      min-height:0;
-    }
-  }
-
-  /* portrait — keep right panel hidden */
-  @media (orientation:portrait){
-    #web-right-panel{display:none !important;}
-    #web-body{display:contents;}
-    #desktop-header{display:none !important;}
-  }
-
-  /* body.web-mode overrides — same as landscape but JS-controlled */
-  body.web-mode #app>header{display:none !important;}
-  body.web-mode #app{display:flex !important;flex-direction:row !important;height:100vh !important;overflow:hidden !important;width:100%;}
-  body.web-mode #side-menu{position:relative !important;transform:none !important;width:180px !important;height:100vh !important;flex-shrink:0;display:flex !important;flex-direction:column;background:var(--bg);border-right:1px solid var(--border);z-index:10;overflow:hidden;}
-  body.web-mode #side-menu .menu-item-label{display:inline !important;opacity:1 !important;}
-  body.web-mode #side-menu .menu-brand{padding:14px 16px 10px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:2px;}
-  body.web-mode #side-menu .menu-brand-logo{font-family:var(--font-display);font-size:1.2rem;color:var(--font);}
-  body.web-mode #side-menu .menu-brand-user{font-size:.72rem;color:var(--muted);}
-  body.web-mode #side-menu .menu-nav{flex:1;overflow-y:auto;padding:6px 0;}
-  body.web-mode #menu-overlay{display:none !important;}
-  body.web-mode #web-body{flex:1 !important;display:flex !important;flex-direction:row !important;overflow:hidden !important;min-height:0;height:100%;}
-  body.web-mode #app-content{flex:1;display:flex !important;flex-direction:column;overflow:hidden;min-width:0;min-height:0;height:100%;}
-  body.web-mode #desktop-header{display:flex !important;}
-  body.web-mode #web-right-panel{width:300px;flex-shrink:0;display:flex !important;flex-direction:column;background:var(--bg);border-left:1px solid var(--border);overflow:hidden;height:100%;}
-  body.portrait-mode #web-right-panel{display:none !important;}
-  body.portrait-mode #desktop-header{display:none !important;}
-  body.portrait-mode #web-body{display:contents;}
-
-  /* ── WEB: Lançar + Extrato ── */
-  /* web-mode: screen-add hidden, screen-hist shows in center */
-  body.web-mode #screen-add{display:none !important;}
-  body.web-mode #screen-add.active{display:none !important;}
-  body.web-mode #screen-hist{display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0;height:100%;}
-  body.web-mode #screen-hist.web-active{display:flex !important;}
-  /* web right panel: launch form */
-  #web-launch-panel{display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden;}
-  body.web-mode.launch-active #web-launch-panel{display:flex;}
-
-  /* web launch form inside right panel */
-  .wlp-tipo{display:flex;flex-shrink:0;border-bottom:1px solid var(--border);}
-  .wlp-tipo-btn{flex:1;padding:8px 4px;text-align:center;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;border:none;cursor:pointer;background:var(--bg);color:var(--muted);transition:all .15s;}
-  .wlp-tipo-btn.saida-on{background:var(--red);color:#fff;}
-  .wlp-tipo-btn.entrada-on{background:var(--accent2);color:#fff;}
-  .wlp-tipo-btn.transf-on{background:#7c3aed;color:#fff;}
-  .wlp-valor{flex-shrink:0;cursor:pointer;}
-  .wlp-kp{display:grid;grid-template-columns:repeat(3,1fr) 52px;gap:1px;background:var(--border);flex-shrink:0;}
-  .wlp-k{background:var(--kp);display:flex;align-items:center;justify-content:center;font-family:var(--font-body);font-size:1.3rem;font-weight:700;color:var(--font);cursor:pointer;padding:12px 0;user-select:none;transition:background .1s;}
-  .wlp-k:active{opacity:.7;}
-  .wlp-k.op{font-size:1.1rem;color:var(--muted);background:var(--kp-dark);}
-  .wlp-k.eq{background:var(--btn);color:#0f0f11;}
-  .wlp-fields{flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:6px;}
-  .wlp-fields::-webkit-scrollbar{display:none;}
-  .wlp-field{background:var(--card);border-radius:10px;display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;position:relative;}
-  .wlp-field-input{width:100%;border:none;background:transparent;color:var(--font);font-family:var(--font-body);font-size:.95rem;font-weight:500;outline:none;}
-  .wlp-field-input::placeholder{color:var(--muted);}
-  .wlp-field-val{flex:1;font-size:.9rem;font-weight:500;color:var(--font);}
-  .wlp-field-val.ph{color:var(--muted);}
-  .wlp-field-ic{font-size:.95rem;flex-shrink:0;}
-  .wlp-field-row{display:flex;gap:6px;}
-  .wlp-field-row .wlp-field{flex:1;}
-  .wlp-save{flex-shrink:0;display:flex;gap:6px;padding:8px 10px 12px;border-top:1px solid var(--border);}
-  .wlp-btn-sync{flex:1;padding:11px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.75rem;cursor:pointer;}
-  .wlp-btn-save{flex:1;padding:11px;border-radius:10px;border:none;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.85rem;font-weight:800;letter-spacing:.04em;cursor:pointer;text-transform:uppercase;}
-  /* web extrato table click */
-  body.web-mode .ext-table tr{cursor:pointer;}
-  body.web-mode .ext-table tr:hover td{background:var(--kp);}
-  body.web-mode .ext-table tr.editing-row td{background:var(--btn);color:#0f0f11;font-weight:600;}
 
 </style>
 </head>
@@ -1101,7 +953,6 @@
       <div class="user-tag" id="user-tag">ALE</div>
     </div>
   </header>
-  <div id="web-body" style="flex:1;display:flex;flex-direction:row;overflow:hidden;min-height:0;">
   <div id="app-content">
   <!-- desktop top bar -->
   <div id="desktop-header">
@@ -1933,7 +1784,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.03';
+const APP_VERSION='12.52';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2923,10 +2774,6 @@ function logout(){
 // ── NAV ──
 function goScreen(name){
   try{exitFieldsMode();}catch(e){}
-  // deactivate web launch if switching away
-  document.body.classList.remove('launch-active');
-  const _wlph=document.getElementById('screen-hist');
-  if(_wlph)_wlph.classList.remove('web-active');
   // hide all special screens
   const _sh=document.getElementById('screen-hist');if(_sh)_sh.style.display='none';
   ['inv','cart','ativo'].forEach(s=>{const el=document.getElementById('screen-'+s);if(el)el.style.display='none';});
@@ -2953,7 +2800,6 @@ function goScreen(name){
     return;
   }
   if(name==='add'){
-    if(isWeb()){wlpActivate();return;}
     const def=getDefaultAccount();
     selConta=def||null;
     const fv=document.getElementById('fv-conta');
@@ -2961,7 +2807,6 @@ function goScreen(name){
     setTodayDate();
     document.getElementById('screen-add').classList.add('active');
   } else if(name==='hist'){
-    if(isWeb()){wlpActivate();return;}
     const sh=document.getElementById('screen-hist');if(sh)sh.style.display='flex';
   } else {
     const sc=document.getElementById('screen-'+name);if(sc)sc.classList.add('active');
@@ -3066,14 +2911,12 @@ function kp(k){
 function updVal(){
   const el=document.getElementById('add-vnum');
   const el2=document.getElementById('add-vnum2');
-  const el3=document.getElementById('wlp-vnum');
-  if(!el&&!el3)return;
+  if(!el)return;
   let txt;
   if(!opPending){txt='R$ '+(amountCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});}
   else{const f=(prevCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});const s=displayMode==='inteiro'?(secondInt>0?String(secondInt):''):(amountCents>0?(amountCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2}):'');txt=f+' '+opPending+(s?' '+s:'');}
-  if(el)el.textContent=txt;
+  el.textContent=txt;
   if(el2)el2.textContent=txt;
-  if(el3)el3.textContent=txt;
   updParcelTotal();updAdvTotal();
 }
 function setTransType(t){
@@ -3681,7 +3524,7 @@ function renderHistory(){
       const cls=consol?'':'not-consolidated';
       const valCls=t.type==='entrada'?'val-in':'val-out';
       const sign=t.type==='entrada'?'+':'-';
-      return `<tr class="${cls}" onclick="isWeb()?wlpLoadTx(${idx}):openEdit(${idx})" style="cursor:pointer;">
+      return `<tr class="${cls}" onclick="openEdit(${idx})" style="cursor:pointer;">
         <td class="ext-check" onclick="event.stopPropagation();toggleTxConsolidado(${idx},event)" style="text-align:center;">
           <span style="color:${consol?'var(--accent2)':'var(--border)'};font-size:1rem;">✓</span>
         </td>
@@ -5355,323 +5198,9 @@ window.addEventListener('resize',()=>{
 loadPrefs();
 const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+APP_VERSION;
 
-// ── WEB LAUNCH PANEL ──
-let wlpTipo='saída', wlpSelTipo=null, wlpSelCat=null, wlpSelConta=null, wlpDate=null, wlpEditingId=null;
 
-function wlpInit(){
-  // sync wlp with same kp engine (amountCents etc)
-  wlpSetType('saída');
-  const def=getDefaultAccount();
-  if(def){wlpSelConta=def;const el=document.getElementById('wlp-fv-conta');if(el){el.textContent=def;el.classList.remove('ph');}}
-  wlpSetDate(new Date());
-  wlpEditingId=null;
-  const sb=document.getElementById('wlp-btn-save');if(sb)sb.textContent='SALVAR';
-  // reset value
-  amountCents=0;opPending=null;prevCents=0;displayMode='reais';secondInt=0;wlpUpdVal();
-}
-
-function wlpSetType(t){
-  wlpTipo=t;txType=t;
-  ['saida','entrada','transf'].forEach(k=>{
-    const btn=document.getElementById('wlp-btn-'+k);if(!btn)return;
-    btn.className='wlp-tipo-btn '+k+'-off';
-  });
-  const map={saída:'saida',entrada:'entrada',transferência:'transf'};
-  const k=map[t]||'saida';
-  const btn=document.getElementById('wlp-btn-'+k);
-  if(btn)btn.className='wlp-tipo-btn '+k+'-on';
-  // sync valor area color
-  const va=document.getElementById('wlp-varea');
-  if(va){va.className='add-valor-area '+(t==='entrada'?'c-entrada':t==='transferência'?'c-transf':'c-saida');}
-  const lbl=document.getElementById('wlp-vlbl');
-  if(lbl)lbl.textContent=t==='entrada'?'Nova receita':t==='transferência'?'Transferência':'Nova despesa';
-  // also sync mobile buttons
-  setTransType(t);
-}
-
-function wlpUpdVal(){
-  // wlp mirrors the main kp engine
-  const el=document.getElementById('wlp-vnum');
-  const el2=document.getElementById('add-vnum');
-  const el3=document.getElementById('add-vnum2');
-  let txt;
-  if(!opPending){txt='R$ '+(amountCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});}
-  else{const f=(prevCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});const s=displayMode==='inteiro'?(secondInt>0?String(secondInt):''):(amountCents>0?(amountCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2}):'');txt=f+' '+opPending+(s?' '+s:'');}
-  if(el)el.textContent=txt;
-  if(el2)el2.textContent=txt;
-  if(el3)el3.textContent=txt;
-}
-
-function wlpSyncDesc(val){
-  // sync with ac-drop-wlp
-  const d1=document.getElementById('tx-desc');if(d1)d1.value=val;
-  const d2=document.getElementById('tx-desc-fields');if(d2)d2.value=val;
-  // show autocomplete
-  const ac=document.getElementById('ac-drop-wlp');
-  if(!ac)return;
-  if(!val||val.length<2){ac.style.display='none';return;}
-  const q=val.toLowerCase();
-  const all=getAllKeywords();
-  const matches=all.filter(k=>k.kw.includes(q)||q.includes(k.kw.substring(0,3)));
-  const seen=new Set();
-  const uniq=matches.filter(m=>{if(seen.has(m.kwOrig))return false;seen.add(m.kwOrig);return true;});
-  if(!uniq.length){ac.style.display='none';return;}
-  const hi=(txt,q)=>{const i=txt.toLowerCase().indexOf(q);if(i<0)return txt;return txt.slice(0,i)+'<span class="ac-item-match">'+txt.slice(i,i+q.length)+'</span>'+txt.slice(i+q.length);};
-  ac.innerHTML=uniq.slice(0,6).map(m=>`
-    <div class="ac-item" onclick="wlpSelectKw('${m.kwOrig.replace(/'/g,"\'")}','${m.tipo.replace(/'/g,"\'")}','${m.cat.replace(/'/g,"\'")}')">
-      <span class="ac-item-ic">${TIPO_ICONS[m.tipo]||'📁'}</span>
-      <div class="ac-item-info"><div class="ac-item-desc">${hi(m.kwOrig,q)}</div><div class="ac-item-cat">${m.tipo} › ${m.cat}</div></div>
-    </div>`).join('');
-  ac.style.display='block';
-}
-
-function wlpSelectKw(kw,tipo,cat){
-  const d=document.getElementById('wlp-desc');if(d)d.value=kw;
-  const ac=document.getElementById('ac-drop-wlp');if(ac)ac.style.display='none';
-  wlpSelTipo=tipo;wlpSelCat=cat;
-  const fvt=document.getElementById('wlp-fv-tipo');
-  if(fvt){fvt.textContent=(TIPO_ICONS[tipo]||'📁')+' '+tipo;fvt.classList.remove('ph');}
-  const fvc=document.getElementById('wlp-fv-cat');
-  if(fvc){fvc.textContent=cat;fvc.classList.remove('ph');}
-}
-
-function wlpSetDate(d){
-  wlpDate=d;
-  const el=document.getElementById('wlp-fv-date');
-  if(el)el.textContent=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
-}
-function wlpOpenDate(){
-  const inp=document.createElement('input');inp.type='date';
-  const d=wlpDate||new Date();
-  inp.value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  inp.style.cssText='position:fixed;top:-100px;opacity:0;';
-  document.body.appendChild(inp);
-  inp.addEventListener('change',()=>{
-    const parts=inp.value.split('-');
-    wlpSetDate(new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2])));
-    inp.remove();
-  });
-  inp.focus();inp.click();
-  setTimeout(()=>{if(document.body.contains(inp))inp.remove();},30000);
-}
-
-function wlpToggleDrop(field){
-  // reuse existing dropdown system but populate wlp fields
-  const drop=document.getElementById('wlp-drop-main');if(!drop)return;
-  // build dropdown items
-  let items=[];
-  if(field==='tipo'){
-    items=getTiposList().map(t=>`<div class="drop-item" onclick="wlpPickTipo('${t.replace(/'/g,"\'")}')">
-      ${TIPO_ICONS[t]||'📁'} ${t}</div>`);
-  } else if(field==='cat'){
-    const tipo=wlpSelTipo;
-    items=getCatsList(tipo).map(c=>`<div class="drop-item" onclick="wlpPickCat('${c.replace(/'/g,"\'")}')"> ${c}</div>`);
-  } else if(field==='conta'){
-    const user=currentUser||'ALE';
-    const accts=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS'));
-    items=accts.map(a=>`<div class="drop-item" onclick="wlpPickConta('${a.name.replace(/'/g,"\'")}')">🏦 ${a.name}</div>`);
-  }
-  if(!items.length){drop.innerHTML='';return;}
-  const isOpen=drop.querySelector('.drop-panel');
-  if(isOpen){drop.innerHTML='';return;}
-  drop.innerHTML=`<div class="drop-panel" style="position:relative;max-height:180px;overflow-y:auto;">${items.join('')}</div>`;
-}
-
-function wlpPickTipo(t){
-  wlpSelTipo=t;wlpSelCat=null;
-  const el=document.getElementById('wlp-fv-tipo');
-  if(el){el.textContent=(TIPO_ICONS[t]||'📁')+' '+t;el.classList.remove('ph');}
-  const elc=document.getElementById('wlp-fv-cat');
-  if(elc){elc.textContent='Categoria';elc.classList.add('ph');}
-  const drop=document.getElementById('wlp-drop-main');if(drop)drop.innerHTML='';
-}
-function wlpPickCat(c){
-  wlpSelCat=c;
-  const el=document.getElementById('wlp-fv-cat');
-  if(el){el.textContent=c;el.classList.remove('ph');}
-  const drop=document.getElementById('wlp-drop-main');if(drop)drop.innerHTML='';
-}
-function wlpPickConta(a){
-  wlpSelConta=a;
-  const el=document.getElementById('wlp-fv-conta');
-  if(el){el.textContent=a;el.classList.remove('ph');}
-  const drop=document.getElementById('wlp-drop-main');if(drop)drop.innerHTML='';
-}
-
-function wlpLoadTx(idx){
-  // load existing tx into wlp for editing
-  const t=allData[idx];if(!t)return;
-  wlpEditingId=idx;
-  wlpSetType(t.type==='entrada'?'entrada':t.type==='saída'||t.type==='saida'?'saída':'transferência');
-  amountCents=Math.round((t.value||0)*100);opPending=null;prevCents=0;secondInt=0;displayMode='reais';wlpUpdVal();
-  const d=document.getElementById('wlp-desc');if(d)d.value=t.desc||'';
-  wlpSelTipo=t.tipo||t.cat||'';wlpSelCat=t.cat||'';wlpSelConta=t.account||'';
-  const fvt=document.getElementById('wlp-fv-tipo');if(fvt){fvt.textContent=(TIPO_ICONS[wlpSelTipo]||'📁')+' '+wlpSelTipo;fvt.classList.remove('ph');}
-  const fvc=document.getElementById('wlp-fv-cat');if(fvc){fvc.textContent=wlpSelCat;fvc.classList.remove('ph');}
-  const fvco=document.getElementById('wlp-fv-conta');if(fvco){fvco.textContent=wlpSelConta;fvco.classList.remove('ph');}
-  if(t.date){const p=t.date.split('/');if(p.length===3)wlpSetDate(new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0])));}
-  // highlight row in table
-  document.querySelectorAll('.ext-table tr.editing-row').forEach(r=>r.classList.remove('editing-row'));
-  const rows=document.querySelectorAll('.ext-table tbody tr');
-  if(rows[idx])rows[idx].classList.add('editing-row');
-  const sb=document.getElementById('wlp-btn-save');if(sb)sb.textContent='ATUALIZAR';
-  const rh=document.getElementById('web-rp-title');if(rh)rh.textContent='Editando #'+(t._id||'?');
-}
-
-async function wlpSave(doSync){
-  const desc=document.getElementById('wlp-desc')?.value.trim()||'';
-  const val=amountCents/100;
-  if(!val){toast('Valor inválido','error');return;}
-  const dateStr=wlpDate?String(wlpDate.getDate()).padStart(2,'0')+'/'+String(wlpDate.getMonth()+1).padStart(2,'0')+'/'+wlpDate.getFullYear():new Date().toLocaleDateString('pt-BR');
-  const displayDesc=desc||(wlpSelCat||wlpSelTipo||'Transação');
-  const btn=document.getElementById('wlp-btn-save');
-  if(btn){btn.textContent='Salvando…';btn.style.opacity='.6';}
-
-  if(wlpEditingId!==null){
-    // UPDATE existing
-    editingIndex=wlpEditingId;
-    const t=allData[editingIndex];
-    window._editDate=dateStr;
-    editPasta=wlpSelTipo;editCat=wlpSelCat;editConta=wlpSelConta;
-    editTransType=wlpTipo;editConsol=t?.consolidated??true;
-    document.getElementById('edit-desc').value=desc;
-    document.getElementById('edit-value').value=val.toFixed(2);
-    await updateTransaction();
-    wlpEditingId=null;
-  } else {
-    // NEW transaction — reuse saveTransaction logic
-    const r={date:dateStr,desc:displayDesc,value:val,cat:wlpSelCat||wlpSelTipo||'Outros',tipo:wlpSelTipo||wlpSelCat||'Outros',account:wlpSelConta||getDefaultAccount()||'',type:wlpTipo,consolidated:true,_transferId:'',_isAdjust:false};
-    const newId=generateTxId();
-    const rowArr=[r.date,r.desc,r.value.toFixed(2).replace('.',','),r.cat,r.tipo,r.account,r.type,r.consolidated?'1':'0',r._transferId,r._isAdjust?'1':'',newId];
-    await sheetsAppend(rowArr);
-    allData.push({_row:allData.length+2,_id:String(newId),...r});
-    toast('Salvo!','success');
-  }
-
-  if(btn){btn.textContent='SALVAR';btn.style.opacity='';}
-  if(doSync)await loadData();
-  renderHistory();renderDash();
-  wlpInit();
-  const rh=document.getElementById('web-rp-title');if(rh)rh.textContent='Lançar';
-}
-
-function wlpActivate(){
-  if(!isWeb())return;
-  // hide all screens first
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  ['add','hist','inv','cart','ativo','orc','cfg'].forEach(n=>{
-    const el=document.getElementById('screen-'+n);
-    if(el){el.style.display='none';el.classList.remove('active','web-active');}
-  });
-  // show hist in center
-  const sh=document.getElementById('screen-hist');
-  if(sh){sh.style.display='flex';sh.classList.add('web-active');}
-  // activate launch panel on right
-  document.body.classList.add('launch-active');
-  const rp=document.getElementById('web-right-panel');
-  if(rp)rp.style.display='flex';
-  const rh=document.getElementById('web-rp-title');
-  if(rh)rh.textContent='Lançar';
-  // highlight menu
-  document.querySelectorAll('.menu-item').forEach(b=>b.classList.remove('active'));
-  const mi=document.getElementById('mitem-add');if(mi)mi.classList.add('active');
-  wlpInit();
-  renderHistory();
-}
-
-// ── WEB MODE detection ──
-function isWeb(){return window.innerWidth>window.innerHeight;}
-
-function applyWebMode(){
-  const web=isWeb();
-  document.body.classList.toggle('web-mode',web);
-  document.body.classList.toggle('portrait-mode',!web);
-  // in web mode, side-menu is always visible (no overlay)
-  const sm=document.getElementById('side-menu');
-  if(sm){
-    if(web){sm.classList.remove('open');}
-  }
-}
-
-// run on load and on resize/rotate
-applyWebMode();
-window.addEventListener('resize',applyWebMode);
-window.addEventListener('orientationchange',()=>setTimeout(applyWebMode,100));
 </script>
 </div><!-- /app-content -->
-  <!-- WEB RIGHT PANEL -->
-  <div id="web-right-panel">
-    <div id="web-rp-header" style="padding:10px 14px;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--font);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
-      <span id="web-rp-title">Painel</span>
-    </div>
-    <div id="web-rp-body" style="flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;">
-      <!-- LAUNCH PANEL -->
-      <div id="web-launch-panel">
-        <!-- tipo -->
-        <div class="wlp-tipo">
-          <button class="wlp-tipo-btn saida-on" id="wlp-btn-saida" onclick="wlpSetType('saída')">↓ Saída</button>
-          <button class="wlp-tipo-btn entrada-off" id="wlp-btn-entrada" onclick="wlpSetType('entrada')">↑ Entrada</button>
-          <button class="wlp-tipo-btn transf-off" id="wlp-btn-transf" onclick="wlpSetType('transferência')">⇄ Transf.</button>
-          <div id="wlp-consol" class="tx-check on" onclick="toggleConsolidado()" style="width:40px;border-radius:0;border:none;border-left:1px solid var(--border);background:var(--kp-dark);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">
-            <span class="tx-check-ic" style="font-size:.7rem;">✓</span>
-          </div>
-        </div>
-        <!-- valor -->
-        <div class="add-valor-row wlp-valor" onclick="exitFieldsMode()" style="flex-shrink:0;">
-          <div class="add-valor-area c-saida" id="wlp-varea">
-            <div class="add-valor-lbl" id="wlp-vlbl">Nova despesa</div>
-            <div class="add-valor-num" id="wlp-vnum">R$ 0,00</div>
-          </div>
-          <button class="add-del-btn" onclick="event.stopPropagation();kp('del')" style="width:52px;">⌫</button>
-        </div>
-        <!-- keypad -->
-        <div class="wlp-kp">
-          <div class="wlp-k" onclick="kp('7')">7</div><div class="wlp-k" onclick="kp('8')">8</div><div class="wlp-k" onclick="kp('9')">9</div><div class="wlp-k op" onclick="kp('÷')">÷</div>
-          <div class="wlp-k" onclick="kp('4')">4</div><div class="wlp-k" onclick="kp('5')">5</div><div class="wlp-k" onclick="kp('6')">6</div><div class="wlp-k op" onclick="kp('×')">×</div>
-          <div class="wlp-k" onclick="kp('1')">1</div><div class="wlp-k" onclick="kp('2')">2</div><div class="wlp-k" onclick="kp('3')">3</div><div class="wlp-k op" onclick="kp('−')">−</div>
-          <div class="wlp-k" onclick="kp('00')">,00</div><div class="wlp-k" onclick="kp('0')">0</div><div class="wlp-k eq" onclick="kp('=')">=</div><div class="wlp-k op" onclick="kp('+')">+</div>
-        </div>
-        <!-- fields -->
-        <div class="wlp-fields">
-          <div class="wlp-field" style="overflow:visible;">
-            <span class="wlp-field-ic">📝</span>
-            <div style="flex:1;position:relative;">
-              <input class="wlp-field-input" id="wlp-desc" placeholder="Descrição" oninput="wlpSyncDesc(this.value)" autocomplete="off">
-              <div class="ac-drop" id="ac-drop-wlp" style="display:none;position:absolute;bottom:calc(100% + 4px);left:-14px;right:-14px;z-index:200;"></div>
-            </div>
-          </div>
-          <div class="wlp-field-row">
-            <div class="wlp-field" id="wlp-fc-tipo" onclick="wlpToggleDrop('tipo')">
-              <span class="wlp-field-ic">📂</span>
-              <span class="wlp-field-val ph" id="wlp-fv-tipo">Pasta</span>
-            </div>
-            <div class="wlp-field" id="wlp-fc-cat" onclick="wlpToggleDrop('cat')">
-              <span class="wlp-field-ic">🏷</span>
-              <span class="wlp-field-val ph" id="wlp-fv-cat">Categoria</span>
-            </div>
-          </div>
-          <div class="wlp-field-row">
-            <div class="wlp-field" id="wlp-fc-date" onclick="wlpOpenDate()">
-              <span class="wlp-field-ic">📅</span>
-              <span class="wlp-field-val" id="wlp-fv-date">Hoje</span>
-            </div>
-            <div class="wlp-field" id="wlp-fc-conta" onclick="wlpToggleDrop('conta')">
-              <span class="wlp-field-ic">🏦</span>
-              <span class="wlp-field-val ph" id="wlp-fv-conta">Conta</span>
-            </div>
-          </div>
-          <!-- dropdowns (reuse existing drop-main system) -->
-          <div id="wlp-drop-main"></div>
-        </div>
-        <!-- save buttons -->
-        <div class="wlp-save">
-          <button class="wlp-btn-sync" id="wlp-btn-sync" onclick="wlpSave(true)">↻ Atualizar</button>
-          <button class="wlp-btn-save" id="wlp-btn-save" onclick="wlpSave(false)">SALVAR</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div><!-- /web-body -->
 </div><!-- /app -->
 </body>
 </html>
