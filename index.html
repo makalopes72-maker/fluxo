@@ -902,6 +902,8 @@
   #web-app{display:none;}
   @media(orientation:landscape){
     #app{display:none !important;}
+    #side-menu{display:none !important;}
+    #menu-overlay{display:none !important;}
     #web-app{
       display:flex;
       position:fixed;
@@ -1953,7 +1955,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.01';
+const APP_VERSION='13.03';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5537,7 +5539,7 @@ function waRenderExtrato(){
           <th style="padding:7px 12px;text-align:left;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);">Categoria</th>
           <th style="padding:7px 12px;text-align:left;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);">Conta</th>
           <th style="padding:7px 4px;text-align:right;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);">Valor</th>
-          <th style="padding:7px 12px;text-align:right;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);">ID</th>
+
         </tr>
       </thead>
       <tbody>
@@ -5552,7 +5554,7 @@ function waRenderExtrato(){
             <td style="padding:8px 12px;font-size:.75rem;color:var(--muted);">${t.cat||'—'}</td>
             <td style="padding:8px 12px;font-size:.75rem;color:var(--muted);">${t.account||'—'}</td>
             <td style="padding:8px 4px;text-align:right;font-size:.82rem;font-weight:700;color:${color};white-space:nowrap;">${isIn?'+':'-'}${fmt(t.value)}</td>
-            <td style="padding:8px 12px;text-align:right;font-size:.65rem;color:var(--muted);opacity:.5;">${t._id?'#'+t._id:''}</td>
+
           </tr>`;
         }).join('')}
       </tbody>
