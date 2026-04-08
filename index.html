@@ -1031,7 +1031,7 @@
   #wa-center-body .wa-scroll::-webkit-scrollbar-thumb:hover{background:var(--muted);}
   /* ── WEB RIGHT PANEL ── */
   #wa-right{
-    width:300px;
+    width:260px;
     flex-shrink:0;
     display:flex;
     flex-direction:column;
@@ -1957,7 +1957,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.11';
+const APP_VERSION='13.12';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5440,6 +5440,7 @@ const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+A
   <div id="wa-right">
     <div id="wa-right-header">
       <span id="wa-right-title">—</span>
+      <button id="wa-new-btn" onclick="waResetLaunch()" style="display:none;padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;font-family:var(--font-body);font-size:.65rem;font-weight:600;color:var(--btn);cursor:pointer;">+ Nova</button>
     </div>
     <div id="wa-right-body">
       <div class="wa-empty">—</div>
@@ -5484,6 +5485,7 @@ function waGo(screen){
 function waShowLaunch(){
   document.getElementById('wa-center-title').textContent='Extrato';
   document.getElementById('wa-right-title').textContent='Lançar transação';
+  const _nb=document.getElementById('wa-new-btn');if(_nb)_nb.style.display='block';
   // center: extrato (rendered by renderHistory via allData)
   waRenderExtrato();
   // right: launch form
@@ -5553,21 +5555,39 @@ function waRenderExtrato(){
         </tr>
       </thead>
       <tbody>
-        ${filtered.map((t,i)=>{
-          const isIn=t.type==='entrada';
-          const isTransf=t.type==='transferência';
-          const color=isIn?'var(--accent2)':isTransf?'#7c3aed':'var(--red)';
-          const idx=allData.indexOf(t);
-          return `<tr onclick="waEditTx(${idx})" style="cursor:pointer;${!t.consolidated?'opacity:.6;':''}" onmouseover="this.style.background='var(--kp)'" onmouseout="this.style.background=''">
-            <td style="padding:3px 8px;font-size:.68rem;color:var(--muted);white-space:nowrap;">${t.date}</td>
-            <td style="padding:3px 8px;font-size:.72rem;font-weight:500;color:var(--font);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-              <span onclick="waToggleExtConsol(${idx},event)" style="display:inline-block;width:8px;height:8px;border-radius:50%;border:1.5px solid ${t.consolidated?'var(--font)':'var(--muted)'};background:${t.consolidated?'var(--font)':'transparent'};margin-right:5px;flex-shrink:0;cursor:pointer;vertical-align:middle;"></span>${t.desc||t.cat}</td>
-            <td style="padding:3px 8px;font-size:.66rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.cat||'—'}</td>
-            <td style="padding:3px 8px;font-size:.66rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.account||'—'}</td>
-            <td style="padding:3px 8px;text-align:right;font-size:.72rem;font-weight:700;color:${color};white-space:nowrap;">${isIn?'+':'-'}${fmt(t.value)}</td>
-            <td></td>
-          </tr>`;
-        }).join('')}
+        ${(()=>{
+          const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+          let lastMonth='', lastDay='', rows='';
+          filtered.forEach((t,i)=>{
+            const idx=allData.indexOf(t);
+            const isIn=t.type==='entrada';
+            const isTransf=t.type==='transferência';
+            const color=isIn?'var(--accent2)':isTransf?'#7c3aed':'var(--red)';
+            // parse month label
+            const parts=(t.date||'').split('/');
+            const monthKey=parts.length===3?parts[1]+'/'+parts[2]:'';
+            const monthLabel=parts.length===3?MESES[parseInt(parts[1])-1]+' '+parts[2]:'';
+            const dayKey=t.date||'';
+            // month separator
+            if(monthKey&&monthKey!==lastMonth){
+              rows+=`<tr><td colspan="6" style="padding:10px 8px 4px;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);border-top:${lastMonth?'1px solid var(--border)':'none'};background:var(--bg);">${monthLabel}</td></tr>`;
+              lastMonth=monthKey;lastDay='';
+            }
+            // day spacing — extra top margin when day changes
+            const dayBorder=dayKey&&dayKey!==lastDay&&lastDay?'border-top:3px solid var(--bg);':'';
+            lastDay=dayKey;
+            rows+=`<tr onclick="waEditTx(${idx})" style="cursor:pointer;${!t.consolidated?'opacity:.6;':''}" onmouseover="this.style.background='var(--kp)'" onmouseout="this.style.background=''">
+              <td style="padding:3px 8px;font-size:.68rem;color:var(--muted);white-space:nowrap;${dayBorder}">${t.date}</td>
+              <td style="padding:3px 8px;font-size:.72rem;font-weight:500;color:var(--font);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${dayBorder}">
+                <span onclick="waToggleExtConsol(${idx},event)" style="display:inline-block;width:8px;height:8px;border-radius:50%;border:1.5px solid ${t.consolidated?'var(--font)':'var(--muted)'};background:${t.consolidated?'var(--font)':'transparent'};margin-right:5px;flex-shrink:0;cursor:pointer;vertical-align:middle;"></span>${t.desc||t.cat}</td>
+              <td style="padding:3px 8px;font-size:.66rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${dayBorder}">${t.cat||'—'}</td>
+              <td style="padding:3px 8px;font-size:.66rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${dayBorder}">${t.account||'—'}</td>
+              <td style="padding:3px 8px;text-align:right;font-size:.72rem;font-weight:700;color:${color};white-space:nowrap;${dayBorder}">${isIn?'+':'-'}${fmt(t.value)}</td>
+              <td style="${dayBorder}"></td>
+            </tr>`;
+          });
+          return rows;
+        })()}
       </tbody>
     </table>
     </div>
@@ -5677,7 +5697,7 @@ function waRenderLaunchForm(){
     ${modeExtra}
     <div id="wa-kp" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);flex-shrink:0;">
       ${[['7','8','9','÷'],['4','5','6','×'],['1','2','3','−'],[',00','0','=','+']].map(row=>
-        row.map((k,i)=>`<div onclick="waKp('${k}')" style="background:${k==='='?'var(--btn)':i===3?'var(--kp-dark)':'var(--kp)'};display:flex;align-items:center;justify-content:center;padding:10px 0;font-family:var(--font-body);font-size:${i===3||k===',00'?'.85rem':'1rem'};font-weight:700;color:${k==='='?'#0f0f11':i===3?'var(--muted)':'var(--font)'};cursor:pointer;user-select:none;">${k}</div>`).join('')
+        row.map((k,i)=>`<div onclick="waKp('${k}')" style="background:${k==='='?'var(--btn)':i===3?'var(--kp-dark)':'var(--kp)'};display:flex;align-items:center;justify-content:center;padding:7px 0;font-family:var(--font-body);font-size:${i===3||k===',00'?'.78rem':'.9rem'};font-weight:700;color:${k==='='?'#0f0f11':i===3?'var(--muted)':'var(--font)'};cursor:pointer;user-select:none;">${k}</div>`).join('')
       ).join('')}
     </div>
     <div style="flex:1;overflow-y:auto;padding:6px 8px;display:flex;flex-direction:column;gap:5px;min-height:0;">
