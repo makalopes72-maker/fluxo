@@ -928,10 +928,8 @@
   #wa-sidebar.collapsed{width:48px !important;}
   #wa-sidebar.collapsed #wa-brand-text{display:none;}
   #wa-sidebar.collapsed #wa-collapse-btn{margin:0 auto;transform:rotate(180deg);}
-  #wa-sidebar.collapsed .wa-nav-item span:not(.wa-ic){display:none;}
-  #wa-sidebar.collapsed .wa-nav-item{justify-content:center;padding:9px 0;}
-  #wa-sidebar.collapsed .wa-footer .wa-nav-item span:not(.wa-ic){display:none;}
-  #wa-sidebar.collapsed .wa-footer .wa-nav-item{justify-content:center;padding:9px 0;}
+  #wa-sidebar.collapsed .wa-lbl{display:none;}
+  #wa-sidebar.collapsed .wa-nav-item{justify-content:center;padding:9px 0;gap:0;}
   #wa-sidebar.collapsed .wa-brand{justify-content:center;padding:10px 0;}
   /* sidebar transition */
   #wa-sidebar{transition:width .2s ease;}
@@ -991,6 +989,7 @@
     border-left-color:var(--btn);
   }
   .wa-nav-item .wa-ic{font-size:.82rem;width:16px;text-align:center;flex-shrink:0;}
+  .wa-lbl{flex:1;}
   #wa-sidebar .wa-footer{
     flex-shrink:0;
     border-top:1px solid var(--border);
@@ -1955,7 +1954,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.03';
+const APP_VERSION='13.05';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5391,34 +5390,34 @@ const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+A
     </div>
     <div class="wa-nav">
       <button class="wa-nav-item" id="wanav-dash" onclick="waGo('dash')">
-        <span class="wa-ic">◎</span>Início
+        <span class="wa-ic">◎</span><span class="wa-lbl">Início</span>
       </button>
       <button class="wa-nav-item" id="wanav-add" onclick="waGo('add')">
-        <span class="wa-ic">＋</span>Lançar
+        <span class="wa-ic">＋</span><span class="wa-lbl">Lançar</span>
       </button>
       <button class="wa-nav-item" id="wanav-hist" onclick="waGo('hist')">
-        <span class="wa-ic">≡</span>Extrato
+        <span class="wa-ic">≡</span><span class="wa-lbl">Extrato</span>
       </button>
       <button class="wa-nav-item" id="wanav-inv" onclick="waGo('inv')">
-        <span class="wa-ic">📈</span>Investimentos
+        <span class="wa-ic">📈</span><span class="wa-lbl">Investimentos</span>
       </button>
       <div style="margin:6px 16px;border-top:1px solid var(--border);"></div>
       <button class="wa-nav-item" id="wanav-orc" onclick="waGo('orc')">
-        <span class="wa-ic">🎯</span>Orçamento
+        <span class="wa-ic">🎯</span><span class="wa-lbl">Orçamento</span>
       </button>
       <button class="wa-nav-item" id="wanav-cfg" onclick="waGo('cfg')">
-        <span class="wa-ic">⚙</span>Config.
+        <span class="wa-ic">⚙</span><span class="wa-lbl">Config.</span>
       </button>
     </div>
     <div class="wa-footer">
       <button class="wa-nav-item" onclick="openSyncYearModal()">
-        <span class="wa-ic">↻</span>Sincronizar
+        <span class="wa-ic">↻</span><span class="wa-lbl">Sincronizar</span>
       </button>
       <button class="wa-nav-item" onclick="loadInvFromSheets()">
-        <span class="wa-ic">📥</span>Carregar inv.
+        <span class="wa-ic">📥</span><span class="wa-lbl">Carregar inv.</span>
       </button>
       <button class="wa-nav-item" onclick="logout()">
-        <span class="wa-ic">←</span>Trocar usuário
+        <span class="wa-ic">←</span><span class="wa-lbl">Trocar usuário</span>
       </button>
     </div>
   </div>
