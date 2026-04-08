@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(135deg,#0F172A,#059669);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F7FEE7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(247,254,231,.65) !important;}
-  #splash .splash-version{color:rgba(247,254,231,.35) !important;}
-  #splash .splash-btn{background:#F7FEE7 !important;color:#365314 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F7FEE7 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(135deg,#0D0D0D,#B8860B);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFF8DC !important;text-shadow:0 2px 28px rgba(0,0,0,.6);}
+  #splash .splash-sub{color:rgba(255,248,220,.65) !important;}
+  #splash .splash-version{color:rgba(255,248,220,.5) !important;}
+  #splash .splash-btn{background:#FFF8DC !important;color:#0D0D0D !important;font-weight:700;box-shadow:0 4px 24px rgba(184,134,11,.5);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,248,220,.12) !important;color:#FFF8DC !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -894,6 +894,155 @@
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
   #toast.success{border-color:var(--btn);color:var(--btn);}
   #toast.error{border-color:var(--red);color:var(--red);}
+
+  /* ══════════════════════════════════════
+     WEB APP — completamente separado
+     Aparece só quando largura > altura
+  ══════════════════════════════════════ */
+  #web-app{display:none;}
+  @media(orientation:landscape){
+    #app{display:none !important;}
+    #web-app{
+      display:flex;
+      position:fixed;
+      inset:0;
+      flex-direction:row;
+      background:var(--bg);
+      font-family:var(--font-body);
+      color:var(--font);
+      overflow:hidden;
+    }
+  }
+  /* ── WEB SIDEBAR ── */
+  #wa-sidebar{
+    width:180px;
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    background:var(--bg);
+    border-right:1px solid var(--border);
+    overflow:hidden;
+  }
+  #wa-sidebar .wa-brand{
+    padding:14px 16px 12px;
+    border-bottom:1px solid var(--border);
+    flex-shrink:0;
+  }
+  #wa-sidebar .wa-brand-logo{
+    font-family:var(--font-display);
+    font-size:1.25rem;
+    color:var(--font);
+    letter-spacing:-0.5px;
+  }
+  #wa-sidebar .wa-brand-user{
+    font-size:.72rem;
+    color:var(--muted);
+    margin-top:2px;
+  }
+  #wa-sidebar .wa-nav{
+    flex:1;
+    overflow-y:auto;
+    padding:6px 0;
+  }
+  #wa-sidebar .wa-nav::-webkit-scrollbar{display:none;}
+  .wa-nav-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:9px 16px;
+    font-size:.8rem;
+    color:var(--muted);
+    cursor:pointer;
+    border:none;
+    background:transparent;
+    width:100%;
+    text-align:left;
+    font-family:var(--font-body);
+    border-left:2px solid transparent;
+    transition:all .15s;
+  }
+  .wa-nav-item:hover{background:var(--kp);color:var(--font);}
+  .wa-nav-item.active{
+    color:var(--font);
+    font-weight:600;
+    background:var(--kp);
+    border-left-color:var(--btn);
+  }
+  .wa-nav-item .wa-ic{font-size:.95rem;width:18px;text-align:center;flex-shrink:0;}
+  #wa-sidebar .wa-footer{
+    flex-shrink:0;
+    border-top:1px solid var(--border);
+    padding:8px 0;
+  }
+  /* ── WEB CENTER ── */
+  #wa-center{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    min-width:0;
+    background:var(--kp);
+  }
+  #wa-center-header{
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 16px;
+    background:var(--bg);
+    border-bottom:1px solid var(--border);
+  }
+  #wa-center-title{
+    font-size:.85rem;
+    font-weight:700;
+    color:var(--font);
+    letter-spacing:.02em;
+  }
+  #wa-center-body{
+    flex:1;
+    overflow-y:auto;
+    overflow-x:hidden;
+    min-height:0;
+  }
+  #wa-center-body::-webkit-scrollbar{display:none;}
+  /* ── WEB RIGHT PANEL ── */
+  #wa-right{
+    width:300px;
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    background:var(--bg);
+    border-left:1px solid var(--border);
+    overflow:hidden;
+  }
+  #wa-right-header{
+    flex-shrink:0;
+    padding:10px 14px;
+    border-bottom:1px solid var(--border);
+    font-size:.8rem;
+    font-weight:700;
+    color:var(--font);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  #wa-right-body{
+    flex:1;
+    overflow-y:auto;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+  }
+  #wa-right-body::-webkit-scrollbar{display:none;}
+  /* placeholder when no screen selected */
+  .wa-empty{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--muted);
+    font-size:.85rem;
+  }
 
 </style>
 </head>
@@ -1784,7 +1933,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.52';
+const APP_VERSION='13.00';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2752,6 +2901,7 @@ function login(u){
   setTodayDate();
   initExtChips();
   loadData();
+  setTimeout(waOnLogin,200);
 }
 function logout(){
   currentUser=null;allData=[];
@@ -5202,5 +5352,453 @@ const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+A
 </script>
 </div><!-- /app-content -->
 </div><!-- /app -->
+
+<!-- ════════════════════════════════════
+     WEB APP — layout separado do mobile
+════════════════════════════════════ -->
+<div id="web-app">
+
+  <!-- SIDEBAR -->
+  <div id="wa-sidebar">
+    <div class="wa-brand">
+      <div class="wa-brand-logo">fluxo</div>
+      <div class="wa-brand-user" id="wa-user">ALE</div>
+    </div>
+    <div class="wa-nav">
+      <button class="wa-nav-item" id="wanav-dash" onclick="waGo('dash')">
+        <span class="wa-ic">◎</span>Início
+      </button>
+      <button class="wa-nav-item" id="wanav-add" onclick="waGo('add')">
+        <span class="wa-ic">＋</span>Lançar
+      </button>
+      <button class="wa-nav-item" id="wanav-hist" onclick="waGo('hist')">
+        <span class="wa-ic">≡</span>Extrato
+      </button>
+      <button class="wa-nav-item" id="wanav-inv" onclick="waGo('inv')">
+        <span class="wa-ic">📈</span>Investimentos
+      </button>
+      <div style="margin:6px 16px;border-top:1px solid var(--border);"></div>
+      <button class="wa-nav-item" id="wanav-orc" onclick="waGo('orc')">
+        <span class="wa-ic">🎯</span>Orçamento
+      </button>
+      <button class="wa-nav-item" id="wanav-cfg" onclick="waGo('cfg')">
+        <span class="wa-ic">⚙</span>Config.
+      </button>
+    </div>
+    <div class="wa-footer">
+      <button class="wa-nav-item" onclick="openSyncYearModal()">
+        <span class="wa-ic">↻</span>Sincronizar
+      </button>
+      <button class="wa-nav-item" onclick="loadInvFromSheets()">
+        <span class="wa-ic">📥</span>Carregar inv.
+      </button>
+      <button class="wa-nav-item" onclick="logout()">
+        <span class="wa-ic">←</span>Trocar usuário
+      </button>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="wa-center">
+    <div id="wa-center-header">
+      <span id="wa-center-title">—</span>
+      <div id="wa-center-actions"></div>
+    </div>
+    <div id="wa-center-body">
+      <div class="wa-empty">Selecione uma opção no menu</div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div id="wa-right">
+    <div id="wa-right-header">
+      <span id="wa-right-title">—</span>
+    </div>
+    <div id="wa-right-body">
+      <div class="wa-empty">—</div>
+    </div>
+  </div>
+
+</div><!-- /web-app -->
+
+<script>
+
+// ══════════════════════════════════════
+// WEB APP JS — separado do mobile
+// ══════════════════════════════════════
+function waIsWeb(){return window.innerWidth>window.innerHeight;}
+
+function waApply(){
+  const web=waIsWeb();
+  document.getElementById('web-app').style.display=web?'flex':'none';
+  // splash always on top regardless
+}
+
+function waGo(screen){
+  // update nav
+  document.querySelectorAll('.wa-nav-item').forEach(b=>b.classList.remove('active'));
+  const nav=document.getElementById('wanav-'+screen);
+  if(nav)nav.classList.add('active');
+  // update user tag
+  const wu=document.getElementById('wa-user');
+  if(wu)wu.textContent=currentUser||'ALE';
+  // render center + right per screen
+  if(screen==='add'||screen==='hist') waShowLaunch();
+  else if(screen==='dash') waShowDash();
+  else if(screen==='inv') waShowInv();
+  else {
+    document.getElementById('wa-center-title').textContent=screen;
+    document.getElementById('wa-center-body').innerHTML='<div class="wa-empty">Em breve</div>';
+    document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">—</div>';
+    document.getElementById('wa-right-title').textContent='—';
+  }
+}
+
+function waShowLaunch(){
+  document.getElementById('wa-center-title').textContent='Extrato';
+  document.getElementById('wa-right-title').textContent='Lançar transação';
+  // center: extrato (rendered by renderHistory via allData)
+  waRenderExtrato();
+  // right: launch form
+  waRenderLaunchForm();
+}
+
+function waRenderExtrato(){
+  const body=document.getElementById('wa-center-body');
+  if(!body)return;
+  // filters header
+  const now=new Date();
+  const mes=now.getMonth(),ano=now.getFullYear();
+  const filtered=allData.filter(t=>{
+    const d=parseDate(t.date);
+    if(!d)return false;
+    // use extPeriod/extMonth/extYear from mobile state
+    if(extPeriod==='mes')return d.getMonth()===extMonth&&d.getFullYear()===extYear;
+    if(extPeriod==='30d'){const cut=new Date();cut.setDate(cut.getDate()-30);return d>=cut;}
+    if(extPeriod==='ano')return d.getFullYear()===extYear;
+    if(extPeriod==='futuras')return d>now;
+    return true;
+  }).filter(t=>{
+    const user=currentUser||'ALE';
+    const userAccts=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).map(a=>normalizeAcct(a.name));
+    return userAccts.includes(normalizeAcct(t.account));
+  }).sort((a,b)=>extSort==='asc'?(parseDate(a.date)||0)-(parseDate(b.date)||0):(parseDate(b.date)||0)-(parseDate(a.date)||0));
+
+  const totIn=filtered.filter(t=>t.type==='entrada').reduce((s,t)=>s+t.value,0);
+  const totOut=filtered.filter(t=>t.type!=='entrada').reduce((s,t)=>s+t.value,0);
+  const bal=totIn-totOut;
+
+  const MESES_ABR=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const periodLabel=extPeriod==='mes'?MESES_ABR[extMonth]+(extYear!==ano?' '+extYear:''):
+    extPeriod==='ano'?String(extYear):
+    extPeriod==='30d'?'30 dias':'Tudo';
+
+  body.innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;flex-wrap:wrap;">
+      <button onclick="waExtPeriod('mes')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extPeriod==='mes'?'var(--btn)':'transparent'};color:${extPeriod==='mes'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">${MESES_ABR[extMonth]}</button>
+      <button onclick="waExtPeriod('30d')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extPeriod==='30d'?'var(--btn)':'transparent'};color:${extPeriod==='30d'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">30 dias</button>
+      <button onclick="waExtPeriod('ano')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extPeriod==='ano'?'var(--btn)':'transparent'};color:${extPeriod==='ano'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">${extYear}</button>
+      <button onclick="waExtPeriod('tudo')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extPeriod==='tudo'?'var(--btn)':'transparent'};color:${extPeriod==='tudo'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">Tudo</button>
+      <div style="margin-left:auto;display:flex;gap:16px;font-size:.75rem;">
+        <span style="color:var(--accent2);">↑ ${fmt(totIn)}</span>
+        <span style="color:var(--red);">↓ ${fmt(totOut)}</span>
+        <span style="color:var(--font);font-weight:700;">${bal>=0?'+':''}${fmt(bal)}</span>
+      </div>
+    </div>
+    <div style="overflow-y:auto;flex:1;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="position:sticky;top:0;z-index:2;background:var(--kp);">
+          <th style="padding:7px 12px;text-align:left;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);">Data</th>
+          <th style="padding:7px 12px;text-align:left;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);">Descrição</th>
+          <th style="padding:7px 12px;text-align:left;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);">Categoria</th>
+          <th style="padding:7px 12px;text-align:left;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);">Conta</th>
+          <th style="padding:7px 4px;text-align:right;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);">Valor</th>
+          <th style="padding:7px 12px;text-align:right;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);">ID</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${filtered.map((t,i)=>{
+          const isIn=t.type==='entrada';
+          const isTransf=t.type==='transferência';
+          const color=isIn?'var(--accent2)':isTransf?'#7c3aed':'var(--red)';
+          const idx=allData.indexOf(t);
+          return `<tr onclick="waEditTx(${idx})" style="cursor:pointer;border-bottom:1px solid var(--border);${!t.consolidated?'opacity:.6;':''}" onmouseover="this.style.background='var(--kp)'" onmouseout="this.style.background=''">
+            <td style="padding:8px 12px;font-size:.78rem;color:var(--muted);white-space:nowrap;">${t.date}</td>
+            <td style="padding:8px 12px;font-size:.82rem;font-weight:500;color:var(--font);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.desc||t.cat}</td>
+            <td style="padding:8px 12px;font-size:.75rem;color:var(--muted);">${t.cat||'—'}</td>
+            <td style="padding:8px 12px;font-size:.75rem;color:var(--muted);">${t.account||'—'}</td>
+            <td style="padding:8px 4px;text-align:right;font-size:.82rem;font-weight:700;color:${color};white-space:nowrap;">${isIn?'+':'-'}${fmt(t.value)}</td>
+            <td style="padding:8px 12px;text-align:right;font-size:.65rem;color:var(--muted);opacity:.5;">${t._id?'#'+t._id:''}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    </div>
+  `;
+}
+
+function waExtPeriod(p){
+  extPeriod=p;
+  if(p==='mes'){extMonth=new Date().getMonth();extYear=new Date().getFullYear();}
+  if(p==='ano'){extYear=new Date().getFullYear();}
+  waRenderExtrato();
+}
+
+function waEditTx(idx){
+  const t=allData[idx];if(!t)return;
+  // populate launch form with tx data
+  waLaunchState.editingIdx=idx;
+  waLaunchState.type=t.type==='entrada'?'entrada':t.type==='transferência'?'transferência':'saída';
+  waLaunchState.desc=t.desc||'';
+  waLaunchState.tipo=t.tipo||t.cat||'';
+  waLaunchState.cat=t.cat||'';
+  waLaunchState.conta=t.account||'';
+  waLaunchState.date=t.date||new Date().toLocaleDateString('pt-BR');
+  waLaunchState.valueCents=Math.round((t.value||0)*100);
+  document.getElementById('wa-right-title').textContent='Editando #'+(t._id||idx);
+  waRenderLaunchForm();
+  // highlight row
+  document.querySelectorAll('#wa-center-body tr.wa-editing').forEach(r=>r.classList.remove('wa-editing'));
+}
+
+// Launch form state (independent from mobile)
+let waLaunchState={
+  editingIdx:null,type:'saída',desc:'',tipo:null,cat:null,conta:null,
+  date:new Date().toLocaleDateString('pt-BR'),valueCents:0
+};
+
+function waResetLaunch(){
+  waLaunchState={
+    editingIdx:null,type:'saída',desc:'',tipo:null,cat:null,conta:null,
+    date:new Date().toLocaleDateString('pt-BR'),valueCents:0
+  };
+  const def=getDefaultAccount();
+  if(def)waLaunchState.conta=def;
+  document.getElementById('wa-right-title').textContent='Lançar transação';
+  waRenderLaunchForm();
+}
+
+function waRenderLaunchForm(){
+  const s=waLaunchState;
+  const body=document.getElementById('wa-right-body');
+  if(!body)return;
+  const typeColor=s.type==='entrada'?'var(--accent2)':s.type==='transferência'?'#7c3aed':'var(--red)';
+  const typeLabel=s.type==='entrada'?'Nova receita':s.type==='transferência'?'Transferência':'Nova despesa';
+  const valDisplay='R$ '+(s.valueCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  body.innerHTML=`
+    <div style="display:flex;flex-shrink:0;border-bottom:1px solid var(--border);">
+      ${['saída','entrada','transferência'].map(t=>`
+        <button onclick="waSetType('${t}')" style="flex:1;padding:9px 4px;border:none;cursor:pointer;font-family:var(--font-body);font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:${s.type===t?typeColor:'var(--bg)'};color:${s.type===t?'#fff':'var(--muted)'};transition:all .15s;">
+          ${t==='saída'?'↓ Saída':t==='entrada'?'↑ Entrada':'⇄ Transf.'}
+        </button>`).join('')}
+    </div>
+    <div style="background:${typeColor};padding:10px 14px;flex-shrink:0;cursor:pointer;" onclick="waKpFocus()">
+      <div style="font-size:.6rem;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.1em;">${typeLabel}</div>
+      <div id="wa-val-display" style="font-family:var(--font-display);font-size:1.8rem;color:#fff;letter-spacing:-1px;">${valDisplay}</div>
+    </div>
+    <div id="wa-kp" style="display:grid;grid-template-columns:repeat(3,1fr) 52px;gap:1px;background:var(--border);flex-shrink:0;">
+      ${[['7','8','9','÷'],['4','5','6','×'],['1','2','3','−'],[',00','0','=','+']].map(row=>
+        row.map((k,i)=>`<div onclick="waKp('${k}')" style="background:${k==='='?'var(--btn)':i===3?'var(--kp-dark)':'var(--kp)'};display:flex;align-items:center;justify-content:center;padding:13px 0;font-family:var(--font-body);font-size:${i===3||k===',00'?'1rem':'1.2rem'};font-weight:700;color:${k==='='?'#0f0f11':i===3?'var(--muted)':'var(--font)'};cursor:pointer;user-select:none;">${k}</div>`).join('')
+      ).join('')}
+      <div onclick="waKp('del')" style="background:var(--kp-dark);display:flex;align-items:center;justify-content:center;padding:13px 0;font-size:1.1rem;color:var(--muted);cursor:pointer;">⌫</div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:6px;">
+      <div style="background:var(--card);border-radius:10px;display:flex;align-items:center;gap:8px;padding:8px 10px;position:relative;overflow:visible;">
+        <span style="font-size:.9rem;">📝</span>
+        <input id="wa-desc" value="${s.desc}" placeholder="Descrição" oninput="waDescInput(this.value)" autocomplete="off"
+          style="flex:1;border:none;background:transparent;font-family:var(--font-body);font-size:.95rem;color:var(--font);outline:none;">
+        <div id="wa-ac" style="display:none;position:absolute;bottom:calc(100% + 4px);left:0;right:0;z-index:200;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);max-height:180px;overflow-y:auto;"></div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <div onclick="waOpenDrop('tipo')" style="flex:1;background:var(--card);border-radius:10px;display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;">
+          <span>📂</span><span style="font-size:.88rem;color:${s.tipo?'var(--font)':'var(--muted)'};">${s.tipo?((TIPO_ICONS[s.tipo]||'')+' '+s.tipo):'Pasta'}</span>
+        </div>
+        <div onclick="waOpenDrop('cat')" style="flex:1;background:var(--card);border-radius:10px;display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;">
+          <span>🏷</span><span style="font-size:.88rem;color:${s.cat?'var(--font)':'var(--muted)'};">${s.cat||'Categoria'}</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <div onclick="waOpenDatePicker()" style="flex:1;background:var(--card);border-radius:10px;display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;">
+          <span>📅</span><span style="font-size:.88rem;color:var(--font);">${s.date}</span>
+        </div>
+        <div onclick="waOpenDrop('conta')" style="flex:1;background:var(--card);border-radius:10px;display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;">
+          <span>🏦</span><span style="font-size:.88rem;color:${s.conta?'var(--font)':'var(--muted)'};">${s.conta||'Conta'}</span>
+        </div>
+      </div>
+      <div id="wa-drop-area"></div>
+      ${s.editingIdx!==null?`<button onclick="waDelTx(${s.editingIdx})" style="padding:8px;border-radius:10px;border:1px solid var(--red);background:transparent;color:var(--red);font-family:var(--font-body);font-size:.78rem;cursor:pointer;">🗑 Excluir transação</button>`:''}
+    </div>
+    <div style="flex-shrink:0;display:flex;gap:6px;padding:8px 10px 14px;border-top:1px solid var(--border);">
+      <button onclick="waResetLaunch()" style="flex:1;padding:11px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.75rem;cursor:pointer;">✕ Cancelar</button>
+      <button onclick="waSave()" style="flex:1;padding:11px;border-radius:10px;border:none;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.82rem;font-weight:800;letter-spacing:.04em;cursor:pointer;">${s.editingIdx!==null?'ATUALIZAR':'SALVAR'}</button>
+    </div>
+  `;
+}
+
+// keypad state for web (independent)
+let waKpState={cents:0,op:null,prev:0};
+function waKpFocus(){}
+function waKp(k){
+  const s=waKpState;
+  if(k==='del'){s.cents=Math.floor(s.cents/10);s.op=null;}
+  else if(k==='='){if(s.op&&s.prev){
+    if(s.op==='÷')s.cents=s.prev!==0?Math.round(s.prev/s.cents*100):s.cents;
+    else if(s.op==='×')s.cents=Math.round(s.prev*s.cents/100);
+    else if(s.op==='−')s.cents=s.prev-s.cents;
+    else if(s.op==='+')s.cents=s.prev+s.cents;
+    s.op=null;s.prev=0;
+  }}
+  else if(['÷','×','−','+'].includes(k)){s.op=k;s.prev=s.cents;s.cents=0;}
+  else if(k===',00'){s.cents=s.cents*100;}
+  else{const d=parseInt(k);if(!isNaN(d))s.cents=s.cents*10+d;}
+  waLaunchState.valueCents=s.cents;
+  const el=document.getElementById('wa-val-display');
+  if(el)el.textContent='R$ '+(s.cents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
+}
+
+function waSetType(t){
+  waLaunchState.type=t;
+  waRenderLaunchForm();
+}
+
+function waDescInput(val){
+  waLaunchState.desc=val;
+  const ac=document.getElementById('wa-ac');if(!ac)return;
+  if(!val||val.length<2){ac.style.display='none';return;}
+  const q=val.toLowerCase();
+  const all=getAllKeywords();
+  const matches=all.filter(k=>k.kw.includes(q)||q.includes(k.kw.substring(0,3)));
+  const seen=new Set();
+  const uniq=matches.filter(m=>{if(seen.has(m.kwOrig))return false;seen.add(m.kwOrig);return true;}).slice(0,6);
+  if(!uniq.length){ac.style.display='none';return;}
+  const hi=(txt,q)=>{const i=txt.toLowerCase().indexOf(q);if(i<0)return txt;return txt.slice(0,i)+'<span style="color:var(--btn);">'+txt.slice(i,i+q.length)+'</span>'+txt.slice(i+q.length);};
+  ac.innerHTML=uniq.map(m=>`<div onclick="waPickKw('${m.kwOrig.replace(/'/g,"\'")}','${m.tipo.replace(/'/g,"\'")}','${m.cat.replace(/'/g,"\'")}'')" style="display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--kp)'" onmouseout="this.style.background=''">
+    <span>${TIPO_ICONS[m.tipo]||'📁'}</span>
+    <div><div style="font-size:.85rem;font-weight:600;color:var(--font);">${hi(m.kwOrig,q)}</div><div style="font-size:.7rem;color:var(--muted);">${m.tipo} › ${m.cat}</div></div>
+  </div>`).join('');
+  ac.style.display='block';
+}
+
+function waPickKw(kw,tipo,cat){
+  waLaunchState.desc=kw;waLaunchState.tipo=tipo;waLaunchState.cat=cat;
+  const ac=document.getElementById('wa-ac');if(ac)ac.style.display='none';
+  waRenderLaunchForm();
+  setTimeout(()=>{const d=document.getElementById('wa-desc');if(d)d.value=kw;},10);
+}
+
+function waOpenDrop(field){
+  const area=document.getElementById('wa-drop-area');if(!area)return;
+  if(area.dataset.open===field){area.innerHTML='';area.dataset.open='';return;}
+  let items=[];
+  if(field==='tipo'){
+    items=getTiposList().filter(t=>t).map(t=>`<div onclick="waPick('tipo','${t.replace(/'/g,"\'")}','')" style="padding:9px 14px;font-size:.85rem;cursor:pointer;border-bottom:1px solid var(--border);color:var(--font);" onmouseover="this.style.background='var(--kp)'" onmouseout="this.style.background=''">${TIPO_ICONS[t]||'📁'} ${t}</div>`);
+  } else if(field==='cat'){
+    const cats=getCatsList(waLaunchState.tipo);
+    items=cats.map(c=>`<div onclick="waPick('cat','${c.replace(/'/g,"\'")}','')" style="padding:9px 14px;font-size:.85rem;cursor:pointer;border-bottom:1px solid var(--border);color:var(--font);" onmouseover="this.style.background='var(--kp)'" onmouseout="this.style.background=''"> ${c}</div>`);
+  } else if(field==='conta'){
+    const user=currentUser||'ALE';
+    const accts=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS'));
+    items=accts.map(a=>`<div onclick="waPick('conta','${a.name.replace(/'/g,"\'")}','')" style="padding:9px 14px;font-size:.85rem;cursor:pointer;border-bottom:1px solid var(--border);color:var(--font);" onmouseover="this.style.background='var(--kp)'" onmouseout="this.style.background=''">🏦 ${a.name}</div>`);
+  }
+  if(!items.length)return;
+  area.dataset.open=field;
+  area.innerHTML=`<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.08);">${items.join('')}</div>`;
+}
+
+function waPick(field,val){
+  if(field==='tipo'){waLaunchState.tipo=val;waLaunchState.cat=null;}
+  if(field==='cat')waLaunchState.cat=val;
+  if(field==='conta')waLaunchState.conta=val;
+  const area=document.getElementById('wa-drop-area');if(area){area.innerHTML='';area.dataset.open='';}
+  waRenderLaunchForm();
+}
+
+function waOpenDatePicker(){
+  const inp=document.createElement('input');inp.type='date';
+  const parts=waLaunchState.date.split('/');
+  if(parts.length===3)inp.value=parts[2]+'-'+parts[1]+'-'+parts[0];
+  inp.style.cssText='position:fixed;top:-200px;opacity:0;';
+  document.body.appendChild(inp);
+  inp.addEventListener('change',()=>{
+    const p=inp.value.split('-');
+    if(p.length===3)waLaunchState.date=p[2]+'/'+p[1]+'/'+p[0];
+    inp.remove();waRenderLaunchForm();
+  });
+  inp.focus();inp.click();
+  setTimeout(()=>{if(document.body.contains(inp))inp.remove();},30000);
+}
+
+async function waSave(){
+  const s=waLaunchState;
+  const val=s.valueCents/100;
+  if(!val){toast('Digite um valor','error');return;}
+  const displayDesc=s.desc||(s.cat||s.tipo||'Transação');
+  const btn=document.querySelector('#wa-right-body .wa-save-btn');
+
+  if(s.editingIdx!==null){
+    // update existing
+    const t=allData[s.editingIdx];if(!t){toast('Não encontrado','error');return;}
+    const newRow=[s.date,displayDesc,val.toFixed(2).replace('.',','),s.cat||s.tipo,s.tipo||s.cat,s.conta||t.account,s.type,t.consolidated?'1':'0',t._transferId||'',t._isAdjust?'1':'',t._id||''];
+    if(t._id){await sheetsPost({action:'update',id:String(t._id),data:newRow,sheet:SHEET_NAME});}
+    else if(t._row){await sheetsPost({action:'update',row:t._row,data:newRow,sheet:SHEET_NAME});}
+    Object.assign(allData[s.editingIdx],{date:s.date,desc:displayDesc,value:val,cat:s.cat||s.tipo,tipo:s.tipo,type:s.type,account:s.conta||t.account});
+    toast('Atualizado!','success');
+  } else {
+    // new transaction
+    const newId=generateTxId();
+    const r={date:s.date,desc:displayDesc,value:val,cat:s.cat||s.tipo||'Outros',tipo:s.tipo||s.cat||'Outros',account:s.conta||getDefaultAccount()||'',type:s.type,consolidated:true};
+    const rowArr=[r.date,r.desc,r.value.toFixed(2).replace('.',','),r.cat,r.tipo,r.account,r.type,'1','','',newId];
+    await sheetsAppend(rowArr);
+    allData.push({_row:allData.length+2,_id:String(newId),...r});
+    toast('Salvo!','success');
+  }
+  waResetLaunch();
+  waRenderExtrato();
+  renderDash();
+}
+
+async function waDelTx(idx){
+  if(!confirm('Excluir esta transação?'))return;
+  const t=allData[idx];if(!t)return;
+  const payload=t._id?{action:'delete',id:String(t._id),sheet:SHEET_NAME}:{action:'delete',row:t._row,sheet:SHEET_NAME};
+  await sheetsPost(payload);
+  allData.splice(idx,1);
+  toast('Excluído!','success');
+  waResetLaunch();
+  waRenderExtrato();
+}
+
+function waShowDash(){
+  document.getElementById('wa-center-title').textContent='Dashboard';
+  document.getElementById('wa-center-body').innerHTML='<div class="wa-empty">Em breve</div>';
+  document.getElementById('wa-right-title').textContent='—';
+  document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">—</div>';
+}
+function waShowInv(){
+  document.getElementById('wa-center-title').textContent='Investimentos';
+  document.getElementById('wa-center-body').innerHTML='<div class="wa-empty">Em breve</div>';
+  document.getElementById('wa-right-title').textContent='—';
+  document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">—</div>';
+}
+
+// update web-app user on login
+function waOnLogin(){
+  const wu=document.getElementById('wa-user');
+  if(wu)wu.textContent=currentUser||'ALE';
+  waResetLaunch();
+  waGo('add');
+}
+
+// detect orientation
+function waCheck(){
+  const web=window.innerWidth>window.innerHeight;
+  document.getElementById('web-app').style.display=web?'flex':'none';
+}
+waCheck();
+window.addEventListener('resize',waCheck);
+window.addEventListener('orientationchange',()=>setTimeout(waCheck,100));
+
+</script>
 </body>
 </html>
