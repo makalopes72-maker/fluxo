@@ -19,10 +19,10 @@
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
   #splash{position:fixed;inset:0;background:linear-gradient(135deg,#0D0D0D,#B8860B);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFF8DC !important;text-shadow:0 2px 28px rgba(0,0,0,.6);}
+  #splash .splash-logo{color:#FFF8DC !important;}
   #splash .splash-sub{color:rgba(255,248,220,.65) !important;}
-  #splash .splash-version{color:rgba(255,248,220,.5) !important;}
-  #splash .splash-btn{background:#FFF8DC !important;color:#0D0D0D !important;font-weight:700;box-shadow:0 4px 24px rgba(184,134,11,.5);}
+  #splash .splash-version{color:rgba(255,248,220,.4) !important;}
+  #splash .splash-btn{background:#FFF8DC !important;color:#0D0D0D !important;font-weight:700;}
   #splash .user-btn:not(.splash-btn){background:rgba(255,248,220,.12) !important;color:#FFF8DC !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
@@ -914,6 +914,26 @@
     }
   }
   /* ── WEB SIDEBAR ── */
+  /* collapse button */
+  #wa-collapse-btn{
+    margin-left:auto;flex-shrink:0;
+    width:24px;height:24px;
+    border:1px solid var(--border);background:transparent;
+    border-radius:6px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    font-size:.8rem;color:var(--muted);transition:transform .2s;
+  }
+  #wa-sidebar.collapsed{width:48px !important;}
+  #wa-sidebar.collapsed #wa-brand-text{display:none;}
+  #wa-sidebar.collapsed #wa-collapse-btn{margin:0 auto;transform:rotate(180deg);}
+  #wa-sidebar.collapsed .wa-nav-item span:not(.wa-ic){display:none;}
+  #wa-sidebar.collapsed .wa-nav-item{justify-content:center;padding:9px 0;}
+  #wa-sidebar.collapsed .wa-footer .wa-nav-item span:not(.wa-ic){display:none;}
+  #wa-sidebar.collapsed .wa-footer .wa-nav-item{justify-content:center;padding:9px 0;}
+  #wa-sidebar.collapsed .wa-brand{justify-content:center;padding:10px 0;}
+  /* sidebar transition */
+  #wa-sidebar{transition:width .2s ease;}
+  /* ── WEB SIDEBAR ── */
   #wa-sidebar{
     width:180px;
     flex-shrink:0;
@@ -930,14 +950,14 @@
   }
   #wa-sidebar .wa-brand-logo{
     font-family:var(--font-display);
-    font-size:1.25rem;
+    font-size:1rem;
     color:var(--font);
     letter-spacing:-0.5px;
   }
   #wa-sidebar .wa-brand-user{
-    font-size:.72rem;
+    font-size:.65rem;
     color:var(--muted);
-    margin-top:2px;
+    margin-top:1px;
   }
   #wa-sidebar .wa-nav{
     flex:1;
@@ -948,9 +968,9 @@
   .wa-nav-item{
     display:flex;
     align-items:center;
-    gap:10px;
-    padding:9px 16px;
-    font-size:.8rem;
+    gap:8px;
+    padding:7px 14px;
+    font-size:.72rem;
     color:var(--muted);
     cursor:pointer;
     border:none;
@@ -968,7 +988,7 @@
     background:var(--kp);
     border-left-color:var(--btn);
   }
-  .wa-nav-item .wa-ic{font-size:.95rem;width:18px;text-align:center;flex-shrink:0;}
+  .wa-nav-item .wa-ic{font-size:.82rem;width:16px;text-align:center;flex-shrink:0;}
   #wa-sidebar .wa-footer{
     flex-shrink:0;
     border-top:1px solid var(--border);
@@ -993,7 +1013,7 @@
     border-bottom:1px solid var(--border);
   }
   #wa-center-title{
-    font-size:.85rem;
+    font-size:.75rem;
     font-weight:700;
     color:var(--font);
     letter-spacing:.02em;
@@ -1017,9 +1037,9 @@
   }
   #wa-right-header{
     flex-shrink:0;
-    padding:10px 14px;
+    padding:8px 12px;
     border-bottom:1px solid var(--border);
-    font-size:.8rem;
+    font-size:.72rem;
     font-weight:700;
     color:var(--font);
     display:flex;
@@ -1933,7 +1953,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.00';
+const APP_VERSION='13.01';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5361,8 +5381,11 @@ const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+A
   <!-- SIDEBAR -->
   <div id="wa-sidebar">
     <div class="wa-brand">
-      <div class="wa-brand-logo">fluxo</div>
-      <div class="wa-brand-user" id="wa-user">ALE</div>
+      <div id="wa-brand-text">
+        <div class="wa-brand-logo">fluxo</div>
+        <div class="wa-brand-user" id="wa-user">ALE</div>
+      </div>
+      <button id="wa-collapse-btn" onclick="waToggleCollapse()" title="Recolher menu">‹</button>
     </div>
     <div class="wa-nav">
       <button class="wa-nav-item" id="wanav-dash" onclick="waGo('dash')">
@@ -5556,6 +5579,7 @@ function waEditTx(idx){
   waLaunchState.conta=t.account||'';
   waLaunchState.date=t.date||new Date().toLocaleDateString('pt-BR');
   waLaunchState.valueCents=Math.round((t.value||0)*100);
+  waKpState={cents:waLaunchState.valueCents,op:null,prev:0};
   document.getElementById('wa-right-title').textContent='Editando #'+(t._id||idx);
   waRenderLaunchForm();
   // highlight row
@@ -5573,6 +5597,7 @@ function waResetLaunch(){
     editingIdx:null,type:'saída',desc:'',tipo:null,cat:null,conta:null,
     date:new Date().toLocaleDateString('pt-BR'),valueCents:0
   };
+  waKpState={cents:0,op:null,prev:0};
   const def=getDefaultAccount();
   if(def)waLaunchState.conta=def;
   document.getElementById('wa-right-title').textContent='Lançar transação';
@@ -5593,45 +5618,52 @@ function waRenderLaunchForm(){
           ${t==='saída'?'↓ Saída':t==='entrada'?'↑ Entrada':'⇄ Transf.'}
         </button>`).join('')}
     </div>
-    <div style="background:${typeColor};padding:10px 14px;flex-shrink:0;cursor:pointer;" onclick="waKpFocus()">
-      <div style="font-size:.6rem;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.1em;">${typeLabel}</div>
-      <div id="wa-val-display" style="font-family:var(--font-display);font-size:1.8rem;color:#fff;letter-spacing:-1px;">${valDisplay}</div>
+    <div style="background:${typeColor};padding:8px 14px;flex-shrink:0;display:flex;align-items:center;gap:10px;">
+      <div style="flex:1;">
+        <div style="font-size:.58rem;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px;">${typeLabel}</div>
+        <input id="wa-val-input" type="text" inputmode="decimal"
+          value="${valDisplay}"
+          onfocus="waValInputFocus(this)"
+          onblur="waValInputBlur(this)"
+          oninput="waValInputChange(this.value)"
+          style="font-family:var(--font-display);font-size:1.6rem;color:#fff;letter-spacing:-1px;background:transparent;border:none;outline:none;width:100%;cursor:text;">
+      </div>
+      <button onclick="waKp('del')" style="color:rgba(255,255,255,.7);background:transparent;border:none;font-size:1.1rem;cursor:pointer;flex-shrink:0;padding:4px;">⌫</button>
     </div>
-    <div id="wa-kp" style="display:grid;grid-template-columns:repeat(3,1fr) 52px;gap:1px;background:var(--border);flex-shrink:0;">
+    <div id="wa-kp" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);flex-shrink:0;">
       ${[['7','8','9','÷'],['4','5','6','×'],['1','2','3','−'],[',00','0','=','+']].map(row=>
-        row.map((k,i)=>`<div onclick="waKp('${k}')" style="background:${k==='='?'var(--btn)':i===3?'var(--kp-dark)':'var(--kp)'};display:flex;align-items:center;justify-content:center;padding:13px 0;font-family:var(--font-body);font-size:${i===3||k===',00'?'1rem':'1.2rem'};font-weight:700;color:${k==='='?'#0f0f11':i===3?'var(--muted)':'var(--font)'};cursor:pointer;user-select:none;">${k}</div>`).join('')
+        row.map((k,i)=>`<div onclick="waKp('${k}')" style="background:${k==='='?'var(--btn)':i===3?'var(--kp-dark)':'var(--kp)'};display:flex;align-items:center;justify-content:center;padding:10px 0;font-family:var(--font-body);font-size:${i===3||k===',00'?'.85rem':'1rem'};font-weight:700;color:${k==='='?'#0f0f11':i===3?'var(--muted)':'var(--font)'};cursor:pointer;user-select:none;">${k}</div>`).join('')
       ).join('')}
-      <div onclick="waKp('del')" style="background:var(--kp-dark);display:flex;align-items:center;justify-content:center;padding:13px 0;font-size:1.1rem;color:var(--muted);cursor:pointer;">⌫</div>
     </div>
     <div style="flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:6px;">
       <div style="background:var(--card);border-radius:10px;display:flex;align-items:center;gap:8px;padding:8px 10px;position:relative;overflow:visible;">
         <span style="font-size:.9rem;">📝</span>
         <input id="wa-desc" value="${s.desc}" placeholder="Descrição" oninput="waDescInput(this.value)" autocomplete="off"
-          style="flex:1;border:none;background:transparent;font-family:var(--font-body);font-size:.95rem;color:var(--font);outline:none;">
+          style="flex:1;border:none;background:transparent;font-family:var(--font-body);font-size:.8rem;color:var(--font);outline:none);">
         <div id="wa-ac" style="display:none;position:absolute;bottom:calc(100% + 4px);left:0;right:0;z-index:200;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);max-height:180px;overflow-y:auto;"></div>
       </div>
       <div style="display:flex;gap:6px;">
         <div onclick="waOpenDrop('tipo')" style="flex:1;background:var(--card);border-radius:10px;display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;">
-          <span>📂</span><span style="font-size:.88rem;color:${s.tipo?'var(--font)':'var(--muted)'};">${s.tipo?((TIPO_ICONS[s.tipo]||'')+' '+s.tipo):'Pasta'}</span>
+          <span>📂</span><span style="font-size:.75rem;color:${s.tipo?'var(--font)':'var(--muted)'};">${s.tipo?((TIPO_ICONS[s.tipo]||'')+' '+s.tipo):'Pasta'}</span>
         </div>
         <div onclick="waOpenDrop('cat')" style="flex:1;background:var(--card);border-radius:10px;display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;">
-          <span>🏷</span><span style="font-size:.88rem;color:${s.cat?'var(--font)':'var(--muted)'};">${s.cat||'Categoria'}</span>
+          <span>🏷</span><span style="font-size:.75rem;color:${s.cat?'var(--font)':'var(--muted)'};">${s.cat||'Categoria'}</span>
         </div>
       </div>
       <div style="display:flex;gap:6px;">
         <div onclick="waOpenDatePicker()" style="flex:1;background:var(--card);border-radius:10px;display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;">
-          <span>📅</span><span style="font-size:.88rem;color:var(--font);">${s.date}</span>
+          <span>📅</span><span style="font-size:.75rem;color:var(--font);">${s.date}</span>
         </div>
         <div onclick="waOpenDrop('conta')" style="flex:1;background:var(--card);border-radius:10px;display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;">
-          <span>🏦</span><span style="font-size:.88rem;color:${s.conta?'var(--font)':'var(--muted)'};">${s.conta||'Conta'}</span>
+          <span>🏦</span><span style="font-size:.75rem;color:${s.conta?'var(--font)':'var(--muted)'};">${s.conta||'Conta'}</span>
         </div>
       </div>
       <div id="wa-drop-area"></div>
       ${s.editingIdx!==null?`<button onclick="waDelTx(${s.editingIdx})" style="padding:8px;border-radius:10px;border:1px solid var(--red);background:transparent;color:var(--red);font-family:var(--font-body);font-size:.78rem;cursor:pointer;">🗑 Excluir transação</button>`:''}
     </div>
     <div style="flex-shrink:0;display:flex;gap:6px;padding:8px 10px 14px;border-top:1px solid var(--border);">
-      <button onclick="waResetLaunch()" style="flex:1;padding:11px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.75rem;cursor:pointer;">✕ Cancelar</button>
-      <button onclick="waSave()" style="flex:1;padding:11px;border-radius:10px;border:none;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.82rem;font-weight:800;letter-spacing:.04em;cursor:pointer;">${s.editingIdx!==null?'ATUALIZAR':'SALVAR'}</button>
+      <button onclick="waResetLaunch()" style="flex:1;padding:9px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.7rem;cursor:pointer;">✕ Cancelar</button>
+      <button onclick="waSave()" style="flex:1;padding:9px;border-radius:10px;border:none;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.75rem;font-weight:800;letter-spacing:.04em;cursor:pointer;">${s.editingIdx!==null?'ATUALIZAR':'SALVAR'}</button>
     </div>
   `;
 }
@@ -5639,6 +5671,23 @@ function waRenderLaunchForm(){
 // keypad state for web (independent)
 let waKpState={cents:0,op:null,prev:0};
 function waKpFocus(){}
+
+function waValInputFocus(inp){
+  // select all text for easy replace
+  inp.select();
+}
+function waValInputBlur(inp){
+  // reformat after manual type
+  const raw=inp.value.replace(/[^0-9,.]/g,'').replace(',','.');
+  const v=parseFloat(raw)||0;
+  waKpState.cents=Math.round(v*100);
+  waLaunchState.valueCents=waKpState.cents;
+  inp.value='R$ '+(waKpState.cents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
+}
+function waValInputChange(val){
+  // allow free typing — parse on blur
+}
+
 function waKp(k){
   const s=waKpState;
   if(k==='del'){s.cents=Math.floor(s.cents/10);s.op=null;}
@@ -5653,8 +5702,8 @@ function waKp(k){
   else if(k===',00'){s.cents=s.cents*100;}
   else{const d=parseInt(k);if(!isNaN(d))s.cents=s.cents*10+d;}
   waLaunchState.valueCents=s.cents;
-  const el=document.getElementById('wa-val-display');
-  if(el)el.textContent='R$ '+(s.cents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const el=document.getElementById('wa-val-input');
+  if(el)el.value='R$ '+(s.cents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
 }
 
 function waSetType(t){
@@ -5791,6 +5840,14 @@ function waOnLogin(){
 }
 
 // detect orientation
+function waToggleCollapse(){
+  const sb=document.getElementById('wa-sidebar');
+  if(!sb)return;
+  sb.classList.toggle('collapsed');
+  const btn=document.getElementById('wa-collapse-btn');
+  if(btn)btn.textContent=sb.classList.contains('collapsed')?'›':'‹';
+}
+
 function waCheck(){
   const web=window.innerWidth>window.innerHeight;
   document.getElementById('web-app').style.display=web?'flex':'none';
