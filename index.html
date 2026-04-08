@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#D97706,#3730A3);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFFBEB !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(255,251,235,.65) !important;}
-  #splash .splash-version{color:rgba(255,251,235,.35) !important;}
-  #splash .splash-btn{background:#FFFBEB !important;color:#3730A3 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFFBEB !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(135deg,#0F4C75,#FF6B6B);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E8F4FD !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(232,244,253,.65) !important;}
+  #splash .splash-version{color:rgba(232,244,253,.35) !important;}
+  #splash .splash-btn{background:#E8F4FD !important;color:#0F4C75 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8F4FD !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -894,6 +894,117 @@
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
   #toast.success{border-color:var(--btn);color:var(--btn);}
   #toast.error{border-color:var(--red);color:var(--red);}
+  /* ═══════════════════════════════════════════
+     WEB MODE — orientation: landscape
+     Mobile (portrait) untouched
+  ═══════════════════════════════════════════ */
+  @media (orientation:landscape){
+
+    /* hide mobile header and hamburger */
+    #app>header{display:none !important;}
+
+    /* app becomes full-screen flex row */
+    #app{flex-direction:row !important;height:100vh !important;overflow:hidden !important;}
+
+    /* side-menu becomes fixed left sidebar */
+    #side-menu{
+      position:relative !important;
+      transform:none !important;
+      width:180px !important;
+      height:100vh !important;
+      flex-shrink:0;
+      display:flex !important;
+      flex-direction:column;
+      background:var(--bg);
+      border-right:1px solid var(--border);
+      z-index:10;
+      overflow:hidden;
+    }
+    /* hide mobile-only elements inside menu */
+    #side-menu .menu-collapse-btn{display:none;}
+    /* always show labels in web */
+    #side-menu .menu-item-label{display:inline !important;opacity:1 !important;}
+    /* logo at top */
+    #side-menu .menu-brand{
+      padding:14px 16px 10px;
+      border-bottom:1px solid var(--border);
+      order:-1;
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    #side-menu .menu-brand-logo{font-family:var(--font-display);font-size:1.2rem;color:var(--font);}
+    #side-menu .menu-brand-user{font-size:.72rem;color:var(--muted);}
+    #side-menu .menu-nav{flex:1;overflow-y:auto;padding:6px 0;}
+    #side-menu .menu-footer{order:99;}
+    /* menu overlay off */
+    #menu-overlay{display:none !important;}
+
+    /* app-content becomes flex row filling remaining space */
+    #app-content{
+      flex:1;
+      display:flex !important;
+      flex-direction:column;
+      overflow:hidden;
+      min-width:0;
+    }
+
+    /* desktop header visible */
+    #desktop-header{display:flex !important;}
+
+    /* all screens fill the content area */
+    .screen,#screen-add,#screen-hist,#screen-inv,#screen-orc,#screen-cfg{
+      flex:1;
+      min-height:0;
+      overflow:hidden;
+    }
+
+    /* web right panel — initially hidden, shown per screen */
+    #web-right-panel{
+      width:300px;
+      flex-shrink:0;
+      display:flex;
+      flex-direction:column;
+      background:var(--bg);
+      border-left:1px solid var(--border);
+      overflow:hidden;
+    }
+
+    /* wrap content + right panel horizontally */
+    #web-body{
+      flex:1;
+      display:flex;
+      flex-direction:row;
+      overflow:hidden;
+      min-height:0;
+    }
+  }
+
+  /* portrait — keep right panel hidden */
+  @media (orientation:portrait){
+    #web-right-panel{display:none !important;}
+    #web-body{display:contents;}
+    #desktop-header{display:none !important;}
+  }
+
+  /* body.web-mode overrides — same as landscape but JS-controlled */
+  body.web-mode #app>header{display:none !important;}
+  body.web-mode #app{display:flex !important;flex-direction:row !important;height:100vh !important;overflow:hidden !important;}
+  body.web-mode #side-menu{position:relative !important;transform:none !important;width:180px !important;height:100vh !important;flex-shrink:0;display:flex !important;flex-direction:column;background:var(--bg);border-right:1px solid var(--border);z-index:10;overflow:hidden;}
+  body.web-mode #side-menu .menu-item-label{display:inline !important;opacity:1 !important;}
+  body.web-mode #side-menu .menu-brand{padding:14px 16px 10px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:2px;}
+  body.web-mode #side-menu .menu-brand-logo{font-family:var(--font-display);font-size:1.2rem;color:var(--font);}
+  body.web-mode #side-menu .menu-brand-user{font-size:.72rem;color:var(--muted);}
+  body.web-mode #side-menu .menu-nav{flex:1;overflow-y:auto;padding:6px 0;}
+  body.web-mode #menu-overlay{display:none !important;}
+  body.web-mode #web-body{flex:1;display:flex !important;flex-direction:row;overflow:hidden;min-height:0;}
+  body.web-mode #app-content{flex:1;display:flex !important;flex-direction:column;overflow:hidden;min-width:0;}
+  body.web-mode #desktop-header{display:flex !important;}
+  body.web-mode #web-right-panel{width:300px;flex-shrink:0;display:flex !important;flex-direction:column;background:var(--bg);border-left:1px solid var(--border);overflow:hidden;}
+  body.portrait-mode #web-right-panel{display:none !important;}
+  body.portrait-mode #desktop-header{display:none !important;}
+  body.portrait-mode #web-body{display:contents;}
+
 </style>
 </head>
 <body>
@@ -952,6 +1063,8 @@
       <div class="user-tag" id="user-tag">ALE</div>
     </div>
   </header>
+  <div id="web-body">
+  <div id="web-body" style="flex:1;display:flex;flex-direction:row;overflow:hidden;min-height:0;">
   <div id="app-content">
   <!-- desktop top bar -->
   <div id="desktop-header">
@@ -1783,7 +1896,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='12.52';
+const APP_VERSION='12.53';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5196,8 +5309,35 @@ window.addEventListener('resize',()=>{
 
 loadPrefs();
 const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+APP_VERSION;
+
+// ── WEB MODE detection ──
+function isWeb(){return window.innerWidth>window.innerHeight;}
+
+function applyWebMode(){
+  const web=isWeb();
+  document.body.classList.toggle('web-mode',web);
+  document.body.classList.toggle('portrait-mode',!web);
+  // in web mode, side-menu is always visible (no overlay)
+  const sm=document.getElementById('side-menu');
+  if(sm){
+    if(web){sm.classList.remove('open');}
+  }
+}
+
+// run on load and on resize/rotate
+applyWebMode();
+window.addEventListener('resize',applyWebMode);
+window.addEventListener('orientationchange',()=>setTimeout(applyWebMode,100));
 </script>
 </div><!-- /app-content -->
+  <!-- WEB RIGHT PANEL -->
+  <div id="web-right-panel">
+    <div id="web-rp-header" style="padding:10px 14px;border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--font);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;">
+      <span id="web-rp-title">Painel</span>
+    </div>
+    <div id="web-rp-body" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
+</div><!-- /web-body -->
 </div><!-- /app -->
 </body>
 </html>
