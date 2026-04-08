@@ -1025,7 +1025,10 @@
     overflow-x:hidden;
     min-height:0;
   }
-  #wa-center-body::-webkit-scrollbar{display:none;}
+  #wa-center-body .wa-scroll::-webkit-scrollbar{width:5px;}
+  #wa-center-body .wa-scroll::-webkit-scrollbar-track{background:transparent;}
+  #wa-center-body .wa-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+  #wa-center-body .wa-scroll::-webkit-scrollbar-thumb:hover{background:var(--muted);}
   /* ── WEB RIGHT PANEL ── */
   #wa-right{
     width:300px;
@@ -1954,7 +1957,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.08';
+const APP_VERSION='13.11';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5529,7 +5532,7 @@ function waRenderExtrato(){
         <span style="color:var(--font);font-weight:700;">${bal>=0?'+':''}${fmt(bal)}</span>
       </div>
     </div>
-    <div style="overflow-y:scroll;flex:1;">
+    <div class="wa-scroll" style="overflow-y:scroll;flex:1;">
     <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
       <colgroup>
         <col style="width:78px;">
@@ -5557,7 +5560,8 @@ function waRenderExtrato(){
           const idx=allData.indexOf(t);
           return `<tr onclick="waEditTx(${idx})" style="cursor:pointer;${!t.consolidated?'opacity:.6;':''}" onmouseover="this.style.background='var(--kp)'" onmouseout="this.style.background=''">
             <td style="padding:3px 8px;font-size:.68rem;color:var(--muted);white-space:nowrap;">${t.date}</td>
-            <td style="padding:3px 8px;font-size:.72rem;font-weight:500;color:var(--font);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.desc||t.cat}</td>
+            <td style="padding:3px 8px;font-size:.72rem;font-weight:500;color:var(--font);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+              <span onclick="waToggleExtConsol(${idx},event)" style="display:inline-block;width:8px;height:8px;border-radius:50%;border:1.5px solid ${t.consolidated?'var(--font)':'var(--muted)'};background:${t.consolidated?'var(--font)':'transparent'};margin-right:5px;flex-shrink:0;cursor:pointer;vertical-align:middle;"></span>${t.desc||t.cat}</td>
             <td style="padding:3px 8px;font-size:.66rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.cat||'—'}</td>
             <td style="padding:3px 8px;font-size:.66rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.account||'—'}</td>
             <td style="padding:3px 8px;text-align:right;font-size:.72rem;font-weight:700;color:${color};white-space:nowrap;">${isIn?'+':'-'}${fmt(t.value)}</td>
@@ -5570,6 +5574,16 @@ function waRenderExtrato(){
   `;
 }
 
+function waToggleExtConsol(idx,e){
+  e.stopPropagation();
+  const t=allData[idx];if(!t)return;
+  t.consolidated=!t.consolidated;
+  // sync to sheets
+  const row=[t.date,t.desc,(t.value||0).toFixed(2).replace('.',','),t.cat,t.tipo||t.cat,t.account,t.type,t.consolidated?'1':'0',t._transferId||'',t._isAdjust?'1':'',t._id||''];
+  const payload=t._id?{action:'update',id:String(t._id),data:row,sheet:SHEET_NAME}:{action:'update',row:t._row,data:row,sheet:SHEET_NAME};
+  sheetsPost(payload).catch(()=>{});
+  waRenderExtrato();
+}
 function waExtPeriod(p){
   extPeriod=p;
   if(p==='mes'){extMonth=new Date().getMonth();extYear=new Date().getFullYear();}
@@ -5588,6 +5602,8 @@ function waEditTx(idx){
   waLaunchState.conta=t.account||'';
   waLaunchState.date=t.date||new Date().toLocaleDateString('pt-BR');
   waLaunchState.valueCents=Math.round((t.value||0)*100);
+  waLaunchState.consolidated=t.consolidated!==false;
+  waLaunchState.mode='normal';
   waKpState={cents:waLaunchState.valueCents,op:null,prev:0};
   document.getElementById('wa-right-title').textContent='Editando #'+(t._id||idx);
   waRenderLaunchForm();
@@ -5598,13 +5614,19 @@ function waEditTx(idx){
 // Launch form state (independent from mobile)
 let waLaunchState={
   editingIdx:null,type:'saída',desc:'',tipo:null,cat:null,conta:null,
-  date:new Date().toLocaleDateString('pt-BR'),valueCents:0
+  date:new Date().toLocaleDateString('pt-BR'),valueCents:0,
+  consolidated:true,
+  mode:'normal',  // 'normal' | 'parcelar' | 'avancado'
+  parcIni:1,parcFim:null,
+  advQty:1,advInt:'mes',advPeriod:'parcelado',advParcIni:1,advParcFim:null
 };
 
 function waResetLaunch(){
   waLaunchState={
     editingIdx:null,type:'saída',desc:'',tipo:null,cat:null,conta:null,
-    date:new Date().toLocaleDateString('pt-BR'),valueCents:0
+    date:new Date().toLocaleDateString('pt-BR'),valueCents:0,
+    consolidated:true,mode:'normal',
+    parcIni:1,parcFim:null,advQty:1,advInt:'mes',advPeriod:'parcelado',advParcIni:1,advParcFim:null
   };
   waKpState={cents:0,op:null,prev:0};
   const def=getDefaultAccount();
@@ -5620,12 +5642,25 @@ function waRenderLaunchForm(){
   const typeColor=s.type==='entrada'?'var(--accent2)':s.type==='transferência'?'#7c3aed':'var(--red)';
   const typeLabel=s.type==='entrada'?'Nova receita':s.type==='transferência'?'Transferência':'Nova despesa';
   const valDisplay='R$ '+(s.valueCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
+
+  // parcel label
+  let modeExtra='';
+  if(s.mode==='parcelar'&&s.parcFim){
+    const n=s.parcFim-s.parcIni+1;
+    const each=(s.valueCents/100/n).toLocaleString('pt-BR',{minimumFractionDigits:2});
+    modeExtra=`<div style="font-size:.65rem;color:var(--muted);text-align:center;padding:2px 0;">${n}x de R$ ${each}</div>`;
+  }
+
   body.innerHTML=`
     <div style="display:flex;flex-shrink:0;border-bottom:1px solid var(--border);">
       ${['saída','entrada','transferência'].map(t=>`
-        <button onclick="waSetType('${t}')" style="flex:1;padding:9px 4px;border:none;cursor:pointer;font-family:var(--font-body);font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:${s.type===t?typeColor:'var(--bg)'};color:${s.type===t?'#fff':'var(--muted)'};transition:all .15s;">
+        <button onclick="waSetType('${t}')" style="flex:1;padding:8px 4px;border:none;cursor:pointer;font-family:var(--font-body);font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:${s.type===t?typeColor:'var(--bg)'};color:${s.type===t?'#fff':'var(--muted)'};transition:all .15s;">
           ${t==='saída'?'↓ Saída':t==='entrada'?'↑ Entrada':'⇄ Transf.'}
         </button>`).join('')}
+      <div onclick="waToggleConsol()" title="${s.consolidated?'Consolidado':'Não consolidado'}"
+        style="width:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-left:1px solid var(--border);cursor:pointer;background:${s.consolidated?'var(--font)':'transparent'};">
+        <span style="font-size:.65rem;font-weight:900;color:${s.consolidated?'var(--bg)':'var(--muted)'};">✓</span>
+      </div>
     </div>
     <div style="background:${typeColor};padding:8px 14px;flex-shrink:0;display:flex;align-items:center;gap:10px;">
       <div style="flex:1;">
@@ -5639,38 +5674,84 @@ function waRenderLaunchForm(){
       </div>
       <button onclick="waKp('del')" style="color:rgba(255,255,255,.7);background:transparent;border:none;font-size:1.1rem;cursor:pointer;flex-shrink:0;padding:4px;">⌫</button>
     </div>
+    ${modeExtra}
     <div id="wa-kp" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);flex-shrink:0;">
       ${[['7','8','9','÷'],['4','5','6','×'],['1','2','3','−'],[',00','0','=','+']].map(row=>
         row.map((k,i)=>`<div onclick="waKp('${k}')" style="background:${k==='='?'var(--btn)':i===3?'var(--kp-dark)':'var(--kp)'};display:flex;align-items:center;justify-content:center;padding:10px 0;font-family:var(--font-body);font-size:${i===3||k===',00'?'.85rem':'1rem'};font-weight:700;color:${k==='='?'#0f0f11':i===3?'var(--muted)':'var(--font)'};cursor:pointer;user-select:none;">${k}</div>`).join('')
       ).join('')}
     </div>
-    <div style="flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:6px;">
-      <div style="background:var(--card);border-radius:10px;display:flex;align-items:center;gap:8px;padding:8px 10px;position:relative;overflow:visible;">
-        <span style="font-size:.9rem;">📝</span>
-        <input id="wa-desc" value="${s.desc}" placeholder="Descrição" oninput="waDescInput(this.value)" autocomplete="off"
-          style="flex:1;border:none;background:transparent;font-family:var(--font-body);font-size:.8rem;color:var(--font);outline:none);">
-        <div id="wa-ac" style="display:none;position:absolute;bottom:calc(100% + 4px);left:0;right:0;z-index:200;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);max-height:180px;overflow-y:auto;"></div>
-      </div>
-      <div style="display:flex;gap:6px;">
-        <div onclick="waOpenDrop('tipo')" style="flex:1;background:var(--card);border-radius:10px;display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;">
-          <span>📂</span><span style="font-size:.75rem;color:${s.tipo?'var(--font)':'var(--muted)'};">${s.tipo?((TIPO_ICONS[s.tipo]||'')+' '+s.tipo):'Pasta'}</span>
-        </div>
-        <div onclick="waOpenDrop('cat')" style="flex:1;background:var(--card);border-radius:10px;display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;">
-          <span>🏷</span><span style="font-size:.75rem;color:${s.cat?'var(--font)':'var(--muted)'};">${s.cat||'Categoria'}</span>
+    <div style="flex:1;overflow-y:auto;padding:6px 8px;display:flex;flex-direction:column;gap:5px;min-height:0;">
+      <div style="background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:6px 8px;position:relative;overflow:visible;">
+        <span style="font-size:.75rem;">📝</span>
+        <div style="flex:1;position:relative;">
+          <input id="wa-desc" value="${s.desc}" placeholder="Descrição" oninput="waDescInput(this.value)" autocomplete="off"
+            style="flex:1;border:none;background:transparent;font-family:var(--font-body);font-size:.72rem;color:var(--font);outline:none;width:100%;">
+          <div id="wa-ac" style="display:none;position:absolute;bottom:calc(100% + 4px);left:-14px;right:-14px;z-index:200;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);max-height:160px;overflow-y:auto;"></div>
         </div>
       </div>
-      <div style="display:flex;gap:6px;">
-        <div onclick="waOpenDatePicker()" style="flex:1;background:var(--card);border-radius:10px;display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;">
-          <span>📅</span><span style="font-size:.75rem;color:var(--font);">${s.date}</span>
+      <div style="display:flex;gap:5px;">
+        <div onclick="waOpenDrop('tipo')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:6px 8px;cursor:pointer;">
+          <span style="font-size:.75rem;">📂</span><span style="font-size:.68rem;color:${s.tipo?'var(--font)':'var(--muted)'};">${s.tipo?((TIPO_ICONS[s.tipo]||'')+' '+s.tipo):'Pasta'}</span>
         </div>
-        <div onclick="waOpenDrop('conta')" style="flex:1;background:var(--card);border-radius:10px;display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;">
-          <span>🏦</span><span style="font-size:.75rem;color:${s.conta?'var(--font)':'var(--muted)'};">${s.conta||'Conta'}</span>
+        <div onclick="waOpenDrop('cat')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:6px 8px;cursor:pointer;">
+          <span style="font-size:.75rem;">🏷</span><span style="font-size:.68rem;color:${s.cat?'var(--font)':'var(--muted)'};">${s.cat||'Categoria'}</span>
         </div>
       </div>
+      <div style="display:flex;gap:5px;">
+        <div onclick="waOpenDatePicker()" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:6px 8px;cursor:pointer;">
+          <span style="font-size:.75rem;">📅</span><span style="font-size:.68rem;color:var(--font);">${s.date}</span>
+        </div>
+        <div onclick="waOpenDrop('conta')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:6px 8px;cursor:pointer;">
+          <span style="font-size:.75rem;">🏦</span><span style="font-size:.68rem;color:${s.conta?'var(--font)':'var(--muted)'};">${s.conta||'Conta'}</span>
+        </div>
+      </div>
+      <!-- MODE SELECTOR -->
+      <div style="display:flex;background:var(--kp);border-radius:10px;padding:2px;gap:2px;">
+        ${['normal','parcelar','avancado'].map(m=>`<button onclick="waSetMode('${m}')" style="flex:1;padding:5px 4px;border-radius:8px;border:none;font-family:var(--font-body);font-size:.62rem;font-weight:600;cursor:pointer;background:${s.mode===m?'var(--bg)':'transparent'};color:${s.mode===m?'var(--font)':'var(--muted)'};transition:all .2s;">${m==='normal'?'Normal':m==='parcelar'?'Parcelar':'Avançado'}</button>`).join('')}
+      </div>
+      <!-- PARCELAR -->
+      ${s.mode==='parcelar'?`
+      <div style="background:var(--card);border-radius:8px;padding:8px 10px;">
+        <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:6px;">Parcelas</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
+            <label style="font-size:.6rem;color:var(--muted);">De</label>
+            <input type="number" value="${s.parcIni}" min="1" inputmode="numeric" oninput="waLaunchState.parcIni=parseInt(this.value)||1;waRenderLaunchForm();"
+              style="padding:5px 8px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.82rem;text-align:center;width:100%;outline:none;">
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
+            <label style="font-size:.6rem;color:var(--muted);">Até</label>
+            <input type="number" value="${s.parcFim||''}" min="2" placeholder="Ex: 6" inputmode="numeric" oninput="waLaunchState.parcFim=parseInt(this.value)||null;waRenderLaunchForm();"
+              style="padding:5px 8px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.82rem;text-align:center;width:100%;outline:none;">
+          </div>
+        </div>
+        ${s.parcFim?`<div style="font-size:.65rem;color:var(--muted);text-align:right;margin-top:4px;">${s.parcFim-s.parcIni+1} parcelas de R$ ${(s.valueCents/100/(s.parcFim-s.parcIni+1)).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>`:''}
+      </div>`:''}
+      <!-- AVANÇADO -->
+      ${s.mode==='avancado'?`
+      <div style="background:var(--card);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;">
+        <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Intervalo</div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <input type="number" value="${s.advQty}" min="1" inputmode="numeric" oninput="waLaunchState.advQty=parseInt(this.value)||1;"
+            style="width:48px;padding:5px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.82rem;text-align:center;outline:none;">
+          <div style="display:flex;flex:1;background:var(--kp);border-radius:8px;padding:2px;gap:2px;">
+            ${['dia','semana','mes','ano'].map(i=>`<button onclick="waLaunchState.advInt='${i}';waRenderLaunchForm();" style="flex:1;padding:4px 2px;border-radius:6px;border:none;font-family:var(--font-body);font-size:.58rem;font-weight:600;cursor:pointer;background:${s.advInt===i?'var(--bg)':'transparent'};color:${s.advInt===i?'var(--font)':'var(--muted)'};">${i==='mes'?'Mês':i.charAt(0).toUpperCase()+i.slice(1)}</button>`).join('')}
+          </div>
+        </div>
+        <div style="display:flex;background:var(--kp);border-radius:8px;padding:2px;gap:2px;">
+          ${['parcelado','indefinido'].map(p=>`<button onclick="waLaunchState.advPeriod='${p}';waRenderLaunchForm();" style="flex:1;padding:5px;border-radius:6px;border:none;font-family:var(--font-body);font-size:.62rem;font-weight:600;cursor:pointer;background:${s.advPeriod===p?'var(--bg)':'transparent'};color:${s.advPeriod===p?'var(--font)':'var(--muted)'};">${p.charAt(0).toUpperCase()+p.slice(1)}</button>`).join('')}
+        </div>
+        ${s.advPeriod==='parcelado'?`<div style="display:flex;gap:8px;">
+          <div style="flex:1;display:flex;flex-direction:column;gap:3px;"><label style="font-size:.6rem;color:var(--muted);">De</label><input type="number" value="${s.advParcIni}" min="1" inputmode="numeric" oninput="waLaunchState.advParcIni=parseInt(this.value)||1;waRenderLaunchForm();" style="padding:5px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.82rem;text-align:center;width:100%;outline:none;"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:3px;"><label style="font-size:.6rem;color:var(--muted);">Até</label><input type="number" value="${s.advParcFim||''}" min="2" placeholder="Ex: 12" inputmode="numeric" oninput="waLaunchState.advParcFim=parseInt(this.value)||null;waRenderLaunchForm();" style="padding:5px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.82rem;text-align:center;width:100%;outline:none;"></div>
+        </div>
+        ${s.advParcFim?`<div style="font-size:.65rem;color:var(--muted);text-align:right;">${s.advParcFim-s.advParcIni+1} lançamentos</div>`:''}`:
+        `<div style="font-size:.65rem;color:var(--muted);padding:4px 0;">📆 Próximos 12 meses a partir da data escolhida.</div>`}
+      </div>`:''}
       <div id="wa-drop-area"></div>
-      ${s.editingIdx!==null?`<button onclick="waDelTx(${s.editingIdx})" style="padding:8px;border-radius:10px;border:1px solid var(--red);background:transparent;color:var(--red);font-family:var(--font-body);font-size:.78rem;cursor:pointer;">🗑 Excluir transação</button>`:''}
+      ${s.editingIdx!==null?`<button onclick="waDelTx(${s.editingIdx})" style="padding:7px;border-radius:8px;border:1px solid var(--red);background:transparent;color:var(--red);font-family:var(--font-body);font-size:.68rem;cursor:pointer;">🗑 Excluir transação</button>`:''}
     </div>
-    <div style="flex-shrink:0;display:flex;gap:6px;padding:8px 10px 14px;border-top:1px solid var(--border);">
+    <div style="flex-shrink:0;display:flex;gap:6px;padding:6px 8px 12px;border-top:1px solid var(--border);">
       <button onclick="waResetLaunch()" style="flex:1;padding:9px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.7rem;cursor:pointer;">✕ Cancelar</button>
       <button onclick="waSave()" style="flex:1;padding:9px;border-radius:10px;border:none;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.75rem;font-weight:800;letter-spacing:.04em;cursor:pointer;">${s.editingIdx!==null?'ATUALIZAR':'SALVAR'}</button>
     </div>
@@ -5717,6 +5798,14 @@ function waKp(k){
 
 function waSetType(t){
   waLaunchState.type=t;
+  waRenderLaunchForm();
+}
+function waToggleConsol(){
+  waLaunchState.consolidated=!waLaunchState.consolidated;
+  waRenderLaunchForm();
+}
+function waSetMode(m){
+  waLaunchState.mode=m;
   waRenderLaunchForm();
 }
 
@@ -5803,13 +5892,43 @@ async function waSave(){
     Object.assign(allData[s.editingIdx],{date:s.date,desc:displayDesc,value:val,cat:s.cat||s.tipo,tipo:s.tipo,type:s.type,account:s.conta||t.account});
     toast('Atualizado!','success');
   } else {
-    // new transaction
-    const newId=generateTxId();
-    const r={date:s.date,desc:displayDesc,value:val,cat:s.cat||s.tipo||'Outros',tipo:s.tipo||s.cat||'Outros',account:s.conta||getDefaultAccount()||'',type:s.type,consolidated:true};
-    const rowArr=[r.date,r.desc,r.value.toFixed(2).replace('.',','),r.cat,r.tipo,r.account,r.type,'1','','',newId];
-    await sheetsAppend(rowArr);
-    allData.push({_row:allData.length+2,_id:String(newId),...r});
-    toast('Salvo!','success');
+    // new transaction — handle parcel and advanced modes
+    const rows=[];
+    if(s.mode==='parcelar'&&s.parcFim&&s.parcFim>s.parcIni){
+      const n=s.parcFim-s.parcIni+1;
+      const eachVal=val/n;
+      const baseParts=s.date.split('/');
+      const baseDate=baseParts.length===3?new Date(parseInt(baseParts[2]),parseInt(baseParts[1])-1,parseInt(baseParts[0])):new Date();
+      for(let i=0;i<n;i++){
+        const d=new Date(baseDate.getFullYear(),baseDate.getMonth()+i,baseDate.getDate());
+        const dd=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+        rows.push({date:dd,desc:displayDesc+' '+( s.parcIni+i)+'/'+s.parcFim,value:eachVal});
+      }
+    } else if(s.mode==='avancado'&&s.advParcFim){
+      const n=s.advParcFim-s.advParcIni+1;
+      const baseParts=s.date.split('/');
+      const baseDate=baseParts.length===3?new Date(parseInt(baseParts[2]),parseInt(baseParts[1])-1,parseInt(baseParts[0])):new Date();
+      for(let i=0;i<n;i++){
+        const d=new Date(baseDate);
+        const qty=s.advQty*(s.advParcIni-1+i);
+        if(s.advInt==='dia')d.setDate(d.getDate()+qty);
+        else if(s.advInt==='semana')d.setDate(d.getDate()+qty*7);
+        else if(s.advInt==='mes')d.setMonth(d.getMonth()+qty);
+        else d.setFullYear(d.getFullYear()+qty);
+        const dd=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+        rows.push({date:dd,desc:displayDesc+' '+(s.advParcIni+i)+'/'+s.advParcFim,value:val});
+      }
+    } else {
+      rows.push({date:s.date,desc:displayDesc,value:val});
+    }
+    for(const row of rows){
+      const newId=generateTxId();
+      const r={date:row.date,desc:row.desc,value:row.value,cat:s.cat||s.tipo||'Outros',tipo:s.tipo||s.cat||'Outros',account:s.conta||getDefaultAccount()||'',type:s.type,consolidated:s.consolidated};
+      const rowArr=[r.date,r.desc,r.value.toFixed(2).replace('.',','),r.cat,r.tipo,r.account,r.type,r.consolidated?'1':'0','','',newId];
+      await sheetsAppend(rowArr);
+      allData.push({_row:allData.length+2,_id:String(newId),...r});
+    }
+    toast(rows.length>1?rows.length+' lançamentos salvos!':'Salvo!','success');
   }
   waResetLaunch();
   waRenderExtrato();
