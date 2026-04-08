@@ -1002,7 +1002,7 @@
     flex-direction:column;
     overflow:hidden;
     min-width:0;
-    background:var(--kp);
+    background:var(--bg);
   }
   #wa-center-header{
     flex-shrink:0;
@@ -1954,7 +1954,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.05';
+const APP_VERSION='13.08';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5529,16 +5529,24 @@ function waRenderExtrato(){
         <span style="color:var(--font);font-weight:700;">${bal>=0?'+':''}${fmt(bal)}</span>
       </div>
     </div>
-    <div style="overflow-y:auto;flex:1;">
-    <table style="width:100%;border-collapse:collapse;">
+    <div style="overflow-y:scroll;flex:1;">
+    <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+      <colgroup>
+        <col style="width:78px;">
+        <col>
+        <col style="width:110px;">
+        <col style="width:100px;">
+        <col style="width:90px;">
+        <col style="width:10px;">
+      </colgroup>
       <thead>
-        <tr style="position:sticky;top:0;z-index:2;background:var(--kp);">
-          <th style="padding:7px 12px;text-align:left;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);">Data</th>
-          <th style="padding:7px 12px;text-align:left;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);">Descrição</th>
-          <th style="padding:7px 12px;text-align:left;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);">Categoria</th>
-          <th style="padding:7px 12px;text-align:left;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);">Conta</th>
-          <th style="padding:7px 4px;text-align:right;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);">Valor</th>
-
+        <tr style="position:sticky;top:0;z-index:2;background:var(--bg);">
+          <th style="padding:5px 8px;text-align:left;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Data</th>
+          <th style="padding:5px 8px;text-align:left;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Descrição</th>
+          <th style="padding:5px 8px;text-align:left;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Categoria</th>
+          <th style="padding:5px 8px;text-align:left;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Conta</th>
+          <th style="padding:5px 8px;text-align:right;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Valor</th>
+          <th style="width:10px;"></th>
         </tr>
       </thead>
       <tbody>
@@ -5547,13 +5555,13 @@ function waRenderExtrato(){
           const isTransf=t.type==='transferência';
           const color=isIn?'var(--accent2)':isTransf?'#7c3aed':'var(--red)';
           const idx=allData.indexOf(t);
-          return `<tr onclick="waEditTx(${idx})" style="cursor:pointer;border-bottom:1px solid var(--border);${!t.consolidated?'opacity:.6;':''}" onmouseover="this.style.background='var(--kp)'" onmouseout="this.style.background=''">
-            <td style="padding:8px 12px;font-size:.78rem;color:var(--muted);white-space:nowrap;">${t.date}</td>
-            <td style="padding:8px 12px;font-size:.82rem;font-weight:500;color:var(--font);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.desc||t.cat}</td>
-            <td style="padding:8px 12px;font-size:.75rem;color:var(--muted);">${t.cat||'—'}</td>
-            <td style="padding:8px 12px;font-size:.75rem;color:var(--muted);">${t.account||'—'}</td>
-            <td style="padding:8px 4px;text-align:right;font-size:.82rem;font-weight:700;color:${color};white-space:nowrap;">${isIn?'+':'-'}${fmt(t.value)}</td>
-
+          return `<tr onclick="waEditTx(${idx})" style="cursor:pointer;${!t.consolidated?'opacity:.6;':''}" onmouseover="this.style.background='var(--kp)'" onmouseout="this.style.background=''">
+            <td style="padding:3px 8px;font-size:.68rem;color:var(--muted);white-space:nowrap;">${t.date}</td>
+            <td style="padding:3px 8px;font-size:.72rem;font-weight:500;color:var(--font);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.desc||t.cat}</td>
+            <td style="padding:3px 8px;font-size:.66rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.cat||'—'}</td>
+            <td style="padding:3px 8px;font-size:.66rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.account||'—'}</td>
+            <td style="padding:3px 8px;text-align:right;font-size:.72rem;font-weight:700;color:${color};white-space:nowrap;">${isIn?'+':'-'}${fmt(t.value)}</td>
+            <td></td>
           </tr>`;
         }).join('')}
       </tbody>
