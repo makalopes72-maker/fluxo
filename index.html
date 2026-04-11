@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4A148C,#D7CCC8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F3E5F5 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(243,229,245,.65) !important;}
-  #splash .splash-version{color:rgba(243,229,245,.35) !important;}
-  #splash .splash-btn{background:#F3E5F5 !important;color:#4A148C !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F3E5F5 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4E342E,#00BCD4);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#EFEBE9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(239,235,233,.65) !important;}
+  #splash .splash-version{color:rgba(239,235,233,.35) !important;}
+  #splash .splash-btn{background:#EFEBE9 !important;color:#4E342E !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EFEBE9 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2026,7 +2026,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.27';
+const APP_VERSION='13.28';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5781,6 +5781,7 @@ function waRenderLaunchForm(){
         <div style="font-size:.58rem;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.08em;margin-bottom:1px;">${typeLabel}</div>
         <input id="wa-val-input" type="text" inputmode="decimal" value="${valDisplay}"
           onfocus="waValInputFocus(this)" onblur="waValInputBlur(this)"
+          onkeydown="if(!/[0-9,\.\+\-\*\/\=\,\b]/.test(event.key)&&event.key!='Backspace'&&event.key!='Tab')event.preventDefault();"
           style="font-family:var(--font-display);font-size:1.5rem;color:#fff;letter-spacing:-1px;background:transparent;border:none;outline:none;width:100%;">
       </div>
       <button onclick="waKp('del')" style="color:rgba(255,255,255,.7);background:transparent;border:none;font-size:1rem;cursor:pointer;padding:4px;">⌫</button>
@@ -5791,11 +5792,12 @@ function waRenderLaunchForm(){
       ).join('')}
     </div>
     <div style="flex-shrink:0;padding:6px 8px;display:flex;flex-direction:column;gap:5px;border-top:1px solid var(--border);">
-      <div style="background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:6px 8px;">
+      <div style="background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:6px 8px;position:relative;">
         <span style="font-size:.75rem;flex-shrink:0;">📝</span>
         <input id="wa-desc" value="${s.desc}" placeholder="Descrição" oninput="waDescInput(this.value)" autocomplete="off"
           style="flex:1;border:none;background:transparent;font-family:var(--font-body);font-size:.75rem;color:var(--font);outline:none;min-width:0;">
       </div>
+      <div id="wa-ac" style="display:none;position:fixed;z-index:999;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.18);max-height:200px;overflow-y:auto;min-width:200px;"></div>
       <div style="display:flex;gap:5px;">
         <div onclick="waOpenPicker('tipo')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:5px;padding:6px 8px;cursor:pointer;min-width:0;">
           <span style="font-size:.7rem;flex-shrink:0;">📂</span>
@@ -5847,6 +5849,42 @@ function waRenderLaunchForm(){
   `;
 }
 
+
+// ── Keypad state ──
+let waKpState={cents:0,op:null,prev:0};
+
+function waKp(k){
+  const s=waKpState;
+  if(k==='del'){s.cents=Math.floor(s.cents/10);s.op=null;}
+  else if(k==='='){if(s.op&&s.prev!==null){
+    if(s.op==='÷')s.cents=s.prev!==0?Math.round(s.prev/s.cents*100):s.cents;
+    else if(s.op==='×')s.cents=Math.round(s.prev*s.cents/100);
+    else if(s.op==='−')s.cents=s.prev-s.cents;
+    else if(s.op==='+')s.cents=s.prev+s.cents;
+    s.op=null;s.prev=0;
+  }}
+  else if(['÷','×','−','+'].includes(k)){s.op=k;s.prev=s.cents;s.cents=0;}
+  else if(k===',00'){s.cents=s.cents*100;}
+  else{const d=parseInt(k);if(!isNaN(d))s.cents=s.cents*10+d;}
+  waLaunchState.valueCents=s.cents;
+  const el=document.getElementById('wa-val-input');
+  if(el)el.value='R$ '+(s.cents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
+}
+
+function waValInputFocus(inp){inp.select();}
+function waValInputBlur(inp){
+  const raw=inp.value.replace(/[^0-9,.]/g,'').replace(',','.');
+  const v=parseFloat(raw)||0;
+  waKpState.cents=Math.round(v*100);
+  waLaunchState.valueCents=waKpState.cents;
+  inp.value='R$ '+(waKpState.cents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
+}
+function waValInputChange(v){}
+
+function waSetType(t){
+  waLaunchState.type=t;
+  waRenderLaunchForm();
+}
 
 function waToggleRight(){
   const rp=document.getElementById('wa-right');
@@ -5973,28 +6011,28 @@ function waPick(field,val){
 }
 
 function waOpenDatePicker(){
-  const inp=document.createElement('input');inp.type='date';
+  const inp=document.createElement('input');
+  inp.type='date';
   const parts=waLaunchState.date.split('/');
   if(parts.length===3)inp.value=parts[2]+'-'+parts[1]+'-'+parts[0];
-  inp.style.cssText='position:fixed;top:-200px;opacity:0;';
+  inp.style.cssText='position:fixed;top:-200px;left:-200px;opacity:0;pointer-events:none;';
   document.body.appendChild(inp);
   inp.addEventListener('change',()=>{
     const p=inp.value.split('-');
     if(p.length===3)waLaunchState.date=p[2]+'/'+p[1]+'/'+p[0];
     inp.remove();waRenderLaunchForm();
   });
-  inp.focus();inp.click();
-  setTimeout(()=>{if(document.body.contains(inp))inp.remove();},30000);
+  inp.addEventListener('blur',()=>setTimeout(()=>{if(document.body.contains(inp))inp.remove();},500));
+  setTimeout(()=>inp.showPicker?.(),50);
 }
 
 async function waSave(){
   const s=waLaunchState;
   const val=s.valueCents/100;
   if(!val){toast('Digite um valor','error');return;}
-  // get latest desc from input if available
   const _descEl=document.getElementById('wa-desc');
-  if(_descEl&&_descEl.value.trim())s.desc=_descEl.value.trim();
-  const displayDesc=s.desc||(s.cat||s.tipo||'Transação');
+  if(_descEl&&_descEl.value.trim())waLaunchState.desc=_descEl.value.trim();
+  const displayDesc=waLaunchState.desc||(s.cat||s.tipo||'Transação');
   const btn=document.querySelector('#wa-right-body .wa-save-btn');
 
   if(s.editingIdx!==null){
