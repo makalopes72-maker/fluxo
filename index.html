@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0047AB,#B87333);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E8F0FF !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(232,240,255,.65) !important;}
-  #splash .splash-version{color:rgba(232,240,255,.35) !important;}
-  #splash .splash-btn{background:#E8F0FF !important;color:#0047AB !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8F0FF !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(135deg,#558B2F,#4527A0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F9FBE7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(249,251,231,.65) !important;}
+  #splash .splash-version{color:rgba(249,251,231,.35) !important;}
+  #splash .splash-btn{background:#F9FBE7 !important;color:#558B2F !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F9FBE7 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1957,7 +1957,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.19';
+const APP_VERSION='13.20';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5726,7 +5726,7 @@ function waRenderLaunchForm(){
         <div style="flex:1;position:relative;">
           <input id="wa-desc" value="${s.desc}" placeholder="Descrição" oninput="waDescInput(this.value)" autocomplete="off"
             style="flex:1;border:none;background:transparent;font-family:var(--font-body);font-size:.72rem;color:var(--font);outline:none;width:100%;">
-          <div id="wa-ac" style="display:none;position:absolute;bottom:calc(100% + 4px);left:-14px;right:-14px;z-index:200;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);max-height:160px;overflow-y:auto;"></div>
+          <div id="wa-ac" style="display:none;position:fixed;z-index:500;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.15);max-height:200px;overflow-y:auto;"></div>
         </div>
       </div>
       <div style="display:flex;gap:5px;">
@@ -5890,7 +5890,9 @@ function waOpenDrop(field){
   }
   if(!items.length)return;
   area.dataset.open=field;
-  area.innerHTML=`<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.08);">${items.join('')}</div>`;
+  // position relative to the clicked field
+  const fieldEl=document.getElementById('wlp-fc-'+field)||document.querySelector('[onclick*="waOpenDrop(\''+field+'\'"]');
+  area.innerHTML=`<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;max-height:200px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.12);">${items.join('')}</div>`;
 }
 
 function waPick(field,val){
@@ -5898,6 +5900,7 @@ function waPick(field,val){
   if(field==='cat')waLaunchState.cat=val;
   if(field==='conta')waLaunchState.conta=val;
   const area=document.getElementById('wa-drop-area');if(area){area.innerHTML='';area.dataset.open='';}
+  const drop=document.getElementById('wa-float-drop');if(drop)drop.remove();
   waRenderLaunchForm();
 }
 
