@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#880E4F,#F57F17);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FCE4EC !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(252,228,236,.65) !important;}
-  #splash .splash-version{color:rgba(252,228,236,.35) !important;}
-  #splash .splash-btn{background:#FCE4EC !important;color:#880E4F !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FCE4EC !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#006064,#C8A84B);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
+  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
+  #splash .splash-btn{background:#E0F7FA !important;color:#006064 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.08';
+const APP_VERSION='14.09';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6320,19 +6320,7 @@ function waDashRender(){
   if(!window.waDashCollapsed)window.waDashCollapsed={};
   if(!window.waDashShowOrc)window.waDashShowOrc={};
 
-  // ── color scheme A for past months ──
-  const pastColors=(rv,mv)=>{
-    if(!mv)return{r:'#F5F5F5',p:'#EEEEEE'};
-    if(rv<mv*0.98)return{r:'#E8F5E9',p:'#C8E6C9'};  // green = under budget (good for expenses)
-    if(rv>mv*1.02)return{r:'#FFEBEE',p:'#FFCDD2'};  // red = over budget
-    return{r:'#F5F5F5',p:'#EEEEEE'};
-  };
-  const pastColorsPos=(rv,mv)=>{
-    if(!mv)return{r:'#F5F5F5',p:'#EEEEEE'};
-    if(rv>=mv*0.98)return{r:'#E8F5E9',p:'#C8E6C9'};  // green = met target (good for income)
-    if(rv<mv*0.9)return{r:'#FFEBEE',p:'#FFCDD2'};
-    return{r:'#F5F5F5',p:'#EEEEEE'};
-  };
+  // faróis only for past/current months
 
   const farolClass=(rv,mv,farolTipo,isPos)=>{
     if(!mv||!rv)return '';
@@ -6356,24 +6344,30 @@ function waDashRender(){
       .wad-lbl.cat{padding-left:22px;color:#5F5E5A;background:#fff;border-right:2px solid #B4B2A9;}
       .wad-lbl.normal{border-right:2px solid #B4B2A9;}
       .wad-h-mes{text-align:center;font-size:10px;font-weight:500;padding:5px 4px;white-space:nowrap;}
-      .wad-h-mes.past{color:#5F5E5A;}
-      .wad-h-mes.cur{background:#1a1a1a;color:#fff;font-weight:700;}
-      .wad-h-mes.fut{background:#F1EFE8;color:#5F5E5A;}
+      .wad-h-mes.past{background:#fff;color:#2C2C2A;}
+      .wad-h-mes.cur{background:#FFF9C4;color:#5D4037;font-weight:700;}
+      .wad-h-mes.fut{background:#F5F5F5;color:#9E9E9E;}
       .wad-h-sub{font-size:9px;text-align:center;padding:3px 4px;font-weight:500;color:#888780;}
-      .wad-h-sub.real{background:#fff;}
-      .wad-h-sub.prev{background:#F5EFE6;color:#854F0B;font-style:italic;}
-      .wad-h-sub.real.cur{background:#E8E8E8;color:#1a1a1a;}
-      .wad-h-sub.prev.cur{background:#E8D5B7;color:#633806;}
-      .wad-real{text-align:right;padding:3px 5px;white-space:nowrap;font-size:10px;}
-      .wad-prev{text-align:right;padding:3px 5px;font-style:italic;white-space:nowrap;cursor:pointer;font-size:10px;color:#854F0B;}
-      .wad-prev:hover{filter:brightness(.93);}
-      .wad-real.cur{background:#F1EFE8;color:#2C2C2A;}
-      .wad-prev.cur{background:#E8D5B7;color:#633806;}
-      .wad-prev.cur:hover{background:#D4BC96;}
-      .wad-real.sub{font-weight:700;color:#1a1a1a;}
-      .wad-prev.sub{font-weight:700;color:#633806;}
-      .wad-real.sub.cur{background:#E0E0E0;}
-      .wad-prev.sub.cur{background:#D4BC96;}
+      .wad-h-sub.real{background:#fff;color:#888;}
+      .wad-h-sub.prev{background:#F5EFE6;color:#A1887F;font-style:italic;border-left:none!important;}
+      .wad-h-sub.real.cur{background:#FFF9C4;color:#5D4037;}
+      .wad-h-sub.prev.cur{background:#FFF3CD;color:#A1887F;border-left:none!important;}
+      .wad-h-sub.real.fut{background:#F5F5F5;color:#BDBDBD;}
+      .wad-h-sub.prev.fut{background:#EEEEEE;color:#BDBDBD;border-left:none!important;}
+      .wad-real{text-align:right;padding:3px 5px;white-space:nowrap;font-size:10px;background:#fff;color:#2C2C2A;}
+      .wad-prev{text-align:right;padding:3px 5px;font-style:italic;white-space:nowrap;cursor:pointer;font-size:10px;background:#F5EFE6;color:#A1887F;border-left:none!important;}
+      .wad-prev:hover{filter:brightness(.95);}
+      .wad-real.cur{background:#FFF9C4;color:#5D4037;}
+      .wad-prev.cur{background:#FFF3CD;color:#A1887F;}
+      .wad-real.fut{background:#F5F5F5;color:#BDBDBD;}
+      .wad-prev.fut{background:#EEEEEE;color:#BDBDBD;}
+      .wad-real.sub{font-weight:700;}
+      .wad-real.sub.past,.wad-real.sub{background:#F7F7F7;}
+      .wad-prev.sub{font-weight:700;background:#EDE4D8;}
+      .wad-real.sub.cur{background:#FFF176;color:#5D4037;}
+      .wad-prev.sub.cur{background:#FFE57F;color:#A1887F;}
+      .wad-real.sub.fut{background:#EEEEEE;color:#BDBDBD;}
+      .wad-prev.sub.fut{background:#E8E8E8;color:#BDBDBD;}
       .wad-farol{display:inline-block;width:6px;height:6px;border-radius:50%;margin-left:3px;vertical-align:middle;}
       .f-v{background:#43A047;}.f-a{background:#F9A825;}.f-r{background:#E53935;}
       .wad-cell{display:flex;align-items:center;justify-content:flex-end;gap:2px;}
@@ -6420,18 +6414,17 @@ function waDashRender(){
     const cols=showOrc?2:1;
     const tog=isPast?'<span class="wad-tog" onclick="waDashTogOrc('+m+',event)">'+(showOrc?'◂':'▸')+'</span>':'';
     const cls=isCur?'cur':isPast?'past':'fut';
-    const bg=isCur?'':'background:#F1EFE8;';
-    html+='<th class="wad-h-mes '+cls+'" colspan="'+cols+'" style="'+bg+'">'+MESES[m]+'. '+yr+tog+'</th>';
+    html+='<th class="wad-h-mes '+cls+'" colspan="'+cols+'" style="border-left:3px solid #888;">'+MESES[m]+'. '+yr+tog+'</th>';
   });
   // total column
   html+='<th class="wad-h-mes fut wad-total-col" colspan="2" style="background:#E8EAF6;color:#283593;">Total</th>';
   html+='</tr><tr>';
   visMonths.forEach(m=>{
-    const isPast=m<curM,isCur=m===curM;
+    const isPast=m<curM,isCur=m===curM,isFut=m>curM;
     const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
-    const cur=isCur?' cur':'';
-    html+='<th class="wad-h-sub real'+cur+'">real</th>';
-    if(showOrc)html+='<th class="wad-h-sub prev'+cur+'"><em>prev.</em></th>';
+    const tc=isCur?'cur':isFut?'fut':'';
+    html+='<th class="wad-h-sub real '+tc+'" style="border-left:3px solid #888;">real</th>';
+    if(showOrc)html+='<th class="wad-h-sub prev '+tc+'"><em>prev.</em></th>';
   });
   html+='<th class="wad-h-sub real wad-total-col" style="background:#C5CAE9;color:#283593;">real</th>';
   html+='<th class="wad-h-sub prev wad-total-col" style="background:#DDD5C0;color:#4E342E;"><em>prev.</em></th>';
@@ -6514,16 +6507,15 @@ function waDashRender(){
     html+='<tr>';
     html+='<td class="wad-lbl sub">'+tipo.toUpperCase()+'</td>';
     visMonths.forEach(m=>{
-      const isPast=m<curM,isCur=m===curM;
+      const isPast=m<curM,isCur=m===curM,isFut=m>curM;
       const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
       const cur=isCur?' cur':'';
       const rv=totReal[m],mv=totMeta[m];
       const fc=farolClass(rv,mv,'A',isPos);
-      const dot=isCur&&rv&&mv?'<span class="wad-farol '+fc+'"></span>':'';
-      let bg_r='#F1EFE8',bg_p='#EAD9C0';
-      if(isPast&&!isCur){const col=isPos?pastColorsPos(rv,mv):pastColors(rv,mv);bg_r=col.r;bg_p=col.p;}
-      html+='<td class="wad-real sub'+cur+'" style="background:'+bg_r+';"><div class="wad-cell">'+fmt(rv)+dot+'</div></td>';
-      if(showOrc)html+='<td class="wad-prev sub'+cur+'" style="background:'+bg_p+';">'+fmt(mv)+'</td>';
+      const dot=(isPast||isCur)&&rv&&mv?'<span class="wad-farol '+fc+'"></span>':'';
+      const mt2=isCur?'cur':isFut?'fut':'past';
+      html+='<td class="wad-real sub '+mt2+'" style="border-left:3px solid #888;"><div class="wad-cell">'+fmt(rv)+dot+'</div></td>';
+      if(showOrc)html+='<td class="wad-prev sub '+mt2+'">'+fmt(mv)+'</td>';
     });
     html+='<td class="wad-real sub wad-total-col" style="background:#C5CAE9;">'+fmt(subRealTot)+'</td>';
     html+='<td class="wad-prev sub wad-total-col" style="background:#C8B99A;">'+fmt(subMetaTot)+'</td>';
@@ -6536,15 +6528,15 @@ function waDashRender(){
   html+='<tr style="border-top:2px solid #B4B2A9;">';
   html+='<td class="wad-lbl sub" style="background:#1a1a1a;color:#fff;text-align:center;">SALDO</td>';
   visMonths.forEach(m=>{
-    const isPast=m<curM,isCur=m===curM;
+    const isPast=m<curM,isCur=m===curM,isFut=m>curM;
     const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
     const cur=isCur?' cur':'';
     const rv=grandReal[m],mv=grandMeta[m];
+    const mt3=isCur?'cur':isFut?'fut':'past';
     const clrR=rv>=0?'#27500A':'#A32D2D';
-    const bg_r=isPast&&!isCur?(rv>=0?'#E8F5E9':'#FFEBEE'):(isCur?'#E0E0E0':'#F1EFE8');
-    const bg_p=isPast&&!isCur?(rv>=0?'#C8E6C9':'#FFCDD2'):(isCur?'#D4BC96':'#EAD9C0');
-    html+='<td class="wad-real sub'+cur+'" style="background:'+bg_r+';color:'+clrR+';font-weight:700;">'+(rv?(rv>=0?'+':'')+fmt(Math.abs(rv)):'')+'</td>';
-    if(showOrc){const clrM=mv>=0?'#27500A':'#A32D2D';html+='<td class="wad-prev sub'+cur+'" style="background:'+bg_p+';color:'+clrM+';">'+(mv?(mv>=0?'+':'')+fmt(Math.abs(mv)):'')+'</td>';}
+    const clrM=mv>=0?'#27500A':'#A32D2D';
+    html+='<td class="wad-real sub '+mt3+'" style="border-left:3px solid #888;color:'+clrR+';font-weight:700;">'+(rv?(rv>=0?'+':'')+fmt(Math.abs(rv)):'')+'</td>';
+    if(showOrc)html+='<td class="wad-prev sub '+mt3+'" style="color:'+clrM+';">'+(mv?(mv>=0?'+':'')+fmt(Math.abs(mv)):'')+'</td>';
   });
   const clrTR=saldoTotReal>=0?'#27500A':'#A32D2D';
   const clrTM=saldoTotMeta>=0?'#27500A':'#A32D2D';
@@ -6608,27 +6600,59 @@ function waOnLogin(){
   waAutoSync();
 }
 
+function waSyncIndicator(msg,color,pulse){
+  // persistent indicator in sidebar footer area
+  let ind=document.getElementById('wa-sync-ind');
+  if(!ind){
+    ind=document.createElement('div');
+    ind.id='wa-sync-ind';
+    ind.style.cssText='position:fixed;bottom:10px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:4px 12px;display:flex;align-items:center;gap:6px;font-family:var(--font-body);font-size:.65rem;box-shadow:0 2px 8px rgba(0,0,0,.12);transition:all .3s;';
+    document.body.appendChild(ind);
+  }
+  const dot=pulse?'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+color+';animation:waPulse 1s infinite;"></span>':'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+color+';"></span>';
+  ind.innerHTML=dot+'<span style="color:'+color+';">'+msg+'</span>';
+  ind.style.opacity='1';
+  if(!pulse)setTimeout(()=>{if(ind)ind.style.opacity='0';setTimeout(()=>ind.remove(),400);},4000);
+}
+
 async function waAutoSync(){
-  // show syncing banner in center header
-  const actions=document.getElementById('wa-center-actions');
-  if(actions)actions.innerHTML=`<span id="wa-sync-status" style="font-size:.65rem;color:var(--muted);display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--muted);animation:waPulse 1s infinite;"></span>Sincronizando…</span>`;
-  // add pulse animation if not exists
   if(!document.getElementById('wa-sync-style')){
     const st=document.createElement('style');
     st.id='wa-sync-style';
     st.textContent='@keyframes waPulse{0%,100%{opacity:.3}50%{opacity:1}}';
     document.head.appendChild(st);
   }
+  const curScreen=document.querySelector('.wa-nav-item.active')?.id?.replace('wanav-','');
+
+  // ── Phase 1: sync current year (priority) ──
+  waSyncIndicator('Sincronizando '+new Date().getFullYear()+'…','var(--muted)',true);
   try{
     await loadData();
-    waRenderExtrato();
-    renderDash();
-    if(actions)actions.innerHTML=`<span style="font-size:.65rem;color:var(--accent2);">✓ Sincronizado</span>`;
-    setTimeout(()=>{if(actions)actions.innerHTML='';},3000);
+    // refresh current screen without redirecting
+    if(curScreen==='dash'||!curScreen)waDashRender();
+    else if(curScreen==='hist'||curScreen==='add'){
+      if(document.getElementById('wa-filter-bar'))waRenderExtrato();
+    }
+    waSyncIndicator('✓ '+new Date().getFullYear()+' sincronizado','#059669',false);
   }catch(e){
-    if(actions)actions.innerHTML=`<span style="font-size:.65rem;color:var(--red);">✕ Erro ao sincronizar</span>`;
-    console.error('waAutoSync error',e);
+    waSyncIndicator('✕ Erro na sincronização','var(--red)',false);
+    console.error('waAutoSync phase1 error',e);
+    return;
   }
+
+  // ── Phase 2: background sync (accounts, orc, keywords) ──
+  setTimeout(async()=>{
+    try{
+      waSyncIndicator('Sincronizando configurações…','var(--muted)',true);
+      await syncAll(false);
+      // refresh dashboard silently
+      if(curScreen==='dash'||!curScreen)waDashRender();
+      waSyncIndicator('✓ Tudo sincronizado','#059669',false);
+    }catch(e){
+      console.warn('waAutoSync phase2 error',e);
+      waSyncIndicator('Sync parcial — dados locais ok','#F9A825',false);
+    }
+  },500);
 }
 
 // detect orientation
