@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(145deg,#005F5F,#FF3CAC);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0FFFF !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(224,255,255,.65) !important;}
-  #splash .splash-version{color:rgba(224,255,255,.35) !important;}
-  #splash .splash-btn{background:#E0FFFF !important;color:#005F5F !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0FFFF !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#990000,#0033CC);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFF0F0 !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
+  #splash .splash-sub{color:rgba(255,240,240,.65) !important;}
+  #splash .splash-version{color:rgba(255,240,240,.35) !important;}
+  #splash .splash-btn{background:#FFF0F0 !important;color:#990000 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFF0F0 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1957,7 +1957,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.15';
+const APP_VERSION='13.16';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3751,15 +3751,16 @@ function toggleTxConsolidado(idx,event){
   event.stopPropagation();
   const t=allData[idx];if(!t)return;
   t.consolidated=!t.consolidated;
-  // save consolidado to Sheets
-  if(t._id||t._row){
-    const row=[t.date,t.desc,(t.value||0).toFixed(2).replace('.',','),t.cat,t.tipo||t.cat,t.account,t.type,t.consolidated?'1':'0',t._transferId||'',t._isAdjust?'1':'',t._id||''];
-    const payload=t._id
-      ? {action:'update',id:String(t._id),data:row,sheet:SHEET_NAME}
-      : {action:'update',row:t._row,data:row,sheet:SHEET_NAME};
-    sheetsPost(payload).catch(()=>{});
-  }
   renderDash();renderHistory();
+  // save to Sheets
+  if(!t._id&&!t._row){toast('Sem referência para salvar','error');return;}
+  const row=[t.date,t.desc,(t.value||0).toFixed(2).replace('.',','),t.cat,t.tipo||t.cat,t.account,t.type,t.consolidated?'1':'0',t._transferId||'',t._isAdjust?'1':'',t._id||''];
+  const payload=t._id
+    ? {action:'update',id:String(t._id),data:row,sheet:SHEET_NAME}
+    : {action:'update',row:t._row,data:row,sheet:SHEET_NAME};
+  sheetsPost(payload)
+    .then(r=>{if(r&&r.ok)toast(t.consolidated?'Consolidado ✓':'Previsto ○','success');else toast('Erro ao salvar','error');})
+    .catch(e=>{toast('Erro: '+e.message,'error');console.error('toggleConsol error',e);});
 }
 const SWIPE_OPEN=160,SWIPE_THRESHOLD=60;
 function attachSwipe(listId){
@@ -5597,11 +5598,13 @@ function waToggleExtConsol(idx,e){
   e.stopPropagation();
   const t=allData[idx];if(!t)return;
   t.consolidated=!t.consolidated;
-  // sync to sheets
+  waRenderExtrato();
+  if(!t._id&&!t._row){toast('Sem referência para salvar','error');return;}
   const row=[t.date,t.desc,(t.value||0).toFixed(2).replace('.',','),t.cat,t.tipo||t.cat,t.account,t.type,t.consolidated?'1':'0',t._transferId||'',t._isAdjust?'1':'',t._id||''];
   const payload=t._id?{action:'update',id:String(t._id),data:row,sheet:SHEET_NAME}:{action:'update',row:t._row,data:row,sheet:SHEET_NAME};
-  sheetsPost(payload).catch(()=>{});
-  waRenderExtrato();
+  sheetsPost(payload)
+    .then(r=>{if(r&&r.ok)toast(t.consolidated?'Consolidado ✓':'Previsto ○','success');else toast('Erro ao salvar','error');})
+    .catch(e=>{toast('Erro: '+e.message,'error');console.error('waToggleConsol error',e);});
 }
 function waExtPeriod(p){
   extPeriod=p;
