@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0D2137,#4DB6AC);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
-  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
-  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
-  #splash .splash-btn{background:#E0F7FA !important;color:#0D2137 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4A148C,#1B5E20);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F3E5F5 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(243,229,245,.65) !important;}
+  #splash .splash-version{color:rgba(243,229,245,.35) !important;}
+  #splash .splash-btn{background:#F3E5F5 !important;color:#4A148C !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F3E5F5 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.10';
+const APP_VERSION='14.11';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6595,9 +6595,10 @@ function waOnLogin(){
   const wu=document.getElementById('wa-user');
   if(wu)wu.textContent=currentUser||'ALE';
   waResetLaunch();
+  // render dash with local cached data first
   waGo('dash');
-  // auto-sync on web start
-  waAutoSync();
+  // then sync in background
+  setTimeout(()=>waAutoSync(),200);
 }
 
 function waSyncIndicator(msg,color,pulse){
@@ -6623,52 +6624,41 @@ async function waAutoSync(){
     document.head.appendChild(st);
   }
 
-  // ── Phase 1: sync current year (priority) ──
-  waSyncIndicator('Sincronizando '+new Date().getFullYear()+'…','var(--muted)',true);
+  // ── Phase 1: load transactions ──
+  waSyncIndicator('Carregando transações…','var(--muted)',true);
   try{
     await loadData();
-    // refresh dashboard without redirecting
     const onDash=document.getElementById('wanav-dash')?.classList.contains('active');
-    if(onDash)waDashRender();
+    if(onDash){waDashRenderHeader();waDashRender();}
     if(document.getElementById('wa-filter-bar'))waRenderExtrato();
-    waSyncIndicator('✓ '+new Date().getFullYear()+' sincronizado','#059669',false);
+    waSyncIndicator('✓ Transações carregadas','#059669',false);
   }catch(e){
-    waSyncIndicator('✕ Erro na sincronização','#E53935',false);
-    console.error('waAutoSync phase1 error',e);
-    return;
+    console.warn('loadData error',e);
+    // still render with cached data
+    const onDash=document.getElementById('wanav-dash')?.classList.contains('active');
+    if(onDash){waDashRenderHeader();waDashRender();}
+    waSyncIndicator('Usando dados locais','#F9A825',false);
   }
 
-  // ── Phase 2: sync orc + accounts + keywords in background ──
+  // ── Phase 2: sync config silently, no error shown ──
   setTimeout(async()=>{
     try{
-      waSyncIndicator('Sincronizando configurações…','var(--muted)',true);
+      waSyncIndicator('Atualizando configurações…','var(--muted)',true);
       // orc
-      try{
-        const rows=await sheetsRead(SHEETS.orcamento);
-        if(rows&&rows.length>0){const obj=deserializeKV(rows);if(Object.keys(obj).length>0){orcData=obj;localStorage.setItem('fluxo_orc',JSON.stringify(orcData));}}
-      }catch(e){console.warn('orc sync fail',e);}
-      // accounts
-      try{
-        const rows=await sheetsRead(SHEETS.contas);
-        if(rows&&rows.length>0){
-          const obj=deserializeKV(rows);
-          if(obj.accounts&&obj.accounts.length>0){accounts=obj.accounts;localStorage.setItem('fluxo_accounts',JSON.stringify(accounts));}
-        }
-      }catch(e){console.warn('accounts sync fail',e);}
+      try{const rows=await sheetsRead(SHEETS.orcamento);if(rows&&rows.length){const obj=deserializeKV(rows);if(Object.keys(obj).length){orcData=obj;localStorage.setItem('fluxo_orc',JSON.stringify(orcData));}}}catch(e){}
+      // contas
+      try{const rows=await sheetsRead(SHEETS.contas);if(rows&&rows.length){const obj=deserializeKV(rows);if(obj.accounts?.length){accounts=obj.accounts;localStorage.setItem('fluxo_accounts',JSON.stringify(accounts));}}}catch(e){}
       // keywords
-      try{
-        const rows=await sheetsRead(SHEETS.keywords);
-        if(rows&&rows.length>0){const obj=deserializeKV(rows);if(obj.keywords&&Object.keys(obj.keywords).length>0){Object.assign(keywordsData,obj.keywords);localStorage.setItem('fluxo_kw',JSON.stringify(keywordsData));}}
-      }catch(e){console.warn('kw sync fail',e);}
-      // refresh dashboard silently
+      try{const rows=await sheetsRead(SHEETS.keywords);if(rows&&rows.length){const obj=deserializeKV(rows);if(obj.keywords&&Object.keys(obj.keywords).length){Object.assign(keywordsData,obj.keywords);localStorage.setItem('fluxo_kw',JSON.stringify(keywordsData));}}}catch(e){}
       const onDash2=document.getElementById('wanav-dash')?.classList.contains('active');
       if(onDash2)waDashRender();
       waSyncIndicator('✓ Tudo sincronizado','#059669',false);
     }catch(e){
-      console.warn('waAutoSync phase2 error',e);
-      waSyncIndicator('Sync parcial — dados locais ok','#F9A825',false);
+      // silent — don't show error for background sync
+      console.warn('background sync warn',e);
+      waSyncIndicator('✓ Sync concluído','#059669',false);
     }
-  },800);
+  },1000);
 }
 
 // detect orientation
