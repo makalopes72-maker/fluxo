@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#2E7D32,#7B1FA2);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E8F5E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(232,245,233,.65) !important;}
-  #splash .splash-version{color:rgba(232,245,233,.35) !important;}
-  #splash .splash-btn{background:#E8F5E9 !important;color:#2E7D32 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8F5E9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4A0072,#FF6F00);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F3E5F5 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(243,229,245,.65) !important;}
+  #splash .splash-version{color:rgba(243,229,245,.35) !important;}
+  #splash .splash-btn{background:#F3E5F5 !important;color:#4A0072 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F3E5F5 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1677,8 +1677,8 @@
       <!-- FILTROS RÁPIDOS -->
       <div class="extrato-filters">
         <button class="ext-chip icon-chip" id="ext-filter-btn" onclick="toggleExtFilter()" title="Filtros" style="padding:5px 9px;font-size:1rem;">⊟</button>
-        <button class="ext-chip active" id="chip-mes" onclick="openMonthPicker()">Abr</button>
         <button class="ext-chip" id="chip-30d" onclick="setExtPeriod('30d',this)">30d</button>
+        <button class="ext-chip active" id="chip-mes" onclick="openMonthPicker()">Abr</button>
         <button class="ext-chip" id="chip-ano" onclick="openYearPicker()">2026</button>
         <button class="ext-chip" id="chip-tudo" onclick="setExtPeriod('tudo',this)">Tudo</button>
         <button class="ext-chip" id="chip-futuras" onclick="setExtPeriod('futuras',this)">Futuras</button>
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.37';
+const APP_VERSION='13.39';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5631,16 +5631,37 @@ function waRenderExtrato(){
     extPeriod==='30d'?'30 dias':'Tudo';
 
   body.innerHTML=`
-    <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;flex-wrap:wrap;">
-      <button onclick="waExtPeriod('mes')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extPeriod==='mes'?'var(--btn)':'transparent'};color:${extPeriod==='mes'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">${MESES_ABR[extMonth]}</button>
-      <button onclick="waExtPeriod('30d')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extPeriod==='30d'?'var(--btn)':'transparent'};color:${extPeriod==='30d'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">30 dias</button>
-      <button onclick="waExtPeriod('ano')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extPeriod==='ano'?'var(--btn)':'transparent'};color:${extPeriod==='ano'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">${extYear}</button>
-      <button onclick="waExtPeriod('tudo')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extPeriod==='tudo'?'var(--btn)':'transparent'};color:${extPeriod==='tudo'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">Tudo</button>
-      <button onclick="waToggleConsolid(this)" id="wa-chip-consolid" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extConsolid!=='all'?'var(--btn)':'transparent'};color:${extConsolid!=='all'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">${extConsolid==='yes'?'✓ Consol.':extConsolid==='no'?'○ Prev.':'Consolid.'}</button>
-      <div style="margin-left:auto;display:flex;gap:16px;font-size:.75rem;">
-        <span style="color:var(--accent2);">↑ ${fmt(totIn)}</span>
-        <span style="color:var(--red);">↓ ${fmt(totOut)}</span>
-        <span style="color:var(--font);font-weight:700;">${bal>=0?'+':''}${fmt(bal)}</span>
+    <div style="display:flex;flex-direction:column;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;flex-wrap:wrap;">
+        <button onclick="waToggleFilter()" title="Filtros" style="padding:3px 8px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">⊟</button>
+        <button onclick="waExtPeriod('30d')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extPeriod==='30d'?'var(--btn)':'transparent'};color:${extPeriod==='30d'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">30d</button>
+        <button onclick="waExtPeriod('mes')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extPeriod==='mes'?'var(--btn)':'transparent'};color:${extPeriod==='mes'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">${MESES_ABR[extMonth]}</button>
+        <button onclick="waExtPeriod('ano')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extPeriod==='ano'?'var(--btn)':'transparent'};color:${extPeriod==='ano'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">${extYear}</button>
+        <button onclick="waExtPeriod('tudo')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extPeriod==='tudo'?'var(--btn)':'transparent'};color:${extPeriod==='tudo'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">Tudo</button>
+        <button onclick="waExtPeriod('futuras')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extPeriod==='futuras'?'var(--btn)':'transparent'};color:${extPeriod==='futuras'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">Futuras</button>
+        <button onclick="waToggleConsolid()" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extConsolid!=='all'?'var(--btn)':'transparent'};color:${extConsolid!=='all'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">${extConsolid==='yes'?'✓ Consol.':extConsolid==='no'?'○ Prev.':'Consolid.'}</button>
+        <div style="margin-left:auto;display:flex;gap:14px;font-size:.72rem;">
+          <span style="color:var(--accent2);">↑ ${fmt(totIn)}</span>
+          <span style="color:var(--red);">↓ ${fmt(totOut)}</span>
+          <span style="color:var(--font);font-weight:700;">${bal>=0?'+':''}${fmt(bal)}</span>
+        </div>
+      </div>
+      <div id="wa-filter-panel" style="display:none;padding:8px 12px 10px;border-top:1px solid var(--border);display:none;gap:12px;flex-direction:column;">
+        <div>
+          <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:5px;">Ordenar</div>
+          <div style="display:flex;gap:5px;">
+            <button onclick="waSetSort('desc')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extSort==='desc'?'var(--font)':'transparent'};color:${extSort==='desc'?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.68rem;cursor:pointer;">↓ Mais recente</button>
+            <button onclick="waSetSort('asc')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extSort==='asc'?'var(--font)':'transparent'};color:${extSort==='asc'?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.68rem;cursor:pointer;">↑ Mais antigo</button>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:5px;">Contas</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;" id="wa-conta-chips">${(()=>{const user=currentUser||'ALE';return accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).map(a=>`<button onclick="waToggleConta('${a.name.replace(/'/g,"\'")}',this)" style="padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:${extContas.includes(a.name)?'var(--font)':'transparent'};color:${extContas.includes(a.name)?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.65rem;cursor:pointer;">${a.name}</button>`).join('');})()}</div>
+        </div>
+        <div>
+          <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:5px;">Pastas</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;">${getTiposList().map(t=>`<button onclick="waTogglePasta('${t.replace(/'/g,"\'")}',this)" style="padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:${extPastas.includes(t)?'var(--font)':'transparent'};color:${extPastas.includes(t)?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.65rem;cursor:pointer;">${TIPO_ICONS[t]||'📁'} ${t}</button>`).join('')}</div>
+        </div>
       </div>
     </div>
     <div class="wa-scroll" style="overflow-y:scroll;flex:1;">
@@ -5720,12 +5741,32 @@ function waToggleExtConsol(idx,e){
     .then(r=>{if(r&&r.ok)toast(t.consolidated?'Consolidado ✓':'Previsto ○','success');else toast('Erro ao salvar','error');})
     .catch(e=>{toast('Erro: '+e.message,'error');});
 }
+function waToggleFilter(){
+  const p=document.getElementById('wa-filter-panel');
+  if(!p)return;
+  p.style.display=p.style.display==='none'?'flex':'none';
+}
+function waSetSort(dir){
+  extSort=dir;
+  waRenderExtrato();
+}
+function waToggleConta(name){
+  const i=extContas.indexOf(name);
+  if(i>=0)extContas.splice(i,1);else extContas.push(name);
+  waRenderExtrato();
+}
+function waTogglePasta(name){
+  const i=extPastas.indexOf(name);
+  if(i>=0)extPastas.splice(i,1);else extPastas.push(name);
+  waRenderExtrato();
+}
 function waToggleConsolid(){
   if(extConsolid==='all')extConsolid='yes';
   else if(extConsolid==='yes')extConsolid='no';
   else extConsolid='all';
   waRenderExtrato();
 }
+
 function waExtPeriod(p){
   extPeriod=p;
   if(p==='mes'){extMonth=new Date().getMonth();extYear=new Date().getFullYear();}
@@ -6163,6 +6204,31 @@ function waOnLogin(){
   if(wu)wu.textContent=currentUser||'ALE';
   waResetLaunch();
   waGo('add');
+  // auto-sync on web start
+  waAutoSync();
+}
+
+async function waAutoSync(){
+  // show syncing banner in center header
+  const actions=document.getElementById('wa-center-actions');
+  if(actions)actions.innerHTML=`<span id="wa-sync-status" style="font-size:.65rem;color:var(--muted);display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--muted);animation:waPulse 1s infinite;"></span>Sincronizando…</span>`;
+  // add pulse animation if not exists
+  if(!document.getElementById('wa-sync-style')){
+    const st=document.createElement('style');
+    st.id='wa-sync-style';
+    st.textContent='@keyframes waPulse{0%,100%{opacity:.3}50%{opacity:1}}';
+    document.head.appendChild(st);
+  }
+  try{
+    await loadData();
+    waRenderExtrato();
+    renderDash();
+    if(actions)actions.innerHTML=`<span style="font-size:.65rem;color:var(--accent2);">✓ Sincronizado</span>`;
+    setTimeout(()=>{if(actions)actions.innerHTML='';},3000);
+  }catch(e){
+    if(actions)actions.innerHTML=`<span style="font-size:.65rem;color:var(--red);">✕ Erro ao sincronizar</span>`;
+    console.error('waAutoSync error',e);
+  }
 }
 
 // detect orientation
