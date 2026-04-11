@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(135deg,#E65100,#0D1B4B);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFF3E0 !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
-  #splash .splash-sub{color:rgba(255,243,224,.65) !important;}
-  #splash .splash-version{color:rgba(255,243,224,.35) !important;}
-  #splash .splash-btn{background:#FFF3E0 !important;color:#E65100 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.4);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFF3E0 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0047AB,#B87333);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E8F0FF !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(232,240,255,.65) !important;}
+  #splash .splash-version{color:rgba(232,240,255,.35) !important;}
+  #splash .splash-btn{background:#E8F0FF !important;color:#0047AB !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8F0FF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1957,7 +1957,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.18';
+const APP_VERSION='13.19';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3240,9 +3240,10 @@ async function saveTransaction(syncAfter=false){
   }
 
   const qty=doParcel?(parcFim-parcIni+1):doAdv?advQty:1;
-  const consol=(!doParcel&&!doAdv)?isConsolidado:false;
+  const consolNormal=(!doParcel&&!doAdv)?isConsolidado:false;
 
   const rows=[];
+  const today=new Date().toLocaleDateString('pt-BR');
   for(let i=0;i<qty;i++){
     let dateStr,parcDesc;
     if(doParcel){
@@ -3258,6 +3259,9 @@ async function saveTransaction(syncAfter=false){
     } else {
       dateStr=baseDate;parcDesc=displayDesc;
     }
+    // parcel/adv: only consolidate if date == today (first installment)
+    const isFirstOrToday=(doParcel||doAdv)?dateStr===today||dateStr===baseDate&&i===0:true;
+    const consol=(doParcel||doAdv)?(i===0&&dateStr===baseDate):consolNormal;
     rows.push({date:dateStr,desc:parcDesc,value:amountCents/100,cat,tipo,account:acc,type:txType,consolidated:consol});
   }
 
