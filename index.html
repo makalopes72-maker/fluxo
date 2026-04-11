@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#880E4F,#1B5E20);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FCE4EC !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(252,228,236,.65) !important;}
-  #splash .splash-version{color:rgba(252,228,236,.35) !important;}
-  #splash .splash-btn{background:#FCE4EC !important;color:#880E4F !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FCE4EC !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#006064,#FF8A65);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
+  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
+  #splash .splash-btn{background:#E0F7FA !important;color:#006064 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1678,7 +1678,7 @@
       <div class="extrato-filters">
         <button class="ext-chip icon-chip" id="ext-filter-btn" onclick="toggleExtFilter()" title="Filtros" style="padding:5px 9px;font-size:1rem;">⊟</button>
         <button class="ext-chip active" id="chip-mes" onclick="openMonthPicker()">Abr</button>
-        <button class="ext-chip" id="chip-30d" onclick="setExtPeriod('30d',this)">30 dias</button>
+        <button class="ext-chip" id="chip-30d" onclick="setExtPeriod('30d',this)">30d</button>
         <button class="ext-chip" id="chip-ano" onclick="openYearPicker()">2026</button>
         <button class="ext-chip" id="chip-tudo" onclick="setExtPeriod('tudo',this)">Tudo</button>
         <button class="ext-chip" id="chip-futuras" onclick="setExtPeriod('futuras',this)">Futuras</button>
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.33';
+const APP_VERSION='13.35';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3740,7 +3740,7 @@ function getExtFiltered(){
     if(userAccts.length&&!userAccts.includes(normalizeAcct(t.account)))ok=false;
     if(!ok)return false;
     if(extPeriod==='mes')ok=d.getMonth()===extMonth&&d.getFullYear()===extYear;
-    else if(extPeriod==='30d'){const cut=new Date();cut.setHours(0,0,0,0);cut.setDate(cut.getDate()-30);ok=d>=cut;}
+    else if(extPeriod==='30d'){const cut=new Date();cut.setHours(0,0,0,0);cut.setDate(cut.getDate()-30);const tod=new Date();tod.setHours(23,59,59,999);ok=d>=cut&&d<=tod;}
     else if(extPeriod==='ano')ok=d.getFullYear()===now.getFullYear();
     else if(extPeriod==='futuras')ok=d>today;
     if(extContas.length&&!extContas.includes(t.account))ok=false;
@@ -5608,7 +5608,7 @@ function waRenderExtrato(){
     if(!d)return false;
     // use extPeriod/extMonth/extYear from mobile state
     if(extPeriod==='mes')return d.getMonth()===extMonth&&d.getFullYear()===extYear;
-    if(extPeriod==='30d'){const cut=new Date();cut.setHours(0,0,0,0);cut.setDate(cut.getDate()-30);return d>=cut;}
+    if(extPeriod==='30d'){const cut=new Date();cut.setHours(0,0,0,0);cut.setDate(cut.getDate()-30);const tod=new Date();tod.setHours(23,59,59,999);return d>=cut&&d<=tod;}
     if(extPeriod==='ano')return d.getFullYear()===extYear;
     if(extPeriod==='futuras')return d>now;
     return true;
