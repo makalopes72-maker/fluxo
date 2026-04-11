@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(145deg,#C77B00,#2C4A6E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFFDE7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(255,253,231,.65) !important;}
-  #splash .splash-version{color:rgba(255,253,231,.35) !important;}
-  #splash .splash-btn{background:#FFFDE7 !important;color:#C77B00 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFFDE7 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#C2185B,#1565C0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FCE4EC !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(252,228,236,.65) !important;}
+  #splash .splash-version{color:rgba(252,228,236,.35) !important;}
+  #splash .splash-btn{background:#FCE4EC !important;color:#C2185B !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FCE4EC !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1034,11 +1034,43 @@
     width:260px;
     flex-shrink:0;
     display:flex;
-    flex-direction:column;
+    flex-direction:row;
     background:var(--bg);
     border-left:1px solid var(--border);
     overflow:hidden;
+    transition:width .3s ease;
   }
+  #wa-right.drawer-open{width:480px;}
+  /* kp column inside wa-right */
+  #wa-kp-col{
+    width:260px;
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    transition:margin-left .3s ease;
+    border-right:1px solid var(--border);
+  }
+  #wa-right.drawer-open #wa-kp-col{margin-left:-160px;}
+  /* drawer */
+  #wa-drawer{
+    width:0;
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    transition:width .3s ease;
+    background:var(--bg);
+  }
+  #wa-right.drawer-open #wa-drawer{width:380px;}
+  .wa-drawer-hdr{padding:8px 12px;border-bottom:1px solid var(--border);font-size:.72rem;font-weight:700;color:var(--font);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+  .wa-drawer-val{padding:8px 14px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;}
+  .wa-drawer-body{flex:1;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:6px;min-height:0;}
+  .wa-drawer-body::-webkit-scrollbar{width:4px;}
+  .wa-drawer-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+  .wa-drawer-foot{flex-shrink:0;display:flex;gap:6px;padding:8px 12px 14px;border-top:1px solid var(--border);}
+  .wa-d-btn-c{flex:1;padding:9px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.7rem;cursor:pointer;}
+  .wa-d-btn-s{flex:1;padding:9px;border-radius:10px;border:none;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.75rem;font-weight:800;letter-spacing:.04em;cursor:pointer;}
   #wa-right-header{
     flex-shrink:0;
     padding:8px 12px;
@@ -1957,7 +1989,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.21';
+const APP_VERSION='13.22';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5677,6 +5709,7 @@ function waResetLaunch(){
   const def=getDefaultAccount();
   if(def)waLaunchState.conta=def;
   document.getElementById('wa-right-title').textContent='Lançar transação';
+  waCloseDrawer();
   waRenderLaunchForm();
 }
 
@@ -5726,13 +5759,9 @@ function waRenderLaunchForm(){
       ).join('')}
     </div>
     <div style="flex:1;overflow-y:auto;padding:6px 8px;display:flex;flex-direction:column;gap:5px;min-height:0;">
-      <div style="background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:6px 8px;position:relative;overflow:visible;">
+      <div style="background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:8px 10px;cursor:pointer;" onclick="waOpenDrawer()">
         <span style="font-size:.75rem;">📝</span>
-        <div style="flex:1;position:relative;">
-          <input id="wa-desc" value="${s.desc}" placeholder="Descrição" oninput="waDescInput(this.value)" autocomplete="off"
-            style="flex:1;border:none;background:transparent;font-family:var(--font-body);font-size:.72rem;color:var(--font);outline:none;width:100%;">
-          <div id="wa-ac" style="display:none;position:fixed;z-index:500;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.15);max-height:200px;overflow-y:auto;"></div>
-        </div>
+        <span style="font-size:.72rem;color:${s.desc?'var(--font)':'var(--muted)'};">${s.desc||'Descrição…'}</span>
       </div>
       <div style="display:flex;gap:5px;">
         <div onclick="waOpenDrop('tipo')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:6px 8px;cursor:pointer;">
@@ -5839,12 +5868,96 @@ function waKp(k){
   waLaunchState.valueCents=s.cents;
   const el=document.getElementById('wa-val-input');
   if(el)el.value='R$ '+(s.cents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const dv=document.getElementById('wa-drawer-vnum');
+  if(dv)dv.textContent='R$ '+(s.cents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
 }
 
 function waSetType(t){
   waLaunchState.type=t;
   waRenderLaunchForm();
 }
+function waOpenDrawer(){
+  const rp=document.getElementById('wa-right');
+  if(rp)rp.classList.add('drawer-open');
+  // update val display
+  const s=waLaunchState;
+  const vnum=document.getElementById('wa-drawer-vnum');
+  if(vnum)vnum.textContent='R$ '+(s.valueCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const vbg=document.getElementById('wa-drawer-vbg');
+  if(vbg)vbg.style.background=s.type==='entrada'?'var(--accent2)':s.type==='transferência'?'#7c3aed':'var(--red)';
+  const title=document.getElementById('wa-drawer-title');
+  if(title)title.textContent=s.editingIdx!==null?'Editando transação':'Detalhes';
+  // render drawer body
+  waRenderDrawerBody();
+  // focus desc input
+  setTimeout(()=>{const d=document.getElementById('wa-drawer-desc');if(d){d.focus();d.setSelectionRange(d.value.length,d.value.length);}},350);
+}
+
+function waCloseDrawer(){
+  const rp=document.getElementById('wa-right');
+  if(rp)rp.classList.remove('drawer-open');
+}
+
+function waRenderDrawerBody(){
+  const s=waLaunchState;
+  const body=document.getElementById('wa-drawer-body');
+  if(!body)return;
+  body.innerHTML=`
+    <div style="background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:8px 10px;position:relative;">
+      <span style="font-size:.75rem;">📝</span>
+      <div style="flex:1;position:relative;">
+        <input id="wa-drawer-desc" value="${s.desc}" placeholder="Descrição" oninput="waLaunchState.desc=this.value;waDescInput(this.value)" autocomplete="off"
+          style="width:100%;border:none;background:transparent;font-family:var(--font-body);font-size:.9rem;font-weight:500;color:var(--font);outline:none;">
+        <div id="wa-ac" style="display:none;position:fixed;z-index:999;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.15);max-height:200px;overflow-y:auto;"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <div onclick="waOpenDrop('tipo')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:7px 10px;cursor:pointer;">
+        <span style="font-size:.75rem;">📂</span><span style="font-size:.78rem;color:${s.tipo?'var(--font)':'var(--muted)'};">${s.tipo?((TIPO_ICONS[s.tipo]||'')+' '+s.tipo):'Pasta'}</span>
+      </div>
+      <div onclick="waOpenDrop('cat')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:7px 10px;cursor:pointer;">
+        <span style="font-size:.75rem;">🏷</span><span style="font-size:.78rem;color:${s.cat?'var(--font)':'var(--muted)'};">${s.cat||'Categoria'}</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <div onclick="waOpenDatePicker()" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:7px 10px;cursor:pointer;">
+        <span style="font-size:.75rem;">📅</span><span style="font-size:.78rem;color:var(--font);">${s.date}</span>
+      </div>
+      <div onclick="waOpenDrop('conta')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:7px 10px;cursor:pointer;">
+        <span style="font-size:.75rem;">🏦</span><span style="font-size:.78rem;color:${s.conta?'var(--font)':'var(--muted)'};">${s.conta||'Conta'}</span>
+      </div>
+    </div>
+    <div style="display:flex;background:var(--kp);border-radius:10px;padding:2px;gap:2px;">
+      ${['normal','parcelar','avancado'].map(m=>`<button onclick="waSetMode('${m}')" style="flex:1;padding:6px 4px;border-radius:8px;border:none;font-family:var(--font-body);font-size:.65rem;font-weight:600;cursor:pointer;background:${s.mode===m?'var(--bg)':'transparent'};color:${s.mode===m?'var(--font)':'var(--muted)'};transition:all .2s;">${m==='normal'?'Normal':m==='parcelar'?'Parcelar':'Avançado'}</button>`).join('')}
+    </div>
+    ${s.mode==='parcelar'?`
+    <div style="background:var(--card);border-radius:8px;padding:10px 12px;">
+      <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px;">Parcelas</div>
+      <div style="display:flex;gap:10px;">
+        <div style="flex:1;"><label style="font-size:.6rem;color:var(--muted);">De</label><input type="number" value="${s.parcIni}" min="1" inputmode="numeric" oninput="waLaunchState.parcIni=parseInt(this.value)||1;waRenderDrawerBody();" style="width:100%;padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.85rem;text-align:center;outline:none;margin-top:3px;"></div>
+        <div style="flex:1;"><label style="font-size:.6rem;color:var(--muted);">Até</label><input type="number" value="${s.parcFim||''}" min="2" placeholder="Ex: 6" inputmode="numeric" oninput="waLaunchState.parcFim=parseInt(this.value)||null;waRenderDrawerBody();" style="width:100%;padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.85rem;text-align:center;outline:none;margin-top:3px;"></div>
+      </div>
+      ${s.parcFim?`<div style="font-size:.65rem;color:var(--muted);text-align:right;margin-top:6px;">${s.parcFim-s.parcIni+1}x de R$ ${(s.valueCents/100/(s.parcFim-s.parcIni+1)).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>`:''}
+    </div>`:''}
+    ${s.mode==='avancado'?`
+    <div style="background:var(--card);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;">
+      <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Intervalo</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="number" value="${s.advQty}" min="1" inputmode="numeric" oninput="waLaunchState.advQty=parseInt(this.value)||1;" style="width:52px;padding:5px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.85rem;text-align:center;outline:none;">
+        <div style="display:flex;flex:1;background:var(--kp);border-radius:8px;padding:2px;gap:2px;">
+          ${['dia','semana','mes','ano'].map(i=>`<button onclick="waLaunchState.advInt='${i}';waRenderDrawerBody();" style="flex:1;padding:5px 2px;border-radius:6px;border:none;font-family:var(--font-body);font-size:.6rem;font-weight:600;cursor:pointer;background:${s.advInt===i?'var(--bg)':'transparent'};color:${s.advInt===i?'var(--font)':'var(--muted)'};">${i==='mes'?'Mês':i.charAt(0).toUpperCase()+i.slice(1)}</button>`).join('')}
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <div style="flex:1;"><label style="font-size:.6rem;color:var(--muted);">De</label><input type="number" value="${s.advParcIni}" min="1" inputmode="numeric" oninput="waLaunchState.advParcIni=parseInt(this.value)||1;waRenderDrawerBody();" style="width:100%;padding:5px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.85rem;text-align:center;outline:none;margin-top:3px;"></div>
+        <div style="flex:1;"><label style="font-size:.6rem;color:var(--muted);">Até</label><input type="number" value="${s.advParcFim||''}" min="2" placeholder="Ex:12" inputmode="numeric" oninput="waLaunchState.advParcFim=parseInt(this.value)||null;waRenderDrawerBody();" style="width:100%;padding:5px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.85rem;text-align:center;outline:none;margin-top:3px;"></div>
+      </div>
+    </div>`:''}
+    <div id="wa-drop-area"></div>
+    ${s.editingIdx!==null?`<button onclick="waDelTx(${s.editingIdx})" style="padding:7px;border-radius:8px;border:1px solid var(--red);background:transparent;color:var(--red);font-family:var(--font-body);font-size:.68rem;cursor:pointer;">🗑 Excluir transação</button>`:''}
+  `;
+}
+
 function waToggleConsol(){
   waLaunchState.consolidated=!waLaunchState.consolidated;
   waRenderLaunchForm();
@@ -5852,6 +5965,7 @@ function waToggleConsol(){
 function waSetMode(m){
   waLaunchState.mode=m;
   waRenderLaunchForm();
+  waRenderDrawerBody();
 }
 
 function waDescInput(val){
@@ -5879,7 +5993,8 @@ function waPickKw(kw,tipo,cat){
   waLaunchState.desc=kw;waLaunchState.tipo=tipo;waLaunchState.cat=cat;
   const ac=document.getElementById('wa-ac');if(ac)ac.style.display='none';
   waRenderLaunchForm();
-  setTimeout(()=>{const d=document.getElementById('wa-desc');if(d)d.value=kw;},10);
+  waRenderDrawerBody();
+  setTimeout(()=>{const d=document.getElementById('wa-drawer-desc');if(d){d.value=kw;d.focus();}},10);
 }
 
 function waOpenDrop(field){
@@ -5910,6 +6025,7 @@ function waPick(field,val){
   const area=document.getElementById('wa-drop-area');if(area){area.innerHTML='';area.dataset.open='';}
   const drop=document.getElementById('wa-float-drop');if(drop)drop.remove();
   waRenderLaunchForm();
+  waRenderDrawerBody();
 }
 
 function waOpenDatePicker(){
@@ -5982,6 +6098,7 @@ async function waSave(){
     }
     toast(rows.length>1?rows.length+' lançamentos salvos!':'Salvo!','success');
   }
+  waCloseDrawer();
   waResetLaunch();
   waRenderExtrato();
   renderDash();
