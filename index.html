@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#00838F,#F57F17);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
-  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
-  #splash .splash-btn{background:#E0F7FA !important;color:#00838F !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#283593,#9CCC65);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E8EAF6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(232,234,246,.65) !important;}
+  #splash .splash-version{color:rgba(232,234,246,.35) !important;}
+  #splash .splash-btn{background:#E8EAF6 !important;color:#283593 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8EAF6 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1003,6 +1003,7 @@
     overflow:hidden;
     min-width:0;
     background:var(--bg);
+    position:relative;
   }
   #wa-center-header{
     flex-shrink:0;
@@ -1031,46 +1032,81 @@
   #wa-center-body .wa-scroll::-webkit-scrollbar-thumb:hover{background:var(--muted);}
   /* ── WEB RIGHT PANEL ── */
   #wa-right{
-    width:260px;
-    flex-shrink:0;
     display:flex;
     flex-direction:row;
+    flex-shrink:0;
     background:var(--bg);
     border-left:1px solid var(--border);
     overflow:hidden;
-    transition:width .3s ease;
+    transition:width .25s ease;
+    width:260px;
   }
-  #wa-right.drawer-open{width:480px;}
-  /* kp column inside wa-right */
+  #wa-right.collapsed{width:0 !important;border-left:none;}
+  /* toggle button outside wa-right */
+  #wa-toggle-btn{
+    position:absolute;
+    right:0;
+    top:50%;
+    transform:translateY(-50%);
+    width:16px;
+    height:40px;
+    background:var(--kp);
+    border:1px solid var(--border);
+    border-right:none;
+    border-radius:6px 0 0 6px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:.7rem;
+    color:var(--muted);
+    z-index:10;
+  }
+  /* kp column */
   #wa-kp-col{
     width:260px;
     flex-shrink:0;
     display:flex;
     flex-direction:column;
     overflow:hidden;
-    transition:margin-left .3s ease;
     border-right:1px solid var(--border);
   }
-  #wa-right.drawer-open #wa-kp-col{margin-left:-160px;}
-  /* drawer */
-  #wa-drawer{
+  /* picker column — compact, expands when active */
+  #wa-picker-col{
     width:0;
     flex-shrink:0;
     display:flex;
     flex-direction:column;
     overflow:hidden;
-    transition:width .3s ease;
-    background:var(--bg);
+    background:var(--kp);
+    transition:width .2s ease;
   }
-  #wa-right.drawer-open #wa-drawer{width:380px;}
-  .wa-drawer-hdr{padding:8px 12px;border-bottom:1px solid var(--border);font-size:.72rem;font-weight:700;color:var(--font);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
-  .wa-drawer-val{padding:8px 14px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;}
-  .wa-drawer-body{flex:1;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:6px;min-height:0;}
-  .wa-drawer-body::-webkit-scrollbar{width:4px;}
-  .wa-drawer-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
-  .wa-drawer-foot{flex-shrink:0;display:flex;gap:6px;padding:8px 12px 14px;border-top:1px solid var(--border);}
-  .wa-d-btn-c{flex:1;padding:9px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.7rem;cursor:pointer;}
-  .wa-d-btn-s{flex:1;padding:9px;border-radius:10px;border:none;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.75rem;font-weight:800;letter-spacing:.04em;cursor:pointer;}
+  #wa-picker-col.open{width:180px;}
+  .wa-picker-hdr{
+    padding:8px 10px;
+    border-bottom:1px solid var(--border);
+    font-size:.62rem;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.07em;
+    color:var(--muted);
+    flex-shrink:0;
+  }
+  .wa-picker-list{flex:1;overflow-y:auto;}
+  .wa-picker-list::-webkit-scrollbar{width:3px;}
+  .wa-picker-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+  .wa-picker-item{
+    padding:8px 12px;
+    font-size:.78rem;
+    cursor:pointer;
+    color:var(--font);
+    border-bottom:1px solid var(--border);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .wa-picker-item:hover{background:var(--bg);}
+  .wa-picker-item.sel{color:var(--btn);font-weight:600;}
   #wa-right-header{
     flex-shrink:0;
     padding:8px 12px;
@@ -1989,7 +2025,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.23';
+const APP_VERSION='13.24';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5477,6 +5513,7 @@ const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+A
 
   <!-- CENTER -->
   <div id="wa-center">
+    <div id="wa-toggle-btn" onclick="waToggleRight()" title="Mostrar/ocultar painel">›</div>
     <div id="wa-center-header">
       <span id="wa-center-title">—</span>
       <div id="wa-center-actions"></div>
@@ -5491,30 +5528,17 @@ const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+A
     <!-- KP COLUMN -->
     <div id="wa-kp-col">
       <div id="wa-right-header">
-        <span id="wa-right-title">Lançar transação</span>
-        <button id="wa-new-btn" onclick="waResetLaunch()" style="display:none;padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;font-family:var(--font-body);font-size:.65rem;font-weight:600;color:var(--btn);cursor:pointer;">+ Nova</button>
+        <span id="wa-right-title">Lançar</span>
+        <button id="wa-new-btn" onclick="waResetLaunch()" style="display:none;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:transparent;font-family:var(--font-body);font-size:.6rem;font-weight:600;color:var(--btn);cursor:pointer;">+ Nova</button>
       </div>
-      <div id="wa-right-body">
+      <div id="wa-right-body" style="flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;">
         <div class="wa-empty">—</div>
       </div>
     </div>
-    <!-- DRAWER -->
-    <div id="wa-drawer">
-      <div class="wa-drawer-hdr">
-        <span id="wa-drawer-title">Detalhes</span>
-        <span onclick="waCloseDrawer()" style="cursor:pointer;font-size:1rem;color:var(--muted);">✕</span>
-      </div>
-      <div class="wa-drawer-val">
-        <div id="wa-drawer-vbg" style="flex:1;padding:8px 12px;border-radius:10px;background:var(--red);">
-          <div style="font-size:.6rem;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.08em;">Nova despesa</div>
-          <div id="wa-drawer-vnum" style="font-family:var(--font-display);font-size:1.5rem;color:#fff;letter-spacing:-1px;">R$ 0,00</div>
-        </div>
-      </div>
-      <div class="wa-drawer-body" id="wa-drawer-body"></div>
-      <div class="wa-drawer-foot">
-        <button class="wa-d-btn-c" onclick="waCloseDrawer()">✕ Cancelar</button>
-        <button class="wa-d-btn-s" onclick="waSave()">SALVAR</button>
-      </div>
+    <!-- PICKER COLUMN -->
+    <div id="wa-picker-col">
+      <div class="wa-picker-hdr" id="wa-picker-hdr">—</div>
+      <div class="wa-picker-list" id="wa-picker-list"></div>
     </div>
   </div>
 
@@ -5729,18 +5753,27 @@ function waResetLaunch(){
   waKpState={cents:0,op:null,prev:0};
   const def=getDefaultAccount();
   if(def)waLaunchState.conta=def;
-  document.getElementById('wa-right-title').textContent='Lançar transação';
-  waCloseDrawer();
+  document.getElementById('wa-right-title').textContent='Lançar';
+  waClosePicker();
   waRenderLaunchForm();
 }
 
 function waRenderLaunchForm(){
   const s=waLaunchState;
+  const body=document.getElementById('wa-right-body');
+  if(!body)return;
   const typeColor=s.type==='entrada'?'var(--accent2)':s.type==='transferência'?'#7c3aed':'var(--red)';
   const typeLabel=s.type==='entrada'?'Nova receita':s.type==='transferência'?'Transferência':'Nova despesa';
   const valDisplay='R$ '+(s.valueCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
-  const body=document.getElementById('wa-right-body');
-  if(!body)return;
+
+  // parcel label
+  let modeExtra='';
+  if(s.mode==='parcelar'&&s.parcFim){
+    const n=s.parcFim-s.parcIni+1;
+    const each=(s.valueCents/100/n).toLocaleString('pt-BR',{minimumFractionDigits:2});
+    modeExtra=`<div style="font-size:.65rem;color:var(--muted);text-align:center;padding:2px 0;">${n}x de R$ ${each}</div>`;
+  }
+
   body.innerHTML=`
     <div style="display:flex;flex-shrink:0;border-bottom:1px solid var(--border);">
       ${['saída','entrada','transferência'].map(t=>`
@@ -5759,27 +5792,94 @@ function waRenderLaunchForm(){
           value="${valDisplay}"
           onfocus="waValInputFocus(this)"
           onblur="waValInputBlur(this)"
+          oninput="waValInputChange(this.value)"
           style="font-family:var(--font-display);font-size:1.6rem;color:#fff;letter-spacing:-1px;background:transparent;border:none;outline:none;width:100%;cursor:text;">
       </div>
       <button onclick="waKp('del')" style="color:rgba(255,255,255,.7);background:transparent;border:none;font-size:1.1rem;cursor:pointer;flex-shrink:0;padding:4px;">⌫</button>
     </div>
-    <div id="wa-kp" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);flex:1;">
+    ${modeExtra}
+    <div id="wa-kp" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);flex-shrink:0;">
       ${[['7','8','9','÷'],['4','5','6','×'],['1','2','3','−'],[',00','0','=','+']].map(row=>
         row.map((k,i)=>`<div onclick="waKp('${k}')" style="background:${k==='='?'var(--btn)':i===3?'var(--kp-dark)':'var(--kp)'};display:flex;align-items:center;justify-content:center;padding:7px 0;font-family:var(--font-body);font-size:${i===3||k===',00'?'.78rem':'.9rem'};font-weight:700;color:${k==='='?'#0f0f11':i===3?'var(--muted)':'var(--font)'};cursor:pointer;user-select:none;">${k}</div>`).join('')
       ).join('')}
     </div>
-    <div onclick="waOpenDrawer()" style="flex-shrink:0;border-top:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg);">
-      <span style="font-size:.85rem;">📝</span>
-      <span style="font-size:.8rem;color:${s.desc?'var(--font)':'var(--muted)'};">${s.desc||'Descrição, pasta, categoria…'}</span>
-      <span style="margin-left:auto;font-size:.7rem;color:var(--muted);">›</span>
+    <div style="flex:1;overflow-y:auto;padding:6px 8px;display:flex;flex-direction:column;gap:5px;min-height:0;">
+      <div style="background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:6px 8px;position:relative;overflow:visible;">
+        <span style="font-size:.75rem;">📝</span>
+        <div style="flex:1;position:relative;">
+          <input id="wa-desc" value="${s.desc}" placeholder="Descrição" oninput="waDescInput(this.value)" autocomplete="off"
+            style="flex:1;border:none;background:transparent;font-family:var(--font-body);font-size:.72rem;color:var(--font);outline:none;width:100%;">
+          <div id="wa-ac" style="display:none;position:fixed;z-index:500;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.15);max-height:200px;overflow-y:auto;"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:5px;">
+        <div onclick="waOpenPicker('tipo')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:6px 8px;cursor:pointer;">
+          <span style="font-size:.75rem;">📂</span><span style="font-size:.68rem;color:${s.tipo?'var(--font)':'var(--muted)'};">${s.tipo?((TIPO_ICONS[s.tipo]||'')+' '+s.tipo):'Pasta'}</span>
+        </div>
+        <div onclick="waOpenPicker('cat')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:6px 8px;cursor:pointer;">
+          <span style="font-size:.75rem;">🏷</span><span style="font-size:.68rem;color:${s.cat?'var(--font)':'var(--muted)'};">${s.cat||'Categoria'}</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:5px;">
+        <div onclick="waOpenDatePicker()" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:6px 8px;cursor:pointer;">
+          <span style="font-size:.75rem;">📅</span><span style="font-size:.68rem;color:var(--font);">${s.date}</span>
+        </div>
+        <div onclick="waOpenPicker('conta')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:6px 8px;cursor:pointer;">
+          <span style="font-size:.75rem;">🏦</span><span style="font-size:.68rem;color:${s.conta?'var(--font)':'var(--muted)'};">${s.conta||'Conta'}</span>
+        </div>
+      </div>
+      <!-- MODE SELECTOR -->
+      <div style="display:flex;background:var(--kp);border-radius:10px;padding:2px;gap:2px;">
+        ${['normal','parcelar','avancado'].map(m=>`<button onclick="waSetMode('${m}')" style="flex:1;padding:5px 4px;border-radius:8px;border:none;font-family:var(--font-body);font-size:.62rem;font-weight:600;cursor:pointer;background:${s.mode===m?'var(--bg)':'transparent'};color:${s.mode===m?'var(--font)':'var(--muted)'};transition:all .2s;">${m==='normal'?'Normal':m==='parcelar'?'Parcelar':'Avançado'}</button>`).join('')}
+      </div>
+      <!-- PARCELAR -->
+      ${s.mode==='parcelar'?`
+      <div style="background:var(--card);border-radius:8px;padding:8px 10px;">
+        <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:6px;">Parcelas</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
+            <label style="font-size:.6rem;color:var(--muted);">De</label>
+            <input type="number" value="${s.parcIni}" min="1" inputmode="numeric" oninput="waLaunchState.parcIni=parseInt(this.value)||1;waRenderLaunchForm();"
+              style="padding:5px 8px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.82rem;text-align:center;width:100%;outline:none;">
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
+            <label style="font-size:.6rem;color:var(--muted);">Até</label>
+            <input type="number" value="${s.parcFim||''}" min="2" placeholder="Ex: 6" inputmode="numeric" oninput="waLaunchState.parcFim=parseInt(this.value)||null;waRenderLaunchForm();"
+              style="padding:5px 8px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.82rem;text-align:center;width:100%;outline:none;">
+          </div>
+        </div>
+        ${s.parcFim?`<div style="font-size:.65rem;color:var(--muted);text-align:right;margin-top:4px;">${s.parcFim-s.parcIni+1} parcelas de R$ ${(s.valueCents/100/(s.parcFim-s.parcIni+1)).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>`:''}
+      </div>`:''}
+      <!-- AVANÇADO -->
+      ${s.mode==='avancado'?`
+      <div style="background:var(--card);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;">
+        <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Intervalo</div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <input type="number" value="${s.advQty}" min="1" inputmode="numeric" oninput="waLaunchState.advQty=parseInt(this.value)||1;"
+            style="width:48px;padding:5px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.82rem;text-align:center;outline:none;">
+          <div style="display:flex;flex:1;background:var(--kp);border-radius:8px;padding:2px;gap:2px;">
+            ${['dia','semana','mes','ano'].map(i=>`<button onclick="waLaunchState.advInt='${i}';waRenderLaunchForm();" style="flex:1;padding:4px 2px;border-radius:6px;border:none;font-family:var(--font-body);font-size:.58rem;font-weight:600;cursor:pointer;background:${s.advInt===i?'var(--bg)':'transparent'};color:${s.advInt===i?'var(--font)':'var(--muted)'};">${i==='mes'?'Mês':i.charAt(0).toUpperCase()+i.slice(1)}</button>`).join('')}
+          </div>
+        </div>
+        <div style="display:flex;background:var(--kp);border-radius:8px;padding:2px;gap:2px;">
+          ${['parcelado','indefinido'].map(p=>`<button onclick="waLaunchState.advPeriod='${p}';waRenderLaunchForm();" style="flex:1;padding:5px;border-radius:6px;border:none;font-family:var(--font-body);font-size:.62rem;font-weight:600;cursor:pointer;background:${s.advPeriod===p?'var(--bg)':'transparent'};color:${s.advPeriod===p?'var(--font)':'var(--muted)'};">${p.charAt(0).toUpperCase()+p.slice(1)}</button>`).join('')}
+        </div>
+        ${s.advPeriod==='parcelado'?`<div style="display:flex;gap:8px;">
+          <div style="flex:1;display:flex;flex-direction:column;gap:3px;"><label style="font-size:.6rem;color:var(--muted);">De</label><input type="number" value="${s.advParcIni}" min="1" inputmode="numeric" oninput="waLaunchState.advParcIni=parseInt(this.value)||1;waRenderLaunchForm();" style="padding:5px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.82rem;text-align:center;width:100%;outline:none;"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:3px;"><label style="font-size:.6rem;color:var(--muted);">Até</label><input type="number" value="${s.advParcFim||''}" min="2" placeholder="Ex: 12" inputmode="numeric" oninput="waLaunchState.advParcFim=parseInt(this.value)||null;waRenderLaunchForm();" style="padding:5px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.82rem;text-align:center;width:100%;outline:none;"></div>
+        </div>
+        ${s.advParcFim?`<div style="font-size:.65rem;color:var(--muted);text-align:right;">${s.advParcFim-s.advParcIni+1} lançamentos</div>`:''}`:
+        `<div style="font-size:.65rem;color:var(--muted);padding:4px 0;">📆 Próximos 12 meses a partir da data escolhida.</div>`}
+      </div>`:''}
+      <div id="wa-drop-area"></div>
+      ${s.editingIdx!==null?`<button onclick="waDelTx(${s.editingIdx})" style="padding:7px;border-radius:8px;border:1px solid var(--red);background:transparent;color:var(--red);font-family:var(--font-body);font-size:.68rem;cursor:pointer;">🗑 Excluir transação</button>`:''}
+    </div>
+    <div style="flex-shrink:0;display:flex;gap:6px;padding:6px 8px 12px;border-top:1px solid var(--border);">
+      <button onclick="waResetLaunch()" style="flex:1;padding:9px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.7rem;cursor:pointer;">✕ Cancelar</button>
+      <button onclick="waSave()" style="flex:1;padding:9px;border-radius:10px;border:none;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.75rem;font-weight:800;letter-spacing:.04em;cursor:pointer;">${s.editingIdx!==null?'ATUALIZAR':'SALVAR'}</button>
     </div>
   `;
-  // sync drawer val
-  const dv=document.getElementById('wa-drawer-vnum');if(dv)dv.textContent=valDisplay;
-  const vbg=document.getElementById('wa-drawer-vbg');
-  if(vbg)vbg.style.background=typeColor;
 }
-
 
 // keypad state for web (independent)
 let waKpState={cents:0,op:null,prev:0};
@@ -5817,94 +5917,65 @@ function waKp(k){
   waLaunchState.valueCents=s.cents;
   const el=document.getElementById('wa-val-input');
   if(el)el.value='R$ '+(s.cents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
-  const dv=document.getElementById('wa-drawer-vnum');
-  if(dv)dv.textContent='R$ '+(s.cents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
 }
 
 function waSetType(t){
   waLaunchState.type=t;
   waRenderLaunchForm();
 }
-function waOpenDrawer(){
+function waToggleRight(){
   const rp=document.getElementById('wa-right');
-  if(rp)rp.classList.add('drawer-open');
-  // update val display
-  const s=waLaunchState;
-  const vnum=document.getElementById('wa-drawer-vnum');
-  if(vnum)vnum.textContent='R$ '+(s.valueCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
-  const vbg=document.getElementById('wa-drawer-vbg');
-  if(vbg)vbg.style.background=s.type==='entrada'?'var(--accent2)':s.type==='transferência'?'#7c3aed':'var(--red)';
-  const title=document.getElementById('wa-drawer-title');
-  if(title)title.textContent=s.editingIdx!==null?'Editando transação':'Detalhes';
-  // render drawer body
-  waRenderDrawerBody();
-  // focus desc input
-  setTimeout(()=>{const d=document.getElementById('wa-drawer-desc');if(d){d.focus();d.setSelectionRange(d.value.length,d.value.length);}},350);
+  const btn=document.getElementById('wa-toggle-btn');
+  if(!rp)return;
+  const collapsed=rp.classList.toggle('collapsed');
+  if(btn)btn.textContent=collapsed?'‹':'›';
 }
 
-function waCloseDrawer(){
+function waOpenPicker(field){
+  const pc=document.getElementById('wa-picker-col');
+  const ph=document.getElementById('wa-picker-hdr');
+  const pl=document.getElementById('wa-picker-list');
+  if(!pc||!ph||!pl)return;
+  const s=waLaunchState;
+  let items=[];
+  if(field==='tipo'){
+    ph.textContent='Pasta';
+    items=getTiposList().map(t=>({label:(TIPO_ICONS[t]||'📁')+' '+t,val:t,sel:s.tipo===t}));
+  } else if(field==='cat'){
+    ph.textContent='Categoria';
+    if(!s.tipo){pl.innerHTML='<div style="padding:12px;font-size:.72rem;color:var(--muted);">Selecione uma pasta primeiro</div>';pc.classList.add('open');return;}
+    items=getCatsList(s.tipo).map(c=>({label:c,val:c,sel:s.cat===c}));
+  } else if(field==='conta'){
+    ph.textContent='Conta';
+    const user=currentUser||'ALE';
+    items=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).map(a=>({label:'🏦 '+a.name,val:a.name,sel:s.conta===a.name}));
+  }
+  pl.innerHTML=items.map(it=>`<div class="wa-picker-item${it.sel?' sel':''}" onclick="waPickFromCol('${field}','${it.val.replace(/'/g,"\'")}')">${it.label}</div>`).join('');
+  pc.classList.add('open');
+  // expand wa-right to fit
   const rp=document.getElementById('wa-right');
-  if(rp)rp.classList.remove('drawer-open');
+  if(rp)rp.style.width=(260+180)+'px';
 }
 
-function waRenderDrawerBody(){
-  const s=waLaunchState;
-  const body=document.getElementById('wa-drawer-body');
-  if(!body)return;
-  body.innerHTML=`
-    <div style="background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:8px 10px;position:relative;">
-      <span style="font-size:.75rem;">📝</span>
-      <div style="flex:1;position:relative;">
-        <input id="wa-drawer-desc" value="${s.desc}" placeholder="Descrição" oninput="waLaunchState.desc=this.value;waDescInput(this.value)" autocomplete="off"
-          style="width:100%;border:none;background:transparent;font-family:var(--font-body);font-size:.9rem;font-weight:500;color:var(--font);outline:none;">
-        <div id="wa-ac" style="display:none;position:fixed;z-index:999;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.15);max-height:200px;overflow-y:auto;"></div>
-      </div>
-    </div>
-    <div style="display:flex;gap:6px;">
-      <div onclick="waOpenDrop('tipo')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:7px 10px;cursor:pointer;">
-        <span style="font-size:.75rem;">📂</span><span style="font-size:.78rem;color:${s.tipo?'var(--font)':'var(--muted)'};">${s.tipo?((TIPO_ICONS[s.tipo]||'')+' '+s.tipo):'Pasta'}</span>
-      </div>
-      <div onclick="waOpenDrop('cat')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:7px 10px;cursor:pointer;">
-        <span style="font-size:.75rem;">🏷</span><span style="font-size:.78rem;color:${s.cat?'var(--font)':'var(--muted)'};">${s.cat||'Categoria'}</span>
-      </div>
-    </div>
-    <div style="display:flex;gap:6px;">
-      <div onclick="waOpenDatePicker()" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:7px 10px;cursor:pointer;">
-        <span style="font-size:.75rem;">📅</span><span style="font-size:.78rem;color:var(--font);">${s.date}</span>
-      </div>
-      <div onclick="waOpenDrop('conta')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:7px 10px;cursor:pointer;">
-        <span style="font-size:.75rem;">🏦</span><span style="font-size:.78rem;color:${s.conta?'var(--font)':'var(--muted)'};">${s.conta||'Conta'}</span>
-      </div>
-    </div>
-    <div style="display:flex;background:var(--kp);border-radius:10px;padding:2px;gap:2px;">
-      ${['normal','parcelar','avancado'].map(m=>`<button onclick="waSetMode('${m}')" style="flex:1;padding:6px 4px;border-radius:8px;border:none;font-family:var(--font-body);font-size:.65rem;font-weight:600;cursor:pointer;background:${s.mode===m?'var(--bg)':'transparent'};color:${s.mode===m?'var(--font)':'var(--muted)'};transition:all .2s;">${m==='normal'?'Normal':m==='parcelar'?'Parcelar':'Avançado'}</button>`).join('')}
-    </div>
-    ${s.mode==='parcelar'?`
-    <div style="background:var(--card);border-radius:8px;padding:10px 12px;">
-      <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px;">Parcelas</div>
-      <div style="display:flex;gap:10px;">
-        <div style="flex:1;"><label style="font-size:.6rem;color:var(--muted);">De</label><input type="number" value="${s.parcIni}" min="1" inputmode="numeric" oninput="waLaunchState.parcIni=parseInt(this.value)||1;waRenderDrawerBody();" style="width:100%;padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.85rem;text-align:center;outline:none;margin-top:3px;"></div>
-        <div style="flex:1;"><label style="font-size:.6rem;color:var(--muted);">Até</label><input type="number" value="${s.parcFim||''}" min="2" placeholder="Ex: 6" inputmode="numeric" oninput="waLaunchState.parcFim=parseInt(this.value)||null;waRenderDrawerBody();" style="width:100%;padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.85rem;text-align:center;outline:none;margin-top:3px;"></div>
-      </div>
-      ${s.parcFim?`<div style="font-size:.65rem;color:var(--muted);text-align:right;margin-top:6px;">${s.parcFim-s.parcIni+1}x de R$ ${(s.valueCents/100/(s.parcFim-s.parcIni+1)).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>`:''}
-    </div>`:''}
-    ${s.mode==='avancado'?`
-    <div style="background:var(--card);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;">
-      <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Intervalo</div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <input type="number" value="${s.advQty}" min="1" inputmode="numeric" oninput="waLaunchState.advQty=parseInt(this.value)||1;" style="width:52px;padding:5px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.85rem;text-align:center;outline:none;">
-        <div style="display:flex;flex:1;background:var(--kp);border-radius:8px;padding:2px;gap:2px;">
-          ${['dia','semana','mes','ano'].map(i=>`<button onclick="waLaunchState.advInt='${i}';waRenderDrawerBody();" style="flex:1;padding:5px 2px;border-radius:6px;border:none;font-family:var(--font-body);font-size:.6rem;font-weight:600;cursor:pointer;background:${s.advInt===i?'var(--bg)':'transparent'};color:${s.advInt===i?'var(--font)':'var(--muted)'};">${i==='mes'?'Mês':i.charAt(0).toUpperCase()+i.slice(1)}</button>`).join('')}
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <div style="flex:1;"><label style="font-size:.6rem;color:var(--muted);">De</label><input type="number" value="${s.advParcIni}" min="1" inputmode="numeric" oninput="waLaunchState.advParcIni=parseInt(this.value)||1;waRenderDrawerBody();" style="width:100%;padding:5px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.85rem;text-align:center;outline:none;margin-top:3px;"></div>
-        <div style="flex:1;"><label style="font-size:.6rem;color:var(--muted);">Até</label><input type="number" value="${s.advParcFim||''}" min="2" placeholder="Ex:12" inputmode="numeric" oninput="waLaunchState.advParcFim=parseInt(this.value)||null;waRenderDrawerBody();" style="width:100%;padding:5px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.85rem;text-align:center;outline:none;margin-top:3px;"></div>
-      </div>
-    </div>`:''}
-    <div id="wa-drop-area"></div>
-    ${s.editingIdx!==null?`<button onclick="waDelTx(${s.editingIdx})" style="padding:7px;border-radius:8px;border:1px solid var(--red);background:transparent;color:var(--red);font-family:var(--font-body);font-size:.68rem;cursor:pointer;">🗑 Excluir transação</button>`:''}
-  `;
+function waPickFromCol(field,val){
+  if(field==='tipo'){waLaunchState.tipo=val;waLaunchState.cat=null;}
+  else if(field==='cat')waLaunchState.cat=val;
+  else if(field==='conta')waLaunchState.conta=val;
+  // close picker after conta or cat selection
+  if(field==='cat'||field==='conta') waClosePicker();
+  else{
+    // after pasta: auto-open categoria
+    waLaunchState.cat=null;
+    waOpenPicker('cat');
+  }
+  waRenderLaunchForm();
+}
+
+function waClosePicker(){
+  const pc=document.getElementById('wa-picker-col');
+  if(pc)pc.classList.remove('open');
+  const rp=document.getElementById('wa-right');
+  if(rp)rp.style.width='260px';
 }
 
 function waToggleConsol(){
@@ -5914,7 +5985,6 @@ function waToggleConsol(){
 function waSetMode(m){
   waLaunchState.mode=m;
   waRenderLaunchForm();
-  waRenderDrawerBody();
 }
 
 function waDescInput(val){
@@ -5942,8 +6012,7 @@ function waPickKw(kw,tipo,cat){
   waLaunchState.desc=kw;waLaunchState.tipo=tipo;waLaunchState.cat=cat;
   const ac=document.getElementById('wa-ac');if(ac)ac.style.display='none';
   waRenderLaunchForm();
-  waRenderDrawerBody();
-  setTimeout(()=>{const d=document.getElementById('wa-drawer-desc');if(d){d.value=kw;d.focus();}},10);
+  setTimeout(()=>{const d=document.getElementById('wa-desc');if(d)d.value=kw;},10);
 }
 
 function waOpenDrop(field){
@@ -5974,7 +6043,6 @@ function waPick(field,val){
   const area=document.getElementById('wa-drop-area');if(area){area.innerHTML='';area.dataset.open='';}
   const drop=document.getElementById('wa-float-drop');if(drop)drop.remove();
   waRenderLaunchForm();
-  waRenderDrawerBody();
 }
 
 function waOpenDatePicker(){
@@ -6047,7 +6115,6 @@ async function waSave(){
     }
     toast(rows.length>1?rows.length+' lançamentos salvos!':'Salvo!','success');
   }
-  waCloseDrawer();
   waResetLaunch();
   waRenderExtrato();
   renderDash();
