@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#C8A84B,#0D2137);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFFDF0 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(255,253,240,.65) !important;}
-  #splash .splash-version{color:rgba(255,253,240,.35) !important;}
-  #splash .splash-btn{background:#FFFDF0 !important;color:#0D2137 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFFDF0 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#E65100,#37474F);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFF3E0 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(255,243,224,.65) !important;}
+  #splash .splash-version{color:rgba(255,243,224,.35) !important;}
+  #splash .splash-btn{background:#FFF3E0 !important;color:#E65100 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFF3E0 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.03';
+const APP_VERSION='14.05';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6216,14 +6216,49 @@ function waShowDash(){
   document.getElementById('wa-right-title').textContent='—';
   document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">—</div>';
   const nb=document.getElementById('wa-new-btn');if(nb)nb.style.display='none';
-  // fechar painel direito por padrão no dashboard
   const rp=document.getElementById('wa-right');
   if(rp)rp.classList.add('collapsed');
   const btn=document.getElementById('wa-toggle-btn');
   if(btn)btn.textContent='‹';
-  // remover barra de filtros do extrato se existir
   const fb=document.getElementById('wa-filter-bar');if(fb)fb.remove();
+  // defaults on first open
+  if(window.waDashHideZero===undefined)window.waDashHideZero=true;
+  if(!window.waDashPast)window.waDashPast='3m';
+  if(!window.waDashFut)window.waDashFut='3m';
+  waDashRenderHeader();
   waDashRender();
+}
+
+function waDashRenderHeader(){
+  const actions=document.getElementById('wa-center-actions');
+  if(!actions)return;
+  const hideZero=window.waDashHideZero;
+  const past=window.waDashPast||'3m';
+  const fut=window.waDashFut||'3m';
+  const pastOpts=[['3m','Últimos 3 meses'],['6m','Últimos 6 meses'],['ano','Acumulado do ano'],['cur','Mês atual']];
+  const futOpts=[['3m','Próximos 3 meses'],['6m','Próximos 6 meses'],['ano','Restante do ano'],['cur','Mês atual']];
+  const selStyle='padding:3px 7px;border-radius:10px;border:0.5px solid #B4B2A9;background:transparent;font-family:var(--font-body);font-size:.65rem;color:var(--font);cursor:pointer;outline:none;';
+  actions.innerHTML=
+    '<div style="display:flex;align-items:center;gap:8px;">'
+    +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'
+    +'<div style="display:flex;align-items:center;gap:6px;">'
+    +'<span style="font-size:.6rem;color:var(--muted);">Passado</span>'
+    +'<select onchange="window.waDashPast=this.value;waDashRender();" style="'+selStyle+'">'
+    +pastOpts.map(([v,l])=>'<option value="'+v+'"'+(past===v?' selected':'')+'>'+l+'</option>').join('')
+    +'</select>'
+    +'</div>'
+    +'<div style="display:flex;align-items:center;gap:6px;">'
+    +'<span style="font-size:.6rem;color:var(--muted);">Futuro</span>'
+    +'<select onchange="window.waDashFut=this.value;waDashRender();" style="'+selStyle+'">'
+    +futOpts.map(([v,l])=>'<option value="'+v+'"'+(fut===v?' selected':'')+'>'+l+'</option>').join('')
+    +'</select>'
+    +'</div>'
+    +'</div>'
+    +'<button onclick="window.waDashHideZero=!window.waDashHideZero;waDashRenderHeader();waDashRender();" '
+    +'style="padding:4px 10px;border-radius:10px;border:0.5px solid #B4B2A9;background:'+(hideZero?'#1a1a1a':'transparent')+';color:'+(hideZero?'#fff':'#888')+';font-size:.65rem;cursor:pointer;white-space:nowrap;">'
+    +(hideZero?'▣ só lançados':'□ todos')
+    +'</button>'
+    +'</div>';
 }
 
 function waDashGetMeta(user,tipo,cat,mIdx){
@@ -6353,16 +6388,33 @@ function waDashRender(){
     document.head.appendChild(st);
   }
 
+  // ── determine visible months ──
+  const pastMode=window.waDashPast||'3m';
+  const futMode=window.waDashFut||'3m';
+  const visMonths=[];
+  for(let m=0;m<12;m++){
+    const isPast=m<curM,isCur=m===curM,isFut=m>curM;
+    if(isCur){visMonths.push(m);continue;}
+    if(isPast){
+      if(pastMode==='cur')continue;
+      if(pastMode==='3m'&&curM-m<=3)visMonths.push(m);
+      else if(pastMode==='6m'&&curM-m<=6)visMonths.push(m);
+      else if(pastMode==='ano')visMonths.push(m);
+    }
+    if(isFut){
+      if(futMode==='cur')continue;
+      if(futMode==='3m'&&m-curM<=3)visMonths.push(m);
+      else if(futMode==='6m'&&m-curM<=6)visMonths.push(m);
+      else if(futMode==='ano')visMonths.push(m);
+    }
+  }
+  visMonths.sort((a,b)=>a-b);
+
   // ── build header ──
   let html='<div class="wad-wrap"><table class="wad-tbl"><thead class="wad-head"><tr>';
-  // filter button in header
-  html+='<th class="wad-lbl-h" rowspan="2" style="vertical-align:bottom;">'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;">'
-    +'<span>Pasta / Categoria</span>'
-    +'<button onclick="waDashTogHideZero()" style="padding:2px 6px;border-radius:10px;border:0.5px solid #B4B2A9;background:'+(hideZero?'#1a1a1a':'transparent')+';color:'+(hideZero?'#fff':'#888')+';font-size:8px;cursor:pointer;white-space:nowrap;">'+( hideZero?'▣ só lançados':'□ todos')+'</button>'
-    +'</div></th>';
+  html+='<th class="wad-lbl-h" rowspan="2">Pasta / Categoria</th>';
 
-  for(let m=0;m<12;m++){
+  visMonths.forEach(m=>{
     const isPast=m<curM,isCur=m===curM;
     const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
     const cols=showOrc?2:1;
@@ -6370,17 +6422,17 @@ function waDashRender(){
     const cls=isCur?'cur':isPast?'past':'fut';
     const bg=isCur?'':'background:#F1EFE8;';
     html+='<th class="wad-h-mes '+cls+'" colspan="'+cols+'" style="'+bg+'">'+MESES[m]+'. '+yr+tog+'</th>';
-  }
+  });
   // total column
   html+='<th class="wad-h-mes fut wad-total-col" colspan="2" style="background:#E8EAF6;color:#283593;">Total</th>';
   html+='</tr><tr>';
-  for(let m=0;m<12;m++){
+  visMonths.forEach(m=>{
     const isPast=m<curM,isCur=m===curM;
     const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
     const cur=isCur?' cur':'';
     html+='<th class="wad-h-sub real'+cur+'">real</th>';
     if(showOrc)html+='<th class="wad-h-sub prev'+cur+'"><em>prev.</em></th>';
-  }
+  });
   html+='<th class="wad-h-sub real wad-total-col" style="background:#C5CAE9;color:#283593;">real</th>';
   html+='<th class="wad-h-sub prev wad-total-col" style="background:#DDD5C0;color:#4E342E;"><em>prev.</em></th>';
   html+='</tr></thead><tbody>';
@@ -6460,7 +6512,7 @@ function waDashRender(){
     const subMetaTot=totMeta.reduce((s,v)=>s+v,0);
     html+='<tr>';
     html+='<td class="wad-lbl sub">'+tipo.toUpperCase()+'</td>';
-    for(let m=0;m<12;m++){
+    visMonths.forEach(m=>{
       const isPast=m<curM,isCur=m===curM;
       const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
       const cur=isCur?' cur':'';
@@ -6471,7 +6523,7 @@ function waDashRender(){
       if(isPast&&!isCur){const col=isPos?pastColorsPos(rv,mv):pastColors(rv,mv);bg_r=col.r;bg_p=col.p;}
       html+='<td class="wad-real sub'+cur+'" style="background:'+bg_r+';"><div class="wad-cell">'+fmt(rv)+dot+'</div></td>';
       if(showOrc)html+='<td class="wad-prev sub'+cur+'" style="background:'+bg_p+';">'+fmt(mv)+'</td>';
-    }
+    });
     html+='<td class="wad-real sub wad-total-col" style="background:#C5CAE9;">'+fmt(subRealTot)+'</td>';
     html+='<td class="wad-prev sub wad-total-col" style="background:#C8B99A;">'+fmt(subMetaTot)+'</td>';
     html+='</tr>';
@@ -6482,7 +6534,7 @@ function waDashRender(){
   const saldoTotMeta=grandMeta.reduce((s,v)=>s+v,0);
   html+='<tr style="border-top:2px solid #B4B2A9;">';
   html+='<td class="wad-lbl sub" style="background:#1a1a1a;color:#fff;text-align:center;">SALDO</td>';
-  for(let m=0;m<12;m++){
+  visMonths.forEach(m=>{
     const isPast=m<curM,isCur=m===curM;
     const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
     const cur=isCur?' cur':'';
@@ -6492,7 +6544,7 @@ function waDashRender(){
     const bg_p=isPast&&!isCur?(rv>=0?'#C8E6C9':'#FFCDD2'):(isCur?'#D4BC96':'#EAD9C0');
     html+='<td class="wad-real sub'+cur+'" style="background:'+bg_r+';color:'+clrR+';font-weight:700;">'+(rv?(rv>=0?'+':'')+fmt(Math.abs(rv)):'')+'</td>';
     if(showOrc){const clrM=mv>=0?'#27500A':'#A32D2D';html+='<td class="wad-prev sub'+cur+'" style="background:'+bg_p+';color:'+clrM+';">'+(mv?(mv>=0?'+':'')+fmt(Math.abs(mv)):'')+'</td>';}
-  }
+  });
   const clrTR=saldoTotReal>=0?'#27500A':'#A32D2D';
   const clrTM=saldoTotMeta>=0?'#27500A':'#A32D2D';
   html+='<td class="wad-real sub wad-total-col" style="background:#C5CAE9;color:'+clrTR+';font-weight:700;">'+(saldoTotReal>=0?'+':'')+fmt(Math.abs(saldoTotReal))+'</td>';
@@ -6504,6 +6556,7 @@ function waDashRender(){
 
 function waDashTogHideZero(){
   window.waDashHideZero=!window.waDashHideZero;
+  waDashRenderHeader();
   waDashRender();
 }
 
@@ -6549,7 +6602,7 @@ function waOnLogin(){
   const wu=document.getElementById('wa-user');
   if(wu)wu.textContent=currentUser||'ALE';
   waResetLaunch();
-  waGo('add');
+  waGo('dash');
   // auto-sync on web start
   waAutoSync();
 }
