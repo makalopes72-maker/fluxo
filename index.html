@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4A0072,#FF6F00);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F3E5F5 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(243,229,245,.65) !important;}
-  #splash .splash-version{color:rgba(243,229,245,.35) !important;}
-  #splash .splash-btn{background:#F3E5F5 !important;color:#4A0072 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F3E5F5 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0D47A1,#F48FB1);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E3F2FD !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(227,242,253,.65) !important;}
+  #splash .splash-version{color:rgba(227,242,253,.35) !important;}
+  #splash .splash-btn{background:#E3F2FD !important;color:#0D47A1 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E3F2FD !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.39';
+const APP_VERSION='13.40';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2309,7 +2309,7 @@ const FONTS=[
 
 // ── STATE ──
 let currentUser=null,allData=[],amountCents=0,opPending=null,prevCents=0;
-let extPeriod='mes',extSort='desc',extSearchText='',extContas=[],extPastas=[],extConsolid='all'; // 'all'|'yes'|'no'
+let extPeriod='30d',extSort='desc',extSearchText='',extContas=[],extPastas=[],extConsolid='all'; // 'all'|'yes'|'no'
 let extMonth=new Date().getMonth(),extYear=new Date().getFullYear();
 let txType='saída',currentPeriod='mes',currentCatFilter='Todas',editingIndex=null;
 let displayMode='reais',secondInt=0;
@@ -3662,12 +3662,15 @@ function selectYear(y){
 }
 
 function initExtChips(){
-  // set initial labels based on current date
   const now=new Date();
   const chip=document.getElementById('chip-mes');
   if(chip)chip.textContent=MESES_ABR[now.getMonth()];
   const chipY=document.getElementById('chip-ano');
   if(chipY)chipY.textContent=now.getFullYear();
+  // set 30d as default active
+  document.querySelectorAll('.ext-chip:not(.icon-chip)').forEach(b=>b.classList.remove('active'));
+  const c30=document.getElementById('chip-30d');
+  if(c30)c30.classList.add('active');
 }
 
 function setExtPeriod(p,el){
@@ -5633,7 +5636,7 @@ function waRenderExtrato(){
   body.innerHTML=`
     <div style="display:flex;flex-direction:column;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;">
       <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;flex-wrap:wrap;">
-        <button onclick="waToggleFilter()" title="Filtros" style="padding:3px 8px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">⊟</button>
+        <button id="wa-filter-btn" onclick="waToggleFilter()" title="Filtros" style="padding:3px 8px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.72rem;cursor:pointer;transition:all .2s;">⊟</button>
         <button onclick="waExtPeriod('30d')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extPeriod==='30d'?'var(--btn)':'transparent'};color:${extPeriod==='30d'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">30d</button>
         <button onclick="waExtPeriod('mes')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extPeriod==='mes'?'var(--btn)':'transparent'};color:${extPeriod==='mes'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">${MESES_ABR[extMonth]}</button>
         <button onclick="waExtPeriod('ano')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extPeriod==='ano'?'var(--btn)':'transparent'};color:${extPeriod==='ano'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">${extYear}</button>
@@ -5656,11 +5659,11 @@ function waRenderExtrato(){
         </div>
         <div>
           <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:5px;">Contas</div>
-          <div style="display:flex;flex-wrap:wrap;gap:4px;" id="wa-conta-chips">${(()=>{const user=currentUser||'ALE';return accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).map(a=>`<button onclick="waToggleConta('${a.name.replace(/'/g,"\'")}',this)" style="padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:${extContas.includes(a.name)?'var(--font)':'transparent'};color:${extContas.includes(a.name)?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.65rem;cursor:pointer;">${a.name}</button>`).join('');})()}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;" id="wa-conta-chips">${(()=>{const user=currentUser||'ALE';return accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).map(a=>`<button data-name="${a.name.replace(/"/g,'&quot;')}" onclick="waToggleConta('${a.name.replace(/'/g,"\'")}',this)" style="padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:${extContas.includes(a.name)?'var(--font)':'transparent'};color:${extContas.includes(a.name)?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.65rem;cursor:pointer;transition:all .15s;">${a.name}</button>`).join('');})()}</div>
         </div>
         <div>
           <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:5px;">Pastas</div>
-          <div style="display:flex;flex-wrap:wrap;gap:4px;">${getTiposList().map(t=>`<button onclick="waTogglePasta('${t.replace(/'/g,"\'")}',this)" style="padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:${extPastas.includes(t)?'var(--font)':'transparent'};color:${extPastas.includes(t)?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.65rem;cursor:pointer;">${TIPO_ICONS[t]||'📁'} ${t}</button>`).join('')}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;" id="wa-pasta-chips">${getTiposList().map(t=>`<button data-name="${t.replace(/"/g,'&quot;')}" onclick="waTogglePasta('${t.replace(/'/g,"\'")}',this)" style="padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:${extPastas.includes(t)?'var(--font)':'transparent'};color:${extPastas.includes(t)?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.65rem;cursor:pointer;transition:all .15s;">${TIPO_ICONS[t]||'📁'} ${t}</button>`).join('')}</div>
         </div>
       </div>
     </div>
@@ -5744,7 +5747,11 @@ function waToggleExtConsol(idx,e){
 function waToggleFilter(){
   const p=document.getElementById('wa-filter-panel');
   if(!p)return;
-  p.style.display=p.style.display==='none'?'flex':'none';
+  const isOpen=p.style.display==='flex';
+  p.style.display=isOpen?'none':'flex';
+  // update filter btn style
+  const btn=document.getElementById('wa-filter-btn');
+  if(btn)btn.style.background=isOpen?'transparent':'var(--font)',btn.style.color=isOpen?'var(--muted)':'var(--bg)';
 }
 function waSetSort(dir){
   extSort=dir;
@@ -5753,12 +5760,35 @@ function waSetSort(dir){
 function waToggleConta(name){
   const i=extContas.indexOf(name);
   if(i>=0)extContas.splice(i,1);else extContas.push(name);
-  waRenderExtrato();
+  // update chip style without re-rendering filter panel
+  document.querySelectorAll('#wa-conta-chips button').forEach(b=>{
+    const active=extContas.includes(b.dataset.name);
+    b.style.background=active?'var(--font)':'transparent';
+    b.style.color=active?'var(--bg)':'var(--muted)';
+  });
+  waRenderExtratoOnly();
 }
 function waTogglePasta(name){
   const i=extPastas.indexOf(name);
   if(i>=0)extPastas.splice(i,1);else extPastas.push(name);
+  document.querySelectorAll('#wa-pasta-chips button').forEach(b=>{
+    const active=extPastas.includes(b.dataset.name);
+    b.style.background=active?'var(--font)':'transparent';
+    b.style.color=active?'var(--bg)':'var(--muted)';
+  });
+  waRenderExtratoOnly();
+}
+function waRenderExtratoOnly(){
+  // re-render only the table portion, preserve filter panel open state
+  const panelOpen=document.getElementById('wa-filter-panel')?.style.display==='flex';
   waRenderExtrato();
+  // restore panel state
+  if(panelOpen){
+    const p=document.getElementById('wa-filter-panel');
+    if(p)p.style.display='flex';
+    const btn=document.getElementById('wa-filter-btn');
+    if(btn)btn.style.background='var(--font)',btn.style.color='var(--bg)';
+  }
 }
 function waToggleConsolid(){
   if(extConsolid==='all')extConsolid='yes';
