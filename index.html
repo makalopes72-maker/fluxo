@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#C2185B,#1565C0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FCE4EC !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(252,228,236,.65) !important;}
-  #splash .splash-version{color:rgba(252,228,236,.35) !important;}
-  #splash .splash-btn{background:#FCE4EC !important;color:#C2185B !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FCE4EC !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#00838F,#F57F17);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
+  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
+  #splash .splash-btn{background:#E0F7FA !important;color:#00838F !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1989,7 +1989,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.22';
+const APP_VERSION='13.23';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5488,12 +5488,33 @@ const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+A
 
   <!-- RIGHT PANEL -->
   <div id="wa-right">
-    <div id="wa-right-header">
-      <span id="wa-right-title">—</span>
-      <button id="wa-new-btn" onclick="waResetLaunch()" style="display:none;padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;font-family:var(--font-body);font-size:.65rem;font-weight:600;color:var(--btn);cursor:pointer;">+ Nova</button>
+    <!-- KP COLUMN -->
+    <div id="wa-kp-col">
+      <div id="wa-right-header">
+        <span id="wa-right-title">Lançar transação</span>
+        <button id="wa-new-btn" onclick="waResetLaunch()" style="display:none;padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;font-family:var(--font-body);font-size:.65rem;font-weight:600;color:var(--btn);cursor:pointer;">+ Nova</button>
+      </div>
+      <div id="wa-right-body">
+        <div class="wa-empty">—</div>
+      </div>
     </div>
-    <div id="wa-right-body">
-      <div class="wa-empty">—</div>
+    <!-- DRAWER -->
+    <div id="wa-drawer">
+      <div class="wa-drawer-hdr">
+        <span id="wa-drawer-title">Detalhes</span>
+        <span onclick="waCloseDrawer()" style="cursor:pointer;font-size:1rem;color:var(--muted);">✕</span>
+      </div>
+      <div class="wa-drawer-val">
+        <div id="wa-drawer-vbg" style="flex:1;padding:8px 12px;border-radius:10px;background:var(--red);">
+          <div style="font-size:.6rem;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.08em;">Nova despesa</div>
+          <div id="wa-drawer-vnum" style="font-family:var(--font-display);font-size:1.5rem;color:#fff;letter-spacing:-1px;">R$ 0,00</div>
+        </div>
+      </div>
+      <div class="wa-drawer-body" id="wa-drawer-body"></div>
+      <div class="wa-drawer-foot">
+        <button class="wa-d-btn-c" onclick="waCloseDrawer()">✕ Cancelar</button>
+        <button class="wa-d-btn-s" onclick="waSave()">SALVAR</button>
+      </div>
     </div>
   </div>
 
@@ -5715,20 +5736,11 @@ function waResetLaunch(){
 
 function waRenderLaunchForm(){
   const s=waLaunchState;
-  const body=document.getElementById('wa-right-body');
-  if(!body)return;
   const typeColor=s.type==='entrada'?'var(--accent2)':s.type==='transferência'?'#7c3aed':'var(--red)';
   const typeLabel=s.type==='entrada'?'Nova receita':s.type==='transferência'?'Transferência':'Nova despesa';
   const valDisplay='R$ '+(s.valueCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
-
-  // parcel label
-  let modeExtra='';
-  if(s.mode==='parcelar'&&s.parcFim){
-    const n=s.parcFim-s.parcIni+1;
-    const each=(s.valueCents/100/n).toLocaleString('pt-BR',{minimumFractionDigits:2});
-    modeExtra=`<div style="font-size:.65rem;color:var(--muted);text-align:center;padding:2px 0;">${n}x de R$ ${each}</div>`;
-  }
-
+  const body=document.getElementById('wa-right-body');
+  if(!body)return;
   body.innerHTML=`
     <div style="display:flex;flex-shrink:0;border-bottom:1px solid var(--border);">
       ${['saída','entrada','transferência'].map(t=>`
@@ -5747,90 +5759,27 @@ function waRenderLaunchForm(){
           value="${valDisplay}"
           onfocus="waValInputFocus(this)"
           onblur="waValInputBlur(this)"
-          oninput="waValInputChange(this.value)"
           style="font-family:var(--font-display);font-size:1.6rem;color:#fff;letter-spacing:-1px;background:transparent;border:none;outline:none;width:100%;cursor:text;">
       </div>
       <button onclick="waKp('del')" style="color:rgba(255,255,255,.7);background:transparent;border:none;font-size:1.1rem;cursor:pointer;flex-shrink:0;padding:4px;">⌫</button>
     </div>
-    ${modeExtra}
-    <div id="wa-kp" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);flex-shrink:0;">
+    <div id="wa-kp" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);flex:1;">
       ${[['7','8','9','÷'],['4','5','6','×'],['1','2','3','−'],[',00','0','=','+']].map(row=>
         row.map((k,i)=>`<div onclick="waKp('${k}')" style="background:${k==='='?'var(--btn)':i===3?'var(--kp-dark)':'var(--kp)'};display:flex;align-items:center;justify-content:center;padding:7px 0;font-family:var(--font-body);font-size:${i===3||k===',00'?'.78rem':'.9rem'};font-weight:700;color:${k==='='?'#0f0f11':i===3?'var(--muted)':'var(--font)'};cursor:pointer;user-select:none;">${k}</div>`).join('')
       ).join('')}
     </div>
-    <div style="flex:1;overflow-y:auto;padding:6px 8px;display:flex;flex-direction:column;gap:5px;min-height:0;">
-      <div style="background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:8px 10px;cursor:pointer;" onclick="waOpenDrawer()">
-        <span style="font-size:.75rem;">📝</span>
-        <span style="font-size:.72rem;color:${s.desc?'var(--font)':'var(--muted)'};">${s.desc||'Descrição…'}</span>
-      </div>
-      <div style="display:flex;gap:5px;">
-        <div onclick="waOpenDrop('tipo')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:6px 8px;cursor:pointer;">
-          <span style="font-size:.75rem;">📂</span><span style="font-size:.68rem;color:${s.tipo?'var(--font)':'var(--muted)'};">${s.tipo?((TIPO_ICONS[s.tipo]||'')+' '+s.tipo):'Pasta'}</span>
-        </div>
-        <div onclick="waOpenDrop('cat')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:6px 8px;cursor:pointer;">
-          <span style="font-size:.75rem;">🏷</span><span style="font-size:.68rem;color:${s.cat?'var(--font)':'var(--muted)'};">${s.cat||'Categoria'}</span>
-        </div>
-      </div>
-      <div style="display:flex;gap:5px;">
-        <div onclick="waOpenDatePicker()" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:6px 8px;cursor:pointer;">
-          <span style="font-size:.75rem;">📅</span><span style="font-size:.68rem;color:var(--font);">${s.date}</span>
-        </div>
-        <div onclick="waOpenDrop('conta')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:6px 8px;cursor:pointer;">
-          <span style="font-size:.75rem;">🏦</span><span style="font-size:.68rem;color:${s.conta?'var(--font)':'var(--muted)'};">${s.conta||'Conta'}</span>
-        </div>
-      </div>
-      <!-- MODE SELECTOR -->
-      <div style="display:flex;background:var(--kp);border-radius:10px;padding:2px;gap:2px;">
-        ${['normal','parcelar','avancado'].map(m=>`<button onclick="waSetMode('${m}')" style="flex:1;padding:5px 4px;border-radius:8px;border:none;font-family:var(--font-body);font-size:.62rem;font-weight:600;cursor:pointer;background:${s.mode===m?'var(--bg)':'transparent'};color:${s.mode===m?'var(--font)':'var(--muted)'};transition:all .2s;">${m==='normal'?'Normal':m==='parcelar'?'Parcelar':'Avançado'}</button>`).join('')}
-      </div>
-      <!-- PARCELAR -->
-      ${s.mode==='parcelar'?`
-      <div style="background:var(--card);border-radius:8px;padding:8px 10px;">
-        <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:6px;">Parcelas</div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
-            <label style="font-size:.6rem;color:var(--muted);">De</label>
-            <input type="number" value="${s.parcIni}" min="1" inputmode="numeric" oninput="waLaunchState.parcIni=parseInt(this.value)||1;waRenderLaunchForm();"
-              style="padding:5px 8px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.82rem;text-align:center;width:100%;outline:none;">
-          </div>
-          <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
-            <label style="font-size:.6rem;color:var(--muted);">Até</label>
-            <input type="number" value="${s.parcFim||''}" min="2" placeholder="Ex: 6" inputmode="numeric" oninput="waLaunchState.parcFim=parseInt(this.value)||null;waRenderLaunchForm();"
-              style="padding:5px 8px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.82rem;text-align:center;width:100%;outline:none;">
-          </div>
-        </div>
-        ${s.parcFim?`<div style="font-size:.65rem;color:var(--muted);text-align:right;margin-top:4px;">${s.parcFim-s.parcIni+1} parcelas de R$ ${(s.valueCents/100/(s.parcFim-s.parcIni+1)).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>`:''}
-      </div>`:''}
-      <!-- AVANÇADO -->
-      ${s.mode==='avancado'?`
-      <div style="background:var(--card);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;">
-        <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Intervalo</div>
-        <div style="display:flex;gap:6px;align-items:center;">
-          <input type="number" value="${s.advQty}" min="1" inputmode="numeric" oninput="waLaunchState.advQty=parseInt(this.value)||1;"
-            style="width:48px;padding:5px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.82rem;text-align:center;outline:none;">
-          <div style="display:flex;flex:1;background:var(--kp);border-radius:8px;padding:2px;gap:2px;">
-            ${['dia','semana','mes','ano'].map(i=>`<button onclick="waLaunchState.advInt='${i}';waRenderLaunchForm();" style="flex:1;padding:4px 2px;border-radius:6px;border:none;font-family:var(--font-body);font-size:.58rem;font-weight:600;cursor:pointer;background:${s.advInt===i?'var(--bg)':'transparent'};color:${s.advInt===i?'var(--font)':'var(--muted)'};">${i==='mes'?'Mês':i.charAt(0).toUpperCase()+i.slice(1)}</button>`).join('')}
-          </div>
-        </div>
-        <div style="display:flex;background:var(--kp);border-radius:8px;padding:2px;gap:2px;">
-          ${['parcelado','indefinido'].map(p=>`<button onclick="waLaunchState.advPeriod='${p}';waRenderLaunchForm();" style="flex:1;padding:5px;border-radius:6px;border:none;font-family:var(--font-body);font-size:.62rem;font-weight:600;cursor:pointer;background:${s.advPeriod===p?'var(--bg)':'transparent'};color:${s.advPeriod===p?'var(--font)':'var(--muted)'};">${p.charAt(0).toUpperCase()+p.slice(1)}</button>`).join('')}
-        </div>
-        ${s.advPeriod==='parcelado'?`<div style="display:flex;gap:8px;">
-          <div style="flex:1;display:flex;flex-direction:column;gap:3px;"><label style="font-size:.6rem;color:var(--muted);">De</label><input type="number" value="${s.advParcIni}" min="1" inputmode="numeric" oninput="waLaunchState.advParcIni=parseInt(this.value)||1;waRenderLaunchForm();" style="padding:5px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.82rem;text-align:center;width:100%;outline:none;"></div>
-          <div style="flex:1;display:flex;flex-direction:column;gap:3px;"><label style="font-size:.6rem;color:var(--muted);">Até</label><input type="number" value="${s.advParcFim||''}" min="2" placeholder="Ex: 12" inputmode="numeric" oninput="waLaunchState.advParcFim=parseInt(this.value)||null;waRenderLaunchForm();" style="padding:5px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.82rem;text-align:center;width:100%;outline:none;"></div>
-        </div>
-        ${s.advParcFim?`<div style="font-size:.65rem;color:var(--muted);text-align:right;">${s.advParcFim-s.advParcIni+1} lançamentos</div>`:''}`:
-        `<div style="font-size:.65rem;color:var(--muted);padding:4px 0;">📆 Próximos 12 meses a partir da data escolhida.</div>`}
-      </div>`:''}
-      <div id="wa-drop-area"></div>
-      ${s.editingIdx!==null?`<button onclick="waDelTx(${s.editingIdx})" style="padding:7px;border-radius:8px;border:1px solid var(--red);background:transparent;color:var(--red);font-family:var(--font-body);font-size:.68rem;cursor:pointer;">🗑 Excluir transação</button>`:''}
-    </div>
-    <div style="flex-shrink:0;display:flex;gap:6px;padding:6px 8px 12px;border-top:1px solid var(--border);">
-      <button onclick="waResetLaunch()" style="flex:1;padding:9px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.7rem;cursor:pointer;">✕ Cancelar</button>
-      <button onclick="waSave()" style="flex:1;padding:9px;border-radius:10px;border:none;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.75rem;font-weight:800;letter-spacing:.04em;cursor:pointer;">${s.editingIdx!==null?'ATUALIZAR':'SALVAR'}</button>
+    <div onclick="waOpenDrawer()" style="flex-shrink:0;border-top:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg);">
+      <span style="font-size:.85rem;">📝</span>
+      <span style="font-size:.8rem;color:${s.desc?'var(--font)':'var(--muted)'};">${s.desc||'Descrição, pasta, categoria…'}</span>
+      <span style="margin-left:auto;font-size:.7rem;color:var(--muted);">›</span>
     </div>
   `;
+  // sync drawer val
+  const dv=document.getElementById('wa-drawer-vnum');if(dv)dv.textContent=valDisplay;
+  const vbg=document.getElementById('wa-drawer-vbg');
+  if(vbg)vbg.style.background=typeColor;
 }
+
 
 // keypad state for web (independent)
 let waKpState={cents:0,op:null,prev:0};
