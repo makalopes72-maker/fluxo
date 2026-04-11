@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#194D33,#4FC3F7);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E8F5E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(232,245,233,.65) !important;}
-  #splash .splash-version{color:rgba(232,245,233,.35) !important;}
-  #splash .splash-btn{background:#E8F5E9 !important;color:#194D33 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8F5E9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#C62828,#1A237E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFEBEE !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(255,235,238,.65) !important;}
+  #splash .splash-version{color:rgba(255,235,238,.35) !important;}
+  #splash .splash-btn{background:#FFEBEE !important;color:#C62828 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFEBEE !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.41';
+const APP_VERSION='13.42';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5604,55 +5604,42 @@ function waRenderExtrato(){
   const body=document.getElementById('wa-center-body');
   if(!body)return;
 
-  // ── ensure filter bar exists (static, never re-created) ──
+  // ensure filter bar exists once
   if(!document.getElementById('wa-filter-bar')){
     const bar=document.createElement('div');
     bar.id='wa-filter-bar';
     bar.style.cssText='flex-shrink:0;border-bottom:1px solid var(--border);background:var(--bg);';
-    bar.innerHTML=`
-      <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;flex-wrap:wrap;">
-        <button id="wa-filter-btn" onclick="waToggleFilter()" title="Filtros" style="padding:3px 8px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.72rem;cursor:pointer;transition:all .2s;">⊟</button>
-        <button id="wa-chip-30d" onclick="waExtPeriod('30d')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">30d</button>
-        <button id="wa-chip-mes" onclick="waExtPeriod('mes')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">—</button>
-        <button id="wa-chip-ano" onclick="waExtPeriod('ano')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">—</button>
-        <button id="wa-chip-tudo" onclick="waExtPeriod('tudo')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">Tudo</button>
-        <button id="wa-chip-futuras" onclick="waExtPeriod('futuras')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">Futuras</button>
-        <button id="wa-chip-consolid" onclick="waToggleConsolid()" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">Consolid.</button>
-        <div style="margin-left:auto;display:flex;gap:14px;font-size:.72rem;" id="wa-totals"></div>
-      </div>
-      <div id="wa-filter-panel" style="display:none;flex-direction:column;gap:10px;padding:8px 12px 12px;border-top:1px solid var(--border);">
-        <div>
-          <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:5px;">Ordenar</div>
-          <div style="display:flex;gap:5px;">
-            <button id="wa-sort-desc" onclick="waSetSort('desc')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.68rem;cursor:pointer;">↓ Mais recente</button>
-            <button id="wa-sort-asc" onclick="waSetSort('asc')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.68rem;cursor:pointer;">↑ Mais antigo</button>
-          </div>
-        </div>
-        <div>
-          <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:5px;">Contas</div>
-          <div style="display:flex;flex-wrap:wrap;gap:4px;" id="wa-conta-chips"></div>
-        </div>
-        <div>
-          <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:5px;">Pastas</div>
-          <div style="display:flex;flex-wrap:wrap;gap:4px;" id="wa-pasta-chips"></div>
-        </div>
-      </div>`;
+    bar.innerHTML='<div style="display:flex;align-items:center;gap:6px;padding:8px 12px;flex-wrap:wrap;">'
+      +'<button id="wa-filter-btn" onclick="waToggleFilter()" style="padding:3px 8px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.72rem;cursor:pointer;transition:all .2s;">⊟</button>'
+      +'<button id="wa-chip-30d" onclick="waExtPeriod(\'30d\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">30d</button>'
+      +'<button id="wa-chip-mes" onclick="waExtPeriod(\'mes\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">—</button>'
+      +'<button id="wa-chip-ano" onclick="waExtPeriod(\'ano\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">—</button>'
+      +'<button id="wa-chip-tudo" onclick="waExtPeriod(\'tudo\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">Tudo</button>'
+      +'<button id="wa-chip-futuras" onclick="waExtPeriod(\'futuras\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">Futuras</button>'
+      +'<button id="wa-chip-consolid" onclick="waToggleConsolid()" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">Consolid.</button>'
+      +'<div style="margin-left:auto;display:flex;gap:14px;font-size:.72rem;" id="wa-totals"></div>'
+      +'</div>'
+      +'<div id="wa-filter-panel" style="display:none;flex-direction:column;gap:10px;padding:8px 12px 12px;border-top:1px solid var(--border);">'
+      +'<div><div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:5px;">Ordenar</div>'
+      +'<div style="display:flex;gap:5px;">'
+      +'<button id="wa-sort-desc" onclick="waSetSort(\'desc\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.68rem;cursor:pointer;">↓ Mais recente</button>'
+      +'<button id="wa-sort-asc" onclick="waSetSort(\'asc\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.68rem;cursor:pointer;">↑ Mais antigo</button>'
+      +'</div></div>'
+      +'<div><div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:5px;">Contas</div>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:4px;" id="wa-conta-chips"></div></div>'
+      +'<div><div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:5px;">Pastas</div>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:4px;" id="wa-pasta-chips"></div></div>'
+      +'</div>';
     body.parentElement.insertBefore(bar, body);
   }
 
-  // ── update chip styles ──
+  // update chip styles
   const MESES_ABR=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  const chips={
-    '30d':document.getElementById('wa-chip-30d'),
-    'mes':document.getElementById('wa-chip-mes'),
-    'ano':document.getElementById('wa-chip-ano'),
-    'tudo':document.getElementById('wa-chip-tudo'),
-    'futuras':document.getElementById('wa-chip-futuras'),
-  };
-  if(chips['mes'])chips['mes'].textContent=MESES_ABR[extMonth];
-  if(chips['ano'])chips['ano'].textContent=extYear;
-  Object.entries(chips).forEach(([k,btn])=>{
-    if(!btn)return;
+  const chipIds={'30d':'wa-chip-30d','mes':'wa-chip-mes','ano':'wa-chip-ano','tudo':'wa-chip-tudo','futuras':'wa-chip-futuras'};
+  const cm=document.getElementById('wa-chip-mes');if(cm)cm.textContent=MESES_ABR[extMonth];
+  const ca=document.getElementById('wa-chip-ano');if(ca)ca.textContent=extYear;
+  Object.entries(chipIds).forEach(([k,id])=>{
+    const btn=document.getElementById(id);if(!btn)return;
     const on=extPeriod===k;
     btn.style.background=on?'var(--btn)':'transparent';
     btn.style.color=on?'#0f0f11':'var(--muted)';
@@ -5664,20 +5651,18 @@ function waRenderExtrato(){
     cc.style.color=on?'#0f0f11':'var(--muted)';
     cc.textContent=extConsolid==='yes'?'✓ Consol.':extConsolid==='no'?'○ Prev.':'Consolid.';
   }
-  // sort buttons
   ['desc','asc'].forEach(d=>{
     const b=document.getElementById('wa-sort-'+d);
     if(b){b.style.background=extSort===d?'var(--font)':'transparent';b.style.color=extSort===d?'var(--bg)':'var(--muted)';}
   });
 
-  // ── populate conta + pasta chips (only if empty) ──
+  // populate conta + pasta chips once
   const cChips=document.getElementById('wa-conta-chips');
   if(cChips&&!cChips.children.length){
     const user=currentUser||'ALE';
     accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).forEach(a=>{
       const b=document.createElement('button');
-      b.dataset.name=a.name;
-      b.textContent=a.name;
+      b.dataset.name=a.name;b.textContent=a.name;
       b.style.cssText='padding:3px 9px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.65rem;cursor:pointer;transition:all .15s;background:transparent;color:var(--muted);';
       b.onclick=()=>waToggleConta(a.name);
       cChips.appendChild(b);
@@ -5687,26 +5672,23 @@ function waRenderExtrato(){
   if(pChips&&!pChips.children.length){
     getTiposList().forEach(t=>{
       const b=document.createElement('button');
-      b.dataset.name=t;
-      b.textContent=(TIPO_ICONS[t]||'📁')+' '+t;
+      b.dataset.name=t;b.textContent=(TIPO_ICONS[t]||'📁')+' '+t;
       b.style.cssText='padding:3px 9px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.65rem;cursor:pointer;transition:all .15s;background:transparent;color:var(--muted);';
       b.onclick=()=>waTogglePasta(t);
       pChips.appendChild(b);
     });
   }
-  // update conta/pasta chip styles
+  // update chip active styles
   document.querySelectorAll('#wa-conta-chips button').forEach(b=>{
     const on=extContas.includes(b.dataset.name);
-    b.style.background=on?'var(--font)':'transparent';
-    b.style.color=on?'var(--bg)':'var(--muted)';
+    b.style.background=on?'var(--font)':'transparent';b.style.color=on?'var(--bg)':'var(--muted)';
   });
   document.querySelectorAll('#wa-pasta-chips button').forEach(b=>{
     const on=extPastas.includes(b.dataset.name);
-    b.style.background=on?'var(--font)':'transparent';
-    b.style.color=on?'var(--bg)':'var(--muted)';
+    b.style.background=on?'var(--font)':'transparent';b.style.color=on?'var(--bg)':'var(--muted)';
   });
 
-  // ── filter data ──
+  // filter data
   const now=new Date();
   const filtered=allData.filter(t=>{
     const d=parseDate(t.date);if(!d)return false;
@@ -5722,63 +5704,60 @@ function waRenderExtrato(){
     if(extConsolid==='yes'&&!t.consolidated)return false;
     if(extConsolid==='no'&&t.consolidated)return false;
     return true;
-  }).sort((a,b)=>{const da=(parseDate(a.date)||0),db=(parseDate(b.date)||0);if(da!==db)return extSort==='asc'?da-db:db-da;return (b._row||0)-(a._row||0);});
+  }).sort((a,b)=>{
+    const da=(parseDate(a.date)||0),db=(parseDate(b.date)||0);
+    if(da!==db)return extSort==='asc'?da-db:db-da;
+    return (b._row||0)-(a._row||0);
+  });
 
   const totIn=filtered.filter(t=>t.type==='entrada').reduce((s,t)=>s+t.value,0);
   const totOut=filtered.filter(t=>t.type!=='entrada').reduce((s,t)=>s+t.value,0);
   const bal=totIn-totOut;
   const totEl=document.getElementById('wa-totals');
-  if(totEl)totEl.innerHTML=`<span style="color:var(--accent2);">↑ ${fmt(totIn)}</span><span style="color:var(--red);">↓ ${fmt(totOut)}</span><span style="color:var(--font);font-weight:700;">${bal>=0?'+':''}${fmt(bal)}</span>`;
+  if(totEl)totEl.innerHTML='<span style="color:var(--accent2);">↑ '+fmt(totIn)+'</span><span style="color:var(--red);">↓ '+fmt(totOut)+'</span><span style="color:var(--font);font-weight:700;">'+(bal>=0?'+':'')+fmt(bal)+'</span>';
 
-  // ── render table only ──
-  body.innerHTML=`
-    <div class="wa-scroll" style="overflow-y:scroll;flex:1;">
-    <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
-      <colgroup><col style="width:78px;"><col><col style="width:110px;"><col style="width:100px;"><col style="width:90px;"><col style="width:10px;"></colgroup>
-      <thead>
-        <tr style="position:sticky;top:0;z-index:2;background:var(--bg);">
-          <th style="padding:5px 8px;text-align:left;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Data</th>
-          <th style="padding:5px 8px;text-align:left;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Descrição</th>
-          <th style="padding:5px 8px;text-align:left;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Categoria</th>
-          <th style="padding:5px 8px;text-align:left;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Conta</th>
-          <th style="padding:5px 8px;text-align:right;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Valor</th>
-          <th style="width:10px;"></th>
-        </tr>
-      </thead>
-      <tbody>
-        ${(()=>{
-          const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-          let lastMonth='',lastDay='',rows='';
-          filtered.forEach(t=>{
-            const idx=allData.indexOf(t);
-            const isIn=t.type==='entrada',isTransf=t.type==='transferência';
-            const color=isIn?'var(--accent2)':isTransf?'#7c3aed':'var(--red)';
-            const parts=(t.date||'').split('/');
-            const monthKey=parts.length===3?parts[1]+'/'+parts[2]:'';
-            const monthLabel=parts.length===3?MESES[parseInt(parts[1])-1]+' '+parts[2]:'';
-            const dayKey=t.date||'';
-            if(monthKey&&monthKey!==lastMonth){
-              rows+=\`<tr><td colspan="6" style="padding:10px 8px 4px;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);border-top:\${lastMonth?'1px solid var(--border)':'none'};background:var(--bg);">\${monthLabel}</td></tr>\`;
-              lastMonth=monthKey;lastDay='';
-            }
-            const dayBorder=dayKey&&dayKey!==lastDay&&lastDay?'border-top:3px solid var(--kp);':'';
-            lastDay=dayKey;
-            rows+=\`<tr onclick="waEditTx(\${idx})" style="cursor:pointer;\${!t.consolidated?'opacity:.6;':''}" onmouseover="this.style.background='var(--kp)'" onmouseout="this.style.background=''">
-              <td style="padding:3px 8px;font-size:.68rem;color:var(--muted);white-space:nowrap;\${dayBorder}">\${t.date}</td>
-              <td style="padding:3px 8px;font-size:.72rem;font-weight:500;color:var(--font);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;\${dayBorder}">
-                <span onclick="waToggleExtConsol(\${idx},event)" style="display:inline-block;width:8px;height:8px;border-radius:50%;border:1.5px solid \${t.consolidated?'var(--font)':'var(--muted)'};background:\${t.consolidated?'var(--font)':'transparent'};margin-right:5px;flex-shrink:0;cursor:pointer;vertical-align:middle;"></span>\${t.desc||t.cat}</td>
-              <td style="padding:3px 8px;font-size:.66rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;\${dayBorder}">\${t.cat||'—'}</td>
-              <td style="padding:3px 8px;font-size:.66rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;\${dayBorder}">\${t.account||'—'}</td>
-              <td style="padding:3px 8px;text-align:right;font-size:.72rem;font-weight:700;color:\${color};white-space:nowrap;\${dayBorder}">\${isIn?'+':'-'}\${fmt(t.value)}</td>
-              <td style="\${dayBorder}"></td>
-            </tr>\`;
-          });
-          return rows||'<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted);font-size:.8rem;">Nenhuma transação</td></tr>';
-        })()}
-      </tbody>
-    </table>
-    </div>
-  `;
+  // render table
+  const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  let lastMonth='',lastDay='',rows='';
+  filtered.forEach(t=>{
+    const idx=allData.indexOf(t);
+    const isIn=t.type==='entrada',isTransf=t.type==='transferência';
+    const color=isIn?'var(--accent2)':isTransf?'#7c3aed':'var(--red)';
+    const parts=(t.date||'').split('/');
+    const monthKey=parts.length===3?parts[1]+'/'+parts[2]:'';
+    const monthLabel=parts.length===3?MESES[parseInt(parts[1])-1]+' '+parts[2]:'';
+    const dayKey=t.date||'';
+    if(monthKey&&monthKey!==lastMonth){
+      rows+='<tr><td colspan="6" style="padding:10px 8px 4px;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);border-top:'+(lastMonth?'1px solid var(--border)':'none')+';background:var(--bg);">'+monthLabel+'</td></tr>';
+      lastMonth=monthKey;lastDay='';
+    }
+    const db2=dayKey&&dayKey!==lastDay&&lastDay?'border-top:3px solid var(--kp);':'';
+    lastDay=dayKey;
+    const dotStyle='display:inline-block;width:8px;height:8px;border-radius:50%;border:1.5px solid '+(t.consolidated?'var(--font)':'var(--muted)')+';background:'+(t.consolidated?'var(--font)':'transparent')+';margin-right:5px;flex-shrink:0;cursor:pointer;vertical-align:middle;';
+    rows+='<tr onclick="waEditTx('+idx+')" style="cursor:pointer;'+(t.consolidated?'':'opacity:.6;')+'" onmouseover="this.style.background=\'var(--kp)\'" onmouseout="this.style.background=\'\'">'
+      +'<td style="padding:3px 8px;font-size:.68rem;color:var(--muted);white-space:nowrap;'+db2+'">'+t.date+'</td>'
+      +'<td style="padding:3px 8px;font-size:.72rem;font-weight:500;color:var(--font);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'+db2+'">'
+        +'<span onclick="waToggleExtConsol('+idx+',event)" style="'+dotStyle+'"></span>'+(t.desc||t.cat)+'</td>'
+      +'<td style="padding:3px 8px;font-size:.66rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'+db2+'">'+(t.cat||'—')+'</td>'
+      +'<td style="padding:3px 8px;font-size:.66rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'+db2+'">'+(t.account||'—')+'</td>'
+      +'<td style="padding:3px 8px;text-align:right;font-size:.72rem;font-weight:700;color:'+color+';white-space:nowrap;'+db2+'">'+(isIn?'+':'-')+fmt(t.value)+'</td>'
+      +'<td style="'+db2+'"></td>'
+      +'</tr>';
+  });
+  if(!rows)rows='<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted);font-size:.8rem;">Nenhuma transação</td></tr>';
+
+  body.innerHTML='<div class="wa-scroll" style="overflow-y:scroll;flex:1;">'
+    +'<table style="width:100%;border-collapse:collapse;table-layout:fixed;">'
+    +'<colgroup><col style="width:78px;"><col><col style="width:110px;"><col style="width:100px;"><col style="width:90px;"><col style="width:10px;"></colgroup>'
+    +'<thead><tr style="position:sticky;top:0;z-index:2;background:var(--bg);">'
+    +'<th style="padding:5px 8px;text-align:left;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Data</th>'
+    +'<th style="padding:5px 8px;text-align:left;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Descrição</th>'
+    +'<th style="padding:5px 8px;text-align:left;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Categoria</th>'
+    +'<th style="padding:5px 8px;text-align:left;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Conta</th>'
+    +'<th style="padding:5px 8px;text-align:right;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Valor</th>'
+    +'<th style="width:10px;"></th>'
+    +'</tr></thead>'
+    +'<tbody>'+rows+'</tbody></table></div>';
 }
 
 
