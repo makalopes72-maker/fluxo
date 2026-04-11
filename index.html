@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(135deg,#0D0D0D,#C8A84B);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFFDF0 !important;text-shadow:0 2px 32px rgba(0,0,0,.6);}
-  #splash .splash-sub{color:rgba(255,253,240,.65) !important;}
-  #splash .splash-version{color:rgba(255,253,240,.4) !important;}
-  #splash .splash-btn{background:#FFFDF0 !important;color:#0D0D0D !important;font-weight:700;box-shadow:0 4px 28px rgba(200,168,75,.5);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,253,240,.12) !important;color:#FFFDF0 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0A1628,#B87333);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFF8F0 !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
+  #splash .splash-sub{color:rgba(255,248,240,.65) !important;}
+  #splash .splash-version{color:rgba(255,248,240,.35) !important;}
+  #splash .splash-btn{background:#FFF8F0 !important;color:#0A1628 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFF8F0 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.00';
+const APP_VERSION='14.01';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5594,9 +5594,12 @@ function waShowLaunch(){
   document.getElementById('wa-center-title').textContent='Extrato';
   document.getElementById('wa-right-title').textContent='Lançar transação';
   const _nb=document.getElementById('wa-new-btn');if(_nb)_nb.style.display='block';
-  // center: extrato (rendered by renderHistory via allData)
+  // reabrir painel direito
+  const rp=document.getElementById('wa-right');
+  if(rp)rp.classList.remove('collapsed');
+  const btn=document.getElementById('wa-toggle-btn');
+  if(btn)btn.textContent='›';
   waRenderExtrato();
-  // right: launch form
   waRenderLaunchForm();
 }
 
@@ -6213,6 +6216,11 @@ function waShowDash(){
   document.getElementById('wa-right-title').textContent='—';
   document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">—</div>';
   const nb=document.getElementById('wa-new-btn');if(nb)nb.style.display='none';
+  // fechar painel direito por padrão no dashboard
+  const rp=document.getElementById('wa-right');
+  if(rp)rp.classList.add('collapsed');
+  const btn=document.getElementById('wa-toggle-btn');
+  if(btn)btn.textContent='‹';
   waDashRender();
 }
 
