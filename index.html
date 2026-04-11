@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#311B92,#80CBC4);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#EDE7F6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(237,231,246,.65) !important;}
-  #splash .splash-version{color:rgba(237,231,246,.35) !important;}
-  #splash .splash-btn{background:#EDE7F6 !important;color:#311B92 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EDE7F6 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#880E4F,#1B5E20);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FCE4EC !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(252,228,236,.65) !important;}
+  #splash .splash-version{color:rgba(252,228,236,.35) !important;}
+  #splash .splash-btn{background:#FCE4EC !important;color:#880E4F !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FCE4EC !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1682,6 +1682,7 @@
         <button class="ext-chip" id="chip-ano" onclick="openYearPicker()">2026</button>
         <button class="ext-chip" id="chip-tudo" onclick="setExtPeriod('tudo',this)">Tudo</button>
         <button class="ext-chip" id="chip-futuras" onclick="setExtPeriod('futuras',this)">Futuras</button>
+        <button class="ext-chip" id="chip-consolid" onclick="toggleExtConsolid(this)">Consolid.</button>
       </div>
       <!-- BUSCA -->
       <div class="extrato-search">
@@ -2026,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.31';
+const APP_VERSION='13.33';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2308,7 +2309,7 @@ const FONTS=[
 
 // ── STATE ──
 let currentUser=null,allData=[],amountCents=0,opPending=null,prevCents=0;
-let extPeriod='mes',extSort='desc',extSearchText='',extContas=[],extPastas=[];
+let extPeriod='mes',extSort='desc',extSearchText='',extContas=[],extPastas=[],extConsolid='all'; // 'all'|'yes'|'no'
 let extMonth=new Date().getMonth(),extYear=new Date().getFullYear();
 let txType='saída',currentPeriod='mes',currentCatFilter='Todas',editingIndex=null;
 let displayMode='reais',secondInt=0;
@@ -3711,6 +3712,12 @@ function buildExtChips(){
   if(pc){const pastas=[...new Set(allData.map(t=>t.tipo).filter(Boolean))];
     pc.innerHTML=pastas.map(p=>`<button class="ext-fp-chip${extPastas.includes(p)?' active':''}" onclick="toggleExtPasta('${p.replace(/'/g,"\'")}')">${TIPO_ICONS[p]||'📁'} ${p}</button>`).join('');}
 }
+function toggleExtConsolid(el){
+  if(extConsolid==='all'){extConsolid='yes';el.textContent='✓ Consol.';el.classList.add('active');}
+  else if(extConsolid==='yes'){extConsolid='no';el.textContent='○ Prev.';el.classList.add('active');}
+  else{extConsolid='all';el.textContent='Consolid.';el.classList.remove('active');}
+  renderHistory();
+}
 function toggleExtConta(c){
   if(!c||typeof c!=='string')return;
   const i=extContas.indexOf(c);if(i>=0)extContas.splice(i,1);else extContas.push(c);
@@ -3733,12 +3740,14 @@ function getExtFiltered(){
     if(userAccts.length&&!userAccts.includes(normalizeAcct(t.account)))ok=false;
     if(!ok)return false;
     if(extPeriod==='mes')ok=d.getMonth()===extMonth&&d.getFullYear()===extYear;
-    else if(extPeriod==='30d'){const m=new Date(today);m.setDate(m.getDate()-30);ok=d>=m;}
+    else if(extPeriod==='30d'){const cut=new Date();cut.setHours(0,0,0,0);cut.setDate(cut.getDate()-30);ok=d>=cut;}
     else if(extPeriod==='ano')ok=d.getFullYear()===now.getFullYear();
     else if(extPeriod==='futuras')ok=d>today;
     if(extContas.length&&!extContas.includes(t.account))ok=false;
     if(extPastas.length&&!extPastas.includes(t.tipo))ok=false;
     if(search&&!((t.desc||'').toLowerCase().includes(search)||(t.cat||'').toLowerCase().includes(search)||(t.tipo||'').toLowerCase().includes(search)))ok=false;
+    if(extConsolid==='yes'&&!t.consolidated)ok=false;
+    if(extConsolid==='no'&&t.consolidated)ok=false;
     return ok;
   });
 }
@@ -3753,7 +3762,7 @@ function renderHistory(){
   if(eb){eb.textContent=fmt(bal);eb.className='extrato-total-val bal'+(bal<0?' neg':'');}
   const sorted=[...data].sort((a,b)=>extSort==='desc'?parseDate(b.date)-parseDate(a.date):parseDate(a.date)-parseDate(b.date));
   const groups={};
-  sorted.forEach(t=>{const dk=t.date||'—';if(!groups[dk])groups[dk]=[];groups[dk].push(t);});
+  sorted.forEach(t=>{const dk=t.date||'—';if(!groups[dk])groups[dk]=[];groups[dk].unshift(t);});
   const hl=document.getElementById('hist-list');if(!hl)return;
   if(!sorted.length){hl.innerHTML='<div class="empty">Nenhuma transação encontrada</div>';return;}
   let html='';
@@ -5599,15 +5608,18 @@ function waRenderExtrato(){
     if(!d)return false;
     // use extPeriod/extMonth/extYear from mobile state
     if(extPeriod==='mes')return d.getMonth()===extMonth&&d.getFullYear()===extYear;
-    if(extPeriod==='30d'){const cut=new Date();cut.setDate(cut.getDate()-30);return d>=cut;}
+    if(extPeriod==='30d'){const cut=new Date();cut.setHours(0,0,0,0);cut.setDate(cut.getDate()-30);return d>=cut;}
     if(extPeriod==='ano')return d.getFullYear()===extYear;
     if(extPeriod==='futuras')return d>now;
     return true;
   }).filter(t=>{
     const user=currentUser||'ALE';
     const userAccts=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).map(a=>normalizeAcct(a.name));
-    return userAccts.includes(normalizeAcct(t.account));
-  }).sort((a,b)=>extSort==='asc'?(parseDate(a.date)||0)-(parseDate(b.date)||0):(parseDate(b.date)||0)-(parseDate(a.date)||0));
+    if(!userAccts.includes(normalizeAcct(t.account)))return false;
+    if(extConsolid==='yes'&&!t.consolidated)return false;
+    if(extConsolid==='no'&&t.consolidated)return false;
+    return true;
+  }).sort((a,b)=>{const da=(parseDate(a.date)||0),db=(parseDate(b.date)||0);if(da!==db)return extSort==='asc'?da-db:db-da;return (b._row||0)-(a._row||0);});
 
   const totIn=filtered.filter(t=>t.type==='entrada').reduce((s,t)=>s+t.value,0);
   const totOut=filtered.filter(t=>t.type!=='entrada').reduce((s,t)=>s+t.value,0);
@@ -5624,6 +5636,7 @@ function waRenderExtrato(){
       <button onclick="waExtPeriod('30d')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extPeriod==='30d'?'var(--btn)':'transparent'};color:${extPeriod==='30d'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">30 dias</button>
       <button onclick="waExtPeriod('ano')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extPeriod==='ano'?'var(--btn)':'transparent'};color:${extPeriod==='ano'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">${extYear}</button>
       <button onclick="waExtPeriod('tudo')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extPeriod==='tudo'?'var(--btn)':'transparent'};color:${extPeriod==='tudo'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">Tudo</button>
+      <button onclick="waToggleConsolid(this)" id="wa-chip-consolid" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:${extConsolid!=='all'?'var(--btn)':'transparent'};color:${extConsolid!=='all'?'#0f0f11':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;cursor:pointer;">${extConsolid==='yes'?'✓ Consol.':extConsolid==='no'?'○ Prev.':'Consolid.'}</button>
       <div style="margin-left:auto;display:flex;gap:16px;font-size:.75rem;">
         <span style="color:var(--accent2);">↑ ${fmt(totIn)}</span>
         <span style="color:var(--red);">↓ ${fmt(totOut)}</span>
@@ -5706,6 +5719,12 @@ function waToggleExtConsol(idx,e){
   sheetsPost(payload)
     .then(r=>{if(r&&r.ok)toast(t.consolidated?'Consolidado ✓':'Previsto ○','success');else toast('Erro ao salvar','error');})
     .catch(e=>{toast('Erro: '+e.message,'error');});
+}
+function waToggleConsolid(){
+  if(extConsolid==='all')extConsolid='yes';
+  else if(extConsolid==='yes')extConsolid='no';
+  else extConsolid='all';
+  waRenderExtrato();
 }
 function waExtPeriod(p){
   extPeriod=p;
