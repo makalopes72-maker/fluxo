@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#C62828,#1A237E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFEBEE !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(255,235,238,.65) !important;}
-  #splash .splash-version{color:rgba(255,235,238,.35) !important;}
-  #splash .splash-btn{background:#FFEBEE !important;color:#C62828 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFEBEE !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#00695C,#4527A0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0F2F1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(224,242,241,.65) !important;}
+  #splash .splash-version{color:rgba(224,242,241,.35) !important;}
+  #splash .splash-btn{background:#E0F2F1 !important;color:#00695C !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F2F1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.42';
+const APP_VERSION='13.43';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5761,6 +5761,28 @@ function waRenderExtrato(){
 }
 
 
+function waToggleFilter(){
+  const p=document.getElementById('wa-filter-panel');
+  if(!p)return;
+  const isOpen=p.style.display==='flex';
+  p.style.display=isOpen?'none':'flex';
+  const btn=document.getElementById('wa-filter-btn');
+  if(btn){btn.style.background=isOpen?'transparent':'var(--font)';btn.style.color=isOpen?'var(--muted)':'var(--bg)';}
+}
+function waSetSort(dir){
+  extSort=dir;
+  waRenderExtrato();
+}
+function waToggleConta(name){
+  const i=extContas.indexOf(name);
+  if(i>=0)extContas.splice(i,1);else extContas.push(name);
+  waRenderExtrato();
+}
+function waTogglePasta(name){
+  const i=extPastas.indexOf(name);
+  if(i>=0)extPastas.splice(i,1);else extPastas.push(name);
+  waRenderExtrato();
+}
 function waExtPeriod(p){
   extPeriod=p;
   if(p==='mes'){extMonth=new Date().getMonth();extYear=new Date().getFullYear();}
@@ -5950,6 +5972,12 @@ function waToggleRight(){
   if(btn)btn.textContent=collapsed?'‹':'›';
 }
 
+function waToggleConsolid(){
+  if(extConsolid==='all')extConsolid='yes';
+  else if(extConsolid==='yes')extConsolid='no';
+  else extConsolid='all';
+  waRenderExtrato();
+}
 function waOpenPicker(field){
   const pc=document.getElementById('wa-picker-col');
   const ph=document.getElementById('wa-picker-hdr');
