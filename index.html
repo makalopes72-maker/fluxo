@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0D2137,#76FF03);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E8F5E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
-  #splash .splash-sub{color:rgba(232,245,233,.65) !important;}
-  #splash .splash-version{color:rgba(232,245,233,.35) !important;}
-  #splash .splash-btn{background:#E8F5E9 !important;color:#0D2137 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8F5E9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(135deg,#0D0D0D,#C8A84B);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFFDF0 !important;text-shadow:0 2px 32px rgba(0,0,0,.6);}
+  #splash .splash-sub{color:rgba(255,253,240,.65) !important;}
+  #splash .splash-version{color:rgba(255,253,240,.4) !important;}
+  #splash .splash-btn{background:#FFFDF0 !important;color:#0D0D0D !important;font-weight:700;box-shadow:0 4px 28px rgba(200,168,75,.5);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,253,240,.12) !important;color:#FFFDF0 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.45';
+const APP_VERSION='14.00';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6242,9 +6242,9 @@ function waDashRender(){
   const curM=now.getMonth();
   const yr=now.getFullYear();
   const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  const fmt=n=>n?Math.round(n).toLocaleString('pt-BR'):'—';
+  const fmt=n=>n?Math.round(n).toLocaleString('pt-BR'):'';
 
-  // get user accounts
+  // user accounts
   const userAccts=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).map(a=>normalizeAcct(a.name));
 
   // sum real per tipo+cat per month
@@ -6258,129 +6258,183 @@ function waDashRender(){
     const cat=t.cat||t.tipo||'Outros';
     if(!real[tipo])real[tipo]={};
     if(!real[tipo][cat])real[tipo][cat]=Array(12).fill(0);
-    const v=t.type==='entrada'?t.value:-t.value;
-    real[tipo][cat][m]+=Math.abs(t.value)*(t.type==='entrada'?1:-1);
+    real[tipo][cat][m]+=t.type==='entrada'?t.value:t.value;
   });
 
-  // build pasta list: Receita first, then rest sorted
   const ud=orcData[user]||{};
-  const allTipos=new Set([...Object.keys(ud),...Object.keys(real)]);
   const receitaTipos=['Receita','Investimentos'];
+  const allTipos=new Set([...Object.keys(ud),...Object.keys(real)]);
   const sorted=[
     ...receitaTipos.filter(t=>allTipos.has(t)),
     ...[...allTipos].filter(t=>!receitaTipos.includes(t)).sort()
   ];
 
-  // track collapsed state
   if(!window.waDashCollapsed)window.waDashCollapsed={};
+  if(!window.waDashShowOrc)window.waDashShowOrc={};
 
-  // build table
-  let html='<div style="overflow-x:auto;height:100%;"><table id="wa-dash-table" style="border-collapse:collapse;font-size:11px;min-width:900px;width:100%;">';
+  const farolClass=(rv,mv,farolTipo,isPos)=>{
+    if(!mv||!rv)return '';
+    if(isPos)return rv>=mv?'f-v':'f-r';
+    const pct=rv/mv;
+    if(farolTipo==='A')return pct<=0.9?'f-v':pct<=1?'f-a':'f-r';
+    return pct<=1?'f-v':'f-r';
+  };
 
-  // header row 1 — month names
-  html+='<thead style="position:sticky;top:0;z-index:4;">';
-  html+='<tr style="background:var(--kp);">';
-  html+='<th style="position:sticky;left:0;z-index:5;background:var(--kp);padding:6px 10px;text-align:left;font-size:.65rem;font-weight:700;color:var(--muted);border-bottom:1px solid var(--border);border-right:2px solid var(--border);min-width:160px;">Pasta / Categoria</th>';
-  for(let m=0;m<12;m++){
-    const isCur=m===curM,isPast=m<curM;
-    const bg=isCur?'rgba(34,197,94,.08)':'var(--kp)';
-    const col=isCur?'var(--btn)':'var(--muted)';
-    const cols=isPast?1:2;
-    html+='<th colspan="'+cols+'" style="background:'+bg+';padding:5px 8px;text-align:center;font-size:.65rem;font-weight:700;color:'+col+';border-bottom:1px solid var(--border);border-left:1px solid var(--border);white-space:nowrap;">'
-      +MESES[m]+(isCur?' ◀':'')+' <span id="wa-dash-tog-'+m+'" onclick="waDashTogOrc('+m+')" style="cursor:pointer;font-size:.6rem;color:var(--muted);user-select:none;">'+(isPast&&!window.waDashShowOrc?.[m]?'':'')+'</span>'
-      +'</th>';
+  // CSS injected once
+  if(!document.getElementById('wa-dash-style')){
+    const st=document.createElement('style');
+    st.id='wa-dash-style';
+    st.textContent=`
+      .wad-wrap{overflow-x:auto;height:100%;}
+      .wad-tbl{border-collapse:collapse;font-size:10px;min-width:900px;width:100%;}
+      .wad-tbl th,.wad-tbl td{border:0.5px solid #D3D1C7;padding:0;}
+      .wad-lbl{position:sticky;left:0;z-index:2;background:#fff;white-space:nowrap;padding:3px 8px 3px 10px;font-size:10px;color:#2C2C2A;min-width:170px;max-width:200px;overflow:hidden;text-overflow:ellipsis;}
+      .wad-lbl.grupo{background:#1a1a1a;color:#fff;font-weight:700;font-size:10px;text-align:center;letter-spacing:.05em;cursor:pointer;}
+      .wad-lbl.sub{background:#F1EFE8;font-weight:700;text-align:right;border-right:2px solid #B4B2A9;}
+      .wad-lbl.cat{padding-left:22px;color:#5F5E5A;background:#fff;border-right:2px solid #B4B2A9;}
+      .wad-lbl.normal{border-right:2px solid #B4B2A9;}
+      .wad-h-mes{text-align:center;font-size:10px;font-weight:500;padding:5px 4px;white-space:nowrap;}
+      .wad-h-mes.past{background:#F1EFE8;color:#5F5E5A;}
+      .wad-h-mes.cur{background:#1a1a1a;color:#fff;font-weight:700;}
+      .wad-h-mes.fut{background:#F1EFE8;color:#5F5E5A;}
+      .wad-h-sub{font-size:9px;text-align:center;padding:3px 4px;font-weight:500;color:#888780;}
+      .wad-h-sub.real{background:#fff;}
+      .wad-h-sub.prev{background:#F5EFE6;color:#854F0B;font-style:italic;}
+      .wad-h-sub.real.cur{background:#E8E8E8;color:#1a1a1a;}
+      .wad-h-sub.prev.cur{background:#E8D5B7;color:#633806;}
+      .wad-real{text-align:right;padding:3px 5px;background:#fff;color:#2C2C2A;white-space:nowrap;}
+      .wad-prev{text-align:right;padding:3px 5px;background:#F5EFE6;color:#854F0B;font-style:italic;white-space:nowrap;cursor:pointer;}
+      .wad-prev:hover{background:#EAD9C0;}
+      .wad-real.cur{background:#F1EFE8;}
+      .wad-prev.cur{background:#E8D5B7;color:#633806;}
+      .wad-prev.cur:hover{background:#D4BC96;}
+      .wad-real.sub{background:#F1EFE8;font-weight:700;color:#1a1a1a;}
+      .wad-prev.sub{background:#EAD9C0;font-weight:700;color:#633806;}
+      .wad-real.sub.cur{background:#E0E0E0;}
+      .wad-prev.sub.cur{background:#D4BC96;}
+      .wad-real.grupo-td{background:#1a1a1a;}
+      .wad-farol{display:inline-block;width:6px;height:6px;border-radius:50%;margin-left:3px;vertical-align:middle;}
+      .f-v{background:#43A047;} .f-a{background:#F9A825;} .f-r{background:#E53935;}
+      .wad-cell{display:flex;align-items:center;justify-content:flex-end;gap:2px;}
+      thead.wad-head{position:sticky;top:0;z-index:4;}
+      .wad-lbl-h{position:sticky;left:0;z-index:5;background:#F1EFE8;padding:4px 10px;font-size:9px;font-weight:700;color:#5F5E5A;border-right:2px solid #B4B2A9;min-width:170px;}
+      .wad-tog{font-size:9px;color:#888;cursor:pointer;padding:0 4px;user-select:none;}
+    `;
+    document.head.appendChild(st);
   }
-  html+='</tr>';
 
-  // header row 2 — Real / Meta
-  html+='<tr style="background:var(--kp);">';
-  html+='<th style="position:sticky;left:0;z-index:5;background:var(--kp);border-right:2px solid var(--border);border-bottom:1px solid var(--border);"></th>';
+  let html='<div class="wad-wrap"><table class="wad-tbl"><thead class="wad-head"><tr>';
+  html+='<th class="wad-lbl-h" rowspan="2">Pasta / Categoria</th>';
   for(let m=0;m<12;m++){
-    const isPast=m<curM;
-    const showOrc=!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
-    html+='<th style="padding:4px 6px;text-align:right;font-size:.6rem;font-weight:600;color:var(--muted);border-left:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--kp);">Real</th>';
-    if(showOrc)html+='<th style="padding:4px 6px;text-align:right;font-size:.6rem;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);background:var(--kp);">Meta</th>';
+    const isPast=m<curM,isCur=m===curM;
+    const cls=isCur?'cur':isPast?'past':'fut';
+    const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
+    const cols=showOrc?2:1;
+    const tog=isPast&&!isCur?'<span class="wad-tog" onclick="waDashTogOrc('+m+',event)">'+(showOrc?'◂':'▸')+'</span>':'';
+    html+='<th class="wad-h-mes '+cls+'" colspan="'+cols+'">'+MESES[m]+'. '+yr+tog+'</th>';
+  }
+  html+='</tr><tr>';
+  for(let m=0;m<12;m++){
+    const isPast=m<curM,isCur=m===curM;
+    const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
+    const cur=isCur?' cur':'';
+    html+='<th class="wad-h-sub real'+cur+'">real</th>';
+    if(showOrc)html+='<th class="wad-h-sub prev'+cur+'"><em>prev.</em></th>';
   }
   html+='</tr></thead><tbody>';
 
-  // rows per pasta
-  let totReal=Array(12).fill(0),totMeta=Array(12).fill(0);
-
+  // build rows
   sorted.forEach(tipo=>{
-    const isReceita=receitaTipos.includes(tipo);
+    const isPos=receitaTipos.includes(tipo);
     const collapsed=window.waDashCollapsed[tipo];
-
-    // get all cats for this pasta
-    const catSet=new Set([...Object.keys(ud[tipo]||{}),...Object.keys(real[tipo]||{})]);
+    const ud_tipo=ud[tipo]||{};
+    const catSet=new Set([...Object.keys(ud_tipo),...Object.keys(real[tipo]||{})]);
     const cats=[...catSet].sort();
 
     // pasta totals
-    const pastaReal=Array(12).fill(0),pastaMeta=Array(12).fill(0);
+    const totReal=Array(12).fill(0),totMeta=Array(12).fill(0);
     cats.forEach(cat=>{
       for(let m=0;m<12;m++){
-        const rv=(real[tipo]&&real[tipo][cat])?real[tipo][cat][m]:0;
-        const mv=waDashGetMeta(user,tipo,cat,m);
-        pastaReal[m]+=isReceita?rv:Math.abs(rv);
-        pastaMeta[m]+=mv;
+        totReal[m]+=(real[tipo]&&real[tipo][cat])?real[tipo][cat][m]:0;
+        totMeta[m]+=waDashGetMeta(user,tipo,cat,m);
       }
     });
-    for(let m=0;m<12;m++){totReal[m]+=isReceita?pastaReal[m]:-pastaReal[m];totMeta[m]+=isReceita?pastaMeta[m]:-pastaMeta[m];}
 
-    // pasta row
-    const pastaRowBg='background:var(--kp);';
-    html+='<tr style="'+pastaRowBg+'" onclick="waDashTogglePasta(\''+tipo.replace(/'/g,"\\'")+'\')">';
-    html+='<td style="position:sticky;left:0;z-index:2;background:var(--kp);padding:6px 10px;font-weight:700;font-size:.73rem;color:var(--font);border-right:2px solid var(--border);cursor:pointer;white-space:nowrap;">'
-      +'<span style="font-size:.65rem;margin-right:4px;color:var(--muted);">'+(collapsed?'›':'˅')+'</span>'+tipo+'</td>';
-    for(let m=0;m<12;m++){
-      const isPast=m<curM;
-      const showOrc=!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
-      const rv=pastaReal[m],mv=pastaMeta[m];
-      const over=mv>0&&rv>mv;
-      const clr=isReceita?(rv>=mv?'#059669':'var(--red)'):(over?'var(--red)':'var(--font)');
-      html+='<td style="padding:5px 6px;text-align:right;font-weight:700;color:'+clr+';border-left:1px solid var(--border);background:var(--kp);white-space:nowrap;">'+fmt(rv)+'</td>';
-      if(showOrc)html+='<td style="padding:5px 6px;text-align:right;color:var(--muted);background:var(--kp);white-space:nowrap;">'+fmt(mv)+'</td>';
-    }
-    html+='</tr>';
+    // grupo header row — clickable to collapse
+    html+='<tr onclick="waDashTogglePasta(\''+tipo.replace(/'/g,"\\'")+'\')"><td class="wad-lbl grupo" style="border-right:2px solid #333;" colspan="'+(1+12*2)+'">'
+      +'<span style="font-size:9px;margin-right:5px;opacity:.6;">'+(collapsed?'▸':'▾')+'</span>'+tipo.toUpperCase()+'</td></tr>';
 
     // cat rows
     if(!collapsed){
       cats.forEach(cat=>{
-        html+='<tr onmouseover="this.style.background=\'var(--kp)\'" onmouseout="this.style.background=\'\'">';
-        html+='<td style="position:sticky;left:0;z-index:2;background:inherit;padding:4px 10px 4px 24px;font-size:.68rem;color:var(--muted);border-right:2px solid var(--border);border-bottom:0.5px solid var(--border);white-space:nowrap;">'+cat+'</td>';
+        const cd=ud_tipo[cat]||{};
+        const tipoInd=cd.tipo||'V';
+        const farolInd=cd.farol||'R';
+        const tipoColor=farolInd==='R'?'#E53935':farolInd==='A'?'#F9A825':'#43A047';
+        html+='<tr onmouseover="this.style.background=\'#FAFAF8\'" onmouseout="this.style.background=\'\'">';
+        html+='<td class="wad-lbl cat"><span style="font-size:8px;font-weight:700;color:#B4B2A9;margin-right:2px;">'+tipoInd+'</span>'
+          +'<span style="font-size:8px;font-weight:700;color:'+tipoColor+';margin-right:5px;">'+farolInd+'</span>'+cat+'</td>';
         for(let m=0;m<12;m++){
-          const isPast=m<curM;
-          const showOrc=!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
-          const rv=(real[tipo]&&real[tipo][cat])?Math.abs(real[tipo][cat][m]):0;
+          const isPast=m<curM,isCur=m===curM;
+          const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
+          const cur=isCur?' cur':'';
+          const rv=(real[tipo]&&real[tipo][cat])?real[tipo][cat][m]:0;
           const mv=waDashGetMeta(user,tipo,cat,m);
-          const over=mv>0&&rv>mv;
-          const clr=isReceita?(rv>=mv?'#059669':'var(--red)'):(over?'var(--red)':rv>0?'var(--font)':'var(--muted)');
-          html+='<td style="padding:4px 6px;text-align:right;font-size:.68rem;color:'+clr+';border-left:1px solid var(--border);border-bottom:0.5px solid var(--border);white-space:nowrap;">'+fmt(rv)+'</td>';
+          const fc=farolClass(rv,mv,farolInd,isPos);
+          const dot=rv&&mv?'<span class="wad-farol '+fc+'"></span>':'';
+          html+='<td class="wad-real'+cur+'"><div class="wad-cell">'+fmt(rv)+dot+'</div></td>';
           if(showOrc){
-            const esc=cat.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-            const tipoEsc=tipo.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-            html+='<td style="padding:4px 6px;text-align:right;font-size:.68rem;color:var(--muted);border-bottom:0.5px solid var(--border);cursor:pointer;" onclick="waDashEditMeta(this,\''+tipoEsc+'\',\''+esc+'\','+m+','+mv+')" title="Editar meta">'+fmt(mv)+'</td>';
+            const te=tipo.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+            const ce=cat.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+            html+='<td class="wad-prev'+cur+'" onclick="waDashEditMeta(this,\''+te+'\',\''+ce+'\','+m+','+mv+')">'+fmt(mv)+'</td>';
           }
         }
         html+='</tr>';
       });
     }
+
+    // subtotal row
+    html+='<tr>';
+    html+='<td class="wad-lbl sub">'+tipo.toUpperCase()+'</td>';
+    for(let m=0;m<12;m++){
+      const isPast=m<curM,isCur=m===curM;
+      const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
+      const cur=isCur?' cur':'';
+      const rv=totReal[m],mv=totMeta[m];
+      const fc=farolClass(rv,mv,'A',isPos);
+      const dot=rv&&mv?'<span class="wad-farol '+fc+'"></span>':'';
+      html+='<td class="wad-real sub'+cur+'"><div class="wad-cell">'+fmt(rv)+dot+'</div></td>';
+      if(showOrc)html+='<td class="wad-prev sub'+cur+'">'+fmt(mv)+'</td>';
+    }
+    html+='</tr>';
   });
 
-  // total row
-  html+='<tr style="background:var(--kp);border-top:2px solid var(--border);">';
-  html+='<td style="position:sticky;left:0;z-index:2;background:var(--kp);padding:6px 10px;font-weight:700;font-size:.73rem;color:var(--font);border-right:2px solid var(--border);">Saldo</td>';
+  // saldo row
+  const saldoReal=Array(12).fill(0),saldoMeta=Array(12).fill(0);
+  sorted.forEach(tipo=>{
+    const isPos=receitaTipos.includes(tipo);
+    const cats=[...new Set([...Object.keys(ud[tipo]||{}),...Object.keys(real[tipo]||{})])];
+    for(let m=0;m<12;m++){
+      const rv=cats.reduce((s,cat)=>s+((real[tipo]&&real[tipo][cat])?real[tipo][cat][m]:0),0);
+      const mv=cats.reduce((s,cat)=>s+waDashGetMeta(user,tipo,cat,m),0);
+      saldoReal[m]+=isPos?rv:-rv;
+      saldoMeta[m]+=isPos?mv:-mv;
+    }
+  });
+  html+='<tr style="border-top:2px solid #B4B2A9;">';
+  html+='<td class="wad-lbl sub" style="background:#1a1a1a;color:#fff;text-align:center;">SALDO</td>';
   for(let m=0;m<12;m++){
-    const isPast=m<curM;
-    const showOrc=!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
-    const rv=totReal[m],mv=totMeta[m];
-    const clr=rv>=0?'#059669':'var(--red)';
-    html+='<td style="padding:5px 6px;text-align:right;font-weight:700;color:'+clr+';border-left:1px solid var(--border);background:var(--kp);">'+(rv>=0?'+':'')+fmt(rv)+'</td>';
-    if(showOrc){const mc=mv>=0?'#059669':'var(--red)';html+='<td style="padding:5px 6px;text-align:right;font-weight:700;color:'+mc+';background:var(--kp);">'+(mv>=0?'+':'')+fmt(mv)+'</td>';}
+    const isPast=m<curM,isCur=m===curM;
+    const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
+    const cur=isCur?' cur':'';
+    const rv=saldoReal[m],mv=saldoMeta[m];
+    const clrR=rv>=0?'#27500A':'#A32D2D',clrM=mv>=0?'#27500A':'#A32D2D';
+    html+='<td class="wad-real sub'+cur+'" style="font-weight:700;color:'+clrR+';">'+(rv?((rv>=0?'+':'')+fmt(Math.abs(rv))):'')+'</td>';
+    if(showOrc)html+='<td class="wad-prev sub'+cur+'" style="color:'+clrM+';">'+(mv?((mv>=0?'+':'')+fmt(Math.abs(mv))):'')+'</td>';
   }
   html+='</tr>';
 
   html+='</tbody></table></div>';
-
   document.getElementById('wa-center-body').innerHTML=html;
 }
 
@@ -6390,7 +6444,8 @@ function waDashTogglePasta(tipo){
   waDashRender();
 }
 
-function waDashTogOrc(m){
+function waDashTogOrc(m,e){
+  e.stopPropagation();
   if(!window.waDashShowOrc)window.waDashShowOrc={};
   window.waDashShowOrc[m]=!window.waDashShowOrc[m];
   waDashRender();
@@ -6399,7 +6454,7 @@ function waDashTogOrc(m){
 function waDashEditMeta(td,tipo,cat,mIdx,curVal){
   const inp=document.createElement('input');
   inp.type='number';inp.value=curVal||0;inp.min=0;
-  inp.style.cssText='width:60px;border:none;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.68rem;text-align:right;padding:2px 4px;border-radius:4px;outline:none;';
+  inp.style.cssText='width:65px;border:none;background:#D4BC96;color:#412402;font-family:var(--font-body);font-size:10px;text-align:right;padding:2px 4px;outline:none;font-style:normal;';
   td.innerHTML='';td.appendChild(inp);
   inp.focus();inp.select();
   const save=()=>{
@@ -6409,7 +6464,7 @@ function waDashEditMeta(td,tipo,cat,mIdx,curVal){
     waDashRender();
   };
   inp.addEventListener('blur',save);
-  inp.addEventListener('keydown',e=>{if(e.key==='Enter')save();if(e.key==='Escape'){waDashRender();}});
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')save();if(e.key==='Escape')waDashRender();});
 }
 
 function waShowInv(){
