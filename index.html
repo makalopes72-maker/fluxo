@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1B5E20,#F9A825);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
-  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
-  #splash .splash-btn{background:#F1F8E9 !important;color:#1B5E20 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#311B92,#80CBC4);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#EDE7F6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(237,231,246,.65) !important;}
+  #splash .splash-version{color:rgba(237,231,246,.35) !important;}
+  #splash .splash-btn{background:#EDE7F6 !important;color:#311B92 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EDE7F6 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2026,7 +2026,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.29';
+const APP_VERSION='13.31';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5795,6 +5795,8 @@ function waRenderLaunchForm(){
       <div style="background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:6px 8px;position:relative;">
         <span style="font-size:.75rem;flex-shrink:0;">📝</span>
         <input id="wa-desc" value="${s.desc}" placeholder="Descrição" oninput="waDescInput(this.value)" autocomplete="off"
+          onkeydown="if(event.key==='Tab'){const ac=document.getElementById('wa-ac');if(ac&&ac.style.display!=='none'&&ac._matches&&ac._matches.length){event.preventDefault();const m=ac._matches[0];waPickKw(m.kwOrig,m.tipo,m.cat);}}"
+          onblur="setTimeout(()=>waCloseAc(),200)"
           style="flex:1;border:none;background:transparent;font-family:var(--font-body);font-size:.75rem;color:var(--font);outline:none;min-width:0;">
       </div>
       <div id="wa-ac" style="display:none;position:fixed;z-index:999;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.18);max-height:200px;overflow-y:auto;min-width:200px;"></div>
@@ -5961,23 +5963,44 @@ function waDescInput(val){
   const uniq=matches.filter(m=>{if(seen.has(m.kwOrig))return false;seen.add(m.kwOrig);return true;}).slice(0,6);
   if(!uniq.length){ac.style.display='none';return;}
   const hi=(txt,q)=>{const i=txt.toLowerCase().indexOf(q);if(i<0)return txt;return txt.slice(0,i)+'<span style="color:var(--btn);">'+txt.slice(i,i+q.length)+'</span>'+txt.slice(i+q.length);};
-  ac.innerHTML=uniq.map(m=>`<div onclick="waPickKw('${m.kwOrig.replace(/'/g,"\'")}','${m.tipo.replace(/'/g,"\'")}','${m.cat.replace(/'/g,"\'")}'')" style="display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--kp)'" onmouseout="this.style.background=''">
-    <span>${TIPO_ICONS[m.tipo]||'📁'}</span>
-    <div><div style="font-size:.85rem;font-weight:600;color:var(--font);">${hi(m.kwOrig,q)}</div><div style="font-size:.7rem;color:var(--muted);">${m.tipo} › ${m.cat}</div></div>
-  </div>`).join('');
+  // store matches for Tab key access
+  ac._matches=uniq;
+  const dismissRow=`<div onmousedown="event.preventDefault();waCloseAc();" style="display:flex;align-items:center;justify-content:center;padding:8px 14px;cursor:pointer;color:var(--muted);font-size:.75rem;border-top:1px solid var(--border);">✕ ignorar sugestões</div>`;
+  ac.innerHTML=uniq.map((m,idx)=>{
+    const esc=s=>s.replace(/'/g,'&apos;');
+    return `<div data-idx="${idx}" onmousedown="event.preventDefault();waPickKw(this.dataset.kw,this.dataset.tipo,this.dataset.cat);" data-kw="${esc(m.kwOrig)}" data-tipo="${esc(m.tipo)}" data-cat="${esc(m.cat)}" style="display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--kp)'" onmouseout="this.style.background=''">
+      <span>${TIPO_ICONS[m.tipo]||'📁'}</span>
+      <div><div style="font-size:.82rem;font-weight:600;color:var(--font);">${hi(m.kwOrig,val)}</div><div style="font-size:.68rem;color:var(--muted);">${m.tipo} › ${m.cat}</div></div>
+    </div>`;
+  }).join('')+dismissRow;
+  // position relative to input
+  const inp=document.getElementById('wa-desc');
+  if(inp){
+    const r=inp.getBoundingClientRect();
+    const dropH=Math.min(220,(uniq.length+1)*42);
+    const spaceBelow=window.innerHeight-r.bottom;
+    ac.style.left=r.left+'px';
+    ac.style.width=Math.max(r.width,240)+'px';
+    if(spaceBelow>dropH){ac.style.top=(r.bottom+2)+'px';ac.style.bottom='auto';}
+    else{ac.style.bottom=(window.innerHeight-r.top+2)+'px';ac.style.top='auto';}
+  }
   ac.style.display='block';
 }
 
 function waCloseAc(){
-  const ac=document.getElementById('wa-ac');if(ac)ac.style.display='none';
+  const ac=document.getElementById('wa-ac');if(ac){ac.style.display='none';ac._matches=null;}
 }
 function waPickKw(kw,tipo,cat){
+  // decode html entities if needed
+  const dec=s=>{const t=document.createElement('textarea');t.innerHTML=s;return t.value;};
+  kw=dec(kw);tipo=dec(tipo);cat=dec(cat);
   waLaunchState.desc=kw;waLaunchState.tipo=tipo;waLaunchState.cat=cat;
-  const ac=document.getElementById('wa-ac');if(ac)ac.style.display='none';
+  waCloseAc();
   waRenderLaunchForm();
-  setTimeout(()=>{const d=document.getElementById('wa-desc');if(d)d.value=kw;},10);
-  // also open picker to show selected categoria
-  waOpenPicker('cat');
+  setTimeout(()=>{
+    const d=document.getElementById('wa-desc');if(d)d.value=kw;
+    waOpenPicker('cat');
+  },30);
 }
 
 function waOpenDrop(field){
