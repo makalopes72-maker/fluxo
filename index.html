@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#990000,#0033CC);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFF0F0 !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
-  #splash .splash-sub{color:rgba(255,240,240,.65) !important;}
-  #splash .splash-version{color:rgba(255,240,240,.35) !important;}
-  #splash .splash-btn{background:#FFF0F0 !important;color:#990000 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.4);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFF0F0 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(135deg,#E65100,#0D1B4B);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFF3E0 !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
+  #splash .splash-sub{color:rgba(255,243,224,.65) !important;}
+  #splash .splash-version{color:rgba(255,243,224,.35) !important;}
+  #splash .splash-btn{background:#FFF3E0 !important;color:#E65100 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFF3E0 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1957,7 +1957,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.16';
+const APP_VERSION='13.18';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3348,7 +3348,7 @@ async function loadData(){
       tipo:String(r[4]||r[3]||'').trim(),
       account:String(r[5]||'').trim(),
       type:String(r[6]||'saída').trim().toLowerCase(),
-      consolidated:String(r[7]||'1')!=='0',
+      consolidated:r[7]!==0&&r[7]!=='0'&&String(r[7]||'1')!=='0',
       _transferId:String(r[8]||'').trim(),
       _isAdjust:String(r[9]||'')==='1',
     })).filter(r=>r.date);
@@ -3699,8 +3699,8 @@ function renderHistory(){
       const valCls=t.type==='entrada'?'val-in':'val-out';
       const sign=t.type==='entrada'?'+':'-';
       return `<tr class="${cls}" onclick="openEdit(${idx})" style="cursor:pointer;">
-        <td class="ext-check" onclick="event.stopPropagation();toggleTxConsolidado(${idx},event)" style="text-align:center;">
-          <span style="color:${consol?'var(--accent2)':'var(--border)'};font-size:1rem;">✓</span>
+        <td class="ext-check" onclick="event.stopPropagation();toggleTxConsolidado(${idx},event)" style="text-align:center;cursor:pointer;">
+          <span class="tx-check ${consol?'on':'off'}" style="display:inline-flex;width:18px;height:18px;border-radius:50%;align-items:center;justify-content:center;" onclick="toggleTxConsolidado(${idx},event)"><span class="tx-check-ic" style="font-size:.6rem;">✓</span></span>
         </td>
         <td style="white-space:nowrap;font-size:.8rem;">${t.date}${t._id?'<span style="opacity:.3;font-size:.6rem;margin-left:4px;">#'+t._id+'</span>':''}</td>
         <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.desc||''}</td>
@@ -3749,9 +3749,18 @@ function openEditFromTap(idx,event){
 }
 function toggleTxConsolidado(idx,event){
   event.stopPropagation();
+  // always find fresh by index — idx comes from render-time allData position
   const t=allData[idx];if(!t)return;
   t.consolidated=!t.consolidated;
-  renderDash();renderHistory();
+  // update visual immediately without full re-render
+  const chk=event.currentTarget;
+  if(chk){
+    chk.className='tx-check '+(t.consolidated?'on':'off');
+    const ic=chk.querySelector('.tx-check-ic');
+    if(ic)ic.style.color=t.consolidated?'var(--bg)':'transparent';
+  }
+  const wrap=chk?.closest('.tx-item');
+  if(wrap){if(t.consolidated)wrap.classList.remove('not-consolidated');else wrap.classList.add('not-consolidated');}
   // save to Sheets
   if(!t._id&&!t._row){toast('Sem referência para salvar','error');return;}
   const row=[t.date,t.desc,(t.value||0).toFixed(2).replace('.',','),t.cat,t.tipo||t.cat,t.account,t.type,t.consolidated?'1':'0',t._transferId||'',t._isAdjust?'1':'',t._id||''];
@@ -3760,7 +3769,7 @@ function toggleTxConsolidado(idx,event){
     : {action:'update',row:t._row,data:row,sheet:SHEET_NAME};
   sheetsPost(payload)
     .then(r=>{if(r&&r.ok)toast(t.consolidated?'Consolidado ✓':'Previsto ○','success');else toast('Erro ao salvar','error');})
-    .catch(e=>{toast('Erro: '+e.message,'error');console.error('toggleConsol error',e);});
+    .catch(e=>{toast('Erro: '+e.message,'error');});
 }
 const SWIPE_OPEN=160,SWIPE_THRESHOLD=60;
 function attachSwipe(listId){
@@ -5598,13 +5607,18 @@ function waToggleExtConsol(idx,e){
   e.stopPropagation();
   const t=allData[idx];if(!t)return;
   t.consolidated=!t.consolidated;
-  waRenderExtrato();
+  // update dot visually without full re-render
+  const dot=e.currentTarget;
+  if(dot){
+    dot.style.background=t.consolidated?'var(--font)':'transparent';
+    dot.style.borderColor=t.consolidated?'var(--font)':'var(--muted)';
+  }
   if(!t._id&&!t._row){toast('Sem referência para salvar','error');return;}
   const row=[t.date,t.desc,(t.value||0).toFixed(2).replace('.',','),t.cat,t.tipo||t.cat,t.account,t.type,t.consolidated?'1':'0',t._transferId||'',t._isAdjust?'1':'',t._id||''];
   const payload=t._id?{action:'update',id:String(t._id),data:row,sheet:SHEET_NAME}:{action:'update',row:t._row,data:row,sheet:SHEET_NAME};
   sheetsPost(payload)
     .then(r=>{if(r&&r.ok)toast(t.consolidated?'Consolidado ✓':'Previsto ○','success');else toast('Erro ao salvar','error');})
-    .catch(e=>{toast('Erro: '+e.message,'error');console.error('waToggleConsol error',e);});
+    .catch(e=>{toast('Erro: '+e.message,'error');});
 }
 function waExtPeriod(p){
   extPeriod=p;
