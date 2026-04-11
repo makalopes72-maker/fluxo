@@ -1957,7 +1957,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='13.12';
+const APP_VERSION='13.14';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5906,10 +5906,10 @@ async function waSave(){
   if(s.editingIdx!==null){
     // update existing
     const t=allData[s.editingIdx];if(!t){toast('Não encontrado','error');return;}
-    const newRow=[s.date,displayDesc,val.toFixed(2).replace('.',','),s.cat||s.tipo,s.tipo||s.cat,s.conta||t.account,s.type,t.consolidated?'1':'0',t._transferId||'',t._isAdjust?'1':'',t._id||''];
+    const newRow=[s.date,displayDesc,val.toFixed(2).replace('.',','),s.cat||s.tipo,s.tipo||s.cat,s.conta||t.account,s.type,s.consolidated?'1':'0',t._transferId||'',t._isAdjust?'1':'',t._id||''];
     if(t._id){await sheetsPost({action:'update',id:String(t._id),data:newRow,sheet:SHEET_NAME});}
     else if(t._row){await sheetsPost({action:'update',row:t._row,data:newRow,sheet:SHEET_NAME});}
-    Object.assign(allData[s.editingIdx],{date:s.date,desc:displayDesc,value:val,cat:s.cat||s.tipo,tipo:s.tipo,type:s.type,account:s.conta||t.account});
+    Object.assign(allData[s.editingIdx],{date:s.date,desc:displayDesc,value:val,cat:s.cat||s.tipo,tipo:s.tipo,type:s.type,account:s.conta||t.account,consolidated:s.consolidated});
     toast('Atualizado!','success');
   } else {
     // new transaction — handle parcel and advanced modes
@@ -5943,7 +5943,8 @@ async function waSave(){
     }
     for(const row of rows){
       const newId=generateTxId();
-      const r={date:row.date,desc:row.desc,value:row.value,cat:s.cat||s.tipo||'Outros',tipo:s.tipo||s.cat||'Outros',account:s.conta||getDefaultAccount()||'',type:s.type,consolidated:s.consolidated};
+      const isParcelOrAdv=s.mode==='parcelar'||s.mode==='avancado';
+      const r={date:row.date,desc:row.desc,value:row.value,cat:s.cat||s.tipo||'Outros',tipo:s.tipo||s.cat||'Outros',account:s.conta||getDefaultAccount()||'',type:s.type,consolidated:isParcelOrAdv?false:s.consolidated};
       const rowArr=[r.date,r.desc,r.value.toFixed(2).replace('.',','),r.cat,r.tipo,r.account,r.type,r.consolidated?'1':'0','','',newId];
       await sheetsAppend(rowArr);
       allData.push({_row:allData.length+2,_id:String(newId),...r});
