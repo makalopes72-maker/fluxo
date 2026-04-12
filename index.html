@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#33691E,#E64A19);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F9FBE7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(249,251,231,.65) !important;}
-  #splash .splash-version{color:rgba(249,251,231,.35) !important;}
-  #splash .splash-btn{background:#F9FBE7 !important;color:#33691E !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F9FBE7 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0D2137,#C8A84B);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E3F2FD !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
+  #splash .splash-sub{color:rgba(227,242,253,.65) !important;}
+  #splash .splash-version{color:rgba(227,242,253,.35) !important;}
+  #splash .splash-btn{background:#E3F2FD !important;color:#0D2137 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E3F2FD !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.52';
+const APP_VERSION='14.53';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3430,7 +3430,13 @@ async function loadData(){
       dataRows.push({row:r, sheetsRow:i+2}); // i+2: +1 for 0-index, +1 for header
     });
     if(!dataRows.length){seedDemo();renderDash();renderHistory();return;}
-    allData=dataRows.map(({row:r,sheetsRow})=>({
+    // merge: remove existing rows for these years, then add new ones
+    const loadingYears=new Set(syncYears);
+    allData=allData.filter(t=>{
+      const d=parseDate(t.date);
+      return d?!loadingYears.has(d.getFullYear()):true;
+    });
+    const newRows=dataRows.map(({row:r,sheetsRow})=>({
       _row:sheetsRow,
       _id:String(r[10]||'').trim(), // ID_TRANS col K
       date:normalizeDate(r[0]),
@@ -3444,6 +3450,7 @@ async function loadData(){
       _transferId:String(r[8]||'').trim(),
       _isAdjust:String(r[9]||'')==='1',
     })).filter(r=>r.date);
+    allData=[...allData,...newRows];
     if(!allData.length)seedDemo();
     renderDash();renderHistory();
   }catch(e){
@@ -5896,6 +5903,21 @@ function waRenderExtrato(){
 }
 
 
+async function waExtChangeYear(d){
+  const curYear=new Date().getFullYear();
+  extYear=Math.min(curYear,extYear+d);
+  // load that year if not already in allData
+  const alreadyHave=allData.some(t=>{const dt=parseDate(t.date);return dt&&dt.getFullYear()===extYear;});
+  if(!alreadyHave){
+    waSyncIndicator('Carregando '+extYear+'...','var(--muted)',true);
+    const origYears=syncYears.slice();
+    syncYears=[extYear];
+    try{await loadData();waSyncIndicator('✓ '+extYear+' carregado','#059669',false);}
+    catch(e){waSyncIndicator('Dados locais','#F9A825',false);}
+    syncYears=origYears;
+  }
+  waExtPeriod('ano');
+}
 function waToggleFilter(){
   const p=document.getElementById('wa-filter-panel');
   if(!p)return;
@@ -6450,6 +6472,11 @@ function waDashChangeYear(d){
 }
 
 async function waDashLoadYear(yr){
+  // check if already loaded
+  const alreadyHave=allData.some(t=>{const d=parseDate(t.date);return d&&d.getFullYear()===yr;});
+  if(alreadyHave){
+    waDashRenderHeader();waDashRender();return;
+  }
   waSyncIndicator('Carregando '+yr+'...','var(--muted)',true);
   const origYears=syncYears.slice();
   syncYears=[yr];
@@ -6457,6 +6484,7 @@ async function waDashLoadYear(yr){
     await loadData();
     waSyncIndicator('✓ '+yr+' carregado','#059669',false);
   }catch(e){
+    console.warn('waDashLoadYear error',e);
     waSyncIndicator('Dados locais','#F9A825',false);
   }
   syncYears=origYears;
@@ -6511,7 +6539,7 @@ function waDashRender(){
   allData.forEach(t=>{
     if(filterByAcct&&!userAccts.includes(normalizeAcct(t.account)))return;
     const d=parseDate(t.date);if(!d)return;
-    if(d.getFullYear()!==yr)return;
+    if(d.getFullYear()!==dashYear)return;
     const m=d.getMonth();
     const tipo=t.tipo||t.cat||'Outros';
     const cat=t.cat||t.tipo||'Outros';
