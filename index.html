@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Fluxo</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=Syne:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600&family=Outfit:wght@300;400;500;600&family=Inter:wght@300;400;500;600&family=Nunito:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Syne:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600&family=Outfit:wght@300;400;500;600&family=Inter:wght@300;400;500;600&family=Nunito:wght@300;400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Roboto+Condensed:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#f5f4f0;--card:#ece9e3;--kp:#e0ddd5;
@@ -18,11 +18,11 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#00695C,#F57F17);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F2F1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#004D40,#1A237E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0F2F1 !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
   #splash .splash-sub{color:rgba(224,242,241,.65) !important;}
   #splash .splash-version{color:rgba(224,242,241,.35) !important;}
-  #splash .splash-btn{background:#E0F2F1 !important;color:#00695C !important;font-weight:700;}
+  #splash .splash-btn{background:#E0F2F1 !important;color:#004D40 !important;font-weight:700;}
   #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F2F1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.41';
+const APP_VERSION='14.42';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5582,12 +5582,105 @@ function waGo(screen){
   if(screen==='add'||screen==='hist') waShowLaunch();
   else if(screen==='dash') waShowDash();
   else if(screen==='inv') waShowInv();
+  else if(screen==='cfg') waShowCfg();
   else {
     document.getElementById('wa-center-title').textContent=screen;
     document.getElementById('wa-center-body').innerHTML='<div class="wa-empty">Em breve</div>';
     document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">—</div>';
     document.getElementById('wa-right-title').textContent='—';
   }
+}
+
+function waShowCfg(){
+  document.getElementById('wa-center-title').textContent='Configurações';
+  document.getElementById('wa-right-title').textContent='—';
+  document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">—</div>';
+  const rp=document.getElementById('wa-right');if(rp)rp.classList.add('collapsed');
+  const btn=document.getElementById('wa-toggle-btn');if(btn)btn.textContent='‹';
+  const fb=document.getElementById('wa-filter-bar');if(fb)fb.remove();
+  document.getElementById('wa-center-actions').innerHTML='';
+
+  const fonts=[
+    {id:'Inter',label:'Inter'},
+    {id:'IBM Plex Sans',label:'IBM Plex Sans'},
+    {id:'Roboto Condensed',label:'Roboto Condensed'},
+    {id:'DM Sans',label:'DM Sans'},
+    {id:'Outfit',label:'Outfit'},
+    {id:'Space Grotesk',label:'Space Grotesk'},
+    {id:'Syne',label:'Syne (padrão app)'},
+    {id:'Nunito',label:'Nunito'},
+  ];
+
+  const makePreviewTable=(font,size)=>`
+    <table style="border-collapse:collapse;width:100%;font-family:'${font}',sans-serif;font-size:${size}px;margin-top:8px;border:0.5px solid #E0E0E0;border-radius:6px;overflow:hidden;">
+      <tr style="background:#1a1a1a;color:#fff;"><td style="padding:3px 8px;font-size:${Math.max(size-1,8)}px;font-weight:700;" colspan="3">▾ ALIMENTAÇÃO — 9.485</td></tr>
+      <tr style="background:#fff;"><td style="padding:3px 8px 3px 18px;color:#5F5E5A;">Supermercado</td><td style="padding:3px 8px;text-align:right;font-weight:700;">3.859</td><td style="padding:3px 8px;text-align:right;color:#A1887F;font-style:italic;">9.600</td></tr>
+      <tr style="background:#fff;"><td style="padding:3px 8px 3px 18px;color:#5F5E5A;">Refeições em restaurante</td><td style="padding:3px 8px;text-align:right;font-weight:700;">4.114</td><td style="padding:3px 8px;text-align:right;color:#A1887F;font-style:italic;">13.200</td></tr>
+    </table>`;
+
+  const makePreviewPage=(font,size)=>`
+    <div style="font-family:'${font}',sans-serif;font-size:${size}px;padding:10px;border:0.5px solid #E0E0E0;border-radius:6px;margin-top:8px;">
+      <div style="color:#888;font-size:${Math.max(size-2,9)}px;margin-bottom:2px;">12/04/2026 · Alimentação</div>
+      <div style="font-weight:600;font-size:${size+2}px;">Supermercado Pão de Açúcar</div>
+      <div style="color:#E53935;font-size:${size}px;margin-top:2px;">− R$ 548,00</div>
+      <div style="color:#888;font-size:${Math.max(size-1,9)}px;margin-top:4px;">Itaú Corrente · lançado</div>
+    </div>`;
+
+  const sl='width:100%;padding:6px 8px;border-radius:8px;border:1px solid #D0D0D0;font-size:11px;background:#fff;cursor:pointer;margin-top:4px;font-family:inherit;';
+  const lbl='display:block;font-size:10px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;margin-top:14px;';
+
+  document.getElementById('wa-center-body').innerHTML=`
+  <div style="padding:16px 20px;max-width:520px;">
+    <div style="font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:4px;">Aparência Web</div>
+    <div style="font-size:11px;color:#888;margin-bottom:16px;">As configurações são salvas automaticamente no seu navegador.</div>
+
+    <div style="background:#F9F9F9;border-radius:10px;padding:14px 16px;margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:600;color:#1a1a1a;margin-bottom:12px;">📊 Painel Início (tabela)</div>
+
+      <label style="${lbl}">Fonte</label>
+      <select id="wa-cfg-df" style="${sl}" onchange="waAppearance.dashFont=this.value;waSaveAppearance();document.getElementById('wa-prev-dash').innerHTML=makePreviewTable(this.value,waAppearance.dashSize);">
+        ${fonts.map(f=>`<option value="${f.id}" ${waAppearance.dashFont===f.id?'selected':''} style="font-family:'${f.id}'">${f.label}</option>`).join('')}
+      </select>
+
+      <label style="${lbl}">Tamanho</label>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+        <input type="range" min="8" max="13" step="1" value="${waAppearance.dashSize}" id="wa-cfg-ds"
+          oninput="waAppearance.dashSize=+this.value;waSaveAppearance();document.getElementById('wa-cfg-ds-v').textContent=this.value+'px';document.getElementById('wa-prev-dash').innerHTML=makePreviewTable(waAppearance.dashFont,this.value);"
+          style="flex:1;">
+        <span id="wa-cfg-ds-v" style="font-size:11px;color:#666;min-width:32px;">${waAppearance.dashSize}px</span>
+      </div>
+
+      <div id="wa-prev-dash">${makePreviewTable(waAppearance.dashFont,waAppearance.dashSize)}</div>
+    </div>
+
+    <div style="background:#F9F9F9;border-radius:10px;padding:14px 16px;margin-bottom:20px;">
+      <div style="font-size:12px;font-weight:600;color:#1a1a1a;margin-bottom:12px;">📋 Outras páginas (extrato, formulário)</div>
+
+      <label style="${lbl}">Fonte</label>
+      <select id="wa-cfg-pf" style="${sl}" onchange="waAppearance.pageFont=this.value;waSaveAppearance();document.getElementById('wa-prev-page').innerHTML=makePreviewPage(this.value,waAppearance.pageSize);">
+        ${fonts.map(f=>`<option value="${f.id}" ${waAppearance.pageFont===f.id?'selected':''} style="font-family:'${f.id}'">${f.label}</option>`).join('')}
+      </select>
+
+      <label style="${lbl}">Tamanho</label>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+        <input type="range" min="10" max="16" step="1" value="${waAppearance.pageSize}" id="wa-cfg-ps"
+          oninput="waAppearance.pageSize=+this.value;waSaveAppearance();document.getElementById('wa-cfg-ps-v').textContent=this.value+'px';document.getElementById('wa-prev-page').innerHTML=makePreviewPage(waAppearance.pageFont,this.value);"
+          style="flex:1;">
+        <span id="wa-cfg-ps-v" style="font-size:11px;color:#666;min-width:32px;">${waAppearance.pageSize}px</span>
+      </div>
+
+      <div id="wa-prev-page">${makePreviewPage(waAppearance.pageFont,waAppearance.pageSize)}</div>
+    </div>
+
+    <button onclick="waApplyAppearance();waSyncIndicator('✓ Aparência aplicada','#059669',false);"
+      style="width:100%;padding:11px;border-radius:10px;border:none;background:#1a1a1a;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">
+      Aplicar agora
+    </button>
+  </div>`;
+
+  // expose makePreviewTable/Page globally for onchange handlers
+  window.makePreviewTable=makePreviewTable;
+  window.makePreviewPage=makePreviewPage;
 }
 
 function waShowLaunch(){
@@ -6611,6 +6704,7 @@ function waDashRender(){
   html+='</tr></tbody></table></div>';
 
   document.getElementById('wa-center-body').innerHTML=html;
+  setTimeout(waApplyAppearance,0);
 }
 
 function waDashTogHideZero(){
