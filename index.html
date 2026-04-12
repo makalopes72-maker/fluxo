@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#00695C,#880E4F);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F2F1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(224,242,241,.65) !important;}
-  #splash .splash-version{color:rgba(224,242,241,.35) !important;}
-  #splash .splash-btn{background:#E0F2F1 !important;color:#00695C !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F2F1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1565C0,#FFB300);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E3F2FD !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(227,242,253,.65) !important;}
+  #splash .splash-version{color:rgba(227,242,253,.35) !important;}
+  #splash .splash-btn{background:#E3F2FD !important;color:#1565C0 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E3F2FD !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.19';
+const APP_VERSION='14.20';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6463,9 +6463,25 @@ function waDashRender(){
     grandTotMeta+=isPos?pastaMetaTotal:-pastaMetaTotal;
 
     // grupo header
-    const grupoColspan=1+visMonths.reduce((s,m)=>{const isPast=m<curM,isCur=m===curM;const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);return s+(showOrc?2:1);},0)+2;
-    html+='<tr onclick="waDashTogglePasta(\''+tipo.replace(/'/g,"\\'")+'\')"><td class="wad-lbl grupo" style="border-right:2px solid #333;" colspan="'+grupoColspan+'">'
-      +'<span style="font-size:9px;margin-right:5px;opacity:.6;">'+(collapsed?'▸':'▾')+'</span>'+tipo.toUpperCase()+'</td></tr>';
+    // grupo header with totals per visible month
+    html+='<tr onclick="waDashTogglePasta(\''+tipo.replace(/'/g,"\\'")+'\')" style="cursor:pointer;">';
+    html+='<td class="wad-lbl grupo" style="border-right:2px solid #333;padding-left:10px;text-align:left;font-size:8px;">'
+      +'<span style="font-size:9px;margin-right:5px;opacity:.7;">'+(collapsed?'▸':'▾')+'</span>'
+      +tipo.toUpperCase()+'</td>';
+    visMonths.forEach(m=>{
+      const isPast=m<curM,isCur=m===curM,isFut=m>curM;
+      const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
+      const rv=totReal[m],mv=totMeta[m];
+      const clr=isPos?(rv>=mv?'#6FCF97':'#EB5757'):(rv<=mv?'#6FCF97':'#EB5757');
+      const dot=rv&&mv?'<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:'+clr+';margin-left:2px;vertical-align:middle;"></span>':'';
+      html+='<td style="text-align:right;padding:3px 5px;font-size:9px;font-weight:700;color:'+(rv?'#fff':'rgba(255,255,255,.3)')+';background:#1a1a1a;border-left:3px solid #888;white-space:nowrap;">'+(rv?fmt(rv):'')+dot+'</td>';
+      if(showOrc)html+='<td style="text-align:right;padding:3px 5px;font-size:9px;color:rgba(255,255,255,.5);background:#1a1a1a;font-style:italic;white-space:nowrap;">'+(mv?fmt(mv):'')+'</td>';
+    });
+    // total col
+    const subRv=totReal.reduce((s,v)=>s+v,0),subMv=totMeta.reduce((s,v)=>s+v,0);
+    html+='<td style="text-align:right;padding:3px 5px;font-size:9px;font-weight:700;color:#fff;background:#1a1a1a;border-left:3px solid #888;">'+(subRv?fmt(subRv):'')+'</td>';
+    html+='<td style="text-align:right;padding:3px 5px;font-size:9px;color:rgba(255,255,255,.5);background:#1a1a1a;font-style:italic;">'+(subMv?fmt(subMv):'')+'</td>';
+    html+='</tr>';
 
     // cat rows
     if(!collapsed){
@@ -6506,25 +6522,7 @@ function waDashRender(){
       });
     }
 
-    // subtotal row
-    const subRealTot=totReal.reduce((s,v)=>s+v,0);
-    const subMetaTot=totMeta.reduce((s,v)=>s+v,0);
-    html+='<tr>';
-    html+='<td class="wad-lbl sub" style="padding-left:22px;text-align:left;font-weight:700;">TOTAL '+tipo.toUpperCase()+'</td>';
-    visMonths.forEach(m=>{
-      const isPast=m<curM,isCur=m===curM,isFut=m>curM;
-      const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
-      const cur=isCur?' cur':'';
-      const rv=totReal[m],mv=totMeta[m];
-      const fc=farolClass(rv,mv,'A',isPos);
-      const dot=(isPast||isCur)&&rv&&mv?'<span class="wad-farol '+fc+'"></span>':'';
-      const mt2=isCur?'cur':isFut?'fut':'past';
-      html+='<td class="wad-real sub '+mt2+'" style="border-left:3px solid #888;"><div class="wad-cell">'+fmt(rv)+dot+'</div></td>';
-      if(showOrc)html+='<td class="wad-prev sub '+mt2+'">'+fmt(mv)+'</td>';
-    });
-    html+='<td class="wad-real sub wad-total-col" style="background:#C5CAE9;">'+fmt(subRealTot)+'</td>';
-    html+='<td class="wad-prev sub wad-total-col" style="background:#C8B99A;">'+fmt(subMetaTot)+'</td>';
-    html+='</tr>';
+
   });
 
   // saldo row
