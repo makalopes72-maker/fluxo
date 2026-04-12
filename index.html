@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#006064,#E64A19);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
-  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
-  #splash .splash-btn{background:#E0F7FA !important;color:#006064 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1B5E20,#F57F17);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
+  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
+  #splash .splash-btn{background:#F1F8E9 !important;color:#1B5E20 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2043,7 +2043,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.58';
+const APP_VERSION='14.59';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5768,7 +5768,7 @@ function waRenderExtrato(){
       +'<button id="wa-filter-btn" onclick="waToggleFilter()" style="padding:3px 8px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.72rem;cursor:pointer;transition:all .2s;">⊟</button>'
       +'<button id="wa-chip-30d" onclick="waExtPeriod(\'30d\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">30d</button>'
       +'<button id="wa-chip-mes" onclick="waExtPeriod(\'mes\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">--</button>'
-      +'<button id="wa-chip-ano" onclick="waExtPeriod(\'ano\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">--</button>'
+      +'<button id="wa-chip-ano" onclick="waExtYearModal()" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">--</button>'
       +'<button id="wa-chip-tudo" onclick="waExtPeriod(\'tudo\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">Tudo</button>'
       +'<button id="wa-chip-futuras" onclick="waExtPeriod(\'futuras\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">Futuras</button>'
       +'<button id="wa-chip-consolid" onclick="waToggleConsolid()" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">Consolid.</button>'
