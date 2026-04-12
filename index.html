@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1B5E20,#4A148C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
-  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
-  #splash .splash-btn{background:#F1F8E9 !important;color:#1B5E20 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#33691E,#E64A19);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F9FBE7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(249,251,231,.65) !important;}
+  #splash .splash-version{color:rgba(249,251,231,.35) !important;}
+  #splash .splash-btn{background:#F9FBE7 !important;color:#33691E !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F9FBE7 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.51';
+const APP_VERSION='14.52';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6354,8 +6354,10 @@ function waShowDash(){
   const fb=document.getElementById('wa-filter-bar');if(fb)fb.remove();
   // defaults on first open
   if(window.waDashHideZero===undefined)window.waDashHideZero=true;
-  if(!window.waDashPast)window.waDashPast='3m';
-  if(!window.waDashFut)window.waDashFut='3m';
+  if(window.waDashShowTotals===undefined)window.waDashShowTotals=true;
+  if(window.waDashPastSel===undefined)window.waDashPastSel=3;
+  if(window.waDashFutSel===undefined)window.waDashFutSel=2;
+  if(window.waDashYear===undefined)window.waDashYear=new Date().getFullYear();
   waDashRenderHeader();
   waDashRender();
 }
@@ -6363,48 +6365,111 @@ function waShowDash(){
 function waDashRenderHeader(){
   const actions=document.getElementById('wa-center-actions');
   if(!actions)return;
+  const curYear=new Date().getFullYear();
+  const curM=new Date().getMonth();
+  const yr=window.waDashYear||curYear;
+  const isPastYear=yr<curYear;
+  const pastSel=window.waDashPastSel||3;
+  const futSel=window.waDashFutSel||2;
   const hideZero=window.waDashHideZero;
-  const past=window.waDashPast||'3m';
-  const fut=window.waDashFut||'3m';
-  const pastOpts=[['3m','Últimos 3 meses'],['6m','Últimos 6 meses'],['ano','Acumulado do ano'],['cur','Mês atual']];
-  const futOpts=[['3m','Próximos 3 meses'],['6m','Próximos 6 meses'],['ano','Restante do ano'],['cur','Mês atual']];
-  const selStyle='padding:3px 7px;border-radius:10px;border:0.5px solid #B4B2A9;background:transparent;font-family:var(--font-body);font-size:.65rem;color:var(--font);cursor:pointer;outline:none;';
+  const showTotals=window.waDashShowTotals;
+  const anyExpanded=Object.values(window.waDashCollapsed||{}).some(v=>!v)||!Object.keys(window.waDashCollapsed||{}).length;
+
+  const fb='padding:3px 10px;border-radius:20px;border:1px solid #D0D0D0;background:#fff;font-size:10px;cursor:pointer;color:#555;white-space:nowrap;transition:all .15s;';
+  const fbon='padding:3px 10px;border-radius:20px;border:1px solid #1a1a1a;background:#1a1a1a;font-size:10px;cursor:pointer;color:#fff;white-space:nowrap;';
+  const div=style=>document.createElement('div');
+
+  // month pills
+  const mkPill=(idx,label,cls)=>{
+    const colors={
+      past:'background:#E8F5E9;color:#2E7D32;border-color:#81C784;font-weight:600;',
+      fut:'background:#FFF9C4;color:#5D4037;border-color:#F9A825;font-weight:600;',
+      cur:'background:#1a1a1a;color:#fff;border-color:#1a1a1a;font-weight:700;',
+      off:'background:#fff;color:#aaa;border-color:#E0E0E0;'
+    };
+    return '<button style="width:30px;height:30px;border-radius:50%;border:1px solid;font-size:'+(idx===0?'8':'10')+'px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;'
+      +colors[cls]+'" onclick="waDashClickMonth('+idx+')" title="'+(idx>0?'+':'')+idx+(idx===0?' (atual)':' meses')+'">'
+      +label+'</button>';
+  };
+
+  let monthPills='';
+  if(isPastYear){
+    monthPills='<span style="font-size:10px;color:#888;font-style:italic;padding:0 4px;">ano inteiro</span>';
+  } else {
+    for(let i=-6;i<=-1;i++){
+      const active=i>=-pastSel;
+      monthPills+=mkPill(i,i,active?'past':'off');
+    }
+    monthPills+=mkPill(0,'ATUAL','cur');
+    for(let i=1;i<=6;i++){
+      const active=i<=futSel;
+      monthPills+=mkPill(i,'+'+i,active?'fut':'off');
+    }
+  }
+
   actions.innerHTML=
-    '<div style="display:flex;align-items:center;gap:8px;">'
-    +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'
-    +'<div style="display:flex;align-items:center;gap:6px;">'
-    +'<span style="font-size:.6rem;color:var(--muted);">Passado</span>'
-    +'<select onchange="window.waDashPast=this.value;waDashRender();" style="'+selStyle+'">'
-    +pastOpts.map(([v,l])=>'<option value="'+v+'"'+(past===v?' selected':'')+'>'+l+'</option>').join('')
-    +'</select>'
-    +'</div>'
-    +'<div style="display:flex;align-items:center;gap:6px;">'
-    +'<span style="font-size:.6rem;color:var(--muted);">Futuro</span>'
-    +'<select onchange="window.waDashFut=this.value;waDashRender();" style="'+selStyle+'">'
-    +futOpts.map(([v,l])=>'<option value="'+v+'"'+(fut===v?' selected':'')+'>'+l+'</option>').join('')
-    +'</select>'
-    +'</div>'
-    +'</div>'
-    +'<button onclick="window.waDashHideZero=!window.waDashHideZero;waDashRenderHeader();waDashRender();" '
-    +'style="padding:4px 10px;border-radius:10px;border:0.5px solid #B4B2A9;background:'+(hideZero?'#1a1a1a':'transparent')+';color:'+(hideZero?'#fff':'#888')+';font-size:.65rem;cursor:pointer;white-space:nowrap;">'
-    +(hideZero?'▣ só lançados':'□ todos')
-    +'</button>'
-    +'<button onclick="window.waDashShowTotals=!window.waDashShowTotals;waDashRenderHeader();waDashRender();" '
-    +'style="padding:4px 10px;border-radius:10px;border:0.5px solid #B4B2A9;background:'+(window.waDashShowTotals?'#1a1a1a':'transparent')+';color:'+(window.waDashShowTotals?'#fff':'#888')+';font-size:.65rem;cursor:pointer;white-space:nowrap;">'
-    +(window.waDashShowTotals?'▣ totais':'□ totais')
-    +'</button>'
-    +'<button onclick="waDashToggleAll()" '
-    +'style="padding:4px 10px;border-radius:10px;border:0.5px solid #B4B2A9;background:transparent;color:#888;font-size:.65rem;cursor:pointer;white-space:nowrap;">'
-    +(Object.values(window.waDashCollapsed||{}).some(v=>!v)||!Object.keys(window.waDashCollapsed||{}).length?'▾ recolher tudo':'▸ expandir tudo')
-    +'</button>'
+    '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;">'
+    // filter buttons
+    +'<button onclick="window.waDashHideZero=!window.waDashHideZero;waDashRenderHeader();waDashRender();" style="'+(hideZero?fbon:fb)+'">'+(hideZero?'▣':'□')+' só lançados</button>'
+    +'<button onclick="window.waDashShowTotals=!window.waDashShowTotals;waDashRenderHeader();waDashRender();" style="'+(showTotals?fbon:fb)+'">'+(showTotals?'▣':'□')+' totais</button>'
+    +'<button onclick="waDashToggleAll();" style="'+fb+'">'+(anyExpanded?'▾ recolher':'▸ expandir')+'</button>'
+    +'<div style="width:1px;height:20px;background:#D0D0D0;"></div>'
+    // year selector
+    +'<button onclick="waDashChangeYear(-1)" style="width:22px;height:22px;border-radius:50%;border:1px solid #D0D0D0;background:#fff;cursor:pointer;font-size:11px;color:#555;display:inline-flex;align-items:center;justify-content:center;">◀</button>'
+    +'<span style="font-size:11px;font-weight:600;color:#1a1a1a;min-width:32px;text-align:center;">'+yr+'</span>'
+    +'<button onclick="waDashChangeYear(+1)" style="width:22px;height:22px;border-radius:50%;border:1px solid #D0D0D0;background:#fff;cursor:pointer;font-size:11px;color:#555;display:inline-flex;align-items:center;justify-content:center;opacity:'+(yr>=curYear?'.3':'1')+';pointer-events:'+(yr>=curYear?'none':'auto')+';">▶</button>'
+    +'<div style="width:1px;height:20px;background:#D0D0D0;"></div>'
+    // month pills
+    +'<div style="display:flex;align-items:center;gap:3px;">'+monthPills+'</div>'
     +'</div>';
 }
+
+function waDashClickMonth(idx){
+  if(idx===0){window.waDashPastSel=0;window.waDashFutSel=0;}
+  else if(idx<0){window.waDashPastSel=Math.abs(idx);}
+  else{window.waDashFutSel=idx;}
+  waDashRenderHeader();
+  waDashRender();
+}
+
+function waDashChangeYear(d){
+  const curYear=new Date().getFullYear();
+  const newYear=(window.waDashYear||curYear)+d;
+  if(newYear>curYear)return;
+  window.waDashYear=newYear;
+  if(newYear<curYear){
+    // past year: load data for that year then render
+    waDashLoadYear(newYear);
+  } else {
+    // back to current year
+    window.waDashPastSel=3;
+    window.waDashFutSel=2;
+    waDashRenderHeader();
+    waDashRender();
+  }
+}
+
+async function waDashLoadYear(yr){
+  waSyncIndicator('Carregando '+yr+'...','var(--muted)',true);
+  const origYears=syncYears.slice();
+  syncYears=[yr];
+  try{
+    await loadData();
+    waSyncIndicator('✓ '+yr+' carregado','#059669',false);
+  }catch(e){
+    waSyncIndicator('Dados locais','#F9A825',false);
+  }
+  syncYears=origYears;
+  waDashRenderHeader();
+  waDashRender();
+}
+
 
 function waDashGetMeta(user,tipo,cat,mIdx){
   const ud=orcData[user]||{};
   const cd=ud[tipo]&&ud[tipo][cat];
   if(!cd)return 0;
-  const yr=new Date().getFullYear();
+  const yr=(window.waDashYear)||new Date().getFullYear();
   const key=yr+'-'+(mIdx+1<10?'0':'')+(mIdx+1);
   return cd.months&&cd.months[key]!=null?cd.months[key]:(cd.default||0);
 }
@@ -6413,7 +6478,7 @@ function waDashSetMeta(user,tipo,cat,mIdx,val){
   if(!orcData[user])orcData[user]={};
   if(!orcData[user][tipo])orcData[user][tipo]={};
   if(!orcData[user][tipo][cat])orcData[user][tipo][cat]={default:0,period:'mensal',tipo:'V',farol:'R',months:{}};
-  const yr=new Date().getFullYear();
+  const yr=(window.waDashYear)||new Date().getFullYear();
   const key=yr+'-'+(mIdx+1<10?'0':'')+(mIdx+1);
   orcData[user][tipo][cat].months[key]=val;
   localStorage.setItem('fluxo_orc',JSON.stringify(orcData));
@@ -6534,26 +6599,17 @@ function waDashRender(){
   }
 
   // -- determine visible months --
-  const pastMode=window.waDashPast||'3m';
-  const futMode=window.waDashFut||'3m';
+  const dashYear=window.waDashYear||yr;
+  const isPastYear=dashYear<yr;
+  const pastSel=window.waDashPastSel!==undefined?window.waDashPastSel:3;
+  const futSel=window.waDashFutSel!==undefined?window.waDashFutSel:2;
   const visMonths=[];
-  for(let m=0;m<12;m++){
-    const isPast=m<curM,isCur=m===curM,isFut=m>curM;
-    if(isCur){visMonths.push(m);continue;}
-    if(isPast){
-      if(pastMode==='cur')continue;
-      if(pastMode==='3m'&&curM-m<=3)visMonths.push(m);
-      else if(pastMode==='6m'&&curM-m<=6)visMonths.push(m);
-      else if(pastMode==='ano')visMonths.push(m);
-    }
-    if(isFut){
-      if(futMode==='cur')continue;
-      if(futMode==='3m'&&m-curM<=3)visMonths.push(m);
-      else if(futMode==='6m'&&m-curM<=6)visMonths.push(m);
-      else if(futMode==='ano')visMonths.push(m);
-    }
+  if(isPastYear){
+    // full year for past years
+    for(let m=0;m<12;m++)visMonths.push(m);
+  } else {
+    for(let m=Math.max(0,curM-pastSel);m<=Math.min(11,curM+futSel);m++)visMonths.push(m);
   }
-  visMonths.sort((a,b)=>a-b);
 
   // -- build header --
   let html='<div class="wad-wrap"><table class="wad-tbl" id="wa-dash-table"><thead class="wad-head"><tr>';
