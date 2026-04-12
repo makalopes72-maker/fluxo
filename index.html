@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.14';
+const APP_VERSION='14.15-debug';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6299,6 +6299,9 @@ function waDashRender(){
   const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const fmt=n=>n?Math.round(n).toLocaleString('pt-BR'):'';
 
+  // DEBUG
+  console.log('[waDashRender] user=',user,'allData=',allData.length,'accounts=',accounts.length,'orcData keys=',Object.keys(orcData[user]||{}).length);
+
   // filter: hide zero rows?
   const hideZero=window.waDashHideZero||false;
 
@@ -6307,6 +6310,7 @@ function waDashRender(){
   if(!userAccts.length) userAccts=accounts.filter(a=>a.active!==false).map(a=>normalizeAcct(a.name));
   // if still empty, skip account filter entirely
   const filterByAcct=userAccts.length>0;
+  console.log('[waDashRender] userAccts=',userAccts.length,'filterByAcct=',filterByAcct,'hideZero=',hideZero);
 
   // sum real per tipo+cat per month
   const real={};
