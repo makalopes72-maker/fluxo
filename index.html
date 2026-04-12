@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#004D40,#6A1B9A);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F2F1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(224,242,241,.65) !important;}
-  #splash .splash-version{color:rgba(224,242,241,.35) !important;}
-  #splash .splash-btn{background:#E0F2F1 !important;color:#004D40 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F2F1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0D47A1,#558B2F);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E3F2FD !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(227,242,253,.65) !important;}
+  #splash .splash-version{color:rgba(227,242,253,.35) !important;}
+  #splash .splash-btn{background:#E3F2FD !important;color:#0D47A1 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E3F2FD !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2061,7 +2061,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.71';
+const APP_VERSION='14.72';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -7041,9 +7041,317 @@ function waDashEditMeta(td,tipo,cat,mIdx,curVal){
 
 function waShowInv(){
   document.getElementById('wa-center-title').textContent='Investimentos';
-  document.getElementById('wa-center-body').innerHTML='<div class="wa-empty">Em breve</div>';
+  document.getElementById('wa-center-actions').innerHTML='';
   document.getElementById('wa-right-title').textContent='--';
   document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">--</div>';
+  const fb=document.getElementById('wa-filter-bar');if(fb)fb.remove();
+
+  // 3-col layout: instituicoes | ativos | detalhe
+  document.getElementById('wa-center-body').innerHTML=`
+    <div style="display:flex;height:100%;overflow:hidden;">
+      <!-- col 1: instituições -->
+      <div id="wai-col-inst" style="width:200px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
+        <div style="padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);">Instituições</span>
+          <button onclick="waInvNewInst()" style="width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:14px;color:var(--muted);display:flex;align-items:center;justify-content:center;">+</button>
+        </div>
+        <div id="wai-inst-list" style="flex:1;overflow-y:auto;padding:6px 0;"></div>
+        <div style="padding:10px 12px;border-top:1px solid var(--border);">
+          <div style="font-size:.6rem;color:var(--muted);">Total geral</div>
+          <div id="wai-total" style="font-size:.9rem;font-weight:700;color:var(--font);">--</div>
+        </div>
+      </div>
+      <!-- col 2: ativos -->
+      <div id="wai-col-ativos" style="width:280px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
+        <div style="padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
+          <span id="wai-inst-name" style="font-size:.75rem;font-weight:700;color:var(--font);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Selecione uma instituição</span>
+          <button id="wai-add-ativo-btn" onclick="waInvNewAtivo()" style="display:none;width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:14px;color:var(--muted);display:flex;align-items:center;justify-content:center;">+</button>
+        </div>
+        <div style="display:flex;gap:0;border-bottom:1px solid var(--border);">
+          <button id="wai-tab-ativos" onclick="waInvSetTab('ativos')" style="flex:1;padding:6px;font-size:.65rem;border:none;background:var(--font);color:var(--bg);cursor:pointer;font-weight:600;">Ativos</button>
+          <button id="wai-tab-enc" onclick="waInvSetTab('enc')" style="flex:1;padding:6px;font-size:.65rem;border:none;background:transparent;color:var(--muted);cursor:pointer;">Encerrados</button>
+        </div>
+        <div id="wai-ativo-list" style="flex:1;overflow-y:auto;padding:6px 8px;">
+          <div style="color:var(--muted);font-size:.75rem;padding:20px;text-align:center;">Selecione uma instituição</div>
+        </div>
+      </div>
+      <!-- col 3: detalhe -->
+      <div id="wai-col-detail" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+        <div style="padding:10px 12px;border-bottom:1px solid var(--border);">
+          <span style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);">Detalhe</span>
+        </div>
+        <div id="wai-detail-body" style="flex:1;overflow-y:auto;padding:14px 16px;">
+          <div style="color:var(--muted);font-size:.75rem;padding:20px;text-align:center;">Selecione um ativo</div>
+        </div>
+      </div>
+    </div>`;
+
+  waInvRenderInst();
+}
+
+let waInvTab='ativos', waInvInstIdx=null, waInvAtivoIdx=null;
+
+function waInvSetTab(tab){
+  waInvTab=tab;
+  const ta=document.getElementById('wai-tab-ativos');
+  const te=document.getElementById('wai-tab-enc');
+  if(ta){ta.style.background=tab==='ativos'?'var(--font)':'transparent';ta.style.color=tab==='ativos'?'var(--bg)':'var(--muted)';}
+  if(te){te.style.background=tab==='enc'?'var(--font)':'transparent';te.style.color=tab==='enc'?'var(--bg)':'var(--muted)';}
+  waInvRenderAtivos();
+}
+
+function waInvRenderInst(){
+  const total=getTotalGeral();
+  const tv=document.getElementById('wai-total');
+  if(tv)tv.textContent=fmtInv(total);
+  const il=document.getElementById('wai-inst-list');
+  if(!il)return;
+  if(!instituicoes||!instituicoes.length){
+    il.innerHTML='<div style="padding:16px;font-size:.75rem;color:var(--muted);text-align:center;">Nenhuma instituição.<br>Clique + para adicionar.</div>';
+    return;
+  }
+  il.innerHTML=instituicoes.map((inst,i)=>{
+    const ativos=getInstAtivos(inst).filter(a=>!a.encerrado);
+    const val=getInstTotal(inst);
+    const sel=waInvInstIdx===i;
+    return '<div onclick="waInvSelectInst('+i+')" style="padding:8px 12px;cursor:pointer;border-left:3px solid '+(sel?'var(--font)':'transparent')+';background:'+(sel?'var(--kp)':'transparent')+';display:flex;align-items:center;gap:8px;">'
+      +'<span style="font-size:1.1rem;">'+(inst.icon||'🏦')+'</span>'
+      +'<div style="flex:1;min-width:0;">'
+      +'<div style="font-size:.75rem;font-weight:600;color:var(--font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+inst.name+'</div>'
+      +'<div style="font-size:.62rem;color:var(--muted);">'+ativos.length+' ativo'+(ativos.length!==1?'s':'')+'</div>'
+      +'</div>'
+      +'<div style="font-size:.72rem;font-weight:700;color:var(--font);white-space:nowrap;">'+(val>0?fmtInv(val):'--')+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function waInvSelectInst(i){
+  waInvInstIdx=i;
+  waInvAtivoIdx=null;
+  waInvTab='ativos';
+  const inst=instituicoes[i];
+  const nm=document.getElementById('wai-inst-name');
+  if(nm)nm.textContent=inst.name;
+  const ab=document.getElementById('wai-add-ativo-btn');
+  if(ab)ab.style.display='flex';
+  waInvSetTab('ativos');
+  waInvRenderInst(); // refresh selection highlight
+  document.getElementById('wai-detail-body').innerHTML='<div style="color:var(--muted);font-size:.75rem;padding:20px;text-align:center;">Selecione um ativo</div>';
+}
+
+function waInvRenderAtivos(){
+  const al=document.getElementById('wai-ativo-list');
+  if(!al||waInvInstIdx===null)return;
+  const inst=instituicoes[waInvInstIdx];
+  const all=getInstAtivos(inst);
+  const ativos=all.map((a,i)=>({a,i})).filter(x=>waInvTab==='ativos'?!x.a.encerrado:x.a.encerrado);
+  if(!ativos.length){al.innerHTML='<div style="color:var(--muted);font-size:.75rem;padding:20px;text-align:center;">Nenhum ativo</div>';return;}
+
+  al.innerHTML=ativos.map(({a,i})=>{
+    const atual=getAtivoAtual(a);
+    const rend=atual-a.aplicado;
+    const pct=a.aplicado?((rend/a.aplicado)*100).toFixed(1):0;
+    const rendSign=rend>=0?'+':'';
+    const rendColor=rend>=0?'var(--accent2)':'var(--red)';
+    const badge=ATIVO_BADGE[a.classe]||'badge-rf';
+    const sel=waInvAtivoIdx===i;
+    return '<div onclick="waInvSelectAtivo('+i+')" style="padding:8px 10px;border-radius:8px;margin-bottom:4px;cursor:pointer;background:'+(sel?'var(--kp)':'transparent')+';border:1px solid '+(sel?'var(--border)':'transparent')+';">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'
+      +'<span style="font-size:.75rem;font-weight:600;color:var(--font);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">'+a.nome+(a.encerrado?'  <span style="font-size:.6rem;color:var(--red);">enc.</span>':'')+'</span>'
+      +'<span style="font-size:.6rem;font-weight:700;padding:1px 5px;border-radius:20px;margin-left:4px;" class="ativo-badge '+badge+'">'+a.classe.split(' ')[0]+'</span>'
+      +'</div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:baseline;">'
+      +'<div style="font-size:.7rem;color:var(--muted);">'+fmtInvFull(atual)+'</div>'
+      +'<div style="font-size:.68rem;font-weight:600;color:'+rendColor+';">'+rendSign+fmtInvFull(rend)+' ('+rendSign+pct+'%)</div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function waInvSelectAtivo(i){
+  waInvAtivoIdx=i;
+  waInvRenderAtivos();
+  waInvRenderDetail(i);
+}
+
+function waInvRenderDetail(idx){
+  const db=document.getElementById('wai-detail-body');
+  if(!db||waInvInstIdx===null)return;
+  const inst=instituicoes[waInvInstIdx];
+  const a=getInstAtivos(inst)[idx];
+  if(!a){db.innerHTML='<div style="color:var(--muted);font-size:.75rem;padding:20px;">Ativo não encontrado</div>';return;}
+
+  const atual=getAtivoAtual(a);
+  const rend=atual-a.aplicado;
+  const pct=a.aplicado?((rend/a.aplicado)*100).toFixed(1):0;
+  const rendSign=rend>=0?'+':'';
+  const rendColor=rend>=0?'var(--accent2)':'var(--red)';
+  const desde=a.log.length?a.log[0].date:'--';
+  const updDate=a.log.length?a.log[a.log.length-1].date:'--';
+  const vencNorm=normVenc(a.vencimento)||'N/A';
+  let vencDays='';
+  if(vencNorm!=='N/A'){
+    const vp=vencNorm.split('/');
+    if(vp.length===3){
+      const vDate=new Date(vp[2],vp[1]-1,vp[0]);
+      const today=new Date();today.setHours(0,0,0,0);
+      const diff=Math.ceil((vDate-today)/(1000*60*60*24));
+      vencDays=diff>0?' ('+diff+' dias)':diff===0?' (Hoje)':' (Vencido)';
+    }
+  }
+  const rows=[
+    ['Classe',a.classe],['Tipo',a.tipo],['Indexador',a.indexador],
+    ['Taxa',a.taxa],['Liquidez',a.liquidez],['Garantia',a.garantia],
+    ['IR',a.ir],['Vencimento',vencNorm+vencDays],['Observações',a.obs||'--'],
+  ].filter(r=>r[1]&&r[1]!=='');
+
+  const logRows=a.log?[...a.log].sort((x,y)=>(parseDate(y.date)||0)-(parseDate(x.date)||0)).slice(0,10).map(l=>`
+    <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:.7rem;">
+      <span style="color:var(--muted);">${l.date}</span>
+      <span style="color:var(--font);font-weight:600;">${fmtInvFull(l.value)}</span>
+      ${l.note?'<span style="color:var(--muted);font-size:.62rem;">'+l.note+'</span>':''}
+    </div>`).join(''):'';
+
+  db.innerHTML=`
+    <div style="margin-bottom:16px;">
+      <div style="font-size:1rem;font-weight:700;color:var(--font);margin-bottom:2px;">${a.nome}</div>
+      <div style="font-size:.68rem;color:var(--muted);">${inst.name} · ${a.classe}${a.tipo?' · '+a.tipo:''}</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+      <div style="background:var(--kp);border-radius:10px;padding:10px 12px;">
+        <div style="font-size:.6rem;color:var(--muted);margin-bottom:2px;">Aplicado</div>
+        <div style="font-size:.85rem;font-weight:700;color:var(--font);">${fmtInvFull(a.aplicado)}</div>
+        <div style="font-size:.6rem;color:var(--muted);">desde ${desde}</div>
+      </div>
+      <div style="background:var(--font);border-radius:10px;padding:10px 12px;">
+        <div style="font-size:.6rem;color:rgba(255,255,255,.5);margin-bottom:2px;">Atual</div>
+        <div style="font-size:.85rem;font-weight:700;color:#fff;">${fmtInvFull(atual)}</div>
+        <div style="font-size:.6rem;color:rgba(255,255,255,.5);">em ${updDate}</div>
+      </div>
+      <div style="background:var(--kp);border-radius:10px;padding:10px 12px;">
+        <div style="font-size:.6rem;color:var(--muted);margin-bottom:2px;">Rendimento</div>
+        <div style="font-size:.85rem;font-weight:700;color:${rendColor};">${rendSign}${fmtInvFull(rend)}</div>
+        <div style="font-size:.6rem;color:${rendColor};">${rendSign}${pct}%</div>
+      </div>
+      <div style="background:var(--kp);border-radius:10px;padding:10px 12px;">
+        <div style="font-size:.6rem;color:var(--muted);margin-bottom:2px;">Vencimento</div>
+        <div style="font-size:.8rem;font-weight:700;color:var(--font);">${vencNorm}</div>
+        <div style="font-size:.6rem;color:var(--muted);">${vencDays.replace(' (','').replace(')','')}</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;">Informações</div>
+      ${rows.map(r=>'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:.72rem;"><span style="color:var(--muted);">'+r[0]+'</span><span style="color:var(--font);font-weight:500;">'+r[1]+'</span></div>').join('')}
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;">Atualizar valor</div>
+      <div style="display:flex;gap:8px;">
+        <input id="wai-upd-val" type="text" placeholder="R$ novo valor" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-size:.8rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">
+        <input id="wai-upd-note" type="text" placeholder="Observação" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-size:.8rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">
+        <button onclick="waInvSaveUpd(${idx})" style="padding:8px 14px;border-radius:8px;border:none;background:var(--font);color:var(--bg);font-size:.75rem;font-weight:600;cursor:pointer;">Salvar</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;">Histórico (últimas 10)</div>
+      ${logRows||'<div style="color:var(--muted);font-size:.72rem;">Sem registros</div>'}
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button onclick="waInvEditAtivo(${idx})" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--font);font-size:.72rem;font-weight:600;cursor:pointer;">✏ Editar</button>
+      <button onclick="waInvToggleEnc(${idx})" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:${a.encerrado?'var(--accent2)':'var(--red)'};font-size:.72rem;font-weight:600;cursor:pointer;">${a.encerrado?'↩ Reativar':'⊗ Encerrar'}</button>
+    </div>`;
+}
+
+function waInvSaveUpd(idx){
+  const inst=instituicoes[waInvInstIdx];
+  const a=getInstAtivos(inst)[idx];
+  if(!a)return;
+  const valStr=document.getElementById('wai-upd-val').value.trim().replace(',','.');
+  const val=parseFloat(valStr);
+  if(!val||isNaN(val)){alert('Valor inválido');return;}
+  const note=document.getElementById('wai-upd-note').value.trim();
+  const now=new Date();
+  const ds=String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear();
+  a.log.push({date:ds,value:val,note:note||''});
+  saveInvestimentos();
+  waSyncIndicator('✓ Valor atualizado','#059669',false);
+  waInvRenderAtivos();
+  waInvRenderDetail(idx);
+  waInvRenderInst();
+}
+
+function waInvToggleEnc(idx){
+  const inst=instituicoes[waInvInstIdx];
+  const a=getInstAtivos(inst)[idx];
+  if(!a)return;
+  if(a.encerrado){
+    a.encerrado=false;
+    a.log=a.log.filter(l=>l.note!=='Investimento encerrado');
+  } else {
+    const now=new Date();
+    const ds=String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear();
+    a.encerrado=true;
+    a.log.push({date:ds,value:getAtivoAtual(a),note:'Investimento encerrado'});
+  }
+  saveInvestimentos();
+  waInvRenderAtivos();
+  waInvRenderDetail(idx);
+  waInvRenderInst();
+}
+
+function waInvEditAtivo(idx){
+  // open mobile ativo form, then on save refresh web view
+  currentInstIdx=waInvInstIdx;
+  currentAtivoIdx=idx;
+  openAtivoForm();
+  // override save callback
+  const origSave=window._waInvOrigSave;
+  const origOpenAtivoForm=window.openAtivoForm;
+  // after mobile form saves, refresh web
+  const observer=new MutationObserver(()=>{
+    if(!document.getElementById('ativo-modal').classList.contains('open')&&
+       document.getElementById('ativo-modal').style.opacity==='0'){
+      observer.disconnect();
+      waInvRenderAtivos();
+      waInvRenderDetail(idx);
+      waInvRenderInst();
+    }
+  });
+  observer.observe(document.getElementById('ativo-modal'),{attributes:true,attributeFilter:['style']});
+}
+
+function waInvNewAtivo(){
+  if(waInvInstIdx===null){waSyncIndicator('Selecione uma instituição','#F9A825',false);return;}
+  currentInstIdx=waInvInstIdx;
+  currentAtivoIdx=null;
+  openAtivoForm();
+  const observer=new MutationObserver(()=>{
+    const modal=document.getElementById('ativo-modal');
+    if(modal&&modal.style.opacity==='0'){
+      observer.disconnect();
+      waInvRenderAtivos();
+      waInvRenderInst();
+    }
+  });
+  const modal=document.getElementById('ativo-modal');
+  if(modal)observer.observe(modal,{attributes:true,attributeFilter:['style']});
+}
+
+function waInvNewInst(){
+  openInstModal();
+  const observer=new MutationObserver(()=>{
+    const modal=document.getElementById('inst-modal');
+    if(modal&&modal.style.opacity==='0'){
+      observer.disconnect();
+      waInvRenderInst();
+    }
+  });
+  const modal=document.getElementById('inst-modal');
+  if(modal)observer.observe(modal,{attributes:true,attributeFilter:['style']});
 }
 
 // update web-app user on login
