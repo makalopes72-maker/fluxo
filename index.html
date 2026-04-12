@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#37474F,#2E7D32);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
-  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
-  #splash .splash-btn{background:#ECEFF1 !important;color:#37474F !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4527A0,#00838F);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#EDE7F6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(237,231,246,.65) !important;}
+  #splash .splash-version{color:rgba(237,231,246,.35) !important;}
+  #splash .splash-btn{background:#EDE7F6 !important;color:#4527A0 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EDE7F6 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2061,7 +2061,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.73';
+const APP_VERSION='14.74';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5351,10 +5351,12 @@ async function loadInvFromSheets(){
     ativosPorUser[user]=userAtivos;
     localStorage.setItem('fluxo_ativos_'+user,JSON.stringify(userAtivos));
     renderInv();
+    // refresh web inv panel if open
+    if(document.getElementById('wai-inst-list'))waInvRenderInst();
     const total=Object.values(userAtivos).reduce((s,a)=>s+a.length,0);
-    toast(instituicoes.length+' institui\u00e7\u00f5es · '+total+' ativos','success');
+    if(typeof toast==='function')toast(instituicoes.length+' instituições · '+total+' ativos','success');
   }catch(e){
-    toast('Erro: '+e.message,'error');
+    if(typeof toast==='function')toast('Erro: '+e.message,'error');
     console.error('[INV] loadInvFromSheets error:',e);
   }
 }
