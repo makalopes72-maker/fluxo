@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#37474F,#F57F17);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
-  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
-  #splash .splash-btn{background:#ECEFF1 !important;color:#37474F !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4527A0,#9CCC65);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#EDE7F6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(237,231,246,.65) !important;}
+  #splash .splash-version{color:rgba(237,231,246,.35) !important;}
+  #splash .splash-btn{background:#EDE7F6 !important;color:#4527A0 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EDE7F6 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.38';
+const APP_VERSION='14.39';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6455,12 +6455,12 @@ function waDashRender(){
     if(showOrc)html+='<th class="wad-h-sub prev '+tc+'"><em>prev.</em></th>';
   });
   if(showTotals){
-    html+='<th style="padding:3px 6px;font-size:9px;color:#283593;background:#C5CAE9;border-left:3px solid #888;text-align:right;font-weight:600;">total</th>';
-    html+='<th style="padding:3px 6px;font-size:9px;color:#5C6BC0;background:#C5CAE9;text-align:right;font-weight:400;font-style:italic;">média</th>';
-    html+='<th style="padding:3px 6px;font-size:9px;color:#6D4C41;background:#DDD5C0;border-left:2px solid #999;text-align:right;font-weight:600;">total</th>';
-    html+='<th style="padding:3px 6px;font-size:9px;color:#8D6E63;background:#DDD5C0;text-align:right;font-weight:400;font-style:italic;">média</th>';
-    html+='<th style="padding:3px 6px;font-size:9px;color:#888;background:#E8E2D9;border-left:2px solid #bbb;text-align:right;font-weight:400;">total</th>';
-    html+='<th style="padding:3px 6px;font-size:9px;color:#aaa;background:#E8E2D9;text-align:right;font-weight:400;font-style:italic;">média</th>';
+    html+='<th style="width:55px;min-width:55px;max-width:55px;padding:3px 4px;font-size:9px;color:#283593;background:#C5CAE9;border-left:3px solid #888;text-align:right;font-weight:600;">total</th>';
+    html+='<th style="width:55px;min-width:55px;max-width:55px;padding:3px 4px;font-size:9px;color:#5C6BC0;background:#C5CAE9;text-align:right;font-weight:400;font-style:italic;">média</th>';
+    html+='<th style="width:55px;min-width:55px;max-width:55px;padding:3px 4px;font-size:9px;color:#6D4C41;background:#DDD5C0;border-left:2px solid #999;text-align:right;font-weight:600;">total</th>';
+    html+='<th style="width:55px;min-width:55px;max-width:55px;padding:3px 4px;font-size:9px;color:#8D6E63;background:#DDD5C0;text-align:right;font-weight:400;font-style:italic;">média</th>';
+    html+='<th style="width:55px;min-width:55px;max-width:55px;padding:3px 4px;font-size:9px;color:#888;background:#E8E2D9;border-left:2px solid #bbb;text-align:right;font-weight:400;">total</th>';
+    html+='<th style="width:55px;min-width:55px;max-width:55px;padding:3px 4px;font-size:9px;color:#aaa;background:#E8E2D9;text-align:right;font-weight:400;font-style:italic;">média</th>';
   }
   html+='</tr></thead><tbody>';
 
@@ -6516,12 +6516,12 @@ function waDashRender(){
     const gAA=Math.round(gMA/12)||0;
     html+='<td style="width:8px;background:#444;border-left:3px solid #777;padding:0;"></td>';
     if(showTotals){
-      html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:700;color:#fff;background:#1a1a1a;border-left:3px solid #888;'+farolShadow(gtfc)+'">'+(gRV?fmt(gRV):'')+'</td>';
-      html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:400;color:rgba(255,255,255,.5);background:#1a1a1a;border-left:none;">'+(gAR?fmt(gAR):'')+'</td>';
-      html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:700;color:rgba(255,255,255,.7);background:#1a1a1a;border-left:2px solid #555;">'+(gMV?fmt(gMV):'')+'</td>';
-      html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:400;color:rgba(255,255,255,.4);background:#1a1a1a;border-left:none;">'+(gAM?fmt(gAM):'')+'</td>';
-      html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:400;color:rgba(255,255,255,.3);background:#1a1a1a;border-left:2px solid #444;">'+(gMA?fmt(gMA):'')+'</td>';
-      html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:400;color:rgba(255,255,255,.25);background:#1a1a1a;border-left:none;">'+(gAA?fmt(gAA):'')+'</td>';
+      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:700;color:#fff;background:#1a1a1a;border-left:3px solid #888;'+farolShadow(gtfc)+'">'+(gRV?fmt(gRV):'')+'</td>';
+      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:400;color:rgba(255,255,255,.5);background:#1a1a1a;border-left:none;">'+(gAR?fmt(gAR):'')+'</td>';
+      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:700;color:rgba(255,255,255,.7);background:#1a1a1a;border-left:2px solid #555;">'+(gMV?fmt(gMV):'')+'</td>';
+      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:400;color:rgba(255,255,255,.4);background:#1a1a1a;border-left:none;">'+(gAM?fmt(gAM):'')+'</td>';
+      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:400;color:rgba(255,255,255,.3);background:#1a1a1a;border-left:2px solid #444;">'+(gMA?fmt(gMA):'')+'</td>';
+      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:400;color:rgba(255,255,255,.25);background:#1a1a1a;border-left:none;">'+(gAA?fmt(gAA):'')+'</td>';
     }
     html+='</tr>';
 
@@ -6564,12 +6564,12 @@ function waDashRender(){
         const cMA=catTotMeta;
         html+='<td style="width:8px;background:#E0E0E0;border-left:3px solid #999;padding:0;"></td>';
         if(showTotals){
-          html+='<td style="text-align:right;padding:3px 6px;font-size:10px;font-weight:700;background:#E8EAF6;color:#283593;border-left:3px solid #888;'+farolShadow(tfc)+'">'+fmt(cRV)+'</td>';
-          html+='<td style="text-align:right;padding:3px 6px;font-size:10px;background:#E8EAF6;color:#5C6BC0;">'+fmt(Math.round(cRV/validCount))+'</td>';
-          html+='<td style="text-align:right;padding:3px 6px;font-size:10px;font-weight:700;background:#DDD5C0;color:#6D4C41;border-left:2px solid #999;">'+fmt(cMV)+'</td>';
-          html+='<td style="text-align:right;padding:3px 6px;font-size:10px;background:#DDD5C0;color:#8D6E63;">'+fmt(Math.round(cMV/validCount))+'</td>';
-          html+='<td style="text-align:right;padding:3px 6px;font-size:10px;background:#E8E2D9;color:#888;border-left:2px solid #bbb;">'+fmt(cMA)+'</td>';
-          html+='<td style="text-align:right;padding:3px 6px;font-size:10px;background:#E8E2D9;color:#aaa;">'+fmt(Math.round(cMA/12))+'</td>';
+          html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:10px;font-weight:700;background:#E8EAF6;color:#283593;border-left:3px solid #888;'+farolShadow(tfc)+'">'+fmt(cRV)+'</td>';
+          html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:10px;background:#E8EAF6;color:#5C6BC0;">'+fmt(Math.round(cRV/validCount))+'</td>';
+          html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:10px;font-weight:700;background:#DDD5C0;color:#6D4C41;border-left:2px solid #999;">'+fmt(cMV)+'</td>';
+          html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:10px;background:#DDD5C0;color:#8D6E63;">'+fmt(Math.round(cMV/validCount))+'</td>';
+          html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:10px;background:#E8E2D9;color:#888;border-left:2px solid #bbb;">'+fmt(cMA)+'</td>';
+          html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:10px;background:#E8E2D9;color:#aaa;">'+fmt(Math.round(cMA/12))+'</td>';
         }
         html+='</tr>';
       });
@@ -6601,12 +6601,12 @@ function waDashRender(){
   const clrV=sdRV>=0?'#27500A':'#A32D2D';
   html+='<td style="width:8px;background:#D0D0D0;border-left:3px solid #999;padding:0;"></td>';
   if(showTotals){
-    html+='<td style="text-align:right;padding:3px 6px;font-weight:700;color:'+clrV+';background:#C5CAE9;border-left:3px solid #888;">'+(sdRV>=0?'+':'')+fmt(Math.abs(sdRV))+'</td>';
-    html+='<td style="text-align:right;padding:3px 6px;color:'+clrV+';background:#C5CAE9;">'+fmt(Math.abs(Math.round(sdRV/validCount)))+'</td>';
-    html+='<td style="text-align:right;padding:3px 6px;font-weight:700;color:#6D4C41;background:#C8B99A;border-left:2px solid #999;">'+fmt(sdMV)+'</td>';
-    html+='<td style="text-align:right;padding:3px 6px;color:#8D6E63;background:#C8B99A;">'+fmt(Math.round(sdMV/validCount))+'</td>';
-    html+='<td style="text-align:right;padding:3px 6px;color:#888;background:#E0D8CC;border-left:2px solid #bbb;">'+fmt(sdMA)+'</td>';
-    html+='<td style="text-align:right;padding:3px 6px;color:#aaa;background:#E0D8CC;">'+fmt(Math.round(sdMA/12))+'</td>';
+    html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-weight:700;color:'+clrV+';background:#C5CAE9;border-left:3px solid #888;">'+(sdRV>=0?'+':'')+fmt(Math.abs(sdRV))+'</td>';
+    html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;color:'+clrV+';background:#C5CAE9;">'+fmt(Math.abs(Math.round(sdRV/validCount)))+'</td>';
+    html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-weight:700;color:#6D4C41;background:#C8B99A;border-left:2px solid #999;">'+fmt(sdMV)+'</td>';
+    html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;color:#8D6E63;background:#C8B99A;">'+fmt(Math.round(sdMV/validCount))+'</td>';
+    html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;color:#888;background:#E0D8CC;border-left:2px solid #bbb;">'+fmt(sdMA)+'</td>';
+    html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;color:#aaa;background:#E0D8CC;">'+fmt(Math.round(sdMA/12))+'</td>';
   }
   html+='</tr></tbody></table></div>';
 
