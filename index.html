@@ -18,11 +18,11 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#263238,#FF6F00);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#37474F,#AD1457);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
   #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
   #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
   #splash .splash-version{color:rgba(236,239,241,.35) !important;}
-  #splash .splash-btn{background:#ECEFF1 !important;color:#263238 !important;font-weight:700;}
+  #splash .splash-btn{background:#ECEFF1 !important;color:#37474F !important;font-weight:700;}
   #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
@@ -918,16 +918,25 @@
   /* -- WEB SIDEBAR -- */
   /* collapse button */
   #wa-collapse-btn{
-    margin-left:auto;flex-shrink:0;
-    width:24px;height:24px;
-    border:1px solid var(--border);background:transparent;
-    border-radius:6px;cursor:pointer;
+    position:absolute;
+    right:-1px;
+    top:50%;
+    transform:translateY(-50%);
+    width:16px;height:40px;
+    background:var(--kp);
+    border:1px solid var(--border);
+    border-left:none;
+    border-radius:0 6px 6px 0;
+    cursor:pointer;
     display:flex;align-items:center;justify-content:center;
-    font-size:.8rem;color:var(--muted);transition:transform .2s;
+    font-size:.7rem;color:var(--muted);
+    z-index:10;
+    transition:none;
   }
+  #wa-sidebar{position:relative;}
   #wa-sidebar.collapsed{width:48px !important;}
   #wa-sidebar.collapsed #wa-brand-text{display:none;}
-  #wa-sidebar.collapsed #wa-collapse-btn{margin:0 auto;transform:rotate(180deg);}
+  #wa-sidebar.collapsed #wa-collapse-btn{transform:translateY(-50%) rotate(180deg);}
   #wa-sidebar.collapsed .wa-lbl{display:none;}
   #wa-sidebar.collapsed .wa-nav-item{justify-content:center;padding:9px 0;gap:0;}
   #wa-sidebar.collapsed .wa-brand{justify-content:center;padding:10px 0;}
@@ -935,7 +944,7 @@
   #wa-sidebar{transition:width .2s ease;}
   /* -- WEB SIDEBAR -- */
   #wa-sidebar{
-    width:180px;
+    width:150px;
     flex-shrink:0;
     display:flex;
     flex-direction:column;
@@ -2043,7 +2052,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.67';
+const APP_VERSION='14.68';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
