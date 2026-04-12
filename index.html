@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#B71C1C,#00695C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFEBEE !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(255,235,238,.65) !important;}
-  #splash .splash-version{color:rgba(255,235,238,.35) !important;}
-  #splash .splash-btn{background:#FFEBEE !important;color:#B71C1C !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFEBEE !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1A237E,#C62828);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E8EAF6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(232,234,246,.65) !important;}
+  #splash .splash-version{color:rgba(232,234,246,.35) !important;}
+  #splash .splash-btn{background:#E8EAF6 !important;color:#1A237E !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8EAF6 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2043,7 +2043,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.64';
+const APP_VERSION='14.65';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5860,10 +5860,10 @@ function waRenderExtrato(){
     if(extConsolid==='no'&&t.consolidated)return false;
     return true;
   }).sort((a,b)=>{
-    const da=(parseDate(a.date)||0),db=(parseDate(b.date)||0);
+    const da=(parseDate(a.date)||new Date(0)).getTime(),db=(parseDate(b.date)||new Date(0)).getTime();
     if(da!==db)return extSort==='asc'?da-db:db-da;
-    // same day: sort by _id (timestamp YYYYMMDDHHmmss[mmm] or plain numeric)
-    // compare as zero-padded strings — works for any digit length without precision loss
+    // same day: sort by _id (YYYYMMDDHHmmssRRR format or plain numeric)
+    // pad to equal length and compare as string — safe for large numbers
     const idVal=id=>{
       if(!id)return '';
       const s=String(id).trim();
