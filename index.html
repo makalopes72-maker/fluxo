@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.34';
+const APP_VERSION='14.35';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6370,7 +6370,7 @@ function waDashRender(){
       .wad-h-sub.real.fut{background:#F5F5F5;color:#BDBDBD;}
       .wad-h-sub.prev.fut{background:#EEEEEE;color:#BDBDBD;border-left:none!important;}
       .wad-real{text-align:right;padding:3px 8px 3px 5px;white-space:nowrap;font-size:10px;background:#fff;color:#2C2C2A;}
-      .wad-prev{text-align:right;padding:3px 8px 3px 5px;font-style:italic;white-space:nowrap;cursor:pointer;font-size:10px;background:#F5EFE6;color:#A1887F;border-left:none!important;border-right:none!important;}
+      .wad-prev{text-align:right;padding:3px 8px 3px 5px;font-style:italic;white-space:nowrap;cursor:pointer;font-size:10px;background:#F5EFE6;color:#A1887F;border-left:none!important;}
       .wad-prev:hover{filter:brightness(.95);}
       .wad-real.cur{background:#FFF9C4;color:#5D4037;}
       .wad-prev.cur{background:#FFF3CD;color:#A1887F;}
@@ -6448,9 +6448,8 @@ function waDashRender(){
 
   // grand totals accumulators
   const grandReal=Array(12).fill(0),grandMeta=Array(12).fill(0);
-  // valid months = past + current (for averages)
   const validMs=[...Array(12).keys()].filter(m=>m<=curM);
-  const validCount=validMs.length||1;
+  const validCount=Math.max(validMs.length,1);
   let grandTotReal=0,grandTotMeta=0;
 
   sorted.forEach(tipo=>{
@@ -6491,18 +6490,18 @@ function waDashRender(){
     // total col
     const subRv=totReal.reduce((s,v)=>s+v,0),subMv=totMeta.reduce((s,v)=>s+v,0);
     const gtfc=farolClass(subRv,subMv,'A',isPos);
-    const grRealValid=validMs.reduce((s,m)=>s+(totReal[m]||0),0);
-    const grAvgReal=grRealValid?Math.round(grRealValid/validCount):0;
-    const grMetaValid=validMs.reduce((s,m)=>s+(totMeta[m]||0),0);
-    const grAvgMeta=grMetaValid?Math.round(grMetaValid/validCount):0;
-    const grMetaAnual=totMeta.reduce((s,v)=>s+v,0);
-    const grAvgAnual=grMetaAnual?Math.round(grMetaAnual/12):0;
-    html+='<td style="text-align:right;padding:3px 8px 3px 5px;font-size:9px;font-weight:700;color:#fff;background:#1a1a1a;border-left:1px solid #CCC;'+farolShadow(gtfc)+'">'+(grRealValid?fmt(grRealValid):'')+'</td>';
-    html+='<td style="text-align:right;padding:3px 8px 3px 5px;font-size:9px;font-weight:400;color:rgba(255,255,255,.5);background:#1a1a1a;border-left:none;">'+(grAvgReal?fmt(grAvgReal):'')+'</td>';
-    html+='<td style="text-align:right;padding:3px 8px 3px 5px;font-size:9px;font-weight:700;color:rgba(255,255,255,.7);background:#1a1a1a;border-left:1px solid #555;">'+(grMetaValid?fmt(grMetaValid):'')+'</td>';
-    html+='<td style="text-align:right;padding:3px 8px 3px 5px;font-size:9px;font-weight:400;color:rgba(255,255,255,.4);background:#1a1a1a;border-left:none;">'+(grAvgMeta?fmt(grAvgMeta):'')+'</td>';
-    html+='<td style="text-align:right;padding:3px 8px 3px 5px;font-size:9px;font-weight:400;color:rgba(255,255,255,.3);background:#1a1a1a;border-left:1px solid #555;">'+(grMetaAnual?fmt(grMetaAnual):'')+'</td>';
-    html+='<td style="text-align:right;padding:3px 8px 3px 5px;font-size:9px;font-weight:400;color:rgba(255,255,255,.25);background:#1a1a1a;border-left:none;">'+(grAvgAnual?fmt(grAvgAnual):'')+'</td>';
+    const gRV=validMs.reduce((s,m)=>s+(totReal[m]||0),0);
+    const gAR=validCount?Math.round(gRV/validCount):0;
+    const gMV=validMs.reduce((s,m)=>s+(totMeta[m]||0),0);
+    const gAM=validCount?Math.round(gMV/validCount):0;
+    const gMA=totMeta.reduce((s,v)=>s+v,0);
+    const gAA=Math.round(gMA/12)||0;
+    html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:700;color:#fff;background:#1a1a1a;border-left:1px solid #CCC;'+farolShadow(gtfc)+'">'+(gRV?fmt(gRV):'')+'</td>';
+    html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:400;color:rgba(255,255,255,.5);background:#1a1a1a;border-left:none;">'+(gAR?fmt(gAR):'')+'</td>';
+    html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:700;color:rgba(255,255,255,.7);background:#1a1a1a;border-left:1px solid #555;">'+(gMV?fmt(gMV):'')+'</td>';
+    html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:400;color:rgba(255,255,255,.4);background:#1a1a1a;border-left:none;">'+(gAM?fmt(gAM):'')+'</td>';
+    html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:400;color:rgba(255,255,255,.3);background:#1a1a1a;border-left:1px solid #555;">'+(gMA?fmt(gMA):'')+'</td>';
+    html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:400;color:rgba(255,255,255,.25);background:#1a1a1a;border-left:none;">'+(gAA?fmt(gAA):'')+'</td>';
     html+='</tr>';
 
     // cat rows
@@ -6539,20 +6538,8 @@ function waDashRender(){
         });
         // total col
         const tfc=farolClass(catTotReal,catTotMeta,farolInd,isPos);
-        // valid months totals
-        const catRealValid=validMs.reduce((s,m)=>s+(catRealAll[m]||0),0);
-        const catAvgReal=catRealValid?Math.round(catRealValid/validCount):0;
-        const catMetaValid=validMs.reduce((s,m)=>s+waDashGetMeta(user,tipo,cat,m),0);
-        const catAvgMeta=catMetaValid?Math.round(catMetaValid/validCount):0;
-        const catMetaAnual=Array.from({length:12},(_,m)=>waDashGetMeta(user,tipo,cat,m)).reduce((s,v)=>s+v,0);
-        const catAvgAnual=catMetaAnual?Math.round(catMetaAnual/12):0;
-        const bs='border-left:1px solid #CCC;';const bsep='border-left:1px solid #999;';const bn='border-left:none;';
-        html+='<td style="background:#E8EAF6;font-weight:700;padding:3px 8px 3px 5px;text-align:right;font-size:10px;'+bs+farolShadow(tfc)+'">'+fmt(catRealValid)+'</td>';
-        html+='<td style="background:#E8EAF6;font-weight:400;padding:3px 8px 3px 5px;text-align:right;font-size:10px;color:#5F7AA8;'+bn+'">'+fmt(catAvgReal)+'</td>';
-        html+='<td style="background:#DDD5C0;font-weight:700;padding:3px 8px 3px 5px;text-align:right;font-size:10px;color:#6D4C41;'+bsep+'">'+fmt(catMetaValid)+'</td>';
-        html+='<td style="background:#DDD5C0;font-weight:400;padding:3px 8px 3px 5px;text-align:right;font-size:10px;color:#8D6E63;'+bn+'">'+fmt(catAvgMeta)+'</td>';
-        html+='<td style="background:#EDE8E0;font-weight:400;padding:3px 8px 3px 5px;text-align:right;font-size:10px;color:#999;'+bsep+'">'+fmt(catMetaAnual)+'</td>';
-        html+='<td style="background:#EDE8E0;font-weight:400;padding:3px 8px 3px 5px;text-align:right;font-size:10px;color:#aaa;'+bn+'">'+fmt(catAvgAnual)+'</td>';
+        html+='<td class="wad-real wad-total-col" style="background:#E8EAF6;font-weight:700;padding-right:8px;border-left:1px solid #CCC;'+farolShadow(tfc)+'">'+fmt(catTotReal)+'</td>';
+        html+='<td class="wad-prev wad-total-col" style="background:#DDD5C0;font-weight:700;padding-right:8px;border-left:none;">'+fmt(catTotMeta)+'</td>';
         html+='</tr>';
       });
     }
@@ -6579,17 +6566,152 @@ function waDashRender(){
   });
   const clrTR=saldoTotReal>=0?'#27500A':'#A32D2D';
   const clrTM=saldoTotMeta>=0?'#27500A':'#A32D2D';
-  const sdRealValid=validMs.reduce((s,m)=>s+grandReal[m],0);
-  const sdAvgReal=sdRealValid?Math.round(sdRealValid/validCount):0;
-  const sdMetaValid=validMs.reduce((s,m)=>s+grandMeta[m],0);
-  const sdAvgMeta=sdMetaValid?Math.round(sdMetaValid/validCount):0;
-  const sdMetaAnual=grandMeta.reduce((s,v)=>s+v,0);
-  const sdAvgAnual=sdMetaAnual?Math.round(sdMetaAnual/12):0;
-  const clrV=sdRealValid>=0?'#27500A':'#A32D2D';
-  html+='<td style="background:#C5CAE9;color:'+clrV+';font-weight:700;padding:3px 8px 3px 5px;text-align:right;border-left:1px solid #CCC;">'+(sdRealValid>=0?'+':'')+fmt(Math.abs(sdRealValid))+'</td>';
-  html+='<td style="background:#C5CAE9;color:'+clrV+';font-weight:400;padding:3px 8px 3px 5px;text-align:right;border-left:none;">'+fmt(Math.abs(sdAvgReal))+'</td>';
-  html+='<td style="background:#C8B99A;color:#6D4C41;font-weight:700;padding:3px 8px 3px 5px;text-align:right;border-left:1px solid #999;">'+fmt(sdMetaValid)+'</td>';
-  html+='<td style="background:#C8B99A;color:#8D6E63;font-weight:400;padding:3px 8px 3px 5px;text-align:right;border-left:none;">'+fmt(sdAvgMeta)+'</td>';
-  html+='<td style="background:#E0D8CC;color:#999;font-weight:400;padding:3px 8px 3px 5px;text-align:right;border-left:1px solid #999;">'+fmt(sdMetaAnual)+'</td>';
-  html+='<td style="background:#E0D8CC;color:#aaa;font-weight:400;padding:3px 8px 3px 5px;text-align:right;border-left:none;">'+fmt(sdAvgAnual)+'</td>';
+  html+='<td class="wad-real sub wad-total-col" style="background:#C5CAE9;color:'+clrTR+';font-weight:700;padding-right:8px;border-left:1px solid #CCC;">'+(saldoTotReal>=0?'+':'')+fmt(Math.abs(saldoTotReal))+'</td>';
+  html+='<td style="width:4px;background:#C5CAE9;"></td>';
+  html+='<td class="wad-prev sub wad-total-col" style="background:#C8B99A;color:'+clrTM+';font-weight:700;padding-right:8px;border-left:none;">'+(saldoTotMeta>=0?'+':'')+fmt(Math.abs(saldoTotMeta))+'</td>';
+  html+='</tr></tbody></table></div>';
 
+  document.getElementById('wa-center-body').innerHTML=html;
+}
+
+function waDashTogHideZero(){
+  window.waDashHideZero=!window.waDashHideZero;
+  waDashRenderHeader();
+  waDashRender();
+}
+
+
+function waDashToggleAll(){
+  if(!window.waDashCollapsed)window.waDashCollapsed={};
+  const user=currentUser||'ALE';
+  const ud=orcData[user]||{};
+  const receitaTipos=['Receita','Investimentos'];
+  const allTipos=new Set([...Object.keys(ud),...allData.map(t=>t.tipo||t.cat||'Outros')]);
+  const sorted=[...receitaTipos.filter(t=>allTipos.has(t)),...[...allTipos].filter(t=>!receitaTipos.includes(t)).sort()];
+  const anyExpanded=sorted.some(t=>!window.waDashCollapsed[t]);
+  sorted.forEach(t=>window.waDashCollapsed[t]=anyExpanded);
+  waDashRenderHeader();
+  waDashRender();
+}
+function waDashTogglePasta(tipo){
+  if(!window.waDashCollapsed)window.waDashCollapsed={};
+  window.waDashCollapsed[tipo]=!window.waDashCollapsed[tipo];
+  waDashRender();
+}
+
+function waDashTogOrc(m,e){
+  e.stopPropagation();
+  if(!window.waDashShowOrc)window.waDashShowOrc={};
+  window.waDashShowOrc[m]=!window.waDashShowOrc[m];
+  waDashRender();
+}
+
+function waDashEditMeta(td,tipo,cat,mIdx,curVal){
+  const inp=document.createElement('input');
+  inp.type='number';inp.value=curVal||0;inp.min=0;
+  inp.style.cssText='width:65px;border:none;background:#D4BC96;color:#412402;font-family:var(--font-body);font-size:10px;text-align:right;padding:2px 4px;outline:none;font-style:normal;';
+  td.innerHTML='';td.appendChild(inp);
+  inp.focus();inp.select();
+  const save=()=>{
+    const v=parseFloat(inp.value)||0;
+    const user=currentUser||'ALE';
+    waDashSetMeta(user,tipo,cat,mIdx,v);
+    waDashRender();
+  };
+  inp.addEventListener('blur',save);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')save();if(e.key==='Escape')waDashRender();});
+}
+
+function waShowInv(){
+  document.getElementById('wa-center-title').textContent='Investimentos';
+  document.getElementById('wa-center-body').innerHTML='<div class="wa-empty">Em breve</div>';
+  document.getElementById('wa-right-title').textContent='—';
+  document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">—</div>';
+}
+
+// update web-app user on login
+function waOnLogin(){
+  const wu=document.getElementById('wa-user');
+  if(wu)wu.textContent=currentUser||'ALE';
+  waResetLaunch();
+  // render dash with local cached data first
+  waGo('dash');
+  // then sync in background
+  setTimeout(()=>waAutoSync(),200);
+}
+
+function waSyncIndicator(msg,color,pulse){
+  // persistent indicator in sidebar footer area
+  let ind=document.getElementById('wa-sync-ind');
+  if(!ind){
+    ind=document.createElement('div');
+    ind.id='wa-sync-ind';
+    ind.style.cssText='position:fixed;bottom:10px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:4px 12px;display:flex;align-items:center;gap:6px;font-family:var(--font-body);font-size:.65rem;box-shadow:0 2px 8px rgba(0,0,0,.12);transition:all .3s;';
+    document.body.appendChild(ind);
+  }
+  const dot=pulse?'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+color+';animation:waPulse 1s infinite;"></span>':'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+color+';"></span>';
+  ind.innerHTML=dot+'<span style="color:'+color+';">'+msg+'</span>';
+  ind.style.opacity='1';
+  if(!pulse)setTimeout(()=>{if(ind)ind.style.opacity='0';setTimeout(()=>ind.remove(),400);},4000);
+}
+
+async function waAutoSync(){
+  if(!document.getElementById('wa-sync-style')){
+    const st=document.createElement('style');
+    st.id='wa-sync-style';
+    st.textContent='@keyframes waPulse{0%,100%{opacity:.3}50%{opacity:1}}';
+    document.head.appendChild(st);
+  }
+  const yr=new Date().getFullYear();
+  waSyncIndicator('Carregando '+yr+'…','var(--muted)',true);
+  try{
+    await loadData();
+    waSyncIndicator('✓ '+yr+' carregado','#059669',false);
+  }catch(e){
+    console.error('[waAutoSync] FAILED:',e.message);
+    waSyncIndicator('Erro: '+e.message,'#E53935',false);
+  }
+  // always render dashboard with whatever data is available
+  const onDash=document.getElementById('wanav-dash')?.classList.contains('active');
+  if(onDash){
+    try{waDashRenderHeader();waDashRender();}catch(e2){console.error('[dash render]',e2);}
+  }
+}
+
+
+function waSyncIndicator(msg,color,pulse){
+  // persistent indicator in sidebar footer area
+  let ind=document.getElementById('wa-sync-ind');
+  if(!ind){
+    ind=document.createElement('div');
+    ind.id='wa-sync-ind';
+    ind.style.cssText='position:fixed;bottom:10px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:4px 12px;display:flex;align-items:center;gap:6px;font-family:var(--font-body);font-size:.65rem;box-shadow:0 2px 8px rgba(0,0,0,.12);transition:all .3s;';
+    document.body.appendChild(ind);
+  }
+  const dot=pulse?'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+color+';animation:waPulse 1s infinite;"></span>':'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+color+';"></span>';
+  ind.innerHTML=dot+'<span style="color:'+color+';">'+msg+'</span>';
+  ind.style.opacity='1';
+  if(!pulse)setTimeout(()=>{if(ind)ind.style.opacity='0';setTimeout(()=>ind.remove(),400);},4000);
+}
+
+
+// detect orientation
+function waToggleCollapse(){
+  const sb=document.getElementById('wa-sidebar');
+  if(!sb)return;
+  sb.classList.toggle('collapsed');
+  const btn=document.getElementById('wa-collapse-btn');
+  if(btn)btn.textContent=sb.classList.contains('collapsed')?'›':'‹';
+}
+
+function waCheck(){
+  const web=window.innerWidth>window.innerHeight;
+  document.getElementById('web-app').style.display=web?'flex':'none';
+}
+waCheck();
+window.addEventListener('resize',waCheck);
+window.addEventListener('orientationchange',()=>setTimeout(waCheck,100));
+
+</script>
+</body>
+</html>
