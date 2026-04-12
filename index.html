@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4E342E,#006064);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#EFEBE9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(239,235,233,.65) !important;}
-  #splash .splash-version{color:rgba(239,235,233,.35) !important;}
-  #splash .splash-btn{background:#EFEBE9 !important;color:#4E342E !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EFEBE9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#37474F,#F57F17);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
+  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
+  #splash .splash-btn{background:#ECEFF1 !important;color:#37474F !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.37';
+const APP_VERSION='14.38';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6514,12 +6514,15 @@ function waDashRender(){
     const gAM=validCount?Math.round(gMV/validCount):0;
     const gMA=totMeta.reduce((s,v)=>s+v,0);
     const gAA=Math.round(gMA/12)||0;
-    html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:700;color:#fff;background:#1a1a1a;border-left:1px solid #CCC;'+farolShadow(gtfc)+'">'+(gRV?fmt(gRV):'')+'</td>';
-    html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:400;color:rgba(255,255,255,.5);background:#1a1a1a;border-left:none;">'+(gAR?fmt(gAR):'')+'</td>';
-    html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:700;color:rgba(255,255,255,.7);background:#1a1a1a;border-left:1px solid #555;">'+(gMV?fmt(gMV):'')+'</td>';
-    html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:400;color:rgba(255,255,255,.4);background:#1a1a1a;border-left:none;">'+(gAM?fmt(gAM):'')+'</td>';
-    html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:400;color:rgba(255,255,255,.3);background:#1a1a1a;border-left:1px solid #555;">'+(gMA?fmt(gMA):'')+'</td>';
-    html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:400;color:rgba(255,255,255,.25);background:#1a1a1a;border-left:none;">'+(gAA?fmt(gAA):'')+'</td>';
+    html+='<td style="width:8px;background:#444;border-left:3px solid #777;padding:0;"></td>';
+    if(showTotals){
+      html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:700;color:#fff;background:#1a1a1a;border-left:3px solid #888;'+farolShadow(gtfc)+'">'+(gRV?fmt(gRV):'')+'</td>';
+      html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:400;color:rgba(255,255,255,.5);background:#1a1a1a;border-left:none;">'+(gAR?fmt(gAR):'')+'</td>';
+      html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:700;color:rgba(255,255,255,.7);background:#1a1a1a;border-left:2px solid #555;">'+(gMV?fmt(gMV):'')+'</td>';
+      html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:400;color:rgba(255,255,255,.4);background:#1a1a1a;border-left:none;">'+(gAM?fmt(gAM):'')+'</td>';
+      html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:400;color:rgba(255,255,255,.3);background:#1a1a1a;border-left:2px solid #444;">'+(gMA?fmt(gMA):'')+'</td>';
+      html+='<td style="text-align:right;padding:3px 6px;font-size:9px;font-weight:400;color:rgba(255,255,255,.25);background:#1a1a1a;border-left:none;">'+(gAA?fmt(gAA):'')+'</td>';
+    }
     html+='</tr>';
 
     // cat rows
