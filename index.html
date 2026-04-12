@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#558B2F,#6A1B9A);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F9FBE7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(249,251,231,.65) !important;}
-  #splash .splash-version{color:rgba(249,251,231,.35) !important;}
-  #splash .splash-btn{background:#F9FBE7 !important;color:#558B2F !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F9FBE7 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#FF8F00,#006064);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFF8E1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(255,248,225,.65) !important;}
+  #splash .splash-version{color:rgba(255,248,225,.35) !important;}
+  #splash .splash-btn{background:#FFF8E1 !important;color:#FF8F00 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFF8E1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.30';
+const APP_VERSION='14.31';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6342,8 +6342,8 @@ function waDashRender(){
   };
   const FV='#A5D6A7',FA='#CFD8DC',FR='#B71C1C';
   const farolBg=fc=>fc==='f-v'?FV:fc==='f-a'?FA:fc==='f-r'?FR:'transparent';
-  const farolBar=(fc,bg)=>fc?'<div style="width:6px;height:18px;background:'+farolBg(fc)+';border-radius:1px;margin:0 auto;"></div>':'';
-  const farolTd=(fc,bg)=>'<td style="width:16px;padding:2px 4px;vertical-align:middle;text-align:center;background:'+(bg||'#fff')+';">'+farolBar(fc)+'</td>';
+  const farolBar=(fc,bg)=>fc?'<div style="width:4px;height:18px;background:'+farolBg(fc)+';border-radius:1px;"></div>':'<div style="width:4px;"></div>';
+  const farolTd=(fc,bg)=>'<td style="width:4px;padding:0;vertical-align:middle;text-align:center;background:'+(bg||'#fff')+';">'+farolBar(fc)+'</td>';
 
   // inject CSS once
   if(!document.getElementById('wa-dash-style')){
@@ -6439,7 +6439,7 @@ function waDashRender(){
     const tc=isCur?'cur':isFut?'fut':'';
     const hbg=isCur?'#FFF9C4':isFut?'#F5F5F5':'#fff';
     html+='<th class="wad-h-sub real '+tc+'" style="border-left:1px solid #CCC;">real</th>';
-    html+='<th style="width:16px;padding:0;background:'+hbg+';border-bottom:0.5px solid #D3D1C7;"></th>';
+    html+='<th style="width:4px;padding:0;background:'+hbg+';border-bottom:0.5px solid #D3D1C7;"></th>';
     if(showOrc)html+='<th class="wad-h-sub prev '+tc+'"><em>prev.</em></th>';
   });
   html+='<th class="wad-h-sub real wad-total-col" style="background:#C5CAE9;color:#283593;">real</th>';
@@ -6559,7 +6559,7 @@ function waDashRender(){
   const clrTR=saldoTotReal>=0?'#27500A':'#A32D2D';
   const clrTM=saldoTotMeta>=0?'#27500A':'#A32D2D';
   html+='<td class="wad-real sub wad-total-col" style="background:#C5CAE9;color:'+clrTR+';font-weight:700;padding-right:8px;border-left:1px solid #CCC;">'+(saldoTotReal>=0?'+':'')+fmt(Math.abs(saldoTotReal))+'</td>';
-  html+='<td style="width:16px;background:#C5CAE9;"></td>';
+  html+='<td style="width:4px;background:#C5CAE9;"></td>';
   html+='<td class="wad-prev sub wad-total-col" style="background:#C8B99A;color:'+clrTM+';font-weight:700;padding-right:8px;">'+(saldoTotMeta>=0?'+':'')+fmt(Math.abs(saldoTotMeta))+'</td>';
   html+='</tr></tbody></table></div>';
 
