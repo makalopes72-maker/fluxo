@@ -2061,7 +2061,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.69';
+const APP_VERSION='14.70';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6206,7 +6206,11 @@ function waSetType(t){
   waRenderLaunchForm();
 }
 
-function waDashDrill(tipo,cat,mIdx,year){
+function waDashDrill(el){
+  const tipo=el.dataset.tipo;
+  const cat=el.dataset.cat;
+  const mIdx=parseInt(el.dataset.m);
+  const year=parseInt(el.dataset.yr);
   // open right panel with transactions for tipo+cat in month mIdx of year
   const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const rp=document.getElementById('wa-right');
@@ -6913,9 +6917,13 @@ function waDashRender(){
           const mv=waDashGetMeta(user,tipo,cat,m);
           const fc=farolClass(rv,mv,farolInd,isPos);
           const cbg=isCur?'#FFF9C4':isFut?'#F5F5F5':'#fff';
-          const te2=tipo.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-          const ce2=cat.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-          html+='<td class="wad-real '+mt+'" style="border-left:1px solid #CCC;padding-right:8px;'+farolShadow(fc)+(rv?'cursor:pointer;':'')+'" '+(rv?'onclick="waDashDrill(''+te2+'',''+ce2+'','+m+','+dashYear+')" title="Ver transações"':'')+'>'+fmt(rv)+'</td>';
+          const te2=tipo.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+          const ce2=cat.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+          if(rv){
+            html+='<td class="wad-real '+mt+'" data-tipo="'+te2+'" data-cat="'+ce2+'" data-m="'+m+'" data-yr="'+dashYear+'" onclick="waDashDrill(this)" title="Ver transações" style="border-left:1px solid #CCC;padding-right:8px;cursor:pointer;'+farolShadow(fc)+'">'+fmt(rv)+'</td>';
+          } else {
+            html+='<td class="wad-real '+mt+'" style="border-left:1px solid #CCC;padding-right:8px;'+farolShadow(fc)+'"></td>';
+          }
           if(showOrc){
             const te=tipo.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
             const ce=cat.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
