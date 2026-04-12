@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#004D40,#F9A825);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F2F1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(224,242,241,.65) !important;}
-  #splash .splash-version{color:rgba(224,242,241,.35) !important;}
-  #splash .splash-btn{background:#E0F2F1 !important;color:#004D40 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F2F1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#263238,#43A047);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
+  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
+  #splash .splash-btn{background:#ECEFF1 !important;color:#263238 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2043,7 +2043,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.55';
+const APP_VERSION='14.56';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3780,7 +3780,7 @@ function getExtFiltered(){
     if(!ok)return false;
     if(extPeriod==='mes')ok=d.getMonth()===extMonth&&d.getFullYear()===extYear;
     else if(extPeriod==='30d'){const cut=new Date();cut.setHours(0,0,0,0);cut.setDate(cut.getDate()-30);const tod=new Date();tod.setHours(23,59,59,999);ok=d>=cut&&d<=tod;}
-    else if(extPeriod==='ano')ok=d.getFullYear()===now.getFullYear();
+    else if(extPeriod==='ano')ok=d.getFullYear()===extYear;
     else if(extPeriod==='futuras')ok=d>today;
     if(extContas.length&&!extContas.includes(t.account))ok=false;
     if(extPastas.length&&!extPastas.includes(t.tipo))ok=false;
@@ -5546,10 +5546,7 @@ const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+A
         <span class="wa-ic">◎</span><span class="wa-lbl">Início</span>
       </button>
       <button class="wa-nav-item" id="wanav-add" onclick="waGo('add')">
-        <span class="wa-ic">＋</span><span class="wa-lbl">Lançar</span>
-      </button>
-      <button class="wa-nav-item" id="wanav-hist" onclick="waGo('hist')">
-        <span class="wa-ic">≡</span><span class="wa-lbl">Extrato</span>
+        <span class="wa-ic">＋≡</span><span class="wa-lbl">Lançar / Extrato</span>
       </button>
       <button class="wa-nav-item" id="wanav-inv" onclick="waGo('inv')">
         <span class="wa-ic">📈</span><span class="wa-lbl">Investimentos</span>
@@ -5745,7 +5742,8 @@ function waShowCfg(){
   body.appendChild(wrap);
 }
 function waShowLaunch(){
-  document.getElementById('wa-center-title').textContent='Extrato';
+  document.getElementById('wa-center-title').textContent='Lançar / Extrato';
+  document.getElementById('wa-center-actions').innerHTML='';
   document.getElementById('wa-right-title').textContent='Lançar transação';
   const _nb=document.getElementById('wa-new-btn');if(_nb)_nb.style.display='block';
   // reabrir painel direito
@@ -5919,6 +5917,45 @@ function waRenderExtrato(){
 }
 
 
+function waExtYearModal(){
+  const curYear=new Date().getFullYear();
+  // get all years present in allData
+  const years=new Set(allData.map(t=>{const d=parseDate(t.date);return d?d.getFullYear():null;}).filter(Boolean));
+  years.add(curYear);
+  const sorted=[...years].sort((a,b)=>b-a);
+
+  // create modal
+  let modal=document.getElementById('wa-year-modal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='wa-year-modal';
+    modal.style.cssText='position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;';
+    modal.onclick=function(e){if(e.target===modal)modal.remove();};
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML='<div style="background:var(--bg);border-radius:16px;padding:20px;min-width:200px;max-width:280px;width:100%;">'
+    +'<div style="font-size:.85rem;font-weight:700;color:var(--font);margin-bottom:14px;">Selecionar ano</div>'
+    +sorted.map(y=>'<button onclick="waExtSelectYear('+y+')" style="display:block;width:100%;padding:10px 14px;text-align:left;border:none;background:'+(y===extYear?'var(--btn)':'transparent')+';color:'+(y===extYear?'#0f0f11':'var(--font)')+';font-family:var(--font-body);font-size:.88rem;border-radius:8px;cursor:pointer;margin-bottom:4px;">'+y+(y===curYear?' (atual)':'')+'</button>').join('')
+    +'<button onclick="document.getElementById('wa-year-modal').remove();" style="display:block;width:100%;padding:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.82rem;border-radius:10px;cursor:pointer;margin-top:8px;">Cancelar</button>'
+    +'</div>';
+}
+
+async function waExtSelectYear(y){
+  const modal=document.getElementById('wa-year-modal');
+  if(modal)modal.remove();
+  extYear=y;
+  // load if not in memory
+  const have=allData.some(t=>{const d=parseDate(t.date);return d&&d.getFullYear()===y;});
+  if(!have){
+    waSyncIndicator('Carregando '+y+'...','var(--muted)',true);
+    const orig=syncYears.slice();syncYears=[y];
+    try{await loadData();waSyncIndicator('✓ '+y+' carregado','#059669',false);}
+    catch(e){waSyncIndicator('Dados locais','#F9A825',false);}
+    syncYears=orig;
+  }
+  waExtPeriod('ano');
+}
+
 async function waExtChangeYear(d){
   const curYear=new Date().getFullYear();
   extYear=Math.min(curYear,extYear+d);
@@ -5958,8 +5995,8 @@ function waTogglePasta(name){
 }
 function waExtPeriod(p){
   extPeriod=p;
-  if(p==='mes'){extMonth=new Date().getMonth();extYear=new Date().getFullYear();}
-  if(p==='ano'){extYear=new Date().getFullYear();}
+  // don't reset year — keep whatever year is selected
+  if(p==='mes'&&extYear===new Date().getFullYear())extMonth=new Date().getMonth();
   waRenderExtrato();
 }
 
