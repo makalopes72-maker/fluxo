@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4527A0,#00838F);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#EDE7F6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(237,231,246,.65) !important;}
-  #splash .splash-version{color:rgba(237,231,246,.35) !important;}
-  #splash .splash-btn{background:#EDE7F6 !important;color:#4527A0 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EDE7F6 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1B5E20,#880E4F);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
+  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
+  #splash .splash-btn{background:#F1F8E9 !important;color:#1B5E20 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2061,7 +2061,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.74';
+const APP_VERSION='14.75';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -7043,10 +7043,17 @@ function waDashEditMeta(td,tipo,cat,mIdx,curVal){
 
 function waShowInv(){
   document.getElementById('wa-center-title').textContent='Investimentos';
-  document.getElementById('wa-center-actions').innerHTML='';
   document.getElementById('wa-right-title').textContent='--';
   document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">--</div>';
   const fb=document.getElementById('wa-filter-bar');if(fb)fb.remove();
+
+  // sync button in header
+  const fb2='padding:3px 10px;border-radius:20px;border:1px solid #D0D0D0;background:#fff;font-size:10px;cursor:pointer;color:#555;white-space:nowrap;';
+  document.getElementById('wa-center-actions').innerHTML=
+    '<div style="display:flex;align-items:center;gap:6px;">'
+    +'<span id="wai-sync-status" style="font-size:.65rem;color:var(--muted);"></span>'
+    +'<button onclick="waInvSync()" style="'+fb2+'">↻ Sincronizar investimentos</button>'
+    +'</div>';
 
   // 3-col layout: instituicoes | ativos | detalhe
   document.getElementById('wa-center-body').innerHTML=`
@@ -7089,15 +7096,8 @@ function waShowInv(){
     </div>`;
 
   waInvRenderInst();
-  // auto-sync from sheets
-  waSyncIndicator('Carregando investimentos...','var(--muted)',true);
-  loadInvFromSheets().then(()=>{
-    waSyncIndicator('✓ Investimentos carregados','#059669',false);
-    waInvRenderInst();
-  }).catch(e=>{
-    console.warn('inv load fail',e);
-    waSyncIndicator('Dados locais','#F9A825',false);
-  });
+  // auto-sync on open
+  waInvSync();
 }
 
 function waInvSetTab(tab){
