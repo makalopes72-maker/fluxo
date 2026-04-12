@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4A148C,#1565C0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F3E5F5 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(243,229,245,.65) !important;}
-  #splash .splash-version{color:rgba(243,229,245,.35) !important;}
-  #splash .splash-btn{background:#F3E5F5 !important;color:#4A148C !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F3E5F5 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#006064,#E64A19);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
+  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
+  #splash .splash-btn{background:#E0F7FA !important;color:#006064 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2043,7 +2043,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.57';
+const APP_VERSION='14.58';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5919,12 +5919,11 @@ function waRenderExtrato(){
 
 function waExtYearModal(){
   const curYear=new Date().getFullYear();
-  // get all years present in allData
+  // years in allData + last 5 years minimum
   const years=new Set(allData.map(t=>{const d=parseDate(t.date);return d?d.getFullYear():null;}).filter(Boolean));
-  years.add(curYear);
+  for(let y=curYear;y>=curYear-5;y--)years.add(y);
   const sorted=[...years].sort((a,b)=>b-a);
 
-  // create modal
   let modal=document.getElementById('wa-year-modal');
   if(!modal){
     modal=document.createElement('div');
@@ -5944,16 +5943,23 @@ async function waExtSelectYear(y){
   const modal=document.getElementById('wa-year-modal');
   if(modal)modal.remove();
   extYear=y;
+  extPeriod='ano';
   // load if not in memory
   const have=allData.some(t=>{const d=parseDate(t.date);return d&&d.getFullYear()===y;});
   if(!have){
     waSyncIndicator('Carregando '+y+'...','var(--muted)',true);
-    const orig=syncYears.slice();syncYears=[y];
-    try{await loadData();waSyncIndicator('✓ '+y+' carregado','#059669',false);}
-    catch(e){waSyncIndicator('Dados locais','#F9A825',false);}
+    const orig=syncYears.slice();
+    syncYears=[y];
+    try{
+      await loadData();
+      waSyncIndicator('✓ '+y+' carregado','#059669',false);
+    }catch(e){
+      waSyncIndicator('Dados locais','#F9A825',false);
+    }
     syncYears=orig;
   }
-  waExtPeriod('ano');
+  // always re-render extrato
+  waRenderExtrato();
 }
 
 async function waExtChangeYear(d){
