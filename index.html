@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1A237E,#00897B);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E8EAF6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(232,234,246,.65) !important;}
-  #splash .splash-version{color:rgba(232,234,246,.35) !important;}
-  #splash .splash-btn{background:#E8EAF6 !important;color:#1A237E !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8EAF6 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#BF360C,#0277BD);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FBE9E7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(251,233,231,.65) !important;}
+  #splash .splash-version{color:rgba(251,233,231,.35) !important;}
+  #splash .splash-btn{background:#FBE9E7 !important;color:#BF360C !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FBE9E7 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.24';
+const APP_VERSION='14.25';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6563,10 +6563,13 @@ function waDashTogHideZero(){
 
 function waDashToggleAll(){
   if(!window.waDashCollapsed)window.waDashCollapsed={};
-  const ud=orcData[currentUser||'ALE']||{};
-  const allTipos=Object.keys(ud);
-  const anyExpanded=allTipos.some(t=>!window.waDashCollapsed[t]);
-  allTipos.forEach(t=>window.waDashCollapsed[t]=anyExpanded);
+  const user=currentUser||'ALE';
+  const ud=orcData[user]||{};
+  const receitaTipos=['Receita','Investimentos'];
+  const allTipos=new Set([...Object.keys(ud),...allData.map(t=>t.tipo||t.cat||'Outros')]);
+  const sorted=[...receitaTipos.filter(t=>allTipos.has(t)),...[...allTipos].filter(t=>!receitaTipos.includes(t)).sort()];
+  const anyExpanded=sorted.some(t=>!window.waDashCollapsed[t]);
+  sorted.forEach(t=>window.waDashCollapsed[t]=anyExpanded);
   waDashRenderHeader();
   waDashRender();
 }
