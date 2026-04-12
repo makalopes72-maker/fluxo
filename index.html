@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#00838F,#7B1FA2);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
-  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
-  #splash .splash-btn{background:#E0F7FA !important;color:#00838F !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#827717,#1565C0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F9FBE7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(249,251,231,.65) !important;}
+  #splash .splash-version{color:rgba(249,251,231,.35) !important;}
+  #splash .splash-btn{background:#F9FBE7 !important;color:#827717 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F9FBE7 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.35';
+const APP_VERSION='14.36';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6258,6 +6258,10 @@ function waDashRenderHeader(){
     +'style="padding:4px 10px;border-radius:10px;border:0.5px solid #B4B2A9;background:'+(hideZero?'#1a1a1a':'transparent')+';color:'+(hideZero?'#fff':'#888')+';font-size:.65rem;cursor:pointer;white-space:nowrap;">'
     +(hideZero?'▣ só lançados':'□ todos')
     +'</button>'
+    +'<button onclick="window.waDashShowTotals=!window.waDashShowTotals;waDashRenderHeader();waDashRender();" '
+    +'style="padding:4px 10px;border-radius:10px;border:0.5px solid #B4B2A9;background:'+(window.waDashShowTotals?'#1a1a1a':'transparent')+';color:'+(window.waDashShowTotals?'#fff':'#888')+';font-size:.65rem;cursor:pointer;white-space:nowrap;">'
+    +(window.waDashShowTotals?'▣ totais':'□ totais')
+    +'</button>'
     +'<button onclick="waDashToggleAll()" '
     +'style="padding:4px 10px;border-radius:10px;border:0.5px solid #B4B2A9;background:transparent;color:#888;font-size:.65rem;cursor:pointer;white-space:nowrap;">'
     +(Object.values(window.waDashCollapsed||{}).some(v=>!v)||!Object.keys(window.waDashCollapsed||{}).length?'▾ recolher tudo':'▸ expandir tudo')
@@ -6329,6 +6333,8 @@ function waDashRender(){
   ];
 
   if(!window.waDashCollapsed)window.waDashCollapsed={};
+  if(window.waDashShowTotals===undefined)window.waDashShowTotals=true;
+  const showTotals=window.waDashShowTotals;
   if(!window.waDashShowOrc)window.waDashShowOrc={};
 
   // faróis only for past/current months
@@ -6431,7 +6437,13 @@ function waDashRender(){
     html+='<th class="wad-h-mes '+cls+'" colspan="'+cols+'" style="border-left:1px solid #CCC;">'+MESES[m]+'. '+yr+tog+'</th>';
   });
   // total column
-  html+='<th class="wad-h-mes fut wad-total-col" colspan="2" style="background:#E8EAF6;color:#283593;">Total</th>';
+  // spacer between months and totals
+  html+='<th rowspan="2" style="width:8px;min-width:8px;background:#E8E8E8;border-left:3px solid #999;padding:0;"></th>';
+  if(showTotals){
+    html+='<th colspan="2" style="text-align:center;padding:4px 6px;font-size:9px;font-weight:600;background:#E8EAF6;color:#283593;border-left:3px solid #888;">Realizado</th>';
+    html+='<th colspan="2" style="text-align:center;padding:4px 6px;font-size:9px;font-weight:600;background:#EDE4D8;color:#6D4C41;border-left:2px solid #999;">Meta válida</th>';
+    html+='<th colspan="2" style="text-align:center;padding:4px 6px;font-size:9px;font-weight:600;background:#F0EDE8;color:#999;border-left:2px solid #bbb;">Meta anual</th>';
+  }
   html+='</tr><tr>';
   visMonths.forEach(m=>{
     const isPast=m<curM,isCur=m===curM,isFut=m>curM;
@@ -6442,8 +6454,14 @@ function waDashRender(){
 
     if(showOrc)html+='<th class="wad-h-sub prev '+tc+'"><em>prev.</em></th>';
   });
-  html+='<th class="wad-h-sub real wad-total-col" style="background:#C5CAE9;color:#283593;">real</th>';
-  html+='<th class="wad-h-sub prev wad-total-col" style="background:#DDD5C0;color:#4E342E;"><em>prev.</em></th>';
+  if(showTotals){
+    html+='<th style="padding:3px 6px;font-size:9px;color:#283593;background:#C5CAE9;border-left:3px solid #888;text-align:right;font-weight:600;">total</th>';
+    html+='<th style="padding:3px 6px;font-size:9px;color:#5C6BC0;background:#C5CAE9;text-align:right;font-weight:400;font-style:italic;">média</th>';
+    html+='<th style="padding:3px 6px;font-size:9px;color:#6D4C41;background:#DDD5C0;border-left:2px solid #999;text-align:right;font-weight:600;">total</th>';
+    html+='<th style="padding:3px 6px;font-size:9px;color:#8D6E63;background:#DDD5C0;text-align:right;font-weight:400;font-style:italic;">média</th>';
+    html+='<th style="padding:3px 6px;font-size:9px;color:#888;background:#E8E2D9;border-left:2px solid #bbb;text-align:right;font-weight:400;">total</th>';
+    html+='<th style="padding:3px 6px;font-size:9px;color:#aaa;background:#E8E2D9;text-align:right;font-weight:400;font-style:italic;">média</th>';
+  }
   html+='</tr></thead><tbody>';
 
   // grand totals accumulators
@@ -6583,6 +6601,8 @@ function waDashTogHideZero(){
 
 function waDashToggleAll(){
   if(!window.waDashCollapsed)window.waDashCollapsed={};
+  if(window.waDashShowTotals===undefined)window.waDashShowTotals=true;
+  const showTotals=window.waDashShowTotals;
   const user=currentUser||'ALE';
   const ud=orcData[user]||{};
   const receitaTipos=['Receita','Investimentos'];
@@ -6595,6 +6615,8 @@ function waDashToggleAll(){
 }
 function waDashTogglePasta(tipo){
   if(!window.waDashCollapsed)window.waDashCollapsed={};
+  if(window.waDashShowTotals===undefined)window.waDashShowTotals=true;
+  const showTotals=window.waDashShowTotals;
   window.waDashCollapsed[tipo]=!window.waDashCollapsed[tipo];
   waDashRender();
 }
