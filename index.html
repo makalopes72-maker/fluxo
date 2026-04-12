@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#BF360C,#1565C0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FBE9E7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(251,233,231,.65) !important;}
-  #splash .splash-version{color:rgba(251,233,231,.35) !important;}
-  #splash .splash-btn{background:#FBE9E7 !important;color:#BF360C !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FBE9E7 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#00695C,#F57F17);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0F2F1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(224,242,241,.65) !important;}
+  #splash .splash-version{color:rgba(224,242,241,.35) !important;}
+  #splash .splash-btn{background:#E0F2F1 !important;color:#00695C !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F2F1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.40';
+const APP_VERSION='14.41';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6507,13 +6507,13 @@ function waDashRender(){
     });
     // total col
     const subRv=totReal.reduce((s,v)=>s+v,0),subMv=totMeta.reduce((s,v)=>s+v,0);
-    const gtfc=farolClass(gRV,gMV,'A',isPos);
     const gRV=validMs.reduce((s,m)=>s+(totReal[m]||0),0);
     const gAR=validCount?Math.round(gRV/validCount):0;
     const gMV=validMs.reduce((s,m)=>s+(totMeta[m]||0),0);
     const gAM=validCount?Math.round(gMV/validCount):0;
     const gMA=totMeta.reduce((s,v)=>s+v,0);
     const gAA=Math.round(gMA/12)||0;
+    const gtfc=farolClass(gRV,gMV,'A',isPos);
     html+='<td style="width:8px;background:#444;border-left:3px solid #777;padding:0;"></td>';
     if(showTotals){
       html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:700;color:#fff;background:#1a1a1a;border-left:3px solid #888;'+farolShadow(gtfc)+'">'+(gRV?fmt(gRV):'')+'</td>';
@@ -6558,10 +6558,10 @@ function waDashRender(){
           }
         });
         // total col
-        const tfc=farolClass(cRV,cMV,farolInd,isPos);
         const cRV=validMs.reduce((s,m)=>s+(catRealAll[m]||0),0);
         const cMV=validMs.reduce((s,m)=>s+waDashGetMeta(user,tipo,cat,m),0);
         const cMA=catTotMeta;
+        const tfc=farolClass(cRV,cMV,farolInd,isPos);
         html+='<td style="width:8px;background:#E0E0E0;border-left:3px solid #999;padding:0;"></td>';
         if(showTotals){
           html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:10px;font-weight:700;background:#E8EAF6;color:#283593;border-left:3px solid #888;'+farolShadow(tfc)+'">'+fmt(cRV)+'</td>';
