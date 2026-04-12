@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0D2137,#C8A84B);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E3F2FD !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
-  #splash .splash-sub{color:rgba(227,242,253,.65) !important;}
-  #splash .splash-version{color:rgba(227,242,253,.35) !important;}
-  #splash .splash-btn{background:#E3F2FD !important;color:#0D2137 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E3F2FD !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1A237E,#F57F17);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E8EAF6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(232,234,246,.65) !important;}
+  #splash .splash-version{color:rgba(232,234,246,.35) !important;}
+  #splash .splash-btn{background:#E8EAF6 !important;color:#1A237E !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8EAF6 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.53';
+const APP_VERSION='14.54';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6518,6 +6518,8 @@ function waDashRender(){
   const now=new Date();
   const curM=now.getMonth();
   const yr=now.getFullYear();
+  const dashYear=window.waDashYear||yr;
+  const isPastYear=dashYear<yr;
   const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const fmt=n=>n?Math.round(n).toLocaleString('pt-BR'):'';
 
@@ -6627,13 +6629,12 @@ function waDashRender(){
   }
 
   // -- determine visible months --
-  const dashYear=window.waDashYear||yr;
-  const isPastYear=dashYear<yr;
+  // for past years, treat all months as "past" (December = last month)
+  const effectiveCurM=isPastYear?11:curM;
   const pastSel=window.waDashPastSel!==undefined?window.waDashPastSel:3;
   const futSel=window.waDashFutSel!==undefined?window.waDashFutSel:2;
   const visMonths=[];
   if(isPastYear){
-    // full year for past years
     for(let m=0;m<12;m++)visMonths.push(m);
   } else {
     for(let m=Math.max(0,curM-pastSel);m<=Math.min(11,curM+futSel);m++)visMonths.push(m);
@@ -6644,7 +6645,7 @@ function waDashRender(){
   html+='<th class="wad-lbl-h" rowspan="2">Pasta / Categoria</th>';
 
   visMonths.forEach(m=>{
-    const isPast=m<curM,isCur=m===curM;
+    const isPast=m<effectiveCurM,isCur=m===effectiveCurM;
     const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
     const cols=showOrc?2:1;
     const tog=isPast?'<span class="wad-tog" onclick="waDashTogOrc('+m+',event)">'+(showOrc?'◂':'▸')+'</span>':'';
@@ -6661,7 +6662,7 @@ function waDashRender(){
   }
   html+='</tr><tr>';
   visMonths.forEach(m=>{
-    const isPast=m<curM,isCur=m===curM,isFut=m>curM;
+    const isPast=m<effectiveCurM,isCur=m===effectiveCurM,isFut=m>effectiveCurM;
     const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
     const tc=isCur?'cur':isFut?'fut':'';
     const hbg=isCur?'#FFF9C4':isFut?'#F5F5F5':'#fff';
@@ -6713,7 +6714,7 @@ function waDashRender(){
       +'<span style="font-size:9px;margin-right:5px;opacity:.7;">'+(collapsed?'▸':'▾')+'</span>'
       +tipo.toUpperCase()+'</td>';
     visMonths.forEach(m=>{
-      const isPast=m<curM,isCur=m===curM,isFut=m>curM;
+      const isPast=m<effectiveCurM,isCur=m===effectiveCurM,isFut=m>effectiveCurM;
       const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
       const rv=totReal[m],mv=totMeta[m];
       const gfc=farolClass(rv,mv,'A',isPos);
@@ -6758,7 +6759,7 @@ function waDashRender(){
         html+='<td class="wad-lbl cat" style="background:#fff;"><span style="font-size:8px;font-weight:700;color:#B4B2A9;margin-right:2px;">'+tipoInd+'</span>'
           +'<span style="font-size:8px;font-weight:700;color:'+farolColor+';margin-right:5px;">'+farolInd+'</span>'+cat+'</td>';
         visMonths.forEach(m=>{
-          const isPast=m<curM,isCur=m===curM,isFut=m>curM;
+          const isPast=m<effectiveCurM,isCur=m===effectiveCurM,isFut=m>effectiveCurM;
           const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
           const mt=isCur?'cur':isFut?'fut':'past';
           const rv=catRealAll[m]||0;
@@ -6800,7 +6801,7 @@ function waDashRender(){
   html+='<td class="wad-lbl sub" style="position:sticky;left:0;z-index:3;background:#1a1a1a;color:#fff;text-align:center;box-shadow:2px 0 4px rgba(0,0,0,.15);">SALDO</td>';
 
   visMonths.forEach(m=>{
-    const isPast=m<curM,isCur=m===curM,isFut=m>curM;
+    const isPast=m<effectiveCurM,isCur=m===effectiveCurM,isFut=m>effectiveCurM;
     const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
     const cur=isCur?' cur':'';
     const rv=grandReal[m],mv=grandMeta[m];
