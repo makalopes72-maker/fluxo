@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1A237E,#C62828);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E8EAF6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(232,234,246,.65) !important;}
-  #splash .splash-version{color:rgba(232,234,246,.35) !important;}
-  #splash .splash-btn{background:#E8EAF6 !important;color:#1A237E !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8EAF6 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#006064,#4A148C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
+  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
+  #splash .splash-btn{background:#E0F7FA !important;color:#006064 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2043,7 +2043,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.65';
+const APP_VERSION='14.66';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6968,18 +6968,35 @@ function waOnLogin(){
 }
 
 function waSyncIndicator(msg,color,pulse){
-  // persistent indicator in sidebar footer area
+  // ensure pulse animation style exists
+  if(!document.getElementById('wa-sync-style')){
+    const st=document.createElement('style');
+    st.id='wa-sync-style';
+    st.textContent='@keyframes waPulse{0%,100%{opacity:.3}50%{opacity:1}}';
+    document.head.appendChild(st);
+  }
   let ind=document.getElementById('wa-sync-ind');
   if(!ind){
     ind=document.createElement('div');
     ind.id='wa-sync-ind';
-    ind.style.cssText='position:fixed;bottom:10px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:4px 12px;display:flex;align-items:center;gap:6px;font-family:var(--font-body);font-size:.65rem;box-shadow:0 2px 8px rgba(0,0,0,.12);transition:all .3s;';
-    document.body.appendChild(ind);
+    // insert inside sidebar, above .wa-brand
+    const sidebar=document.getElementById('wa-sidebar');
+    const brand=sidebar?sidebar.querySelector('.wa-brand'):null;
+    if(brand){
+      sidebar.insertBefore(ind,brand);
+    } else {
+      document.body.appendChild(ind);
+    }
   }
-  const dot=pulse?'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+color+';animation:waPulse 1s infinite;"></span>':'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+color+';"></span>';
-  ind.innerHTML=dot+'<span style="color:'+color+';">'+msg+'</span>';
-  ind.style.opacity='1';
-  if(!pulse)setTimeout(()=>{if(ind)ind.style.opacity='0';setTimeout(()=>ind.remove(),400);},4000);
+  ind.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 14px;background:'+(pulse?'#1a1a1a':'#F0FDF4')+';border-bottom:1px solid '+(pulse?'#333':'#BBF7D0')+';transition:all .3s;overflow:hidden;';
+  const dot=pulse
+    ?'<span style="flex-shrink:0;display:inline-block;width:8px;height:8px;border-radius:50%;background:'+color+';animation:waPulse .8s infinite;"></span>'
+    :'<span style="flex-shrink:0;display:inline-block;width:8px;height:8px;border-radius:50%;background:'+color+';"></span>';
+  ind.innerHTML=dot+'<span style="font-size:.62rem;font-weight:600;color:'+(pulse?'#fff':color)+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+msg+'</span>';
+  if(!pulse)setTimeout(()=>{
+    if(ind){ind.style.opacity='0';ind.style.maxHeight='0';ind.style.padding='0';}
+    setTimeout(()=>{if(ind)ind.remove();},400);
+  },3000);
 }
 
 async function waAutoSync(){
