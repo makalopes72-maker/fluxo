@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#E64A19,#0D47A1);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FBE9E7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(251,233,231,.65) !important;}
-  #splash .splash-version{color:rgba(251,233,231,.35) !important;}
-  #splash .splash-btn{background:#FBE9E7 !important;color:#E64A19 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FBE9E7 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#00695C,#880E4F);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0F2F1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(224,242,241,.65) !important;}
+  #splash .splash-version{color:rgba(224,242,241,.35) !important;}
+  #splash .splash-btn{background:#E0F2F1 !important;color:#00695C !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F2F1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.18';
+const APP_VERSION='14.19';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6510,7 +6510,7 @@ function waDashRender(){
     const subRealTot=totReal.reduce((s,v)=>s+v,0);
     const subMetaTot=totMeta.reduce((s,v)=>s+v,0);
     html+='<tr>';
-    html+='<td class="wad-lbl sub">'+tipo.toUpperCase()+'</td>';
+    html+='<td class="wad-lbl sub" style="padding-left:22px;text-align:left;font-weight:700;">TOTAL '+tipo.toUpperCase()+'</td>';
     visMonths.forEach(m=>{
       const isPast=m<curM,isCur=m===curM,isFut=m>curM;
       const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
