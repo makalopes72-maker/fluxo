@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Fluxo</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=Syne:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600&family=Outfit:wght@300;400;500;600&family=Inter:wght@300;400;500;600&family=Nunito:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=Syne:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600&family=Outfit:wght@300;400;500;600&family=Inter:wght@300;400;500;600&family=Nunito:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&family=Roboto+Condensed:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#f5f4f0;--card:#ece9e3;--kp:#e0ddd5;
@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#BF360C,#0277BD);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FBE9E7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(251,233,231,.65) !important;}
-  #splash .splash-version{color:rgba(251,233,231,.35) !important;}
-  #splash .splash-btn{background:#FBE9E7 !important;color:#BF360C !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FBE9E7 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#263238,#26A69A);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
+  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
+  #splash .splash-btn{background:#ECEFF1 !important;color:#263238 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.25';
+const APP_VERSION='14.27';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5582,12 +5582,94 @@ function waGo(screen){
   if(screen==='add'||screen==='hist') waShowLaunch();
   else if(screen==='dash') waShowDash();
   else if(screen==='inv') waShowInv();
+  else if(screen==='cfg') waShowCfg();
   else {
     document.getElementById('wa-center-title').textContent=screen;
     document.getElementById('wa-center-body').innerHTML='<div class="wa-empty">Em breve</div>';
     document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">—</div>';
     document.getElementById('wa-right-title').textContent='—';
   }
+}
+
+function waShowCfg(){
+  document.getElementById('wa-center-title').textContent='Configurações';
+  document.getElementById('wa-right-title').textContent='—';
+  document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">—</div>';
+  const rp=document.getElementById('wa-right');if(rp)rp.classList.add('collapsed');
+  const btn=document.getElementById('wa-toggle-btn');if(btn)btn.textContent='‹';
+  const fb=document.getElementById('wa-filter-bar');if(fb)fb.remove();
+  document.getElementById('wa-center-actions').innerHTML='';
+  const fonts=[
+    {id:'Inter',label:'Inter — clean e moderna'},
+    {id:'IBM Plex Sans',label:'IBM Plex Sans — técnica, planilha'},
+    {id:'Roboto Condensed',label:'Roboto Condensed — compacta'},
+    {id:'DM Sans',label:'DM Sans — arredondada'},
+    {id:'Outfit',label:'Outfit — geométrica'},
+    {id:'Space Grotesk',label:'Space Grotesk — contemporânea'},
+    {id:'Syne',label:'Syne — atual (padrão app)'},
+  ];
+  const selStyle='width:100%;padding:6px 8px;border-radius:8px;border:1px solid #ccc;font-size:11px;background:#fff;cursor:pointer;margin-top:4px;';
+  const lblStyle='font-size:10px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:2px;';
+  const secStyle='margin-bottom:20px;';
+  const previewStyle='margin-top:8px;padding:8px 10px;border:1px solid #eee;border-radius:6px;font-size:11px;';
+  
+  document.getElementById('wa-center-body').innerHTML=`
+  <div style="padding:16px;max-width:480px;">
+    <div style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:16px;">Aparência Web</div>
+
+    <div style="${secStyle}">
+      <label style="${lblStyle}">Fonte — Painel Início (tabela)</label>
+      <select id="wa-cfg-dash-font" style="${selStyle}" onchange="waAppearance.dashFont=this.value;waSaveAppearance();waUpdateCfgPreview();">
+        ${fonts.map(f=>'<option value="'+f.id+'"'+(waAppearance.dashFont===f.id?' selected':'')+'>'+f.label+'</option>').join('')}
+      </select>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+        <label style="font-size:10px;color:#888;">Tamanho</label>
+        <input type="range" min="8" max="13" step="1" value="${waAppearance.dashFontSize}" id="wa-cfg-dash-size"
+          oninput="waAppearance.dashFontSize=+this.value;document.getElementById('wa-cfg-dash-size-val').textContent=this.value+'px';waSaveAppearance();waUpdateCfgPreview();"
+          style="flex:1;">
+        <span id="wa-cfg-dash-size-val" style="font-size:10px;color:#888;min-width:28px;">${waAppearance.dashFontSize}px</span>
+      </div>
+      <div id="wa-cfg-dash-preview" style="${previewStyle}font-family:'${waAppearance.dashFont}',sans-serif;font-size:${waAppearance.dashFontSize}px;">
+        <table style="border-collapse:collapse;width:100%;">
+          <tr style="background:#1a1a1a;color:#fff;"><td style="padding:3px 8px;font-size:9px;">ALIMENTAÇÃO</td><td style="padding:3px 8px;text-align:right;font-size:9px;">2.181</td><td style="padding:3px 8px;text-align:right;font-size:9px;width:8px;"></td><td style="padding:3px 8px;text-align:right;font-size:9px;color:rgba(255,255,255,.5);font-style:italic;">3.040</td></tr>
+          <tr><td style="padding:3px 8px 3px 20px;font-size:9px;color:#666;">Supermercado</td><td style="padding:3px 8px;text-align:right;">548</td><td style="padding:2px 4px;"><div style="width:8px;height:16px;background:#E53935;border-radius:1px;margin:0 auto;"></div></td><td style="padding:3px 8px;text-align:right;color:#A1887F;font-style:italic;">800</td></tr>
+          <tr><td style="padding:3px 8px 3px 20px;font-size:9px;color:#666;">Refeições em restaurante</td><td style="padding:3px 8px;text-align:right;">434</td><td style="padding:2px 4px;"><div style="width:8px;height:16px;background:#F9A825;border-radius:1px;margin:0 auto;"></div></td><td style="padding:3px 8px;text-align:right;color:#A1887F;font-style:italic;">1.100</td></tr>
+          <tr><td style="padding:3px 8px 3px 20px;font-size:9px;color:#666;">Café da Manhã / Padaria</td><td style="padding:3px 8px;text-align:right;">81</td><td style="padding:2px 4px;"><div style="width:8px;height:16px;background:#43A047;border-radius:1px;margin:0 auto;"></div></td><td style="padding:3px 8px;text-align:right;color:#A1887F;font-style:italic;">400</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div style="${secStyle}">
+      <label style="${lblStyle}">Fonte — Outras páginas (extrato, formulário)</label>
+      <select id="wa-cfg-page-font" style="${selStyle}" onchange="waAppearance.pageFont=this.value;waSaveAppearance();waUpdateCfgPreview();">
+        ${fonts.map(f=>'<option value="'+f.id+'"'+(waAppearance.pageFont===f.id?' selected':'')+'>'+f.label+'</option>').join('')}
+      </select>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+        <label style="font-size:10px;color:#888;">Tamanho</label>
+        <input type="range" min="10" max="16" step="1" value="${waAppearance.pageFontSize}" id="wa-cfg-page-size"
+          oninput="waAppearance.pageFontSize=+this.value;document.getElementById('wa-cfg-page-size-val').textContent=this.value+'px';waSaveAppearance();waUpdateCfgPreview();"
+          style="flex:1;">
+        <span id="wa-cfg-page-size-val" style="font-size:10px;color:#888;min-width:28px;">${waAppearance.pageFontSize}px</span>
+      </div>
+      <div id="wa-cfg-page-preview" style="${previewStyle}font-family:'${waAppearance.pageFont}',sans-serif;font-size:${waAppearance.pageFontSize}px;color:#333;">
+        <div style="margin-bottom:4px;color:#999;font-size:9px;">12/04/2026 — Supermercado</div>
+        <div style="font-weight:600;">R$ 548,00</div>
+        <div style="font-size:10px;color:#888;margin-top:2px;">Alimentação · Itaú</div>
+      </div>
+    </div>
+
+    <button onclick="waApplyAppearance();waSyncIndicator('✓ Aparência aplicada','#059669',false);"
+      style="width:100%;padding:10px;border-radius:10px;border:none;background:#1a1a1a;color:#fff;font-size:12px;font-weight:600;cursor:pointer;">
+      Aplicar agora
+    </button>
+  </div>`;
+}
+
+function waUpdateCfgPreview(){
+  const dp=document.getElementById('wa-cfg-dash-preview');
+  if(dp){dp.style.fontFamily="'"+waAppearance.dashFont+"',sans-serif";dp.style.fontSize=waAppearance.dashFontSize+'px';}
+  const pp=document.getElementById('wa-cfg-page-preview');
+  if(pp){pp.style.fontFamily="'"+waAppearance.pageFont+"',sans-serif";pp.style.fontSize=waAppearance.pageFontSize+'px';}
 }
 
 function waShowLaunch(){
@@ -6349,7 +6431,7 @@ function waDashRender(){
       .wad-wrap{overflow-x:auto;height:100%;}
       .wad-tbl{border-collapse:collapse;font-size:10px;min-width:900px;width:100%;}
       .wad-tbl th,.wad-tbl td{border:0.5px solid #D3D1C7;padding:0;}
-      .wad-lbl{position:sticky;left:0;z-index:3;background:#fff;white-space:nowrap;padding:3px 8px 3px 10px;font-size:10px;color:#2C2C2A;min-width:170px;max-width:200px;overflow:hidden;text-overflow:ellipsis;box-shadow:2px 0 4px rgba(0,0,0,.08);}
+      .wad-lbl{position:sticky;left:0;z-index:3;background:#fff;white-space:nowrap;padding:3px 8px 3px 10px;font-size:10px;color:#2C2C2A;min-width:140px;max-width:170px;overflow:hidden;text-overflow:ellipsis;box-shadow:2px 0 4px rgba(0,0,0,.08);}
       .wad-lbl.grupo{background:#1a1a1a;color:#fff;font-weight:700;font-size:8px;text-align:left;letter-spacing:.05em;cursor:pointer;}
       .wad-lbl.sub{background:#F1EFE8;font-weight:700;text-align:right;border-right:2px solid #B4B2A9;}
       .wad-lbl.cat{padding-left:22px;color:#5F5E5A;background:#fff;border-right:2px solid #B4B2A9;}
@@ -6382,7 +6464,7 @@ function waDashRender(){
       .f-v{background:#43A047;}.f-a{background:#F9A825;}.f-r{background:#E53935;}
       .wad-cell{display:flex;align-items:center;justify-content:flex-end;gap:2px;}
       thead.wad-head{position:sticky;top:0;z-index:4;}
-      .wad-lbl-h{position:sticky;left:0;z-index:6;background:#F1EFE8;padding:4px 10px;font-size:9px;font-weight:700;color:#5F5E5A;border-right:2px solid #B4B2A9;min-width:170px;box-shadow:2px 0 3px rgba(0,0,0,.07);}
+      .wad-lbl-h{position:sticky;left:0;z-index:6;background:#F1EFE8;padding:4px 10px;font-size:9px;font-weight:700;color:#5F5E5A;border-right:2px solid #B4B2A9;min-width:140px;max-width:170px;box-shadow:2px 0 3px rgba(0,0,0,.07);}
       .wad-tog{font-size:9px;color:#aaa;cursor:pointer;padding:0 4px;user-select:none;}
       .wad-total-col .wad-real{background:#E8EAF6;color:#283593;font-weight:700;}
       .wad-total-col .wad-prev{background:#DDD5C0;color:#6D4C41;font-weight:700;}
@@ -6519,8 +6601,12 @@ function waDashRender(){
           }
         });
         // total col
-        html+='<td class="wad-real wad-total-col" style="background:#E8EAF6;font-weight:700;">'+fmt(catTotReal)+'</td>';
-        html+='<td class="wad-prev wad-total-col" style="background:#DDD5C0;font-weight:700;">'+fmt(catTotMeta)+'</td>';
+        const tfcr=farolClass(catTotReal,catTotMeta,farolInd,isPos);
+        const tfbr=tfcr==='f-v'?'#43A047':tfcr==='f-a'?'#F9A825':tfcr==='f-r'?'#E53935':'transparent';
+        const tfcel=(catTotReal&&catTotMeta)?'<div style="width:8px;height:100%;min-height:18px;background:'+tfbr+';border-radius:1px;margin:0 auto;"></div>':'';
+        html+='<td class="wad-real wad-total-col" style="background:#E8EAF6;font-weight:700;padding-right:8px;">'+fmt(catTotReal)+'</td>';
+        html+='<td style="width:12px;padding:2px 2px;vertical-align:middle;background:#E8EAF6;">'+tfcel+'</td>';
+        html+='<td class="wad-prev wad-total-col" style="background:#DDD5C0;font-weight:700;padding-right:8px;">'+fmt(catTotMeta)+'</td>';
         html+='</tr>';
       });
     }
@@ -6542,16 +6628,21 @@ function waDashRender(){
     const mt3=isCur?'cur':isFut?'fut':'past';
     const clrR=rv>=0?'#27500A':'#A32D2D';
     const clrM=mv>=0?'#27500A':'#A32D2D';
-    html+='<td class="wad-real sub '+mt3+'" style="border-left:1px solid #CCC;color:'+clrR+';font-weight:700;">'+(rv?(rv>=0?'+':'')+fmt(Math.abs(rv)):'')+'</td>';
-    if(showOrc)html+='<td class="wad-prev sub '+mt3+'" style="color:'+clrM+';">'+(mv?(mv>=0?'+':'')+fmt(Math.abs(mv)):'')+'</td>';
+    html+='<td class="wad-real sub '+mt3+'" style="border-left:1px solid #CCC;color:'+clrR+';font-weight:700;padding-right:8px;">'+(rv?(rv>=0?'+':'')+fmt(Math.abs(rv)):'')+'</td>';
+    if(showOrc){
+      html+='<td style="width:12px;padding:2px 2px;vertical-align:middle;background:inherit;"></td>';
+      html+='<td class="wad-prev sub '+mt3+'" style="color:'+clrM+';padding-right:8px;">'+(mv?(mv>=0?'+':'')+fmt(Math.abs(mv)):'')+'</td>';
+    }
   });
   const clrTR=saldoTotReal>=0?'#27500A':'#A32D2D';
   const clrTM=saldoTotMeta>=0?'#27500A':'#A32D2D';
-  html+='<td class="wad-real sub wad-total-col" style="background:#C5CAE9;color:'+clrTR+';font-weight:700;">'+(saldoTotReal>=0?'+':'')+fmt(Math.abs(saldoTotReal))+'</td>';
-  html+='<td class="wad-prev sub wad-total-col" style="background:#C8B99A;color:'+clrTM+';font-weight:700;">'+(saldoTotMeta>=0?'+':'')+fmt(Math.abs(saldoTotMeta))+'</td>';
+  html+='<td class="wad-real sub wad-total-col" style="background:#C5CAE9;color:'+clrTR+';font-weight:700;padding-right:8px;">'+(saldoTotReal>=0?'+':'')+fmt(Math.abs(saldoTotReal))+'</td>';
+  html+='<td style="width:12px;padding:2px;background:#C5CAE9;"></td>';
+  html+='<td class="wad-prev sub wad-total-col" style="background:#C8B99A;color:'+clrTM+';font-weight:700;padding-right:8px;">'+(saldoTotReal>=0?'+':'')+fmt(Math.abs(saldoTotMeta))+'</td>';
   html+='</tr></tbody></table></div>';
 
   document.getElementById('wa-center-body').innerHTML=html;
+  setTimeout(waApplyAppearance,0);
 }
 
 function waDashTogHideZero(){
