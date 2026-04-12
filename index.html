@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#37474F,#AD1457);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
-  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
-  #splash .splash-btn{background:#ECEFF1 !important;color:#37474F !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1A237E,#E65100);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E8EAF6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(232,234,246,.65) !important;}
+  #splash .splash-version{color:rgba(232,234,246,.35) !important;}
+  #splash .splash-btn{background:#E8EAF6 !important;color:#1A237E !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8EAF6 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -953,20 +953,29 @@
     overflow:hidden;
   }
   #wa-sidebar .wa-brand{
-    padding:14px 16px 12px;
+    padding:6px 12px;
     border-bottom:1px solid var(--border);
     flex-shrink:0;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    height:37px;
+    box-sizing:border-box;
   }
   #wa-sidebar .wa-brand-logo{
     font-family:var(--font-display);
     font-size:1rem;
     color:var(--font);
     letter-spacing:-0.5px;
+    line-height:1;
   }
   #wa-sidebar .wa-brand-user{
-    font-size:.65rem;
+    font-size:.62rem;
     color:var(--muted);
-    margin-top:1px;
+    background:var(--kp);
+    border-radius:4px;
+    padding:1px 5px;
+    margin-top:0;
   }
   #wa-sidebar .wa-nav{
     flex:1;
@@ -2052,7 +2061,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.68';
+const APP_VERSION='14.69';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5544,7 +5553,7 @@ const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+A
   <!-- SIDEBAR -->
   <div id="wa-sidebar">
     <div class="wa-brand">
-      <div id="wa-brand-text">
+      <div id="wa-brand-text" style="display:flex;align-items:baseline;gap:6px;flex:1;min-width:0;">
         <div class="wa-brand-logo">fluxo</div>
         <div class="wa-brand-user" id="wa-user">ALE</div>
       </div>
@@ -6195,6 +6204,58 @@ function waValInputChange(v){}
 function waSetType(t){
   waLaunchState.type=t;
   waRenderLaunchForm();
+}
+
+function waDashDrill(tipo,cat,mIdx,year){
+  // open right panel with transactions for tipo+cat in month mIdx of year
+  const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const rp=document.getElementById('wa-right');
+  if(rp)rp.classList.remove('collapsed');
+  const tb=document.getElementById('wa-toggle-btn');
+  if(tb)tb.textContent='›';
+
+  const title=cat+' · '+MESES[mIdx]+'/'+String(year).slice(2);
+  document.getElementById('wa-right-title').textContent=title;
+
+  const user=currentUser||'ALE';
+  const txs=allData.filter(t=>{
+    const d=parseDate(t.date);
+    if(!d)return false;
+    if(d.getFullYear()!==year||d.getMonth()!==mIdx)return false;
+    if(t.tipo!==tipo||t.cat!==cat)return false;
+    const accts=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).map(a=>normalizeAcct(a.name));
+    return !accts.length||accts.includes(normalizeAcct(t.account));
+  }).sort((a,b)=>{
+    const ia=String(a._id||'').trim().padStart(20,'0');
+    const ib=String(b._id||'').trim().padStart(20,'0');
+    return ib>ia?1:-1;
+  });
+
+  const fmt=n=>n?Math.round(n).toLocaleString('pt-BR'):'0';
+  const tot=txs.reduce((s,t)=>s+t.value,0);
+
+  let html='<div style="padding:10px 12px;">'
+    +'<div style="font-size:.62rem;color:var(--muted);margin-bottom:8px;">'+txs.length+' transaç'+(txs.length===1?'ão':'ões')+' · Total R$ '+fmt(tot)+'</div>';
+
+  if(!txs.length){
+    html+='<div style="color:var(--muted);font-size:.75rem;padding:20px 0;text-align:center;">Nenhuma transação</div>';
+  } else {
+    txs.forEach(t=>{
+      const isIn=t.type==='entrada';
+      const color=isIn?'var(--accent2)':'var(--red)';
+      const dot='display:inline-block;width:7px;height:7px;border-radius:50%;border:1.5px solid '+(t.consolidated?'var(--font)':'var(--muted)')+';background:'+(t.consolidated?'var(--font)':'transparent')+';margin-right:5px;vertical-align:middle;';
+      html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);">'
+        +'<div style="flex:1;min-width:0;">'
+        +'<span style="'+dot+'"></span>'
+        +'<span style="font-size:.72rem;font-weight:500;color:var(--font);">'+(t.desc||t.cat)+'</span>'
+        +'<div style="font-size:.62rem;color:var(--muted);margin-left:12px;">'+t.date+' · '+(t.account||'--')+'</div>'
+        +'</div>'
+        +'<div style="font-size:.72rem;font-weight:700;color:'+color+';white-space:nowrap;margin-left:8px;">'+(isIn?'+':'-')+'R$ '+fmt(t.value)+'</div>'
+        +'</div>';
+    });
+  }
+  html+='</div>';
+  document.getElementById('wa-right-body').innerHTML=html;
 }
 
 function waToggleRight(){
@@ -6852,7 +6913,9 @@ function waDashRender(){
           const mv=waDashGetMeta(user,tipo,cat,m);
           const fc=farolClass(rv,mv,farolInd,isPos);
           const cbg=isCur?'#FFF9C4':isFut?'#F5F5F5':'#fff';
-          html+='<td class="wad-real '+mt+'" style="border-left:1px solid #CCC;padding-right:8px;'+farolShadow(fc)+'"><div class="wad-cell">'+fmt(rv)+'</div></td>';
+          const te2=tipo.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+          const ce2=cat.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+          html+='<td class="wad-real '+mt+'" style="border-left:1px solid #CCC;padding-right:8px;'+farolShadow(fc)+(rv?'cursor:pointer;':'')+'" '+(rv?'onclick="waDashDrill(''+te2+'',''+ce2+'','+m+','+dashYear+')" title="Ver transações"':'')+'>'+fmt(rv)+'</td>';
           if(showOrc){
             const te=tipo.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
             const ce=cat.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
