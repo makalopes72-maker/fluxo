@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#00838F,#AD1457);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
-  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
-  #splash .splash-btn{background:#E0F7FA !important;color:#00838F !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1A237E,#00897B);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E8EAF6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(232,234,246,.65) !important;}
+  #splash .splash-version{color:rgba(232,234,246,.35) !important;}
+  #splash .splash-btn{background:#E8EAF6 !important;color:#1A237E !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8EAF6 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2027,7 +2027,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.23';
+const APP_VERSION='14.24';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6349,7 +6349,7 @@ function waDashRender(){
       .wad-wrap{overflow-x:auto;height:100%;}
       .wad-tbl{border-collapse:collapse;font-size:10px;min-width:900px;width:100%;}
       .wad-tbl th,.wad-tbl td{border:0.5px solid #D3D1C7;padding:0;}
-      .wad-lbl{position:sticky;left:0;z-index:3;white-space:nowrap;padding:3px 8px 3px 10px;font-size:10px;color:#2C2C2A;min-width:170px;max-width:200px;overflow:hidden;text-overflow:ellipsis;box-shadow:2px 0 3px rgba(0,0,0,.07);}
+      .wad-lbl{position:sticky;left:0;z-index:3;background:#fff;white-space:nowrap;padding:3px 8px 3px 10px;font-size:10px;color:#2C2C2A;min-width:170px;max-width:200px;overflow:hidden;text-overflow:ellipsis;box-shadow:2px 0 4px rgba(0,0,0,.08);}
       .wad-lbl.grupo{background:#1a1a1a;color:#fff;font-weight:700;font-size:8px;text-align:left;letter-spacing:.05em;cursor:pointer;}
       .wad-lbl.sub{background:#F1EFE8;font-weight:700;text-align:right;border-right:2px solid #B4B2A9;}
       .wad-lbl.cat{padding-left:22px;color:#5F5E5A;background:#fff;border-right:2px solid #B4B2A9;}
@@ -6468,7 +6468,7 @@ function waDashRender(){
     // grupo header
     // grupo header with totals per visible month
     html+='<tr onclick="waDashTogglePasta(\''+tipo.replace(/'/g,"\\'")+'\')" style="cursor:pointer;">';
-    html+='<td class="wad-lbl grupo" style="border-right:2px solid #333;padding-left:10px;text-align:left;font-size:8px;box-shadow:2px 0 4px rgba(0,0,0,.1);">'
+    html+='<td class="wad-lbl grupo" style="position:sticky;left:0;z-index:3;background:#1a1a1a;border-right:2px solid #333;padding-left:10px;text-align:left;font-size:8px;box-shadow:2px 0 4px rgba(0,0,0,.15);">'
       +'<span style="font-size:9px;margin-right:5px;opacity:.7;">'+(collapsed?'▸':'▾')+'</span>'
       +tipo.toUpperCase()+'</td>';
     visMonths.forEach(m=>{
@@ -6500,8 +6500,8 @@ function waDashRender(){
         const catTotReal=catRealAll.reduce((s,v)=>s+v,0);
         const catTotMeta=Array.from({length:12},(_,m)=>waDashGetMeta(user,tipo,cat,m)).reduce((s,v)=>s+v,0);
 
-        html+='<tr onmouseover="this.style.background=\'#FAFAF8\'" onmouseout="this.style.background=\'\'">';
-        html+='<td class="wad-lbl cat" style="background:inherit;"><span style="font-size:8px;font-weight:700;color:#B4B2A9;margin-right:2px;">'+tipoInd+'</span>'
+        html+='<tr onmouseover="this.querySelector(\'.wad-lbl.cat\').style.background=\'#FAFAF8\';" onmouseout="this.querySelector(\'.wad-lbl.cat\').style.background=\'#fff\';">';
+        html+='<td class="wad-lbl cat" style="background:#fff;"><span style="font-size:8px;font-weight:700;color:#B4B2A9;margin-right:2px;">'+tipoInd+'</span>'
           +'<span style="font-size:8px;font-weight:700;color:'+farolColor+';margin-right:5px;">'+farolInd+'</span>'+cat+'</td>';
         visMonths.forEach(m=>{
           const isPast=m<curM,isCur=m===curM,isFut=m>curM;
@@ -6532,7 +6532,8 @@ function waDashRender(){
   const saldoTotReal=grandReal.reduce((s,v)=>s+v,0);
   const saldoTotMeta=grandMeta.reduce((s,v)=>s+v,0);
   html+='<tr style="border-top:2px solid #B4B2A9;">';
-  html+='<td class="wad-lbl sub" style="background:#1a1a1a;color:#fff;text-align:center;">SALDO</td>';
+  html+='<td class="wad-lbl sub" style="position:sticky;left:0;z-index:3;background:#1a1a1a;color:#fff;text-align:center;box-shadow:2px 0 4px rgba(0,0,0,.15);">SALDO</td>';
+
   visMonths.forEach(m=>{
     const isPast=m<curM,isCur=m===curM,isFut=m>curM;
     const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
