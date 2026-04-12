@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#006064,#4A148C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
-  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
-  #splash .splash-btn{background:#E0F7FA !important;color:#006064 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#263238,#FF6F00);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
+  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
+  #splash .splash-btn{background:#ECEFF1 !important;color:#263238 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2043,7 +2043,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.66';
+const APP_VERSION='14.67';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6469,31 +6469,38 @@ function waDashRenderHeader(){
   const div=style=>document.createElement('div');
 
   // month pills
-  const mkPill=(idx,label,cls)=>{
-    const colors={
-      past:'background:#E8F5E9;color:#2E7D32;border-color:#81C784;font-weight:600;',
-      fut:'background:#FFF9C4;color:#5D4037;border-color:#F9A825;font-weight:600;',
-      cur:'background:#1a1a1a;color:#fff;border-color:#1a1a1a;font-weight:700;',
-      off:'background:#fff;color:#aaa;border-color:#E0E0E0;'
-    };
-    return '<button style="width:30px;height:30px;border-radius:50%;border:1px solid;font-size:'+(idx===0?'8':'10')+'px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;'
-      +colors[cls]+'" onclick="waDashClickMonth('+idx+')" title="'+(idx>0?'+':'')+idx+(idx===0?' (atual)':' meses')+'">'
-      +label+'</button>';
-  };
+  const pillBase='border-radius:50%;border:1px solid;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-weight:600;transition:all .15s;';
+  const mkPill=(onclick,label,style,size)=>
+    '<button style="width:'+(size||30)+'px;height:'+(size||30)+'px;font-size:'+(size===26?9:10)+'px;'+pillBase+style+'" onclick="'+onclick+'">'+label+'</button>';
 
   let monthPills='';
   if(isPastYear){
     monthPills='<span style="font-size:10px;color:#888;font-style:italic;padding:0 4px;">ano inteiro</span>';
   } else {
-    for(let i=-6;i<=-1;i++){
+    // "-" decrement button
+    const canDecPast=pastSel>0;
+    monthPills+=mkPill('waDashClickMonth('+(-(pastSel+1))+')','−',
+      canDecPast?'background:#E8F5E9;color:#2E7D32;border-color:#81C784;':'background:#fff;color:#ddd;border-color:#eee;cursor:default;',26);
+    // past pills -3 to -1
+    for(let i=-3;i<=-1;i++){
       const active=i>=-pastSel;
-      monthPills+=mkPill(i,i,active?'past':'off');
+      monthPills+=mkPill('waDashClickMonth('+i+')',i,
+        active?'background:#E8F5E9;color:#2E7D32;border-color:#81C784;':'background:#fff;color:#bbb;border-color:#E0E0E0;');
     }
-    monthPills+=mkPill(0,'ATUAL','cur');
-    for(let i=1;i<=6;i++){
+    // ATUAL
+    monthPills+=mkPill('waDashClickMonth(0)','ATUAL',
+      'background:#1a1a1a;color:#fff;border-color:#1a1a1a;font-weight:700;font-size:8px;',30);
+    // future pills +1 to +3
+    for(let i=1;i<=3;i++){
       const active=i<=futSel;
-      monthPills+=mkPill(i,'+'+i,active?'fut':'off');
+      monthPills+=mkPill('waDashClickMonth('+i+')','+'+i,
+        active?'background:#FFF9C4;color:#5D4037;border-color:#F9A825;':'background:#fff;color:#bbb;border-color:#E0E0E0;');
     }
+    // "+" increment button — shows current futSel+1 if >3, else just "+"
+    const nextFut=futSel+1;
+    const canDecFut=futSel<11;
+    monthPills+=mkPill('waDashClickMonth('+nextFut+')','+'+(futSel>3?futSel:''),
+      canDecFut?'background:#FFF9C4;color:#5D4037;border-color:#F9A825;':'background:#fff;color:#ddd;border-color:#eee;cursor:default;',26);
   }
 
   actions.innerHTML=
@@ -6515,8 +6522,11 @@ function waDashRenderHeader(){
 
 function waDashClickMonth(idx){
   if(idx===0){window.waDashPastSel=0;window.waDashFutSel=0;}
-  else if(idx<0){window.waDashPastSel=Math.abs(idx);}
-  else{window.waDashFutSel=idx;}
+  else if(idx<0){
+    const v=Math.abs(idx);
+    window.waDashPastSel=Math.min(v,11);
+  }
+  else{window.waDashFutSel=Math.min(idx,11);}
   waDashRenderHeader();
   waDashRender();
 }
