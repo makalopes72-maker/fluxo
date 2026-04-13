@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4A148C,#E65100);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F3E5F5 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(243,229,245,.65) !important;}
-  #splash .splash-version{color:rgba(243,229,245,.35) !important;}
-  #splash .splash-btn{background:#F3E5F5 !important;color:#4A148C !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F3E5F5 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#37474F,#F9A825);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
+  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
+  #splash .splash-btn{background:#ECEFF1 !important;color:#37474F !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2064,7 +2064,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.89';
+const APP_VERSION='14.90';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5126,20 +5126,26 @@ function openOrcEditMonth(tipo,cat,monthIdx){
 function openOrcEdit(tipo,cat){
   _orcEditTipo=tipo;_orcEditCat=cat;
   const o=getOrcCat(tipo,cat);
-  const t=document.getElementById('orc-edit-title');if(t)t.textContent='Orçamento: '+cat;
-  const inp=document.getElementById('orc-edit-default');
-  if(inp)inp.value=o.default>0?o.default.toFixed(2).replace('.',','):'';
   _orcEditPeriod=o.period||'mensal';
   _orcEditTipoFC=o.tipo||'V';
   _orcEditFarol=o.farol||'R';
-  // reset seg buttons
+
+  // web mode: show floating modal in body
+  if(window.innerWidth>window.innerHeight){
+    waOrcModal(tipo,cat,o);
+    return;
+  }
+
+  // mobile mode: original behavior
+  const t=document.getElementById('orc-edit-title');if(t)t.textContent='Orçamento: '+cat;
+  const inp=document.getElementById('orc-edit-default');
+  if(inp)inp.value=o.default>0?o.default.toFixed(2).replace('.',','):'';
   document.querySelectorAll('#orc-edit-modal .orc-edit-seg-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('#orc-edit-modal .orc-edit-seg').forEach((seg,i)=>{
     const vals=[['mensal','semanal','anual'],['F','V'],['A','R']];
     const cur=[_orcEditPeriod,_orcEditTipoFC,_orcEditFarol][i];
     seg.querySelectorAll('.orc-edit-seg-btn').forEach((b,j)=>{if(vals[i][j]===cur)b.classList.add('active');});
   });
-  // build month chips for current year
   const mc=document.getElementById('orc-edit-months');
   if(mc){
     const months=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
@@ -5151,6 +5157,64 @@ function openOrcEdit(tipo,cat){
     }).join('');
   }
   const modal=document.getElementById('orc-edit-modal');if(modal)modal.classList.add('open');
+}
+
+function waOrcModal(tipo,cat,o){
+  // remove existing web orc modal if any
+  const existing=document.getElementById('wa-orc-modal');if(existing)existing.remove();
+
+  const seg=(label,id,opts,cur)=>{
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">'
+      +'<span style="font-size:.68rem;color:var(--muted);width:90px;flex-shrink:0;">'+label+'</span>'
+      +'<div style="display:flex;gap:4px;flex:1;">'
+      +opts.map(([v,lbl])=>'<button onclick="waOrcSeg(\''+id+'\',\''+v+'\',this)" data-val="'+v+'" style="flex:1;padding:6px 4px;border-radius:8px;border:1px solid var(--border);font-size:.72rem;cursor:pointer;font-family:var(--font-body);'+(v===cur?'background:var(--font);color:var(--bg);':'background:transparent;color:var(--muted);')+'">'+lbl+'</button>').join('')
+      +'</div></div>';
+  };
+
+  const modal=document.createElement('div');
+  modal.id='wa-orc-modal';
+  modal.style.cssText='position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;';
+  modal.onclick=e=>{if(e.target===modal)modal.remove();};
+  modal.innerHTML='<div style="background:var(--bg);border-radius:16px;padding:20px;width:360px;max-width:90vw;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2);">'
+    +'<div style="font-size:.9rem;font-weight:700;color:var(--font);margin-bottom:4px;">'+cat+'</div>'
+    +'<div style="font-size:.65rem;color:var(--muted);margin-bottom:16px;">'+tipo+' · Orçamento</div>'
+    +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">'
+    +'<span style="font-size:.68rem;color:var(--muted);width:90px;flex-shrink:0;">Valor padrão</span>'
+    +'<input id="wa-orc-default" type="text" inputmode="decimal" value="'+(o.default>0?o.default.toFixed(2).replace('.',','):'')+'" placeholder="R$ 0,00" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:.85rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">'
+    +'</div>'
+    +seg('Periodicidade','period',[['mensal','Mensal'],['semanal','Semanal'],['anual','Anual']],_orcEditPeriod)
+    +seg('Tipo','tipoFC',[['F','Fixo'],['V','Variável']],_orcEditTipoFC)
+    +seg('Farol','farol',[['A','Absoluto'],['R','Relativo']],_orcEditFarol)
+    +'<div style="display:flex;gap:8px;margin-top:16px;">'
+    +'<button onclick="document.getElementById(\'wa-orc-modal\').remove();" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.82rem;cursor:pointer;">Cancelar</button>'
+    +'<button onclick="waOrcSave()" style="flex:2;padding:10px;border-radius:10px;border:none;background:var(--font);color:var(--bg);font-family:var(--font-body);font-size:.82rem;font-weight:700;cursor:pointer;">Salvar</button>'
+    +'</div>'
+    +'</div>';
+  document.body.appendChild(modal);
+}
+
+function waOrcSeg(field,val,btn){
+  if(field==='period')_orcEditPeriod=val;
+  else if(field==='tipoFC')_orcEditTipoFC=val;
+  else if(field==='farol')_orcEditFarol=val;
+  // update button styles in same group
+  btn.parentElement.querySelectorAll('button').forEach(b=>{
+    b.style.background=b.dataset.val===val?'var(--font)':'transparent';
+    b.style.color=b.dataset.val===val?'var(--bg)':'var(--muted)';
+  });
+}
+
+function waOrcSave(){
+  if(!_orcEditTipo||!_orcEditCat)return;
+  const inp=document.getElementById('wa-orc-default');
+  const raw=inp?inp.value.replace(',','.').trim():'0';
+  const n=parseFloat(raw)||0;
+  const o=getOrcCat(_orcEditTipo,_orcEditCat);
+  o.default=n;o.period=_orcEditPeriod;o.tipo=_orcEditTipoFC;o.farol=_orcEditFarol;
+  saveOrc();
+  const modal=document.getElementById('wa-orc-modal');if(modal)modal.remove();
+  waDashRenderHeader();waDashRender();
+  waSyncIndicator('✓ Orçamento salvo','#059669',false);
 }
 function closeOrcEdit(){
   const modal=document.getElementById('orc-edit-modal');if(modal)modal.classList.remove('open');
