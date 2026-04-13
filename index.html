@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4A148C,#E65100);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F3E5F5 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(243,229,245,.65) !important;}
-  #splash .splash-version{color:rgba(243,229,245,.35) !important;}
-  #splash .splash-btn{background:#F3E5F5 !important;color:#4A148C !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F3E5F5 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#37474F,#E65100);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
+  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
+  #splash .splash-btn{background:#ECEFF1 !important;color:#37474F !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1076,7 +1076,6 @@
     width:260px;
   }
   #wa-right.collapsed{width:0 !important;border-left:none;}
-  #wa-right.wide{width:560px !important;}
   /* toggle button outside wa-right */
   #wa-toggle-btn{
     position:absolute;
@@ -2061,7 +2060,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.82';
+const APP_VERSION='14.83';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5676,7 +5675,6 @@ function waDashPreviewPage(font,size){
 }
 
 function waShowCfg(){
-  const _rw=document.getElementById('wa-right');if(_rw)_rw.classList.remove('wide');
   document.getElementById('wa-center-title').textContent='Configurações';
   document.getElementById('wa-right-title').textContent='--';
   document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">--</div>';
@@ -5763,7 +5761,6 @@ function waShowCfg(){
   body.appendChild(wrap);
 }
 function waShowLaunch(){
-  const _rw=document.getElementById('wa-right');if(_rw)_rw.classList.remove('wide');
   document.getElementById('wa-center-title').textContent='Lançar / Extrato';
   document.getElementById('wa-center-actions').innerHTML='';
   document.getElementById('wa-right-title').textContent='Lançar transação';
@@ -6510,7 +6507,6 @@ async function waDelTx(idx){
 }
 
 function waShowDash(){
-  const _rw=document.getElementById('wa-right');if(_rw)_rw.classList.remove('wide');
   document.getElementById('wa-center-title').textContent='Quadro';
   document.getElementById('wa-right-title').textContent='--';
   document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">--</div>';
@@ -7074,10 +7070,10 @@ function waShowInv(){
         </div>
       </div>
       <!-- col 2: ativos -->
-      <div id="wai-col-ativos" style="width:280px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
+      <div id="wai-col-ativos" style="width:260px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
         <div style="padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
           <span id="wai-inst-name" style="font-size:.75rem;font-weight:700;color:var(--font);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Selecione uma instituição</span>
-          <button id="wai-add-ativo-btn" onclick="waInvNewAtivo()" style="display:none;width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:14px;color:var(--muted);display:flex;align-items:center;justify-content:center;">+</button>
+          <button id="wai-add-ativo-btn" onclick="waInvNewAtivo()" style="display:none;width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:14px;color:var(--muted);flex-shrink:0;">+</button>
         </div>
         <div style="display:flex;gap:0;border-bottom:1px solid var(--border);">
           <button id="wai-tab-ativos" onclick="waInvSetTab('ativos')" style="flex:1;padding:6px;font-size:.65rem;border:none;background:var(--font);color:var(--bg);cursor:pointer;font-weight:600;">Ativos</button>
@@ -7087,15 +7083,21 @@ function waShowInv(){
           <div style="color:var(--muted);font-size:.75rem;padding:20px;text-align:center;">Selecione uma instituição</div>
         </div>
       </div>
+      <!-- col 3: detalhe (nativa, sem slider) -->
+      <div id="wai-col-detail" style="flex:1;display:flex;flex-direction:column;overflow:hidden;border-right:none;">
+        <div id="wai-detail-body" style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+          <div style="color:var(--muted);font-size:.75rem;padding:20px;text-align:center;">Selecione um ativo</div>
+        </div>
+      </div>
     </div>`;
 
-  // open right panel wide for detail
+  // close right panel — detail is in col 3
   const rp=document.getElementById('wa-right');
-  if(rp){rp.classList.remove('collapsed');rp.classList.add('wide');}
+  if(rp){rp.classList.add('collapsed');rp.classList.remove('wide');}
   const tb=document.getElementById('wa-toggle-btn');
-  if(tb)tb.textContent='›';
-  document.getElementById('wa-right-title').textContent='Detalhe';
-  document.getElementById('wa-right-body').innerHTML='<div class="wa-empty" style="padding:20px;text-align:center;font-size:.8rem;">Selecione um ativo</div>';
+  if(tb)tb.textContent='‹';
+  document.getElementById('wa-right-title').textContent='--';
+  document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">--</div>';
 
   waInvRenderInst();
   // auto-sync on open
@@ -7225,13 +7227,7 @@ function waInvSelectInst(i){
   if(nm)nm.textContent=inst.name;
   const ab=document.getElementById('wai-add-ativo-btn');
   if(ab)ab.style.display='flex';
-  // ensure right panel is wide and open
-  const rp=document.getElementById('wa-right');
-  if(rp){rp.classList.remove('collapsed');rp.classList.add('wide');}
-  const tb=document.getElementById('wa-toggle-btn');
-  if(tb)tb.textContent='›';
-  document.getElementById('wa-right-title').textContent='Detalhe';
-  document.getElementById('wa-right-body').innerHTML='<div class="wa-empty" style="padding:20px;text-align:center;font-size:.8rem;">Selecione um ativo</div>';
+
   waInvSetTab('ativos');
   waInvRenderInst(); // refresh selection highlight
 }
@@ -7268,19 +7264,11 @@ function waInvRenderAtivos(){
 function waInvSelectAtivo(i){
   waInvAtivoIdx=i;
   waInvRenderAtivos();
-  // render in right panel
-  const rp=document.getElementById('wa-right');
-  if(rp)rp.classList.remove('collapsed');
-  const tb=document.getElementById('wa-toggle-btn');
-  if(tb)tb.textContent='›';
-  const inst=instituicoes[waInvInstIdx];
-  const a=getInstAtivos(inst)[i];
-  document.getElementById('wa-right-title').textContent=a?a.nome:'Detalhe';
   waInvRenderDetail(i);
 }
 
 function waInvRenderDetail(idx){
-  const db=document.getElementById('wa-right-body');
+  const db=document.getElementById('wai-detail-body');
   if(!db||waInvInstIdx===null)return;
   const inst=instituicoes[waInvInstIdx];
   const a=getInstAtivos(inst)[idx];
@@ -7409,9 +7397,8 @@ function waInvShowEditForm(idx){
   const inst=instituicoes[waInvInstIdx];
   const a=getInstAtivos(inst)[idx];
   if(!a)return;
-  const db=document.getElementById('wa-right-body');
+  const db=document.getElementById('wai-detail-body');
   if(!db)return;
-  document.getElementById('wa-right-title').textContent='Editar: '+a.nome;
 
   const toISO=d=>{if(!d)return'';const p=d.split('/');if(p.length!==3)return'';return p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');};
   const field=(lbl,id,val,type='text',placeholder='')=>
@@ -7454,9 +7441,6 @@ function waInvShowEditForm(idx){
 }
 
 function waInvCancelEdit(idx){
-  const inst=instituicoes[waInvInstIdx];
-  const a=getInstAtivos(inst)[idx];
-  if(a)document.getElementById('wa-right-title').textContent=a.nome;
   waInvRenderDetail(idx);
 }
 
@@ -7545,11 +7529,8 @@ function waInvEditAtivo(idx){
 
 function waInvNewAtivo(){
   if(waInvInstIdx===null){waSyncIndicator('Selecione uma instituição','#F9A825',false);return;}
-  const db=document.getElementById('wa-right-body');
+  const db=document.getElementById('wai-detail-body');
   if(!db)return;
-  document.getElementById('wa-right-title').textContent='Novo ativo';
-  const rp=document.getElementById('wa-right');
-  if(rp)rp.classList.remove('collapsed');
 
   const field=(lbl,id,val,type='text',placeholder='')=>
     '<div style="margin-bottom:10px;">'
@@ -7593,8 +7574,8 @@ function waInvNewAtivo(){
 }
 
 function waInvCancelNew(){
-  document.getElementById('wa-right-title').textContent='Detalhe';
-  document.getElementById('wa-right-body').innerHTML='<div class="wa-empty" style="padding:20px;text-align:center;font-size:.8rem;">Selecione um ativo</div>';
+  const db=document.getElementById('wai-detail-body');
+  if(db)db.innerHTML='<div style="color:var(--muted);font-size:.75rem;padding:20px;text-align:center;">Selecione um ativo</div>';
 }
 
 function waInvSaveNew(){
