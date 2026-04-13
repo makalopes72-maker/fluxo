@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1B5E20,#1565C0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
-  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
-  #splash .splash-btn{background:#F1F8E9 !important;color:#1B5E20 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4A148C,#E65100);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F3E5F5 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(243,229,245,.65) !important;}
+  #splash .splash-version{color:rgba(243,229,245,.35) !important;}
+  #splash .splash-btn{background:#F3E5F5 !important;color:#4A148C !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F3E5F5 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2064,7 +2064,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.88';
+const APP_VERSION='14.89';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5177,7 +5177,9 @@ function saveOrcEdit(){
   const o=getOrcCat(_orcEditTipo,_orcEditCat);
   o.default=n;o.period=_orcEditPeriod;o.tipo=_orcEditTipoFC;o.farol=_orcEditFarol;
   saveOrc();closeOrcEdit();renderOrc();renderDashFarois();
-  toast('Orçamento salvo!','success');
+  if(typeof waDashRender==='function'){waDashRenderHeader();waDashRender();}
+  if(typeof toast==='function')toast('Orçamento salvo!','success');
+  else waSyncIndicator('✓ Orçamento salvo','#059669',false);
 }
 
 // -- DASHBOARD FAROIS --
@@ -7017,9 +7019,14 @@ function waDashRender(){
         const catTotReal=catRealAll.reduce((s,v)=>s+v,0);
         const catTotMeta=Array.from({length:12},(_,m)=>waDashGetMeta(user,tipo,cat,m)).reduce((s,v)=>s+v,0);
 
-        html+='<tr onmouseover="this.querySelector(\'.wad-lbl.cat\').style.background=\'#FAFAF8\';" onmouseout="this.querySelector(\'.wad-lbl.cat\').style.background=\'#fff\';">';
-        html+='<td class="wad-lbl cat" style="background:#fff;"><span style="font-size:8px;font-weight:700;color:#B4B2A9;margin-right:2px;">'+tipoInd+'</span>'
-          +'<span style="font-size:8px;font-weight:700;color:'+farolColor+';margin-right:5px;">'+farolInd+'</span>'+cat+'</td>';
+        html+='<tr onmouseover="this.querySelector(\'.wad-lbl.cat\').style.background=\'#F0F4FF\';" onmouseout="this.querySelector(\'.wad-lbl.cat\').style.background=\'#fff\';">';
+        const teOrc=tipo.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        const ceOrc=cat.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        html+='<td class="wad-lbl cat" onclick="openOrcEdit(\''+teOrc+'\',\''+ceOrc+'\')" title="Clique para editar orçamento de '+cat+'" style="background:#fff;cursor:pointer;">'
+          +'<span style="font-size:8px;font-weight:700;color:#B4B2A9;margin-right:2px;">'+tipoInd+'</span>'
+          +'<span style="font-size:8px;font-weight:700;color:'+farolColor+';margin-right:5px;">'+farolInd+'</span>'+cat
+          +'<span style="font-size:7px;color:#B4B2A9;margin-left:4px;opacity:.6;">&#9998;</span>'
+          +'</td>';
         visMonths.forEach(m=>{
           const isPast=m<effectiveCurM,isCur=m===effectiveCurM,isFut=m>effectiveCurM;
           const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
@@ -7070,7 +7077,7 @@ function waDashRender(){
   },0)+(showTotals?7:1)+1; // +1 label, +1 spacer
 
   // blank spacer row
-  html+='<tr style="height:8px;background:#F0EFED;"><td colspan="'+nCols+'"></td></tr>';
+  html+='<tr style="height:14px;background:#E8E6E1;border-top:3px solid #B4B2A9;"><td colspan="'+nCols+'" style="border-bottom:2px solid #9E9C97;"></td></tr>';
 
   // helper: build a summary row
   const fmtS=n=>n?Math.round(Math.abs(n)).toLocaleString('pt-BR'):'';
