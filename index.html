@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1B5E20,#880E4F);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
-  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
-  #splash .splash-btn{background:#F1F8E9 !important;color:#1B5E20 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#BF360C,#1A237E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FBE9E7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(251,233,231,.65) !important;}
+  #splash .splash-version{color:rgba(251,233,231,.35) !important;}
+  #splash .splash-btn{background:#FBE9E7 !important;color:#BF360C !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FBE9E7 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2061,7 +2061,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.75';
+const APP_VERSION='14.76';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -7098,6 +7098,84 @@ function waShowInv(){
   waInvRenderInst();
   // auto-sync on open
   waInvSync();
+}
+
+async function waInvSync(){
+  const status=document.getElementById('wai-sync-status');
+  const btn=document.querySelector('[onclick="waInvSync()"]');
+  if(status)status.textContent='Carregando...';
+  if(btn){btn.disabled=true;btn.style.opacity='.5';}
+  waSyncIndicator('Carregando investimentos...','var(--muted)',true);
+  try{
+    const user=currentUser||'ALE';
+    // 1. Instituições
+    try{
+      const r=await sheetsRead('Instituições');
+      if(r&&r.length>1){
+        instituicoes=r.slice(1).filter(row=>row[0]).map(row=>({
+          id:String(row[0]||'').trim(),
+          name:String(row[1]||'').trim(),
+          icon:String(row[2]||'🏦').trim(),
+          ativos:[]
+        })).filter(i=>i.name);
+      }
+    }catch(e){console.warn('[waInvSync] inst fail',e);}
+    // 2. Ativos
+    const r2=await sheetsRead('Investimentos');
+    const rows=r2&&r2.length>1?r2.slice(1):[];
+    const userAtivos={};
+    rows.forEach(r=>{
+      if(String(r[0]||'').trim()!==user)return;
+      const instName=String(r[1]||'').trim();if(!instName)return;
+      const nome=String(r[2]||'').trim();if(!nome)return;
+      if(!userAtivos[instName])userAtivos[instName]=[];
+      const aplicado=parseBRNumber(r[5]);
+      const valorAtual=parseBRNumber(r[6])||aplicado;
+      userAtivos[instName].push({
+        id:'atv_'+instName+'_'+nome,nome,
+        classe:String(r[3]||''),tipo:String(r[4]||''),
+        aplicado,indexador:String(r[7]||''),taxa:String(r[8]||''),
+        dataAplic:normalizeDate(r[9]),vencimento:normalizeDate(r[10]),
+        liquidez:String(r[11]||''),garantia:String(r[12]||''),
+        ir:String(r[13]||''),obs:String(r[14]||''),
+        encerrado:String(r[15]||'')==='Sim',
+        log:valorAtual>0?[{date:new Date().toLocaleDateString('pt-BR'),value:valorAtual,note:'Valor atual'}]:[],
+      });
+    });
+    // 3. Log
+    try{
+      const r3=await sheetsRead('InvestimentosLog');
+      if(r3&&r3.length>1){
+        r3.slice(1).forEach(l=>{
+          if(String(l[0]||'').trim()!==user)return;
+          const inst=String(l[1]||'').trim();
+          const nome=String(l[2]||'').trim();
+          const arr=userAtivos[inst];if(!arr)return;
+          const ativo=arr.find(a=>a.nome===nome);if(!ativo)return;
+          const logVal=parseBRNumber(l[4]);
+          const logDate=normalizeDate(l[3])||String(l[3]||'');
+          if(!ativo.log.some(x=>Math.abs(x.value-logVal)<0.01&&x.date===logDate))
+            ativo.log.push({date:logDate,value:logVal,note:String(l[5]||'')});
+        });
+        Object.values(userAtivos).forEach(arr=>arr.forEach(a=>
+          a.log.sort((x,y)=>(parseDate(x.date)||0)-(parseDate(y.date)||0))
+        ));
+      }
+    }catch(e){console.warn('[waInvSync] log fail',e);}
+    // 4. Save and render
+    ativosPorUser[user]=userAtivos;
+    localStorage.setItem('fluxo_ativos_'+user,JSON.stringify(userAtivos));
+    waInvRenderInst();
+    const total=Object.values(userAtivos).reduce((s,a)=>s+a.length,0);
+    if(status)status.textContent='✓ '+instituicoes.length+' inst · '+total+' ativos';
+    waSyncIndicator('✓ Investimentos carregados','#059669',false);
+    setTimeout(()=>{if(status&&status.textContent.startsWith('✓'))status.textContent='';},4000);
+  }catch(e){
+    console.error('[waInvSync]',e);
+    if(status)status.textContent='Erro: '+e.message;
+    waSyncIndicator('Erro ao carregar','#E53935',false);
+  }
+  if(btn){btn.disabled=false;btn.style.opacity='1';}
 }
 
 function waInvSetTab(tab){
