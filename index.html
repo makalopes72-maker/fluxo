@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1A237E,#4CAF50);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E8EAF6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(232,234,246,.65) !important;}
-  #splash .splash-version{color:rgba(232,234,246,.35) !important;}
-  #splash .splash-btn{background:#E8EAF6 !important;color:#1A237E !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8EAF6 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#263238,#558B2F);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
+  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
+  #splash .splash-btn{background:#ECEFF1 !important;color:#263238 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1678,6 +1678,10 @@
   <div id="upd-modal">
     <div class="upd-sheet">
       <div style="font-size:.75rem;color:var(--muted);margin-bottom:8px;" id="upd-modal-title">Atualizar valor</div>
+      <div style="margin-bottom:10px;">
+        <label style="font-size:.7rem;color:var(--muted);display:block;margin-bottom:4px;">Data do saldo</label>
+        <input type="date" id="upd-date-input" style="width:100%;padding:8px 12px;border-radius:10px;border:1px solid var(--border);font-size:.85rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">
+      </div>
       <div class="upd-display">
         <div class="upd-display-lbl">Novo valor bruto</div>
         <div class="upd-display-val" id="upd-val-display">R$ 0,00</div>
@@ -2060,7 +2064,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.84';
+const APP_VERSION='14.85';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4649,23 +4653,101 @@ function openAtivo(idx){
 function renderLog(){
   const a=getInstAtivos(instituicoes[currentInstIdx])[currentAtivoIdx];
   const lc=document.getElementById('ativo-log-card');if(!lc)return;
-  const reversed=[...a.log].reverse();
-  lc.innerHTML=reversed.map((entry,i)=>{
+  const logSorted=[...a.log].sort((x,y)=>(parseDate(x.date)||0)-(parseDate(y.date)||0));
+  const reversed=[...logSorted].reverse();
+
+  // SVG chart
+  let chartHtml='';
+  if(logSorted.length>=2){
+    const vals=logSorted.map(l=>l.value);
+    const mn=Math.min(...vals),mx=Math.max(...vals),range=mx-mn||1;
+    const W=400,H=80,pad=6;
+    const pts=vals.map((v,i)=>{
+      const x=pad+(i/(vals.length-1))*(W-pad*2);
+      const y=H-pad-((v-mn)/range)*(H-pad*2);
+      return x.toFixed(1)+','+y.toFixed(1);
+    }).join(' ');
+    const rend=vals[vals.length-1]-vals[0];
+    const lc2=rend>=0?'#059669':'#E53935',fc=rend>=0?'rgba(5,150,105,.12)':'rgba(229,57,53,.12)';
+    chartHtml='<div style="background:var(--card);border-radius:12px;padding:12px;margin-bottom:10px;border:1px solid var(--border);">'
+      +'<div style="font-size:.65rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.07em;">Evolucao</div>'
+      +'<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:80px;" preserveAspectRatio="none">'
+      +'<polygon points="'+pad+','+H+' '+pts+' '+(W-pad)+','+H+'" fill="'+fc+'"/>'
+      +'<polyline points="'+pts+'" fill="none" stroke="'+lc2+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'
+      +'</svg>'
+      +'<div style="display:flex;justify-content:space-between;font-size:.6rem;color:var(--muted);margin-top:4px;">'
+      +'<span>'+logSorted[0].date+'</span><span>'+logSorted[logSorted.length-1].date+'</span></div>'
+      +'</div>';
+  }
+
+  const rowsHtml=reversed.map((entry,i)=>{
+    const realIdx=logSorted.length-1-i;
     const prev=reversed[i+1];
     const delta=prev?entry.value-prev.value:null;
     const isBase=i===reversed.length-1;
     const dotColor=isBase?'var(--muted)':delta>=0?'var(--accent2)':'var(--red)';
     const deltaStr=isBase?'base':delta!==null?((delta>=0?'+':'')+fmtInvFull(delta)):'--';
     const deltaClass=isBase?'':delta>=0?'pos':'neg';
-    return `<div class="log-row">
-      <div class="log-dot" style="background:${dotColor}"></div>
-      <div class="log-info">
-        <div class="log-date">${entry.date}${entry.note?` · ${entry.note}`:''}</div>
-        <div class="log-val-num">${fmtInvFull(entry.value)}</div>
-      </div>
-      <div class="log-delta ${deltaClass}">${deltaStr}</div>
-    </div>`;
+    return '<div id="mob-log-row-'+realIdx+'" class="log-row" style="position:relative;">'
+      +'<div class="log-dot" style="background:'+dotColor+'"></div>'
+      +'<div class="log-info">'
+      +'<div class="log-date">'+entry.date+(entry.note?' - '+entry.note:'')+'</div>'
+      +'<div class="log-val-num">'+fmtInvFull(entry.value)+'</div>'
+      +'</div>'
+      +'<div class="log-delta '+deltaClass+'">'+deltaStr+'</div>'
+      +'<div style="display:flex;gap:4px;margin-left:8px;">'
+      +'<button onclick="mobInvEditLog('+realIdx+')" style="width:28px;height:28px;border:none;background:var(--kp);border-radius:6px;cursor:pointer;font-size:12px;color:var(--muted);">&#9998;</button>'
+      +'<button onclick="mobInvDelLog('+realIdx+')" style="width:28px;height:28px;border:none;background:var(--kp);border-radius:6px;cursor:pointer;font-size:12px;color:var(--red);">&#x2715;</button>'
+      +'</div>'
+      +'</div>';
   }).join('');
+
+  lc.innerHTML=chartHtml+rowsHtml;
+}
+
+function mobInvEditLog(logIdx){
+  const a=getInstAtivos(instituicoes[currentInstIdx])[currentAtivoIdx];
+  if(!a||!a.log||!a.log[logIdx])return;
+  const l=a.log[logIdx];
+  const row=document.getElementById('mob-log-row-'+logIdx);
+  if(!row)return;
+  const toISO=d=>{if(!d)return'';const p=d.split('/');if(p.length!==3)return'';return p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');};
+  const inp=(type,id,val,ph)=>'<input type="'+type+'" id="mob-elog-'+id+'-'+logIdx+'" value="'+val+'" placeholder="'+(ph||'')+'" style="flex:1;padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:.8rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">';
+  row.innerHTML='<div style="display:flex;flex-direction:column;gap:6px;padding:8px 0;width:100%;">'
+    +'<div style="display:flex;gap:6px;">'
+    +inp('date','date',toISO(l.date))
+    +inp('text','val',l.value,'Valor')
+    +'</div>'
+    +inp('text','note',l.note||'','Observacao')
+    +'<div style="display:flex;gap:6px;">'
+    +'<button onclick="mobInvSaveLog('+logIdx+')" style="flex:1;padding:8px;border-radius:8px;border:none;background:var(--font);color:var(--bg);font-size:.82rem;font-weight:700;cursor:pointer;">Salvar</button>'
+    +'<button onclick="renderLog()" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.82rem;cursor:pointer;">Cancelar</button>'
+    +'</div>'
+    +'</div>';
+}
+
+function mobInvSaveLog(logIdx){
+  const a=getInstAtivos(instituicoes[currentInstIdx])[currentAtivoIdx];
+  if(!a||!a.log||!a.log[logIdx])return;
+  const toDate=iso=>{if(!iso)return'';const[y,m,d]=iso.split('-');return d+'/'+m+'/'+y;};
+  const val=parseFloat((document.getElementById('mob-elog-val-'+logIdx)||{}).value||'');
+  if(isNaN(val)||val<=0){toast('Valor invalido','error');return;}
+  a.log[logIdx].value=val;
+  a.log[logIdx].date=toDate((document.getElementById('mob-elog-date-'+logIdx)||{}).value||'')||a.log[logIdx].date;
+  a.log[logIdx].note=((document.getElementById('mob-elog-note-'+logIdx)||{}).value||'').trim();
+  saveInvestimentos();
+  toast('Saldo atualizado','success');
+  openAtivo(currentAtivoIdx);
+}
+
+function mobInvDelLog(logIdx){
+  const a=getInstAtivos(instituicoes[currentInstIdx])[currentAtivoIdx];
+  if(!a||!a.log)return;
+  if(!confirm('Apagar este registro?'))return;
+  a.log.splice(logIdx,1);
+  saveInvestimentos();
+  toast('Registro removido','success');
+  openAtivo(currentAtivoIdx);
 }
 
 // -- MODAL INSTITUIÇÃO --
@@ -4748,6 +4830,9 @@ function openUpdModal(){
   const inst2=instituicoes[currentInstIdx];const a=inst2?getInstAtivos(inst2)[currentAtivoIdx]:null;
   if(!a)return;
   const atual=getAtivoAtual(a);
+  const td=new Date();
+  const todayISO=td.getFullYear()+'-'+String(td.getMonth()+1).padStart(2,'0')+'-'+String(td.getDate()).padStart(2,'0');
+  const di=document.getElementById('upd-date-input');if(di)di.value=todayISO;
   updCents=Math.round(atual*100);
   updVal2();
   const m=document.getElementById('upd-modal');
@@ -4789,8 +4874,11 @@ function saveUpdVal(){
   if(!updCents){toast('Digite o valor','error');return;}
   const a=getInstAtivos(instituicoes[currentInstIdx])?.[currentAtivoIdx];
   if(!a)return;
+  const dateISO=document.getElementById('upd-date-input')?.value||'';
+  const toDate=iso=>{if(!iso)return'';const[y,m,d]=iso.split('-');return d+'/'+m+'/'+y;};
   const today=new Date();
-  const dateStr=`${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`;
+  const fallback=String(today.getDate()).padStart(2,'0')+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+today.getFullYear();
+  const dateStr=toDate(dateISO)||fallback;
   const obs=document.getElementById('upd-obs-input')?.value.trim()||'';
   a.log.push({date:dateStr,value:updCents/100,note:obs});
   saveInvestimentos();
