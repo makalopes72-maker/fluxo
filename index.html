@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0D47A1,#FF6F00);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E3F2FD !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(227,242,253,.65) !important;}
-  #splash .splash-version{color:rgba(227,242,253,.35) !important;}
-  #splash .splash-btn{background:#E3F2FD !important;color:#0D47A1 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E3F2FD !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1A237E,#558B2F);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E8EAF6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(232,234,246,.65) !important;}
+  #splash .splash-version{color:rgba(232,234,246,.35) !important;}
+  #splash .splash-btn{background:#E8EAF6 !important;color:#1A237E !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8EAF6 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1155,8 +1155,7 @@
   }
   #wa-right-body{
     flex:1;
-    overflow-y:auto;
-    overflow-x:visible;
+    overflow:hidden;
     min-height:0;
     display:flex;
     flex-direction:column;
@@ -2062,7 +2061,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.79';
+const APP_VERSION='14.81';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -7285,7 +7284,7 @@ function waInvRenderDetail(idx){
   const rend=atual-a.aplicado;
   const pct=a.aplicado?((rend/a.aplicado)*100).toFixed(1):0;
   const rendSign=rend>=0?'+':'';
-  const rendColor=rend>=0?'var(--accent2)':'var(--red)';
+  const rendColor=rend>=0?'#059669':'var(--red)';
   const desde=a.log.length?a.log[0].date:'--';
   const updDate=a.log.length?a.log[a.log.length-1].date:'--';
   const vencNorm=normVenc(a.vencimento)||'N/A';
@@ -7296,74 +7295,108 @@ function waInvRenderDetail(idx){
       const vDate=new Date(vp[2],vp[1]-1,vp[0]);
       const today=new Date();today.setHours(0,0,0,0);
       const diff=Math.ceil((vDate-today)/(1000*60*60*24));
-      vencDays=diff>0?' ('+diff+' dias)':diff===0?' (Hoje)':' (Vencido)';
+      vencDays=diff>0?diff+' dias':diff===0?'Hoje':'Vencido';
     }
   }
-  const rows=[
+  const infoRows=[
     ['Classe',a.classe],['Tipo',a.tipo],['Indexador',a.indexador],
     ['Taxa',a.taxa],['Liquidez',a.liquidez],['Garantia',a.garantia],
-    ['IR',a.ir],['Vencimento',vencNorm+vencDays],['Observações',a.obs||'--'],
+    ['IR',a.ir],['Vencimento',vencNorm+(vencDays?' · '+vencDays:'')],
+    ['Observações',a.obs||''],
   ].filter(r=>r[1]&&r[1]!=='');
 
-  const logRows=a.log?[...a.log].sort((x,y)=>(parseDate(y.date)||0)-(parseDate(x.date)||0)).slice(0,10).map(l=>`
-    <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:.7rem;">
-      <span style="color:var(--muted);">${l.date}</span>
-      <span style="color:var(--font);font-weight:600;">${fmtInvFull(l.value)}</span>
-      ${l.note?'<span style="color:var(--muted);font-size:.62rem;">'+l.note+'</span>':''}
-    </div>`).join(''):'';
+  const logSorted=a.log?[...a.log].sort((x,y)=>(parseDate(x.date)||0)-(parseDate(y.date)||0)):[];
+
+  // build SVG chart from log
+  const chartHTML=(()=>{
+    if(logSorted.length<2)return '<div style="color:var(--muted);font-size:.68rem;text-align:center;padding:16px 0;">Gráfico disponível com 2+ registros</div>';
+    const vals=logSorted.map(l=>l.value);
+    const min=Math.min(...vals);
+    const max=Math.max(...vals);
+    const range=max-min||1;
+    const W=300,H=80,pad=4;
+    const pts=vals.map((v,i)=>{
+      const x=pad+(i/(vals.length-1))*(W-pad*2);
+      const y=H-pad-((v-min)/range)*(H-pad*2);
+      return x.toFixed(1)+','+y.toFixed(1);
+    });
+    const polyline=pts.join(' ');
+    const lastPt=pts[pts.length-1];
+    const firstX=pad,lastX=(W-pad).toFixed(1);
+    const fillPts=`${pad},${H} ${polyline} ${lastX},${H}`;
+    const lineColor=rend>=0?'#059669':'#E53935';
+    const fillColor=rend>=0?'rgba(5,150,105,.12)':'rgba(229,57,53,.12)';
+    const lastDate=logSorted[logSorted.length-1].date;
+    const firstDate=logSorted[0].date;
+    return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:80px;" preserveAspectRatio="none">
+      <polygon points="${fillPts}" fill="${fillColor}"/>
+      <polyline points="${polyline}" fill="none" stroke="${lineColor}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="${lastPt.split(',')[0]}" cy="${lastPt.split(',')[1]}" r="3" fill="${lineColor}"/>
+    </svg>
+    <div style="display:flex;justify-content:space-between;font-size:.58rem;color:var(--muted);margin-top:2px;">
+      <span>${firstDate}</span><span>${lastDate}</span>
+    </div>`;
+  })();
+
+  const logRows=logSorted.slice().reverse().slice(0,15).map(l=>
+    `<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);gap:8px;">
+      <span style="font-size:.66rem;color:var(--muted);white-space:nowrap;">${l.date}</span>
+      <span style="font-size:.72rem;font-weight:700;color:var(--font);">${fmtInvFull(l.value)}</span>
+      ${l.note?'<span style="font-size:.6rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100px;">'+l.note+'</span>':''}
+    </div>`
+  ).join('');
+
+  const sec=(title)=>`<div style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:0 0 8px;">${title}</div>`;
+  const card=(bg,label,value,sub,subColor='var(--muted)')=>
+    `<div style="background:${bg};border-radius:10px;padding:10px 12px;margin-bottom:8px;">
+      <div style="font-size:.58rem;color:var(--muted);margin-bottom:2px;">${label}</div>
+      <div style="font-size:.9rem;font-weight:700;color:var(--font);">${value}</div>
+      ${sub?`<div style="font-size:.6rem;color:${subColor};">${sub}</div>`:''}
+    </div>`;
 
   db.innerHTML=`
-    <div style="margin-bottom:16px;">
-      <div style="font-size:1rem;font-weight:700;color:var(--font);margin-bottom:2px;">${a.nome}</div>
-      <div style="font-size:.68rem;color:var(--muted);">${inst.name} · ${a.classe}${a.tipo?' · '+a.tipo:''}</div>
-    </div>
+  <div style="display:flex;height:100%;overflow:hidden;">
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
-      <div style="background:var(--kp);border-radius:10px;padding:10px 12px;">
-        <div style="font-size:.6rem;color:var(--muted);margin-bottom:2px;">Aplicado</div>
-        <div style="font-size:.85rem;font-weight:700;color:var(--font);">${fmtInvFull(a.aplicado)}</div>
-        <div style="font-size:.6rem;color:var(--muted);">desde ${desde}</div>
+    <!-- COL ESQUERDA: saldos + info -->
+    <div style="width:220px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:14px 12px;">
+      <div style="font-size:.82rem;font-weight:700;color:var(--font);margin-bottom:2px;">${a.nome}</div>
+      <div style="font-size:.62rem;color:var(--muted);margin-bottom:14px;">${inst.name}${a.classe?' · '+a.classe:''}</div>
+
+      ${card('var(--kp)','Aplicado',fmtInvFull(a.aplicado),'desde '+desde)}
+      ${card('var(--font)','<span style="color:rgba(255,255,255,.5)">Atual</span>','<span style="color:#fff">'+fmtInvFull(atual)+'</span>','<span style="color:rgba(255,255,255,.5)">em '+updDate+'</span>')}
+      ${card('var(--kp)','Rendimento','<span style="color:'+rendColor+'">'+rendSign+fmtInvFull(rend)+'</span>','<span style="color:'+rendColor+'">'+rendSign+pct+'%</span>',rendColor)}
+      ${vencNorm!=='N/A'?card('var(--kp)','Vencimento',vencNorm,vencDays):''}
+
+      <div style="margin-top:12px;">${sec('Informações')}
+        ${infoRows.map(r=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:.68rem;">
+          <span style="color:var(--muted);">${r[0]}</span>
+          <span style="color:var(--font);font-weight:500;text-align:right;max-width:120px;">${r[1]}</span>
+        </div>`).join('')}
       </div>
-      <div style="background:var(--font);border-radius:10px;padding:10px 12px;">
-        <div style="font-size:.6rem;color:rgba(255,255,255,.5);margin-bottom:2px;">Atual</div>
-        <div style="font-size:.85rem;font-weight:700;color:#fff;">${fmtInvFull(atual)}</div>
-        <div style="font-size:.6rem;color:rgba(255,255,255,.5);">em ${updDate}</div>
-      </div>
-      <div style="background:var(--kp);border-radius:10px;padding:10px 12px;">
-        <div style="font-size:.6rem;color:var(--muted);margin-bottom:2px;">Rendimento</div>
-        <div style="font-size:.85rem;font-weight:700;color:${rendColor};">${rendSign}${fmtInvFull(rend)}</div>
-        <div style="font-size:.6rem;color:${rendColor};">${rendSign}${pct}%</div>
-      </div>
-      <div style="background:var(--kp);border-radius:10px;padding:10px 12px;">
-        <div style="font-size:.6rem;color:var(--muted);margin-bottom:2px;">Vencimento</div>
-        <div style="font-size:.8rem;font-weight:700;color:var(--font);">${vencNorm}</div>
-        <div style="font-size:.6rem;color:var(--muted);">${vencDays.replace(' (','').replace(')','')}</div>
+
+      <div style="display:flex;gap:6px;margin-top:14px;">
+        <button onclick="waInvShowEditForm(${idx})" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--font);font-size:.68rem;font-weight:600;cursor:pointer;">✏ Editar</button>
+        <button onclick="waInvToggleEnc(${idx})" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:${a.encerrado?'#059669':'var(--red)'};font-size:.68rem;font-weight:600;cursor:pointer;">${a.encerrado?'↩ Reativar':'⊗ Encerrar'}</button>
       </div>
     </div>
 
-    <div style="margin-bottom:16px;">
-      <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;">Informações</div>
-      ${rows.map(r=>'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:.72rem;"><span style="color:var(--muted);">'+r[0]+'</span><span style="color:var(--font);font-weight:500;">'+r[1]+'</span></div>').join('')}
-    </div>
-
-    <div style="margin-bottom:16px;">
-      <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;">Atualizar valor</div>
-      <div style="display:flex;gap:8px;">
-        <input id="wai-upd-val" type="text" placeholder="R$ novo valor" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-size:.8rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">
-        <input id="wai-upd-note" type="text" placeholder="Observação" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-size:.8rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">
-        <button onclick="waInvSaveUpd(${idx})" style="padding:8px 14px;border-radius:8px;border:none;background:var(--font);color:var(--bg);font-size:.75rem;font-weight:600;cursor:pointer;">Salvar</button>
+    <!-- COL DIREITA: atualizar + gráfico + histórico -->
+    <div style="flex:1;overflow-y:auto;padding:14px 12px;">
+      ${sec('Atualizar valor')}
+      <div style="display:flex;gap:6px;margin-bottom:16px;">
+        <input id="wai-upd-val" type="text" placeholder="Novo valor R$" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:.78rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">
+        <input id="wai-upd-note" type="text" placeholder="Observação" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:.78rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">
+        <button onclick="waInvSaveUpd(${idx})" style="padding:7px 12px;border-radius:8px;border:none;background:var(--font);color:var(--bg);font-size:.72rem;font-weight:700;cursor:pointer;">✓</button>
       </div>
-    </div>
 
-    <div style="margin-bottom:16px;">
-      <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;">Histórico (últimas 10)</div>
+      ${sec('Evolução')}
+      <div style="margin-bottom:16px;">${chartHTML}</div>
+
+      ${sec('Histórico ('+logSorted.length+' registros)')}
       ${logRows||'<div style="color:var(--muted);font-size:.72rem;">Sem registros</div>'}
     </div>
 
-    <div style="display:flex;gap:8px;margin-top:8px;">
-      <button onclick="waInvShowEditForm(${idx})" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--font);font-size:.72rem;font-weight:600;cursor:pointer;">✏ Editar</button>
-      <button onclick="waInvToggleEnc(${idx})" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:${a.encerrado?'var(--accent2)':'var(--red)'};font-size:.72rem;font-weight:600;cursor:pointer;">${a.encerrado?'↩ Reativar':'⊗ Encerrar'}</button>
-    </div>`;
+  </div>`;
 }
 
 function waInvShowEditForm(idx){
