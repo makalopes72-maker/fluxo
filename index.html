@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#37474F,#F9A825);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
-  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
-  #splash .splash-btn{background:#ECEFF1 !important;color:#37474F !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1B5E20,#E53935);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
+  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
+  #splash .splash-btn{background:#F1F8E9 !important;color:#1B5E20 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2064,7 +2064,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.90';
+const APP_VERSION='14.91';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4996,12 +4996,14 @@ function seedOrcForUser(user){
 
 function getOrcValForMonth(tipo,cat,year,month){
   const o=getOrcCat(tipo,cat);
-  const key=year+'-'+String(month+1).padStart(2,'0');
+  const key=String(year)+'-'+String(month+1).padStart(2,'0');
   if(o.months&&o.months[key]!==undefined)return o.months[key];
-  // convert period to monthly value
-  if(o.period==='semanal')return o.default*(52/12);
-  if(o.period==='anual')return o.default/12;
-  return o.default;
+  // year-specific default
+  const yr=String(year);
+  const def=(o.defaults&&o.defaults[yr]!=null)?o.defaults[yr]:(o.default||0);
+  if(o.period==='semanal')return def*(52/12);
+  if(o.period==='anual')return def/12;
+  return def;
 }
 
 function getRealForMonth(cat,tipo,year,month){
@@ -5177,10 +5179,10 @@ function waOrcModal(tipo,cat,o){
   modal.onclick=e=>{if(e.target===modal)modal.remove();};
   modal.innerHTML='<div style="background:var(--bg);border-radius:16px;padding:20px;width:360px;max-width:90vw;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2);">'
     +'<div style="font-size:.9rem;font-weight:700;color:var(--font);margin-bottom:4px;">'+cat+'</div>'
-    +'<div style="font-size:.65rem;color:var(--muted);margin-bottom:16px;">'+tipo+' · Orçamento</div>'
+    +'<div style="font-size:.65rem;color:var(--muted);margin-bottom:16px;">'+tipo+' · Orçamento '+String((window.waDashYear)||new Date().getFullYear())+'</div>'
     +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">'
     +'<span style="font-size:.68rem;color:var(--muted);width:90px;flex-shrink:0;">Valor padrão</span>'
-    +'<input id="wa-orc-default" type="text" inputmode="decimal" value="'+(o.default>0?o.default.toFixed(2).replace('.',','):'')+'" placeholder="R$ 0,00" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:.85rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">'
+    +'<input id="wa-orc-default" type="text" inputmode="decimal" value="'+((()=>{const yr=String((window.waDashYear)||new Date().getFullYear());const d=(o.defaults&&o.defaults[yr]!=null)?o.defaults[yr]:(o.default||0);return d>0?d.toFixed(2).replace('.',','):'';})())+'" placeholder="R$ 0,00" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:.85rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">'
     +'</div>'
     +seg('Periodicidade','period',[['mensal','Mensal'],['semanal','Semanal'],['anual','Anual']],_orcEditPeriod)
     +seg('Tipo','tipoFC',[['F','Fixo'],['V','Variável']],_orcEditTipoFC)
@@ -5210,11 +5212,17 @@ function waOrcSave(){
   const raw=inp?inp.value.replace(',','.').trim():'0';
   const n=parseFloat(raw)||0;
   const o=getOrcCat(_orcEditTipo,_orcEditCat);
-  o.default=n;o.period=_orcEditPeriod;o.tipo=_orcEditTipoFC;o.farol=_orcEditFarol;
+  // save as year-specific default
+  const yr=String((window.waDashYear)||new Date().getFullYear());
+  if(!o.defaults)o.defaults={};
+  o.defaults[yr]=n;
+  // also update legacy default for mobile compatibility
+  o.default=n;
+  o.period=_orcEditPeriod;o.tipo=_orcEditTipoFC;o.farol=_orcEditFarol;
   saveOrc();
   const modal=document.getElementById('wa-orc-modal');if(modal)modal.remove();
   waDashRenderHeader();waDashRender();
-  waSyncIndicator('✓ Orçamento salvo','#059669',false);
+  waSyncIndicator('✓ Orçamento '+yr+' salvo','#059669',false);
 }
 function closeOrcEdit(){
   const modal=document.getElementById('orc-edit-modal');if(modal)modal.classList.remove('open');
@@ -5239,6 +5247,10 @@ function saveOrcEdit(){
   const raw=inp?inp.value.replace(',','.').trim():'0';
   const n=parseFloat(raw)||0;
   const o=getOrcCat(_orcEditTipo,_orcEditCat);
+  // save year-specific default
+  if(!o.defaults)o.defaults={};
+  const _saveYr=String(orcYear||new Date().getFullYear());
+  o.defaults[_saveYr]=n;
   o.default=n;o.period=_orcEditPeriod;o.tipo=_orcEditTipoFC;o.farol=_orcEditFarol;
   saveOrc();closeOrcEdit();renderOrc();renderDashFarois();
   if(typeof waDashRender==='function'){waDashRenderHeader();waDashRender();}
@@ -6803,16 +6815,21 @@ function waDashGetMeta(user,tipo,cat,mIdx){
   const ud=orcData[user]||{};
   const cd=ud[tipo]&&ud[tipo][cat];
   if(!cd)return 0;
-  const yr=(window.waDashYear)||new Date().getFullYear();
+  const yr=String((window.waDashYear)||new Date().getFullYear());
   const key=yr+'-'+(mIdx+1<10?'0':'')+(mIdx+1);
-  return cd.months&&cd.months[key]!=null?cd.months[key]:(cd.default||0);
+  // month-specific override takes priority
+  if(cd.months&&cd.months[key]!=null)return cd.months[key];
+  // year-specific default
+  if(cd.defaults&&cd.defaults[yr]!=null)return cd.defaults[yr];
+  // fallback to legacy global default
+  return cd.default||0;
 }
 
 function waDashSetMeta(user,tipo,cat,mIdx,val){
   if(!orcData[user])orcData[user]={};
   if(!orcData[user][tipo])orcData[user][tipo]={};
-  if(!orcData[user][tipo][cat])orcData[user][tipo][cat]={default:0,period:'mensal',tipo:'V',farol:'R',months:{}};
-  const yr=(window.waDashYear)||new Date().getFullYear();
+  if(!orcData[user][tipo][cat])orcData[user][tipo][cat]={default:0,period:'mensal',tipo:'V',farol:'R',months:{},defaults:{}};
+  const yr=String((window.waDashYear)||new Date().getFullYear());
   const key=yr+'-'+(mIdx+1<10?'0':'')+(mIdx+1);
   orcData[user][tipo][cat].months[key]=val;
   localStorage.setItem('fluxo_orc',JSON.stringify(orcData));
