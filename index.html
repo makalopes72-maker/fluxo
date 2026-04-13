@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#37474F,#E65100);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
-  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
-  #splash .splash-btn{background:#ECEFF1 !important;color:#37474F !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1A237E,#4CAF50);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E8EAF6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(232,234,246,.65) !important;}
+  #splash .splash-version{color:rgba(232,234,246,.35) !important;}
+  #splash .splash-btn{background:#E8EAF6 !important;color:#1A237E !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8EAF6 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2060,7 +2060,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.83';
+const APP_VERSION='14.84';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -7272,220 +7272,179 @@ function waInvRenderDetail(idx){
   if(!db||waInvInstIdx===null)return;
   const inst=instituicoes[waInvInstIdx];
   const a=getInstAtivos(inst)[idx];
-  if(!a){db.innerHTML='<div style="color:var(--muted);font-size:.75rem;padding:20px;">Ativo não encontrado</div>';return;}
-
+  if(!a){db.innerHTML='<div style="color:var(--muted);font-size:.75rem;padding:20px;text-align:center;">Selecione um ativo</div>';return;}
   const atual=getAtivoAtual(a);
   const rend=atual-a.aplicado;
   const pct=a.aplicado?((rend/a.aplicado)*100).toFixed(1):0;
   const rendSign=rend>=0?'+':'';
   const rendColor=rend>=0?'#059669':'var(--red)';
-  const desde=a.log.length?a.log[0].date:'--';
-  const updDate=a.log.length?a.log[a.log.length-1].date:'--';
+  const desde=a.log&&a.log.length?a.log[0].date:'--';
+  const updDate=a.log&&a.log.length?a.log[a.log.length-1].date:'--';
   const vencNorm=normVenc(a.vencimento)||'N/A';
   let vencDays='';
   if(vencNorm!=='N/A'){
     const vp=vencNorm.split('/');
     if(vp.length===3){
       const vDate=new Date(vp[2],vp[1]-1,vp[0]);
-      const today=new Date();today.setHours(0,0,0,0);
-      const diff=Math.ceil((vDate-today)/(1000*60*60*24));
+      const today2=new Date();today2.setHours(0,0,0,0);
+      const diff=Math.ceil((vDate-today2)/(1000*60*60*24));
       vencDays=diff>0?diff+' dias':diff===0?'Hoje':'Vencido';
     }
   }
   const infoRows=[
     ['Classe',a.classe],['Tipo',a.tipo],['Indexador',a.indexador],
     ['Taxa',a.taxa],['Liquidez',a.liquidez],['Garantia',a.garantia],
-    ['IR',a.ir],['Vencimento',vencNorm+(vencDays?' · '+vencDays:'')],
-    ['Observações',a.obs||''],
+    ['IR',a.ir],['Vencimento',vencNorm+(vencDays?' - '+vencDays:'')],
+    ['Obs',a.obs||''],
   ].filter(r=>r[1]&&r[1]!=='');
-
   const logSorted=a.log?[...a.log].sort((x,y)=>(parseDate(x.date)||0)-(parseDate(y.date)||0)):[];
-
-  // build SVG chart from log
+  // SVG chart
   const chartHTML=(()=>{
-    if(logSorted.length<2)return '<div style="color:var(--muted);font-size:.68rem;text-align:center;padding:16px 0;">Gráfico disponível com 2+ registros</div>';
+    if(logSorted.length<2)return '<div style="color:var(--muted);font-size:.68rem;text-align:center;padding:10px 0;">Grafico disponivel com 2+ registros</div>';
     const vals=logSorted.map(l=>l.value);
-    const min=Math.min(...vals);
-    const max=Math.max(...vals);
-    const range=max-min||1;
-    const W=300,H=80,pad=4;
+    const mn=Math.min(...vals),mx=Math.max(...vals),range=mx-mn||1;
+    const W=400,H=72,pad=4;
     const pts=vals.map((v,i)=>{
       const x=pad+(i/(vals.length-1))*(W-pad*2);
-      const y=H-pad-((v-min)/range)*(H-pad*2);
+      const y=H-pad-((v-mn)/range)*(H-pad*2);
       return x.toFixed(1)+','+y.toFixed(1);
-    });
-    const polyline=pts.join(' ');
-    const lastPt=pts[pts.length-1];
-    const firstX=pad,lastX=(W-pad).toFixed(1);
-    const fillPts=`${pad},${H} ${polyline} ${lastX},${H}`;
-    const lineColor=rend>=0?'#059669':'#E53935';
-    const fillColor=rend>=0?'rgba(5,150,105,.12)':'rgba(229,57,53,.12)';
-    const lastDate=logSorted[logSorted.length-1].date;
-    const firstDate=logSorted[0].date;
-    return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:80px;" preserveAspectRatio="none">
-      <polygon points="${fillPts}" fill="${fillColor}"/>
-      <polyline points="${polyline}" fill="none" stroke="${lineColor}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-      <circle cx="${lastPt.split(',')[0]}" cy="${lastPt.split(',')[1]}" r="3" fill="${lineColor}"/>
-    </svg>
-    <div style="display:flex;justify-content:space-between;font-size:.58rem;color:var(--muted);margin-top:2px;">
-      <span>${firstDate}</span><span>${lastDate}</span>
-    </div>`;
+    }).join(' ');
+    const lc=rend>=0?'#059669':'#E53935',fc=rend>=0?'rgba(5,150,105,.1)':'rgba(229,57,53,.1)';
+    return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:72px;" preserveAspectRatio="none">'
+      +'<polygon points="'+pad+','+H+' '+pts+' '+(W-pad)+','+H+'" fill="'+fc+'"/>'
+      +'<polyline points="'+pts+'" fill="none" stroke="'+lc+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'
+      +'</svg>'
+      +'<div style="display:flex;justify-content:space-between;font-size:.58rem;color:var(--muted);margin-top:1px;">'
+      +'<span>'+logSorted[0].date+'</span><span>'+logSorted[logSorted.length-1].date+'</span></div>';
   })();
-
-  const logRows=logSorted.slice().reverse().slice(0,15).map(l=>
-    `<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);gap:8px;">
-      <span style="font-size:.66rem;color:var(--muted);white-space:nowrap;">${l.date}</span>
-      <span style="font-size:.72rem;font-weight:700;color:var(--font);">${fmtInvFull(l.value)}</span>
-      ${l.note?'<span style="font-size:.6rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100px;">'+l.note+'</span>':''}
-    </div>`
-  ).join('');
-
-  const sec=(title)=>`<div style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:0 0 8px;">${title}</div>`;
-  const card=(bg,label,value,sub,subColor='var(--muted)')=>
-    `<div style="background:${bg};border-radius:10px;padding:10px 12px;margin-bottom:8px;">
-      <div style="font-size:.58rem;color:var(--muted);margin-bottom:2px;">${label}</div>
-      <div style="font-size:.9rem;font-weight:700;color:var(--font);">${value}</div>
-      ${sub?`<div style="font-size:.6rem;color:${subColor};">${sub}</div>`:''}
-    </div>`;
-
-  db.innerHTML=`
-  <div style="display:flex;height:100%;overflow:hidden;">
-
-    <!-- COL ESQUERDA: saldos + info -->
-    <div style="width:220px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:14px 12px;">
-      <div style="font-size:.82rem;font-weight:700;color:var(--font);margin-bottom:2px;">${a.nome}</div>
-      <div style="font-size:.62rem;color:var(--muted);margin-bottom:14px;">${inst.name}${a.classe?' · '+a.classe:''}</div>
-
-      ${card('var(--kp)','Aplicado',fmtInvFull(a.aplicado),'desde '+desde)}
-      ${card('var(--font)','<span style="color:rgba(255,255,255,.5)">Atual</span>','<span style="color:#fff">'+fmtInvFull(atual)+'</span>','<span style="color:rgba(255,255,255,.5)">em '+updDate+'</span>')}
-      ${card('var(--kp)','Rendimento','<span style="color:'+rendColor+'">'+rendSign+fmtInvFull(rend)+'</span>','<span style="color:'+rendColor+'">'+rendSign+pct+'%</span>',rendColor)}
-      ${vencNorm!=='N/A'?card('var(--kp)','Vencimento',vencNorm,vencDays):''}
-
-      <div style="margin-top:12px;">${sec('Informações')}
-        ${infoRows.map(r=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:.68rem;">
-          <span style="color:var(--muted);">${r[0]}</span>
-          <span style="color:var(--font);font-weight:500;text-align:right;max-width:120px;">${r[1]}</span>
-        </div>`).join('')}
-      </div>
-
-      <div style="display:flex;gap:6px;margin-top:14px;">
-        <button onclick="waInvShowEditForm(${idx})" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--font);font-size:.68rem;font-weight:600;cursor:pointer;">✏ Editar</button>
-        <button onclick="waInvToggleEnc(${idx})" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:${a.encerrado?'#059669':'var(--red)'};font-size:.68rem;font-weight:600;cursor:pointer;">${a.encerrado?'↩ Reativar':'⊗ Encerrar'}</button>
-      </div>
-    </div>
-
-    <!-- COL DIREITA: atualizar + gráfico + histórico -->
-    <div style="flex:1;overflow-y:auto;padding:14px 12px;">
-      ${sec('Atualizar valor')}
-      <div style="display:flex;gap:6px;margin-bottom:16px;">
-        <input id="wai-upd-val" type="text" placeholder="Novo valor R$" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:.78rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">
-        <input id="wai-upd-note" type="text" placeholder="Observação" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:.78rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">
-        <button onclick="waInvSaveUpd(${idx})" style="padding:7px 12px;border-radius:8px;border:none;background:var(--font);color:var(--bg);font-size:.72rem;font-weight:700;cursor:pointer;">✓</button>
-      </div>
-
-      ${sec('Evolução')}
-      <div style="margin-bottom:16px;">${chartHTML}</div>
-
-      ${sec('Histórico ('+logSorted.length+' registros)')}
-      ${logRows||'<div style="color:var(--muted);font-size:.72rem;">Sem registros</div>'}
-    </div>
-
-  </div>`;
-}
-
-function waInvShowEditForm(idx){
-  const inst=instituicoes[waInvInstIdx];
-  const a=getInstAtivos(inst)[idx];
-  if(!a)return;
-  const db=document.getElementById('wai-detail-body');
-  if(!db)return;
-
-  const toISO=d=>{if(!d)return'';const p=d.split('/');if(p.length!==3)return'';return p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');};
-  const field=(lbl,id,val,type='text',placeholder='')=>
-    '<div style="margin-bottom:10px;">'
-    +'<label style="display:block;font-size:.62rem;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:3px;">'+lbl+'</label>'
-    +'<input type="'+type+'" id="waie-'+id+'" value="'+String(val||'').replace(/"/g,'&quot;')+'" placeholder="'+placeholder+'"'
-    +' style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:.8rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">'
+  // Log rows
+  const logRows=logSorted.slice().reverse().map((l,i)=>{
+    const realIdx=logSorted.length-1-i;
+    return '<div id="wai-log-row-'+realIdx+'" style="display:grid;grid-template-columns:90px 110px 1fr 24px 24px;align-items:center;gap:4px;padding:4px 0;border-bottom:1px solid var(--border);font-size:.68rem;">'
+      +'<span style="color:var(--muted);white-space:nowrap;">'+l.date+'</span>'
+      +'<span style="font-weight:700;color:var(--font);text-align:right;padding-right:4px;">'+fmtInvFull(l.value)+'</span>'
+      +'<span style="color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(l.note||'')+'</span>'
+      +'<button onclick="waInvEditLog('+idx+','+realIdx+')" title="Editar" style="width:22px;height:22px;border:none;background:transparent;cursor:pointer;color:var(--muted);font-size:13px;padding:0;">&#9998;</button>'
+      +'<button onclick="waInvDelLog('+idx+','+realIdx+')" title="Apagar" style="width:22px;height:22px;border:none;background:transparent;cursor:pointer;color:var(--red);font-size:13px;padding:0;">&#x2715;</button>'
+      +'</div>';
+  }).join('');
+  const card=(bg,lbl,val,sub,subC='var(--muted)')=>
+    '<div style="background:'+bg+';border-radius:8px;padding:8px 10px;">'
+    +'<div style="font-size:.56rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1px;">'+lbl+'</div>'
+    +'<div style="font-size:.82rem;font-weight:700;color:var(--font);">'+val+'</div>'
+    +(sub?'<div style="font-size:.58rem;color:'+subC+';">'+sub+'</div>':'')
     +'</div>';
-  const sel=(lbl,id,opts,val)=>
-    '<div style="margin-bottom:10px;">'
-    +'<label style="display:block;font-size:.62rem;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:3px;">'+lbl+'</label>'
-    +'<select id="waie-'+id+'" style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:.8rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">'
-    +opts.map(o=>'<option value="'+o+'"'+(o===val?' selected':'')+'>'+o+'</option>').join('')
-    +'</select>'
-    +'</div>';
-
-  const classes=['Renda Fixa','Renda Variável','Fundos de Investimento','Previdência Privada'];
-  const indexadores=['% do CDI','SELIC','Prefixado (% a.a.)','IPCA + taxa','Dólar','Euro','Outro'];
-  const liquidezOpts=['Diária (D+0)','D+1','No vencimento','Perpétuo','Outro'];
-  const garantiaOpts=['FGC (até R$ 250 mil/CPF)','Risco Soberano (Tesouro)','Risco Privado (sem FGC)','N/A'];
-  const irOpts=['Isento (PF)','Tabela Regressiva','15% (ganho de capital)','20% (day trade)','Come-cotas','Outro'];
-
-  db.innerHTML='<div style="padding:14px 16px;overflow-y:auto;">'
-    +field('Nome','nome',a.nome,'text','Ex: CDB Safra')
-    +sel('Classe','classe',[''].concat(classes),a.classe)
-    +field('Valor aplicado (R$)','aplicado',a.aplicado,'number','0.00')
-    +sel('Indexador','indexador',[''].concat(indexadores),a.indexador)
-    +field('Taxa / Percentual','taxa',a.taxa,'text','Ex: 110%')
-    +field('Data aplicação','data-aplic',toISO(a.dataAplic),'date')
-    +field('Vencimento','vencimento',toISO(a.vencimento),'date')
-    +sel('Liquidez','liquidez',[''].concat(liquidezOpts),a.liquidez)
-    +sel('Garantia','garantia',[''].concat(garantiaOpts),a.garantia)
-    +sel('IR','ir',[''].concat(irOpts),a.ir)
-    +field('Observações','obs',a.obs,'text','Opcional...')
-    +'<div style="display:flex;gap:8px;margin-top:4px;">'
-    +'<button onclick="waInvCancelEdit('+idx+')" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.72rem;cursor:pointer;">Cancelar</button>'
-    +'<button onclick="waInvSaveEdit('+idx+')" style="flex:1;padding:9px;border-radius:8px;border:none;background:var(--font);color:var(--bg);font-size:.72rem;font-weight:700;cursor:pointer;">✓ Salvar</button>'
+  const today=new Date();
+  const todayISO=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  db.innerHTML='<div style="display:flex;height:100%;overflow:hidden;">'
+    // LEFT COL
+    +'<div style="width:220px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:12px;">'
+    +'<div style="font-size:.8rem;font-weight:700;color:var(--font);margin-bottom:1px;">'+a.nome+'</div>'
+    +'<div style="font-size:.6rem;color:var(--muted);margin-bottom:10px;">'+inst.name+(a.classe?' - '+a.classe:'')+'</div>'
+    // 2x2 grid
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px;">'
+    +card('var(--kp)','Aplicado',fmtInvFull(a.aplicado),'desde '+desde)
+    +card('#1a1a1a','<span style="color:rgba(255,255,255,.5)">Atual</span>','<span style="color:#fff">'+fmtInvFull(atual)+'</span>','<span style="color:rgba(255,255,255,.45)">em '+updDate+'</span>')
+    +card('var(--kp)','Rendimento','<span style="color:'+rendColor+'">'+rendSign+fmtInvFull(rend)+'</span>','<span style="color:'+rendColor+'">'+rendSign+pct+'%</span>',rendColor)
+    +card('var(--kp)','Vencimento',vencNorm!=='N/A'?vencNorm:'N/A',vencDays||'')
+    +'</div>'
+    // info table
+    +'<div style="font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px;">Informacoes</div>'
+    +infoRows.map(r=>'<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);font-size:.63rem;gap:4px;">'
+      +'<span style="color:var(--muted);flex-shrink:0;">'+r[0]+'</span>'
+      +'<span style="color:var(--font);font-weight:500;text-align:right;overflow:hidden;text-overflow:ellipsis;">'+r[1]+'</span>'
+      +'</div>').join('')
+    // action buttons
+    +'<div style="display:flex;gap:5px;margin-top:10px;">'
+    +'<button onclick="waInvShowEditForm('+idx+')" style="flex:1;padding:6px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--font);font-size:.63rem;font-weight:600;cursor:pointer;">Editar</button>'
+    +'<button onclick="waInvToggleEnc('+idx+')" style="flex:1;padding:6px;border-radius:7px;border:1px solid var(--border);background:transparent;color:'+(a.encerrado?'#059669':'var(--red)')+';font-size:.63rem;font-weight:600;cursor:pointer;">'+(a.encerrado?'Reativar':'Encerrar')+'</button>'
+    +'</div>'
+    +'</div>'
+    // RIGHT COL
+    +'<div style="flex:1;overflow-y:auto;padding:12px;">'
+    // add saldo
+    +'<div style="font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px;">Adicionar saldo</div>'
+    +'<div style="display:grid;grid-template-columns:100px 1fr 1fr;gap:5px;margin-bottom:4px;">'
+    +'<div><div style="font-size:.58rem;color:var(--muted);margin-bottom:2px;">Data</div>'
+    +'<input id="wai-upd-date" type="date" value="'+todayISO+'" style="width:100%;padding:5px 6px;border-radius:6px;border:1px solid var(--border);font-size:.7rem;font-family:var(--font-body);background:var(--bg);color:var(--font);"></div>'
+    +'<div><div style="font-size:.58rem;color:var(--muted);margin-bottom:2px;">Valor (R$)</div>'
+    +'<input id="wai-upd-val" type="text" placeholder="Ex: 27.500,00" style="width:100%;padding:5px 6px;border-radius:6px;border:1px solid var(--border);font-size:.7rem;font-family:var(--font-body);background:var(--bg);color:var(--font);"></div>'
+    +'<div><div style="font-size:.58rem;color:var(--muted);margin-bottom:2px;">Observacao</div>'
+    +'<input id="wai-upd-note" type="text" placeholder="Opcional" style="width:100%;padding:5px 6px;border-radius:6px;border:1px solid var(--border);font-size:.7rem;font-family:var(--font-body);background:var(--bg);color:var(--font);"></div>'
+    +'</div>'
+    +'<button onclick="waInvSaveUpd('+idx+')" style="width:100%;padding:6px;border-radius:7px;border:none;background:var(--font);color:var(--bg);font-size:.7rem;font-weight:700;cursor:pointer;margin-bottom:14px;">Salvar saldo</button>'
+    // chart
+    +'<div style="font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px;">Evolucao</div>'
+    +'<div style="margin-bottom:12px;">'+chartHTML+'</div>'
+    // log header
+    +'<div style="font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px;">Historico ('+logSorted.length+')</div>'
+    +'<div style="display:grid;grid-template-columns:90px 110px 1fr 24px 24px;gap:4px;padding:3px 0;border-bottom:2px solid var(--border);font-size:.55rem;font-weight:700;color:var(--muted);text-transform:uppercase;">'
+    +'<span>Data</span><span style="text-align:right;padding-right:4px;">Valor</span><span>Obs</span><span></span><span></span>'
+    +'</div>'
+    +(logRows||'<div style="color:var(--muted);font-size:.72rem;padding:8px 0;">Sem registros</div>')
     +'</div>'
     +'</div>';
 }
 
-function waInvCancelEdit(idx){
-  waInvRenderDetail(idx);
+function waInvEditLog(ativoIdx,logIdx){
+  const inst=instituicoes[waInvInstIdx];
+  const a=getInstAtivos(inst)[ativoIdx];
+  if(!a||!a.log||!a.log[logIdx])return;
+  const l=a.log[logIdx];
+  const row=document.getElementById('wai-log-row-'+logIdx);
+  if(!row)return;
+  const toISO=d=>{if(!d)return'';const p=d.split('/');if(p.length!==3)return'';return p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');};
+  row.innerHTML='<input id="wai-elog-date-'+logIdx+'" type="date" value="'+toISO(l.date)+'" style="padding:3px 4px;border-radius:5px;border:1px solid var(--border);font-size:.63rem;font-family:var(--font-body);background:var(--bg);color:var(--font);width:90px;">'
+    +'<input id="wai-elog-val-'+logIdx+'" type="text" value="'+l.value+'" style="padding:3px 4px;border-radius:5px;border:1px solid var(--border);font-size:.63rem;font-family:var(--font-body);background:var(--bg);color:var(--font);text-align:right;width:100px;">'
+    +'<input id="wai-elog-note-'+logIdx+'" type="text" value="'+(l.note||'')+'" placeholder="Obs." style="padding:3px 4px;border-radius:5px;border:1px solid var(--border);font-size:.63rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">'
+    +'<button onclick="waInvSaveLog('+ativoIdx+','+logIdx+')" style="width:22px;height:22px;border:none;background:#059669;border-radius:4px;cursor:pointer;color:#fff;font-size:11px;padding:0;">&#10003;</button>'
+    +'<button onclick="waInvRenderDetail('+ativoIdx+')" style="width:22px;height:22px;border:none;background:transparent;cursor:pointer;color:var(--muted);font-size:13px;padding:0;">&#x2715;</button>';
 }
 
-function waInvSaveEdit(idx){
+function waInvSaveLog(ativoIdx,logIdx){
   const inst=instituicoes[waInvInstIdx];
-  const a=getInstAtivos(inst)[idx];
-  if(!a)return;
+  const a=getInstAtivos(inst)[ativoIdx];
+  if(!a||!a.log||!a.log[logIdx])return;
   const toDate=iso=>{if(!iso)return'';const[y,m,d]=iso.split('-');return d+'/'+m+'/'+y;};
-  const g=id=>document.getElementById('waie-'+id)?.value||'';
-  a.nome=g('nome').trim()||a.nome;
-  a.classe=g('classe');
-  a.aplicado=parseFloat(g('aplicado'))||a.aplicado;
-  a.indexador=g('indexador');
-  a.taxa=g('taxa');
-  a.dataAplic=g('data-aplic');
-  a.vencimento=toDate(g('vencimento'));
-  a.liquidez=g('liquidez');
-  a.garantia=g('garantia');
-  a.ir=g('ir');
-  a.obs=g('obs');
+  const valStr=(document.getElementById('wai-elog-val-'+logIdx)||{}).value||'';
+  const val=parseFloat(valStr.replace(',','.'));
+  if(isNaN(val)||val<=0){waSyncIndicator('Valor invalido','#E53935',false);return;}
+  a.log[logIdx].value=val;
+  a.log[logIdx].date=toDate((document.getElementById('wai-elog-date-'+logIdx)||{}).value||'')||a.log[logIdx].date;
+  a.log[logIdx].note=((document.getElementById('wai-elog-note-'+logIdx)||{}).value||'').trim();
   saveInvestimentos();
-  waSyncIndicator('✓ Ativo atualizado','#059669',false);
-  document.getElementById('wa-right-title').textContent=a.nome;
-  waInvRenderAtivos();
-  waInvRenderDetail(idx);
-  waInvRenderInst();
+  waSyncIndicator('Saldo atualizado','#059669',false);
+  waInvRenderAtivos();waInvRenderDetail(ativoIdx);waInvRenderInst();
+}
+
+function waInvDelLog(ativoIdx,logIdx){
+  const inst=instituicoes[waInvInstIdx];
+  const a=getInstAtivos(inst)[ativoIdx];
+  if(!a||!a.log)return;
+  if(!confirm('Apagar este registro?'))return;
+  a.log.splice(logIdx,1);
+  saveInvestimentos();
+  waSyncIndicator('Registro removido','#059669',false);
+  waInvRenderAtivos();waInvRenderDetail(ativoIdx);waInvRenderInst();
 }
 
 function waInvSaveUpd(idx){
   const inst=instituicoes[waInvInstIdx];
   const a=getInstAtivos(inst)[idx];
   if(!a)return;
-  const valStr=document.getElementById('wai-upd-val').value.trim().replace(',','.');
+  const valStr=((document.getElementById('wai-upd-val')||{}).value||'').trim().replace(',','.');
   const val=parseFloat(valStr);
-  if(!val||isNaN(val)){alert('Valor inválido');return;}
-  const note=document.getElementById('wai-upd-note').value.trim();
-  const now=new Date();
-  const ds=String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear();
-  a.log.push({date:ds,value:val,note:note||''});
+  if(!val||isNaN(val)){waSyncIndicator('Valor invalido','#E53935',false);return;}
+  const note=((document.getElementById('wai-upd-note')||{}).value||'').trim();
+  const dateISO=((document.getElementById('wai-upd-date')||{}).value||'');
+  const toDate=iso=>{if(!iso)return'';const[y,m,d]=iso.split('-');return d+'/'+m+'/'+y;};
+  const ds=toDate(dateISO)||new Date().toLocaleDateString('pt-BR');
+  a.log.push({date:ds,value:val,note:note});
   saveInvestimentos();
-  waSyncIndicator('✓ Valor atualizado','#059669',false);
-  waInvRenderAtivos();
-  waInvRenderDetail(idx);
-  waInvRenderInst();
+  waSyncIndicator('Saldo adicionado','#059669',false);
+  waInvRenderAtivos();waInvRenderDetail(idx);waInvRenderInst();
 }
+
 
 function waInvToggleEnc(idx){
   const inst=instituicoes[waInvInstIdx];
