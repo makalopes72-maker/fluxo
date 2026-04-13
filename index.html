@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1A237E,#33691E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E8EAF6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(232,234,246,.65) !important;}
-  #splash .splash-version{color:rgba(232,234,246,.35) !important;}
-  #splash .splash-btn{background:#E8EAF6 !important;color:#1A237E !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8EAF6 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1B5E20,#1565C0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
+  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
+  #splash .splash-btn{background:#F1F8E9 !important;color:#1B5E20 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2064,7 +2064,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.87';
+const APP_VERSION='14.88';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -7075,49 +7075,46 @@ function waDashRender(){
   // helper: build a summary row
   const fmtS=n=>n?Math.round(Math.abs(n)).toLocaleString('pt-BR'):'';
   const fmtPct=(s,r)=>r?((s/r)*100).toFixed(1)+'%':'';
-  const mkSumRow=(label,bgLabel,colorLabel,arrR,arrM,isSaldo,isAcum,prevSaldoReal,prevSaldoMeta)=>{
-    html+='<tr style="border-top:1px solid #D0D0D0;">';
-    // label cell
+  const mkSumRow=(label,bgLabel,colorLabel,bgRow,arrR,arrM,isSaldo,isAcum)=>{
+    const borderTop=isSaldo?'border-top:2px solid #555;':isAcum?'':'border-top:1px solid #D0D0D0;';
+    html+='<tr style="'+borderTop+'">';
     html+='<td class="wad-lbl sub" style="position:sticky;left:0;z-index:3;background:'+bgLabel+';color:'+colorLabel+';font-size:8px;font-weight:700;text-align:left;padding-left:8px;box-shadow:2px 0 4px rgba(0,0,0,.1);">'+label+'</td>';
     visMonths.forEach(m=>{
       const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM,isFut=!isPastYear&&m>effectiveCurM;
       const showOrc=!isPastYear&&(isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]));
       const rv=arrR[m]||0,mv=arrM[m]||0;
-      const mt=isCur?'cur':isFut?'fut':'past';
-      const bg=isCur?'#FFF9C4':isFut?'#F5F5F5':'#fff';
+      // use row bg, but keep cur month yellow tint blended
+      const bg=isSaldo||isAcum?bgRow:(isCur?'#FFF9C4':isFut?bgRow:bgRow);
       let rTxt='',mTxt='';
-      if(isSaldo){
-        const sign=rv>=0?'+':'-';
-        const pct=arrR[12]?((Math.abs(rv)/Math.abs(arrR[12]))*100).toFixed(0)+'%':'';
-        rTxt=rv?(sign+fmtS(rv)):'';
-        mTxt=mv?(mv>=0?'+':'-')+fmtS(mv):'';
-      } else if(isAcum){
+      if(isSaldo||isAcum){
         rTxt=rv?(rv>=0?'+':'-')+fmtS(rv):'';
         mTxt=mv?(mv>=0?'+':'-')+fmtS(mv):'';
       } else {
         rTxt=fmtS(rv);mTxt=fmtS(mv);
       }
-      const rColor=isSaldo||isAcum?(rv>=0?'#1B5E20':'#B71C1C'):colorLabel;
-      const mColor=isSaldo||isAcum?(mv>=0?'#1B5E20':'#B71C1C'):'#8D6E63';
-      html+='<td style="text-align:right;padding:3px 8px;font-size:9px;font-weight:700;color:'+rColor+';border-left:1px solid #DDD;background:'+bg+';">'+rTxt+'</td>';
+      const rColor=isSaldo||isAcum?(rv>=0?'#A5D6A7':'#EF9A9A'):colorLabel;
+      const mColor=isSaldo||isAcum?(mv>=0?'#A5D6A7':'#EF9A9A'):'#8D6E63';
+      html+='<td style="text-align:right;padding:3px 8px;font-size:9px;font-weight:700;color:'+rColor+';border-left:1px solid rgba(0,0,0,.08);background:'+bg+';">'+rTxt+'</td>';
       if(showOrc)html+='<td style="text-align:right;padding:3px 8px;font-size:9px;color:'+mColor+';background:'+bg+';">'+mTxt+'</td>';
     });
-    // totals cols
     const tRV=validMs.reduce((s,m)=>s+(arrR[m]||0),0);
     const tMV=validMs.reduce((s,m)=>s+(arrM[m]||0),0);
     const tMA=arrM.slice(0,12).reduce((s,v)=>s+v,0);
     html+='<td style="width:8px;background:#D0D0D0;border-left:3px solid #999;padding:0;"></td>';
     if(showTotals){
-      const c1=isSaldo||isAcum?(tRV>=0?'#1B5E20':'#B71C1C'):colorLabel;
-      const c2=isSaldo||isAcum?(tMV>=0?'#1B5E20':'#B71C1C'):'#6D4C41';
+      const c1=isSaldo||isAcum?(tRV>=0?'#A5D6A7':'#EF9A9A'):colorLabel;
+      const c2=isSaldo||isAcum?(tMV>=0?'#A5D6A7':'#EF9A9A'):'#6D4C41';
       const s1=isSaldo||isAcum?((tRV>=0?'+':'-')+fmtS(tRV)):fmtS(tRV);
       const s2=isSaldo||isAcum?((tMV>=0?'+':'-')+fmtS(tMV)):fmtS(tMV);
-      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:9px;font-weight:700;color:'+c1+';background:#E8EAF6;border-left:3px solid #888;">'+s1+'</td>';
-      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:9px;color:'+c1+';background:#E8EAF6;">'+fmt(Math.round(Math.abs(tRV)/validCount))+'</td>';
-      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:9px;font-weight:700;color:'+c2+';background:#DDD5C0;border-left:2px solid #999;">'+s2+'</td>';
-      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:9px;color:'+c2+';background:#DDD5C0;">'+fmt(Math.round(Math.abs(tMV)/validCount))+'</td>';
-      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:9px;color:#888;background:#E8E2D9;border-left:2px solid #bbb;">'+fmtS(tMA)+'</td>';
-      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:9px;color:#aaa;background:#E8E2D9;">'+fmt(Math.round(Math.abs(tMA)/12))+'</td>';
+      const totBg1=isSaldo||isAcum?bgRow:'#E8EAF6';
+      const totBg2=isSaldo||isAcum?bgRow:'#DDD5C0';
+      const totBg3=isSaldo||isAcum?bgRow:'#E8E2D9';
+      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:9px;font-weight:700;color:'+c1+';background:'+totBg1+';border-left:3px solid #888;">'+s1+'</td>';
+      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:9px;color:'+c1+';background:'+totBg1+';">'+fmt(Math.round(Math.abs(tRV)/validCount))+'</td>';
+      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:9px;font-weight:700;color:'+c2+';background:'+totBg2+';border-left:2px solid #999;">'+s2+'</td>';
+      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:9px;color:'+c2+';background:'+totBg2+';">'+fmt(Math.round(Math.abs(tMV)/validCount))+'</td>';
+      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:9px;color:'+(isSaldo||isAcum?c1:'#888')+';background:'+totBg3+';border-left:2px solid #bbb;">'+fmtS(tMA)+'</td>';
+      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:9px;color:'+(isSaldo||isAcum?c1:'#aaa')+';background:'+totBg3+';">'+fmt(Math.round(Math.abs(tMA)/12))+'</td>';
     }
     html+='</tr>';
   };
@@ -7147,21 +7144,21 @@ function waDashRender(){
   const recR=[...sumReceita];recR[12]=sumReceita.reduce((s,v)=>s+v,0);
 
   // ROW 1: Receita
-  mkSumRow('Receita','#E8F5E9','#1B5E20',sumReceita,sumMetaReceita,false,false);
+  mkSumRow('Receita','#C8E6C9','#1B5E20','#E8F5E9',sumReceita,sumMetaReceita,false,false);
   // ROW 2: Investimentos
-  mkSumRow('Invest.','#E3F2FD','#1565C0',sumInvest,sumMetaInvest,false,false);
+  mkSumRow('Invest.','#BBDEFB','#1565C0','#E3F2FD',sumInvest,sumMetaInvest,false,false);
   // ROW 3: Desp. Fixas
-  mkSumRow('Desp. Fixas','#FFF3E0','#E65100',sumDF,sumMetaDF,false,false);
+  mkSumRow('Desp. Fixas','#FFE0B2','#E65100','#FFF3E0',sumDF,sumMetaDF,false,false);
   // ROW 4: Desp. Variáveis
-  mkSumRow('Desp. Var.','#FBE9E7','#BF360C',sumDV,sumMetaDV,false,false);
+  mkSumRow('Desp. Var.','#FFCCBC','#BF360C','#FBE9E7',sumDV,sumMetaDV,false,false);
   // ROW 5: Total Despesas
   const sumDesp=Array(12).fill(0),sumMetaDesp=Array(12).fill(0);
   for(let m=0;m<12;m++){sumDesp[m]=sumDF[m]+sumDV[m];sumMetaDesp[m]=sumMetaDF[m]+sumMetaDV[m];}
-  mkSumRow('Total Desp.','#FFEBEE','#C62828',sumDesp,sumMetaDesp,false,false);
+  mkSumRow('Total Desp.','#FFCDD2','#C62828','#FFEBEE',sumDesp,sumMetaDesp,false,false);
   // ROW 6: Saldo do mês
-  mkSumRow('Saldo mês','#1a1a1a','#fff',saldoR,saldoM,true,false);
+  mkSumRow('Saldo mês','#000','#fff','#1a1a1a',saldoR,saldoM,true,false);
   // ROW 7: Acumulado
-  mkSumRow('Acumulado','#263238','#CFD8DC',acumR,acumM,false,true);
+  mkSumRow('Acumulado','#1C313A','#CFD8DC','#263238',acumR,acumM,false,true);
 
   html+='</tbody></table></div>';
 
