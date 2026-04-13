@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#37474F,#C62828);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
-  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
-  #splash .splash-btn{background:#ECEFF1 !important;color:#37474F !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0D47A1,#FF6F00);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E3F2FD !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(227,242,253,.65) !important;}
+  #splash .splash-version{color:rgba(227,242,253,.35) !important;}
+  #splash .splash-btn{background:#E3F2FD !important;color:#0D47A1 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E3F2FD !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1076,6 +1076,7 @@
     width:260px;
   }
   #wa-right.collapsed{width:0 !important;border-left:none;}
+  #wa-right.wide{width:520px;}
   /* toggle button outside wa-right */
   #wa-toggle-btn{
     position:absolute;
@@ -2061,7 +2062,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.78';
+const APP_VERSION='14.79';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5676,6 +5677,7 @@ function waDashPreviewPage(font,size){
 }
 
 function waShowCfg(){
+  const _rw=document.getElementById('wa-right');if(_rw)_rw.classList.remove('wide');
   document.getElementById('wa-center-title').textContent='Configurações';
   document.getElementById('wa-right-title').textContent='--';
   document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">--</div>';
@@ -5762,6 +5764,7 @@ function waShowCfg(){
   body.appendChild(wrap);
 }
 function waShowLaunch(){
+  const _rw=document.getElementById('wa-right');if(_rw)_rw.classList.remove('wide');
   document.getElementById('wa-center-title').textContent='Lançar / Extrato';
   document.getElementById('wa-center-actions').innerHTML='';
   document.getElementById('wa-right-title').textContent='Lançar transação';
@@ -6508,6 +6511,7 @@ async function waDelTx(idx){
 }
 
 function waShowDash(){
+  const _rw=document.getElementById('wa-right');if(_rw)_rw.classList.remove('wide');
   document.getElementById('wa-center-title').textContent='Quadro';
   document.getElementById('wa-right-title').textContent='--';
   document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">--</div>';
@@ -7086,9 +7090,9 @@ function waShowInv(){
       </div>
     </div>`;
 
-  // open right panel for detail
+  // open right panel wide for detail
   const rp=document.getElementById('wa-right');
-  if(rp)rp.classList.remove('collapsed');
+  if(rp){rp.classList.remove('collapsed');rp.classList.add('wide');}
   const tb=document.getElementById('wa-toggle-btn');
   if(tb)tb.textContent='›';
   document.getElementById('wa-right-title').textContent='Detalhe';
