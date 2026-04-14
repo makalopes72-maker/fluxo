@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#006064,#4527A0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
-  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
-  #splash .splash-btn{background:#E0F7FA !important;color:#006064 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#37474F,#00695C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
+  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
+  #splash .splash-btn{background:#ECEFF1 !important;color:#37474F !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2064,7 +2064,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.92';
+const APP_VERSION='14.93';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5745,7 +5745,7 @@ const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+A
       </button>
     </div>
     <div class="wa-footer">
-      <button class="wa-nav-item" onclick="openSyncYearModal()">
+      <button class="wa-nav-item" onclick="waSyncFull()">
         <span class="wa-ic">↻</span><span class="wa-lbl">Sincronizar</span>
       </button>
       <button class="wa-nav-item" onclick="loadInvFromSheets()">
@@ -7885,6 +7885,44 @@ function waSyncIndicator(msg,color,pulse){
     if(ind){ind.style.opacity='0';ind.style.maxHeight='0';ind.style.padding='0';}
     setTimeout(()=>{if(ind)ind.remove();},400);
   },3000);
+}
+
+async function waSyncFull(){
+  waSyncIndicator('Sincronizando…','var(--muted)',true);
+  const steps=[];
+  try{
+    // 1. transações (todos os anos ativos)
+    await loadData();
+    steps.push('transações');
+
+    // 2. orçamento — sempre busca do Sheets, ignora cache local
+    try{
+      const rows=await sheetsRead(SHEETS.orcamento);
+      if(rows&&rows.length>0){
+        const obj=deserializeKV(rows);
+        if(Object.keys(obj).length>0){
+          orcData=obj;
+          localStorage.setItem('fluxo_orc',JSON.stringify(orcData));
+          steps.push('orçamento');
+        }
+      }
+    }catch(e){console.warn('[waSyncFull] orc',e);}
+
+    // 3. investimentos
+    try{
+      await waInvSync();
+      steps.push('investimentos');
+    }catch(e){console.warn('[waSyncFull] inv',e);}
+
+    waSyncIndicator('✓ '+steps.join(' · '),'#059669',false);
+  }catch(e){
+    console.warn('[waSyncFull]',e);
+    waSyncIndicator('Erro ao sincronizar','#E53935',false);
+  }
+  // re-render tela ativa
+  const onDash=document.getElementById('wanav-dash')?.classList.contains('active');
+  if(onDash){waDashRenderHeader();waDashRender();}
+  if(document.getElementById('wa-filter-bar'))waRenderExtrato();
 }
 
 async function waAutoSync(){
