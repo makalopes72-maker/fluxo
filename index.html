@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4E342E,#1B5E20);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#EFEBE9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(239,235,233,.65) !important;}
-  #splash .splash-version{color:rgba(239,235,233,.35) !important;}
-  #splash .splash-btn{background:#EFEBE9 !important;color:#4E342E !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EFEBE9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#B71C1C,#1565C0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFEBEE !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(255,235,238,.65) !important;}
+  #splash .splash-version{color:rgba(255,235,238,.35) !important;}
+  #splash .splash-btn{background:#FFEBEE !important;color:#B71C1C !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFEBEE !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2064,7 +2064,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.95';
+const APP_VERSION='14.96';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5538,7 +5538,8 @@ async function syncAll(manual=false){
       if(rows&&rows.length>0){
         const obj=deserializeKV(rows);
         if(Object.keys(obj).length>0){
-          orcData=obj;
+          // merge by user — never wipe a user that isn't in Sheets yet
+          Object.keys(obj).forEach(u=>{orcData[u]=obj[u];});
           localStorage.setItem('fluxo_orc',JSON.stringify(orcData));
         }
       }
@@ -7901,7 +7902,8 @@ async function waSyncFull(){
       if(rows&&rows.length>0){
         const obj=deserializeKV(rows);
         if(Object.keys(obj).length>0){
-          orcData=obj;
+          // merge by user — never wipe a user that isn't in Sheets yet
+          Object.keys(obj).forEach(u=>{orcData[u]=obj[u];});
           localStorage.setItem('fluxo_orc',JSON.stringify(orcData));
           steps.push('orçamento');
         }
@@ -7943,7 +7945,8 @@ async function waAutoSync(){
       if(rows&&rows.length>0){
         const obj=deserializeKV(rows);
         if(Object.keys(obj).length>0){
-          orcData=obj;
+          // merge by user — never wipe a user that isn't in Sheets yet
+          Object.keys(obj).forEach(u=>{orcData[u]=obj[u];});
           localStorage.setItem('fluxo_orc',JSON.stringify(orcData));
         }
       }
