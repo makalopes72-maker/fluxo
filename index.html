@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1A237E,#880E4F);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E8EAF6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(232,234,246,.65) !important;}
-  #splash .splash-version{color:rgba(232,234,246,.35) !important;}
-  #splash .splash-btn{background:#E8EAF6 !important;color:#1A237E !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8EAF6 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#004D40,#1A237E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0F2F1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(224,242,241,.65) !important;}
+  #splash .splash-version{color:rgba(224,242,241,.35) !important;}
+  #splash .splash-btn{background:#E0F2F1 !important;color:#004D40 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F2F1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2064,7 +2064,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.00';
+const APP_VERSION='15.01';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -7322,28 +7322,38 @@ function waShowInv(){
     +'<button onclick="waInvSync()" style="'+fb2+'">↻ Sincronizar investimentos</button>'
     +'</div>';
 
-  // 3-col layout: instituicoes | ativos | detalhe
+  // 3-col layout with collapsible panels
   document.getElementById('wa-center-body').innerHTML=`
     <div style="display:flex;height:100%;overflow:hidden;">
-      <!-- col 1: instituições -->
-      <div id="wai-col-inst" style="width:clamp(160px,18%,220px);flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
-        <div style="padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-          <span style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);">Instituições</span>
-          <button onclick="waInvNewInst()" style="width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:14px;color:var(--muted);display:flex;align-items:center;justify-content:center;">+</button>
+
+      <!-- COL 1: Instituições -->
+      <div id="wai-col-inst" style="width:200px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width .2s ease;">
+        <div style="padding:8px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:4px;flex-shrink:0;">
+          <span style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);white-space:nowrap;">Instituições</span>
+          <div style="display:flex;gap:4px;align-items:center;">
+            <button onclick="waInvNewInst()" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:center;flex-shrink:0;">+</button>
+            <button onclick="waInvToggleCol('inst')" title="Recolher" style="width:20px;height:20px;border-radius:4px;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:10px;color:var(--muted);display:flex;align-items:center;justify-content:center;flex-shrink:0;">‹</button>
+          </div>
         </div>
         <div id="wai-inst-list" style="flex:1;overflow-y:auto;padding:6px 0;"></div>
-        <div style="padding:10px 12px;border-top:1px solid var(--border);">
-          <div style="font-size:.6rem;color:var(--muted);">Total geral</div>
-          <div id="wai-total" style="font-size:.9rem;font-weight:700;color:var(--font);">--</div>
+        <div style="padding:8px 10px;border-top:1px solid var(--border);flex-shrink:0;">
+          <div style="font-size:.58rem;color:var(--muted);">Total geral</div>
+          <div id="wai-total" style="font-size:.85rem;font-weight:700;color:var(--font);">--</div>
         </div>
       </div>
-      <!-- col 2: ativos -->
-      <div id="wai-col-ativos" style="width:clamp(200px,24%,300px);flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
-        <div style="padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;">
-          <span id="wai-inst-name" style="font-size:.75rem;font-weight:700;color:var(--font);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Selecione uma instituição</span>
-          <button id="wai-add-ativo-btn" onclick="waInvNewAtivo()" style="display:none;width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:14px;color:var(--muted);flex-shrink:0;">+</button>
+      <!-- tab recolhida col 1 -->
+      <div id="wai-tab-inst" onclick="waInvToggleCol('inst')" style="display:none;width:22px;flex-shrink:0;border-right:1px solid var(--border);cursor:pointer;background:var(--kp);align-items:center;justify-content:center;writing-mode:vertical-rl;font-size:.6rem;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;padding:12px 4px;user-select:none;">Instituições ›</div>
+
+      <!-- COL 2: Ativos -->
+      <div id="wai-col-ativos" style="width:260px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width .2s ease;">
+        <div style="padding:8px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:4px;flex-shrink:0;">
+          <span id="wai-inst-name" style="font-size:.72rem;font-weight:700;color:var(--font);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Selecione uma instituição</span>
+          <div style="display:flex;gap:4px;align-items:center;flex-shrink:0;">
+            <button id="wai-add-ativo-btn" onclick="waInvNewAtivo()" style="display:none;width:20px;height:20px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:12px;color:var(--muted);">+</button>
+            <button onclick="waInvToggleCol('ativos')" title="Recolher" style="width:20px;height:20px;border-radius:4px;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:10px;color:var(--muted);display:flex;align-items:center;justify-content:center;">‹</button>
+          </div>
         </div>
-        <div style="display:flex;gap:0;border-bottom:1px solid var(--border);">
+        <div style="display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;">
           <button id="wai-tab-ativos" onclick="waInvSetTab('ativos')" style="flex:1;padding:6px;font-size:.65rem;border:none;background:var(--font);color:var(--bg);cursor:pointer;font-weight:600;">Ativos</button>
           <button id="wai-tab-enc" onclick="waInvSetTab('enc')" style="flex:1;padding:6px;font-size:.65rem;border:none;background:transparent;color:var(--muted);cursor:pointer;">Encerrados</button>
         </div>
@@ -7351,12 +7361,16 @@ function waShowInv(){
           <div style="color:var(--muted);font-size:.75rem;padding:20px;text-align:center;">Selecione uma instituição</div>
         </div>
       </div>
-      <!-- col 3: detalhe -->
+      <!-- tab recolhida col 2 -->
+      <div id="wai-tab-ativos-col" onclick="waInvToggleCol('ativos')" style="display:none;width:22px;flex-shrink:0;border-right:1px solid var(--border);cursor:pointer;background:var(--kp);align-items:center;justify-content:center;writing-mode:vertical-rl;font-size:.6rem;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;padding:12px 4px;user-select:none;">Ativos ›</div>
+
+      <!-- COL 3: Detalhe -->
       <div id="wai-col-detail" style="flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;">
         <div id="wai-detail-body" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;min-height:0;">
           <div style="color:var(--muted);font-size:.75rem;padding:20px;text-align:center;">Selecione um ativo</div>
         </div>
       </div>
+
     </div>`;
 
   // close right panel — detail is in col 3
@@ -7459,6 +7473,21 @@ function waInvSetTab(tab){
   if(ta){ta.style.background=tab==='ativos'?'var(--font)':'transparent';ta.style.color=tab==='ativos'?'var(--bg)':'var(--muted)';}
   if(te){te.style.background=tab==='enc'?'var(--font)':'transparent';te.style.color=tab==='enc'?'var(--bg)':'var(--muted)';}
   waInvRenderAtivos();
+}
+
+function waInvToggleCol(col){
+  const ids={
+    inst:  {col:'wai-col-inst',  tab:'wai-tab-inst'},
+    ativos:{col:'wai-col-ativos',tab:'wai-tab-ativos-col'},
+  };
+  const {col:colId,tab:tabId}=ids[col]||{};
+  if(!colId)return;
+  const colEl=document.getElementById(colId);
+  const tabEl=document.getElementById(tabId);
+  if(!colEl||!tabEl)return;
+  const collapsed=colEl.style.display==='none';
+  colEl.style.display=collapsed?'flex':'none';
+  tabEl.style.display=collapsed?'none':'flex';
 }
 
 function waInvRenderInst(){
