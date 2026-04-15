@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#004D40,#1A237E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F2F1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(224,242,241,.65) !important;}
-  #splash .splash-version{color:rgba(224,242,241,.35) !important;}
-  #splash .splash-btn{background:#E0F2F1 !important;color:#004D40 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F2F1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1B5E20,#006064);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
+  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
+  #splash .splash-btn{background:#F1F8E9 !important;color:#1B5E20 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2064,7 +2064,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.01';
+const APP_VERSION='15.02';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -7252,8 +7252,139 @@ function waDashRender(){
 
   html+='</tbody></table></div>';
 
+  // ── TABELA DE INVESTIMENTOS ──
+  html+=waDashInvTable(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,showTotals);
+
   document.getElementById('wa-center-body').innerHTML=html;
   setTimeout(waApplyAppearance,0);
+}
+
+function waDashInvTable(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,showTotals){
+  if(!instituicoes||!instituicoes.length)return'';
+
+  // helper: get ativo saldo for a given month
+  // returns last log entry value for that month, or last known before it
+  const getAtivoSaldoMes=(ativo,m)=>{
+    if(!ativo.log||!ativo.log.length)return null;
+    const sorted=[...ativo.log].sort((a,b)=>(parseDate(a.date)||0)-(parseDate(b.date)||0));
+    // find last entry up to and including month m of dashYear
+    const limit=new Date(dashYear,m+1,0); // last day of month m
+    let last=null;
+    for(const l of sorted){
+      const d=parseDate(l.date);
+      if(d&&d<=limit)last=l.value;
+    }
+    return last;
+  };
+
+  const colStyle='text-align:right;padding:3px 8px;font-size:9px;border-left:1px solid rgba(0,0,0,.06);';
+  const colW='width:55px;min-width:55px;max-width:55px;overflow:hidden;';
+
+  let h='<div class="wad-wrap" style="margin-top:16px;">';
+  h+='<table class="wad-tbl" style="font-size:9px;">';
+
+  // header — same structure as main table but only real cols
+  h+='<thead><tr>';
+  h+='<th class="wad-lbl" style="position:sticky;left:0;z-index:4;background:#263238;color:#CFD8DC;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;min-width:160px;padding:6px 8px;">Investimentos</th>';
+  visMonths.forEach(m=>{
+    const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
+    const bg=isCur?'#E6C200':isPast?'#607D8B':'#78909C';
+    h+='<th colspan="1" style="background:'+bg+';color:#fff;font-size:8px;font-weight:700;padding:4px 8px;text-align:right;min-width:70px;">'+MESES[m]+'</th>';
+  });
+  if(showTotals){
+    h+='<th style="width:8px;background:#D0D0D0;padding:0;border-left:3px solid #999;"></th>';
+    h+='<th colspan="2" style="background:#455A64;color:#CFD8DC;font-size:8px;font-weight:700;padding:4px 8px;text-align:right;">Realizado</th>';
+  }
+  h+='</tr></thead><tbody>';
+
+  // iterate institutions
+  instituicoes.forEach(inst=>{
+    const ativos=getInstAtivos(inst).filter(a=>!a.encerrado);
+    if(!ativos.length)return;
+
+    // institution header row
+    h+='<tr>';
+    h+='<td style="position:sticky;left:0;z-index:3;background:#37474F;color:#ECEFF1;font-size:8px;font-weight:700;padding:5px 8px;letter-spacing:.05em;text-transform:uppercase;box-shadow:2px 0 4px rgba(0,0,0,.15);">'
+      +(inst.icon||'🏦')+' '+inst.name+'</td>';
+
+    // institution totals per month
+    const instTotals=visMonths.map(m=>{
+      return ativos.reduce((s,a)=>{
+        const v=getAtivoSaldoMes(a,m);
+        return s+(v||0);
+      },0);
+    });
+    visMonths.forEach((m,i)=>{
+      const v=instTotals[i];
+      const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
+      const bg=isCur?'#FFF9C4':isPast?'#F5F5F5':'#FAFAFA';
+      h+='<td style="'+colStyle+'background:'+bg+';font-weight:700;color:#263238;">'+(v?fmt(v):'')+'</td>';
+    });
+    if(showTotals){
+      const lastReal=instTotals[instTotals.length-1]||0;
+      h+='<td style="width:8px;background:#D0D0D0;border-left:3px solid #999;padding:0;"></td>';
+      h+='<td style="'+colStyle+colW+'background:#E8EAF6;font-weight:700;color:#263238;border-left:3px solid #888;">'+fmt(lastReal)+'</td>';
+      h+='<td style="'+colStyle+colW+'background:#E8EAF6;color:#546E7A;"></td>';
+    }
+    h+='</tr>';
+
+    // individual ativo rows
+    ativos.forEach(ativo=>{
+      const encM=ativo.encerrado&&ativo.dataEncerramento;
+      h+='<tr>';
+      // label with classe/tipo info
+      const tag=ativo.classe?ativo.classe.replace('Renda ','').replace('Fundos de Investimento','Fundos').replace('Previdência Privada','Prev.').substring(0,2).toUpperCase():'--';
+      const irTag=ativo.ir?ativo.ir.replace('Tabela Regressiva','TR').replace('Isento (PF)','IS').replace('15% (ganho de capital)','15%').replace('20% (day trade)','20%'):'';
+      h+='<td style="position:sticky;left:0;z-index:3;background:#fff;color:var(--font);font-size:8px;padding:3px 8px;box-shadow:2px 0 4px rgba(0,0,0,.06);">'
+        +'<span style="color:#78909C;margin-right:3px;">'+tag+'</span>'
+        +(irTag?'<span style="color:#90A4AE;margin-right:4px;font-size:7px;">'+irTag+'</span>':'')
+        +ativo.nome
+        +(ativo.taxa?'<span style="color:#90A4AE;margin-left:4px;">'+ativo.taxa+'</span>':'')
+        +'</td>';
+
+      let lastKnown=null;
+      visMonths.forEach(m=>{
+        const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
+        const bg=isCur?'#FFF9C4':isPast?'#fff':'#FAFAFA';
+        const v=getAtivoSaldoMes(ativo,m);
+        if(v!==null)lastKnown=v;
+        const display=v!==null?v:(m<=effectiveCurM?lastKnown:null);
+        h+='<td style="'+colStyle+'background:'+bg+';color:#37474F;">'+(display?fmt(display):'')+'</td>';
+      });
+      if(showTotals){
+        // last known value = current saldo
+        const cur=getAtivoAtual(ativo);
+        h+='<td style="width:8px;background:#D0D0D0;border-left:3px solid #999;padding:0;"></td>';
+        h+='<td style="'+colStyle+colW+'background:#E8EAF6;color:#37474F;border-left:3px solid #888;">'+fmt(cur)+'</td>';
+        h+='<td style="'+colStyle+colW+'background:#E8EAF6;color:#90A4AE;"></td>';
+      }
+      h+='</tr>';
+    });
+  });
+
+  // total geral row
+  h+='<tr style="border-top:2px solid #455A64;">';
+  h+='<td style="position:sticky;left:0;z-index:3;background:#263238;color:#CFD8DC;font-size:8px;font-weight:700;padding:5px 8px;box-shadow:2px 0 4px rgba(0,0,0,.15);">Total Geral</td>';
+  visMonths.forEach((m,i)=>{
+    const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
+    const bg=isCur?'#1a1a1a':isPast?'#263238':'#37474F';
+    const total=instituicoes.reduce((s,inst)=>{
+      return s+getInstAtivos(inst).filter(a=>!a.encerrado).reduce((ss,a)=>{
+        const v=getAtivoSaldoMes(a,m);return ss+(v||0);
+      },0);
+    },0);
+    h+='<td style="'+colStyle+'background:'+bg+';color:#A5D6A7;font-weight:700;">'+(total?fmt(total):'')+'</td>';
+  });
+  if(showTotals){
+    const totalGeral=getTotalGeral();
+    h+='<td style="width:8px;background:#D0D0D0;border-left:3px solid #999;padding:0;"></td>';
+    h+='<td style="'+colStyle+colW+'background:#1C313A;color:#A5D6A7;font-weight:700;border-left:3px solid #888;">'+fmt(totalGeral)+'</td>';
+    h+='<td style="'+colStyle+colW+'background:#1C313A;color:#546E7A;"></td>';
+  }
+  h+='</tr>';
+
+  h+='</tbody></table></div>';
+  return h;
 }
 
 function waDashTogHideZero(){
