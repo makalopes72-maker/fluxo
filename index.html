@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#B71C1C,#1565C0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFEBEE !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(255,235,238,.65) !important;}
-  #splash .splash-version{color:rgba(255,235,238,.35) !important;}
-  #splash .splash-btn{background:#FFEBEE !important;color:#B71C1C !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFEBEE !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#006064,#E65100);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
+  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
+  #splash .splash-btn{background:#E0F7FA !important;color:#006064 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2064,7 +2064,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='14.96';
+const APP_VERSION='14.97';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -7833,16 +7833,41 @@ function waInvSaveNew(){
 }
 
 function waInvNewInst(){
-  openInstModal();
-  const observer=new MutationObserver(()=>{
-    const modal=document.getElementById('inst-modal');
-    if(modal&&modal.style.opacity==='0'){
-      observer.disconnect();
-      waInvRenderInst();
-    }
-  });
-  const modal=document.getElementById('inst-modal');
-  if(modal)observer.observe(modal,{attributes:true,attributeFilter:['style']});
+  // web: create floating modal in body
+  const existing=document.getElementById('wa-inst-modal');if(existing)existing.remove();
+  const modal=document.createElement('div');
+  modal.id='wa-inst-modal';
+  modal.style.cssText='position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;';
+  modal.onclick=e=>{if(e.target===modal)modal.remove();};
+  modal.innerHTML='<div style="background:var(--bg);border-radius:16px;padding:20px;width:320px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.2);">'
+    +'<div style="font-size:.9rem;font-weight:700;color:var(--font);margin-bottom:16px;">Nova instituição</div>'
+    +'<div style="margin-bottom:10px;">'
+    +'<label style="display:block;font-size:.62rem;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:3px;">Nome</label>'
+    +'<input id="wa-inst-name" type="text" placeholder="Ex: Safra, Itaú, Avenue…" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-size:.85rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">'
+    +'</div>'
+    +'<div style="margin-bottom:16px;">'
+    +'<label style="display:block;font-size:.62rem;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:3px;">Ícone (emoji)</label>'
+    +'<input id="wa-inst-icon" type="text" placeholder="🏦" maxlength="2" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-size:.85rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">'
+    +'</div>'
+    +'<div style="display:flex;gap:8px;">'
+    +'<button onclick="document.getElementById(\'wa-inst-modal\').remove()" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.82rem;cursor:pointer;">Cancelar</button>'
+    +'<button onclick="waInvSaveNewInst()" style="flex:2;padding:10px;border-radius:10px;border:none;background:var(--font);color:var(--bg);font-family:var(--font-body);font-size:.82rem;font-weight:700;cursor:pointer;">Salvar</button>'
+    +'</div>'
+    +'</div>';
+  document.body.appendChild(modal);
+  setTimeout(()=>document.getElementById('wa-inst-name')?.focus(),50);
+}
+
+function waInvSaveNewInst(){
+  const name=(document.getElementById('wa-inst-name')?.value||'').trim();
+  if(!name){waSyncIndicator('Digite o nome','#E53935',false);return;}
+  const icon=(document.getElementById('wa-inst-icon')?.value||'').trim()||'🏦';
+  const newId=Date.now();
+  instituicoes.push({id:newId,name,icon,ativos:[]});
+  saveInvestimentos();
+  document.getElementById('wa-inst-modal')?.remove();
+  waInvRenderInst();
+  waSyncIndicator('✓ '+name+' adicionado','#059669',false);
 }
 
 // update web-app user on login
