@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#263238,#6A1B9A);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
-  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
-  #splash .splash-btn{background:#ECEFF1 !important;color:#263238 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#B71C1C,#4527A0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFEBEE !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(255,235,238,.65) !important;}
+  #splash .splash-version{color:rgba(255,235,238,.35) !important;}
+  #splash .splash-btn{background:#FFEBEE !important;color:#B71C1C !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFEBEE !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2066,7 +2066,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.19';
+const APP_VERSION='15.21';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6966,12 +6966,7 @@ function waOpenDatePicker(){
   inp.type='date';
   inp.value=iso;
   inp.style.cssText='display:block;padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:.9rem;font-family:var(--font-body);background:var(--bg);color:var(--font);outline:none;width:180px;';
-  inp.onchange=()=>{
-    const p=inp.value.split('-');
-    if(p.length===3)waLaunchState.date=p[2]+'/'+p[1]+'/'+p[0];
-    overlay.remove();
-    waRenderLaunchForm();
-  };
+  // no onchange — user must click OK to confirm
 
   const btnRow=document.createElement('div');
   btnRow.style.cssText='display:flex;gap:6px;margin-top:10px;';
@@ -7108,15 +7103,19 @@ async function waSave(){
       allData.push({_row:allData.length+2,_id:String(newId),...r});
     }
     toast(rows.length>1?rows.length+' lançamentos salvos!':'Salvo!','success');
-    // suggest keyword for first row only
-    if(rows.length===1&&s.cat&&s.tipo){
-      setTimeout(()=>waCheckAddKeyword(rows[0].desc,s.tipo,s.cat),800);
-    }
+    // save desc/tipo/cat before reset for keyword check
+    const _kwDesc=rows.length===1?rows[0].desc:null;
+    const _kwTipo=s.tipo;
+    const _kwCat=s.cat;
   }
   try{
     waResetLaunch();
     waRenderExtrato();
     renderDash();
+    // suggest keyword after reset so toast renders on top
+    if(_kwDesc&&_kwTipo&&_kwCat){
+      setTimeout(()=>waCheckAddKeyword(_kwDesc,_kwTipo,_kwCat),600);
+    }
   }catch(e){console.error('post-save error',e);}
 }
 
@@ -7128,7 +7127,9 @@ function waCheckAddKeyword(desc,tipo,cat){
   const ex=document.getElementById('wa-kw-toast');if(ex)ex.remove();
   const box=document.createElement('div');
   box.id='wa-kw-toast';
-  box.style.cssText='position:fixed;bottom:24px;right:24px;z-index:9800;background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:14px 18px;box-shadow:0 6px 24px rgba(0,0,0,.2);max-width:320px;';
+  box.style.cssText='position:fixed;bottom:24px;right:24px;z-index:9800;background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:14px 18px;box-shadow:0 6px 24px rgba(0,0,0,.2);max-width:320px;transform:translateY(20px);opacity:0;transition:transform .25s ease,opacity .25s ease;';
+  // trigger animation after append
+  setTimeout(()=>{box.style.transform='translateY(0)';box.style.opacity='1';},20);
   const t1=document.createElement('div');
   t1.style.cssText='font-size:.72rem;font-weight:700;color:var(--font);margin-bottom:4px;';
   t1.textContent='🔑 Salvar como palavra-chave?';
