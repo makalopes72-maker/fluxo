@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1A237E,#E65100);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E8EAF6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(232,234,246,.65) !important;}
-  #splash .splash-version{color:rgba(232,234,246,.35) !important;}
-  #splash .splash-btn{background:#E8EAF6 !important;color:#1A237E !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8EAF6 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#263238,#6A1B9A);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
+  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
+  #splash .splash-btn{background:#ECEFF1 !important;color:#263238 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2066,7 +2066,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.18';
+const APP_VERSION='15.19';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -7808,8 +7808,10 @@ function waDashInvTable(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,sh
     h+='<td style="position:sticky;left:0;z-index:3;background:#37474F;color:#ECEFF1;font-size:8px;font-weight:700;padding:5px 8px;letter-spacing:.05em;text-transform:uppercase;box-shadow:2px 0 4px rgba(0,0,0,.15);">'
       +(inst.icon||'🏦')+' '+inst.name+'</td>';
 
-    // institution totals per month
+    // institution totals per month — blank for future months
     const instTotals=visMonths.map(m=>{
+      const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
+      if(!isPast&&!isCur)return null;
       return ativos.reduce((s,a)=>{
         const v=getAtivoSaldoMes(a,m);
         return s+(v||0);
@@ -7849,7 +7851,8 @@ function waDashInvTable(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,sh
         const bg=isCur?'#FFF9C4':isPast?'#fff':'#FAFAFA';
         const v=getAtivoSaldoMes(ativo,m);
         if(v!==null)lastKnown=v;
-        const display=v!==null?v:(m<=effectiveCurM?lastKnown:null);
+        // future months always blank
+        const display=(isPast||isCur)?(v!==null?v:lastKnown):null;
         h+='<td style="'+colStyle+'background:'+bg+';color:#37474F;">'+(display?fmt(display):'')+'</td>';
       });
       if(showTotals){
@@ -7869,11 +7872,11 @@ function waDashInvTable(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,sh
   visMonths.forEach((m,i)=>{
     const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
     const bg=isCur?'#1a1a1a':isPast?'#263238':'#37474F';
-    const total=instituicoes.reduce((s,inst)=>{
+    const total=(isPast||isCur)?instituicoes.reduce((s,inst)=>{
       return s+getInstAtivos(inst).filter(a=>!a.encerrado).reduce((ss,a)=>{
         const v=getAtivoSaldoMes(a,m);return ss+(v||0);
       },0);
-    },0);
+    },0):null;
     h+='<td style="'+colStyle+'background:'+bg+';color:#A5D6A7;font-weight:700;">'+(total?fmt(total):'')+'</td>';
   });
   if(showTotals){
