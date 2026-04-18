@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#33691E,#1565C0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
-  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
-  #splash .splash-btn{background:#F1F8E9 !important;color:#33691E !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#37474F,#880E4F);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
+  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
+  #splash .splash-btn{background:#ECEFF1 !important;color:#37474F !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1059,7 +1059,7 @@
   #wa-center-body{
     flex:1;
     overflow-y:auto;
-    overflow-x:hidden;
+    overflow-x:clip;
     min-height:0;
   }
   #wa-center-body .wa-scroll::-webkit-scrollbar{width:5px;}
@@ -2066,7 +2066,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.22';
+const APP_VERSION='15.23';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -7417,7 +7417,7 @@ function waDashRender(){
     const st=document.createElement('style');
     st.id='wa-dash-style';
     st.textContent=`
-      .wad-wrap{overflow-x:auto;height:100%;}
+      .wad-wrap{min-width:0;}
       .wad-tbl{border-collapse:collapse;font-size:10px;min-width:900px;width:100%;}
       .wad-tbl th,.wad-tbl td{border:0.5px solid #D3D1C7;padding:0;}
       .wad-lbl{position:sticky;left:0;z-index:3;background:#fff;white-space:nowrap;padding:3px 8px 3px 10px;font-size:10px;color:#2C2C2A;min-width:140px;max-width:170px;overflow:hidden;text-overflow:ellipsis;box-shadow:2px 0 4px rgba(0,0,0,.08);}
@@ -7476,7 +7476,7 @@ function waDashRender(){
   }
 
   // -- build header --
-  let html='<div class="wad-wrap"><table class="wad-tbl" id="wa-dash-table"><thead class="wad-head"><tr>';
+  let html='<div style="overflow-x:auto;overflow-y:visible;"><div class="wad-wrap"><table class="wad-tbl" id="wa-dash-table"><thead class="wad-head"><tr>';
   html+='<th class="wad-lbl-h" rowspan="2">Pasta / Categoria</th>';
 
   visMonths.forEach(m=>{
@@ -7764,6 +7764,7 @@ function waDashRender(){
 
   // ── TABELA DE INVESTIMENTOS ──
   html+=waDashInvTable(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,showTotals);
+  html+='</div>'; // close outer scroll wrapper
 
   document.getElementById('wa-center-body').innerHTML=html;
   setTimeout(waApplyAppearance,0);
