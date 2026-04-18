@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#263238,#E65100);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
-  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
-  #splash .splash-btn{background:#ECEFF1 !important;color:#263238 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#006064,#4527A0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
+  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
+  #splash .splash-btn{background:#E0F7FA !important;color:#006064 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2064,7 +2064,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.05';
+const APP_VERSION='15.06';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6232,6 +6232,8 @@ function waEditTx(idx){
 }
 
 // Launch form state (independent from mobile)
+let waTransfOrigem=null, waTransfDestino=null;
+
 let waLaunchState={
   editingIdx:null,type:'saída',desc:'',tipo:null,cat:null,conta:null,
   date:new Date().toLocaleDateString('pt-BR'),valueCents:0,
@@ -6242,6 +6244,7 @@ let waLaunchState={
 };
 
 function waResetLaunch(){
+  waTransfOrigem=null;waTransfDestino=null;
   waLaunchState={
     editingIdx:null,type:'saída',desc:'',tipo:null,cat:null,conta:null,
     date:new Date().toLocaleDateString('pt-BR'),valueCents:0,
@@ -6253,6 +6256,38 @@ function waResetLaunch(){
   if(def)waLaunchState.conta=def;
   document.getElementById('wa-right-title').textContent='Lançar';
   waClosePicker();
+  waRenderLaunchForm();
+}
+
+function waOpenTransfPicker(side){
+  const existing=document.getElementById('wa-transf-picker');if(existing)existing.remove();
+  const userAccts=accounts.filter(a=>a.active!==false);
+  const overlay=document.createElement('div');
+  overlay.id='wa-transf-picker';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9600;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;';
+  overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+  const title=side==='origem'?'↑ Conta de saída':'↓ Conta de entrada';
+  const color=side==='origem'?'#E53935':'#059669';
+  const box=document.createElement('div');
+  box.style.cssText='background:var(--bg);border-radius:16px;padding:16px;width:300px;max-width:90vw;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2);';
+  const hdr=document.createElement('div');
+  hdr.style.cssText='font-size:.8rem;font-weight:700;color:'+color+';margin-bottom:12px;';
+  hdr.textContent=title;
+  box.appendChild(hdr);
+  userAccts.forEach(a=>{
+    const row=document.createElement('div');
+    row.style.cssText='padding:9px 12px;border-radius:8px;margin-bottom:4px;cursor:pointer;font-size:.78rem;color:var(--font);border:1px solid var(--border);background:var(--kp);';
+    row.textContent=a.name;
+    row.onclick=()=>waSetTransfConta(side,a.name);
+    box.appendChild(row);
+  });
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+function waSetTransfConta(side,name){
+  if(side==='origem')waTransfOrigem=name;
+  else waTransfDestino=name;
+  document.getElementById('wa-transf-picker')?.remove();
   waRenderLaunchForm();
 }
 
@@ -6312,14 +6347,26 @@ function waRenderLaunchForm(){
           <span style="font-size:.7rem;flex-shrink:0;">📅</span>
           <span style="font-size:.68rem;color:var(--font);">${s.date}</span>
         </div>
+        ${s.type!=='transferência'?`
         <div onclick="waOpenPicker('conta')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:5px;padding:6px 8px;cursor:pointer;min-width:0;">
           <span style="font-size:.7rem;flex-shrink:0;">🏦</span>
           <span style="font-size:.68rem;color:${s.conta?'var(--font)':'var(--muted)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.conta||'Conta'}</span>
+        </div>`:''}
+      </div>
+      ${s.type==='transferência'?`
+      <div style="display:flex;gap:5px;">
+        <div onclick="waOpenTransfPicker('origem')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:5px;padding:6px 8px;cursor:pointer;min-width:0;border-left:3px solid #E53935;">
+          <span style="font-size:.7rem;flex-shrink:0;">↑</span>
+          <span style="font-size:.68rem;color:${waTransfOrigem?'var(--font)':'var(--muted)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${waTransfOrigem||'Conta saída'}</span>
         </div>
-      </div>
-      <div style="display:flex;background:var(--kp);border-radius:8px;padding:2px;gap:2px;flex-shrink:0;">
+        <div onclick="waOpenTransfPicker('destino')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:5px;padding:6px 8px;cursor:pointer;min-width:0;border-left:3px solid #059669;">
+          <span style="font-size:.7rem;flex-shrink:0;">↓</span>
+          <span style="font-size:.68rem;color:${waTransfDestino?'var(--font)':'var(--muted)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${waTransfDestino||'Conta entrada'}</span>
+        </div>
+      </div>`:''}
+      ${s.type!=='transferência'?`<div style="display:flex;background:var(--kp);border-radius:8px;padding:2px;gap:2px;flex-shrink:0;">
         ${['normal','parcelar','avancado'].map(m=>`<button onclick="waSetMode('${m}')" style="flex:1;padding:5px 2px;border-radius:6px;border:none;font-family:var(--font-body);font-size:.6rem;font-weight:600;cursor:pointer;background:${s.mode===m?'var(--bg)':'transparent'};color:${s.mode===m?'var(--font)':'var(--muted)'};">${m==='normal'?'Normal':m==='parcelar'?'Parcelar':'Avançado'}</button>`).join('')}
-      </div>
+      </div>`:''}
       ${s.mode==='parcelar'?`<div style="background:var(--card);border-radius:8px;padding:7px 10px;display:flex;flex-direction:column;gap:5px;">
         <div style="display:flex;gap:8px;align-items:center;">
           <div style="flex:1;"><div style="font-size:.58rem;color:var(--muted);">De</div><input type="number" value="${s.parcIni}" min="1" inputmode="numeric" oninput="waLaunchState.parcIni=parseInt(this.value)||1;waRenderLaunchForm();" style="width:100%;padding:4px;border-radius:6px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.8rem;text-align:center;outline:none;margin-top:2px;"></div>
@@ -6381,6 +6428,7 @@ function waValInputBlur(inp){
 function waValInputChange(v){}
 
 function waSetType(t){
+  if(t==='transferência'){waTransfOrigem=null;waTransfDestino=null;}
   waLaunchState.type=t;
   waRenderLaunchForm();
 }
@@ -6612,11 +6660,37 @@ async function waSave(){
   const s=waLaunchState;
   const val=s.valueCents/100;
   if(!val){toast('Digite um valor','error');return;}
-  if(!s.conta){const def=getDefaultAccount();if(def)waLaunchState.conta=def;}
   const _descEl=document.getElementById('wa-desc');
   if(_descEl&&_descEl.value.trim())waLaunchState.desc=_descEl.value.trim();
   const displayDesc=waLaunchState.desc||(s.cat||s.tipo||'Transação');
-  const btn=document.querySelector('#wa-right-body .wa-save-btn');
+
+  // -- TRANSFER --
+  if(s.type==='transferência'&&s.editingIdx===null){
+    if(!s.tipo){waSyncIndicator('Selecione a pasta','#E53935',false);return;}
+    if(!s.cat){waSyncIndicator('Selecione a categoria','#E53935',false);return;}
+    if(!waTransfOrigem){waSyncIndicator('Selecione a conta de saída','#E53935',false);return;}
+    if(!waTransfDestino){waSyncIndicator('Selecione a conta de entrada','#E53935',false);return;}
+    if(waTransfOrigem===waTransfDestino){waSyncIndicator('Origem e destino iguais','#E53935',false);return;}
+    // disable save button
+    const btnSv=document.querySelector('#wa-right-body button[onclick="waSave()"]');
+    if(btnSv){btnSv.disabled=true;btnSv.textContent='SALVANDO…';}
+    const descT=displayDesc.endsWith('(transferência)')?displayDesc:displayDesc+' (transferência)';
+    const tId='T'+Date.now();
+    const newId1=generateTxId(),newId2=generateTxId();
+    const rSaida={date:s.date,desc:descT,value:val,cat:s.cat,tipo:s.tipo,account:waTransfOrigem,type:'saída',consolidated:true,_transferId:tId};
+    const rEntrada={date:s.date,desc:descT,value:val,cat:s.cat,tipo:s.tipo,account:waTransfDestino,type:'entrada',consolidated:true,_transferId:tId};
+    await sheetsAppend([rSaida.date,rSaida.desc,rSaida.value.toFixed(2).replace('.',','),rSaida.cat,rSaida.tipo,rSaida.account,'saída','1',tId,'',newId1]);
+    await sheetsAppend([rEntrada.date,rEntrada.desc,rEntrada.value.toFixed(2).replace('.',','),rEntrada.cat,rEntrada.tipo,rEntrada.account,'entrada','1',tId,'',newId2]);
+    allData.push({_row:allData.length+2,_id:String(newId1),...rSaida});
+    allData.push({_row:allData.length+2,_id:String(newId2),...rEntrada});
+    waSyncIndicator('✓ Transferência salva','#059669',false);
+    waResetLaunch();
+    waRenderExtrato();
+    renderDash();
+    return;
+  }
+
+  if(!s.conta){const def=getDefaultAccount();if(def)waLaunchState.conta=def;}
 
   if(s.editingIdx!==null){
     // update existing
