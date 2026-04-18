@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1B5E20,#006064);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
-  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
-  #splash .splash-btn{background:#F1F8E9 !important;color:#1B5E20 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#BF360C,#1565C0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FBE9E7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(251,233,231,.65) !important;}
+  #splash .splash-version{color:rgba(251,233,231,.35) !important;}
+  #splash .splash-btn{background:#FBE9E7 !important;color:#BF360C !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FBE9E7 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2064,7 +2064,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.02';
+const APP_VERSION='15.03';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6846,7 +6846,7 @@ function waDashRender(){
   const dashYear=window.waDashYear||yr;
   const isPastYear=dashYear<yr;
   const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  const fmt=n=>n?Math.round(n).toLocaleString('pt-BR'):'';
+  const fmt=n=>n?Math.round(Math.abs(n)).toLocaleString('pt-BR'):'';
 
   // DEBUG
   console.log('[waDashRender] user=',user,'allData=',allData.length,'accounts=',accounts.length,'orcData keys=',Object.keys(orcData[user]||{}).length);
@@ -6861,7 +6861,7 @@ function waDashRender(){
   const filterByAcct=userAccts.length>0;
   console.log('[waDashRender] userAccts=',userAccts.length,'filterByAcct=',filterByAcct,'hideZero=',hideZero);
 
-  // sum real per tipo+cat per month
+  // sum real per tipo+cat per month — respect entrada/saída sign
   const real={};
   allData.forEach(t=>{
     if(!t.consolidated)return; // only consolidated transactions
@@ -6873,7 +6873,9 @@ function waDashRender(){
     const cat=t.cat||t.tipo||'Outros';
     if(!real[tipo])real[tipo]={};
     if(!real[tipo][cat])real[tipo][cat]=Array(12).fill(0);
-    real[tipo][cat][m]+=Math.abs(t.value);
+    // sign: entrada=positive, saída=negative, transferência follows account role
+    const sign=t.type==='entrada'?1:-1;
+    real[tipo][cat][m]+=Math.abs(t.value)*sign;
   });
 
   const ud=orcData[user]||{};
@@ -6893,8 +6895,9 @@ function waDashRender(){
 
   const farolClass=(rv,mv,farolTipo,isPos)=>{
     if(!mv||!rv)return '';
-    if(isPos)return rv>=mv?'f-v':'f-r';
-    const pct=rv/mv;
+    const arv=Math.abs(rv),amv=Math.abs(mv);
+    if(isPos)return arv>=amv?'f-v':'f-r';
+    const pct=arv/amv;
     if(farolTipo==='A')return pct<=0.9?'f-v':pct<=1?'f-a':'f-r';
     return pct<=1?'f-v':'f-r';
   };
@@ -7034,19 +7037,20 @@ function waDashRender(){
     });
     const pastaRealTotal=totReal.reduce((s,v)=>s+v,0);
     const pastaMetaTotal=totMeta.reduce((s,v)=>s+v,0);
-    for(let m=0;m<12;m++){grandReal[m]+=isPos?totReal[m]:-totReal[m];grandMeta[m]+=isPos?totMeta[m]:-totMeta[m];}
-    grandTotReal+=isPos?pastaRealTotal:-pastaRealTotal;
+    // for despesas, totReal is already negative — use abs so grandReal accumulates as saldo (pos-neg)
+    for(let m=0;m<12;m++){grandReal[m]+=isPos?totReal[m]:-Math.abs(totReal[m]);grandMeta[m]+=isPos?totMeta[m]:-totMeta[m];}
+    grandTotReal+=isPos?pastaRealTotal:-Math.abs(pastaRealTotal);
     grandTotMeta+=isPos?pastaMetaTotal:-pastaMetaTotal;
     // per-breakdown accumulation
     if(tipo==='Receita'){for(let m=0;m<12;m++){sumReceita[m]+=totReal[m];sumMetaReceita[m]+=totMeta[m];}}
     else if(tipo==='Investimentos'){for(let m=0;m<12;m++){sumInvest[m]+=totReal[m];sumMetaInvest[m]+=totMeta[m];}}
     else {
-      // despesa: split F vs V per cat
+      // despesa: split F vs V per cat — use abs so sums are positive magnitudes
       cats.forEach(cat=>{
         const cd=ud_tipo[cat]||{};
         const tipoFC=cd.tipo||'V';
         for(let m=0;m<12;m++){
-          const rv=(real[tipo]&&real[tipo][cat])?real[tipo][cat][m]:0;
+          const rv=Math.abs((real[tipo]&&real[tipo][cat])?real[tipo][cat][m]:0);
           const mv=waDashGetMeta(user,tipo,cat,m);
           if(tipoFC==='F'){sumDF[m]+=rv;sumMetaDF[m]+=mv;}
           else{sumDV[m]+=rv;sumMetaDV[m]+=mv;}
