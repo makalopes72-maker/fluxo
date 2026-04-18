@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#37474F,#880E4F);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
-  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
-  #splash .splash-btn{background:#ECEFF1 !important;color:#37474F !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1B5E20,#B71C1C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
+  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
+  #splash .splash-btn{background:#F1F8E9 !important;color:#1B5E20 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2066,7 +2066,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.23';
+const APP_VERSION='15.24';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2837,6 +2837,22 @@ function openTransfDrop(side){
   panel.style.display='block';
 }
 
+function openCreateAtivoModal(){
+  // close drop panels first
+  ['origem','destino'].forEach(s=>{const p=document.getElementById('transf-'+s+'-panel');if(p)p.style.display='none';});
+  const modal=document.getElementById('ativo-modal');if(!modal)return;
+  modal.dataset.editMode='0';
+  modal.dataset.createForTransf='1'; // flag
+  const tt=document.getElementById('ativo-modal-title');if(tt)tt.textContent='Novo investimento';
+  ['av-nome','av-taxa','av-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['av-classe','av-tipo','av-indexador','av-liquidez','av-garantia','av-ir'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('av-aplicado').value='';
+  const today=new Date();const iso=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  document.getElementById('av-data-aplic').value=iso;
+  modal.style.opacity='1';modal.style.pointerEvents='all';
+  document.getElementById('ativo-modal-sheet').style.transform='translateY(0)';
+}
+
 function pickTransf(side,id,label,icon){
   if(side==='origem'){transfOrigem={id,label,icon};}
   else{transfDestino={id,label,icon};}
@@ -3360,8 +3376,22 @@ async function saveTransaction(syncAfter=false){
     setTransType('saída');
     const btn=document.getElementById('btn-save');if(btn){btn.disabled=false;btn.textContent='Salvar transação';}
     renderDash();
+    // if new ativo was created for transf, create it and open for editing
+    if(window._pendingNewInv&&destinoIsInv&&transfDestino.id.startsWith('new-inv:::')){
+      const {instName,nome,dataAplic}=window._pendingNewInv;
+      window._pendingNewInv=null;
+      const {instIdx,ativoIdx}=createNewAtivoForTransf(instName,nome,val,date);
+      renderInv();
+      setTimeout(()=>{
+        goScreen('inv');
+        currentInstIdx=instIdx;
+        currentAtivoIdx=ativoIdx;
+        renderAtivos();
+        setTimeout(()=>editAtivo(),200);
+      },600);
+    }
   if(syncAfter){toast('Sincronizando…','');setTimeout(()=>syncAll(true),400);}
-  else{setTimeout(()=>goScreen('dash'),600);}
+  else if(!window._pendingNewInv){setTimeout(()=>goScreen('dash'),600);}
     return;
   }
   const desc=(document.getElementById('tx-desc')?.value.trim()||document.getElementById('tx-desc-fields')?.value.trim()||'');
@@ -4410,6 +4440,33 @@ function updInvSaldo(invId, delta, date, note){
   return true;
 }
 
+// Create a new ativo for a transfer (shared mobile+web)
+function createNewAtivoForTransf(instName, nome, valorAplicado, date){
+  // find or create institution
+  let inst=instituicoes.find(i=>i.name===instName);
+  if(!inst){
+    inst={id:Date.now(),name:instName,icon:'🏦',ativos:[]};
+    instituicoes.push(inst);
+  }
+  const instIdx=instituicoes.indexOf(inst);
+  const ds=date||(()=>{const n=new Date();return String(n.getDate()).padStart(2,'0')+'/'+String(n.getMonth()+1).padStart(2,'0')+'/'+n.getFullYear();})();
+  const novoAtivo={
+    id:Date.now(),
+    nome:nome,
+    classe:'',tipo:'',
+    aplicado:valorAplicado,
+    indexador:'',taxa:'',
+    dataAplic:(()=>{const p=ds.split('/');return p.length===3?p[2]+'-'+p[1]+'-'+p[0]:'';})(),
+    vencimento:'',liquidez:'',garantia:'',ir:'',obs:'',
+    encerrado:false,
+    log:[{date:ds,value:valorAplicado,note:'Aplicação inicial via transferência'}]
+  };
+  getInstAtivos(inst).push(novoAtivo);
+  saveInvestimentos();
+  const ativoIdx=getInstAtivos(inst).length-1;
+  return {instIdx,ativoIdx};
+}
+
 function saveInvestimentos(){
   const u=currentUser||'ALE';
   try{localStorage.setItem('fluxo_ativos_'+u,JSON.stringify(ativosPorUser[u]||{}));}catch(e){}
@@ -4989,7 +5046,30 @@ function saveAtivo(){
     obs:document.getElementById('av-obs')?.value||'',
   });
   const modal=document.getElementById('ativo-modal');
+  const isCreateForTransf=modal?.dataset.createForTransf==='1';
   const isEdit=modal?.dataset.editMode==='1';
+  if(isCreateForTransf&&!isEdit){
+    // create ativo and set as transfDestino
+    const nome=document.getElementById('av-nome').value.trim();
+    if(!nome){toast('Digite o nome do ativo','error');return;}
+    // institution: use first instituicao or ask — use the first for now
+    const instSelIdx=instituicoes.length>0?0:null;
+    if(instSelIdx===null){toast('Adicione uma instituição primeiro','error');return;}
+    const instName=instituicoes[instSelIdx].name;
+    const dataAplic=document.getElementById('av-data-aplic')?.value||'';
+    const dateStr=dataAplic?(()=>{const[y,m,d]=dataAplic.split('-');return d+'/'+m+'/'+y;})():'';
+    // will be populated with val after transf save — set aplicado as placeholder
+    const id='new-inv:::'+instName+':::'+nome;
+    transfDestino={id,label:instName+' › '+nome,icon:'📈'};
+    const val=document.getElementById('transf-destino-val');
+    if(val){val.textContent='📈 '+instName+' › '+nome;val.className='transf-drop-val';}
+    modal.dataset.createForTransf='0';
+    closeAtivoModal();
+    toast('Destino: '+nome,'');
+    // store creation params for after save
+    window._pendingNewInv={instName,nome,dataAplic};
+    return;
+  }
   if(isEdit){
     Object.assign(getInstAtivos(instituicoes[currentInstIdx])[currentAtivoIdx],getFields());
     saveInvestimentos();
@@ -6582,9 +6662,109 @@ function waOpenTransfPicker(side){
     box.appendChild(none);
   }
 
+  // "criar investimento" button — only for destino
+  if(side==='destino'){
+    const sepCreate=document.createElement('div');
+    sepCreate.style.cssText='border-top:1px solid var(--border);margin:10px 0 8px;';
+    box.appendChild(sepCreate);
+    const btnCreate=document.createElement('div');
+    btnCreate.style.cssText='padding:9px 12px;border-radius:8px;cursor:pointer;font-size:.78rem;font-weight:700;color:#059669;border:1px solid #059669;background:transparent;display:flex;align-items:center;gap:8px;';
+    const icC=document.createElement('span');icC.textContent='✦';
+    const lblC=document.createElement('span');lblC.textContent='Criar novo investimento';
+    btnCreate.appendChild(icC);btnCreate.appendChild(lblC);
+    btnCreate.onclick=()=>{overlay.remove();waOpenCreateAtivoForTransf();};
+    box.appendChild(btnCreate);
+  }
+
   overlay.appendChild(box);
   document.body.appendChild(overlay);
 }
+
+function waOpenCreateAtivoForTransf(){
+  const ex=document.getElementById('wa-create-inv-overlay');if(ex)ex.remove();
+  const overlay=document.createElement('div');
+  overlay.id='wa-create-inv-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9650;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;';
+  overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+  const box=document.createElement('div');
+  box.style.cssText='background:var(--bg);border-radius:16px;padding:20px;width:340px;max-width:92vw;box-shadow:0 8px 32px rgba(0,0,0,.2);';
+  const hdr=document.createElement('div');
+  hdr.style.cssText='font-size:.85rem;font-weight:700;color:var(--font);margin-bottom:4px;';
+  hdr.textContent='✦ Novo investimento';
+  const sub=document.createElement('div');
+  sub.style.cssText='font-size:.65rem;color:var(--muted);margin-bottom:14px;';
+  sub.textContent='O valor transferido será o aplicado inicial.';
+  box.appendChild(hdr);box.appendChild(sub);
+  const mkField=(lbl,id,ph,type='text')=>{
+    const wrap=document.createElement('div');
+    wrap.style.marginBottom='10px';
+    const l=document.createElement('label');
+    l.textContent=lbl;
+    l.style.cssText='display:block;font-size:.6rem;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:3px;';
+    const inp=document.createElement('input');
+    inp.type=type;inp.id=id;inp.placeholder=ph;
+    inp.style.cssText='width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-size:.82rem;font-family:var(--font-body);background:var(--bg);color:var(--font);';
+    wrap.appendChild(l);wrap.appendChild(inp);
+    return wrap;
+  };
+  const mkSel=(lbl,id,opts)=>{
+    const wrap=document.createElement('div');
+    wrap.style.marginBottom='10px';
+    const l=document.createElement('label');
+    l.textContent=lbl;
+    l.style.cssText='display:block;font-size:.6rem;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:3px;';
+    const sel=document.createElement('select');
+    sel.id=id;
+    sel.style.cssText='width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-size:.82rem;font-family:var(--font-body);background:var(--bg);color:var(--font);';
+    opts.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;sel.appendChild(op);});
+    wrap.appendChild(l);wrap.appendChild(sel);
+    return wrap;
+  };
+  // Instituição: existing + new
+  const instNames=[''].concat(instituicoes.map(i=>i.name)).concat(['+ Nova instituição…']);
+  box.appendChild(mkSel('Instituição','waci-inst',instNames));
+  const newInstWrap=document.createElement('div');
+  newInstWrap.id='waci-new-inst-wrap';newInstWrap.style.display='none';
+  newInstWrap.appendChild(mkField('Nome da nova instituição','waci-new-inst','Ex: Safra, Nubank…'));
+  box.appendChild(newInstWrap);
+  document.getElementById('waci-inst')?.addEventListener('change',function(){
+    const w=document.getElementById('waci-new-inst-wrap');
+    if(w)w.style.display=this.value==='+ Nova instituição…'?'block':'none';
+  });
+  box.appendChild(mkField('Nome do investimento','waci-nome','Ex: CDB 110% CDI'));
+  const row=document.createElement('div');
+  row.style.cssText='display:flex;gap:8px;margin-top:4px;';
+  const btnC=document.createElement('button');
+  btnC.textContent='Cancelar';
+  btnC.style.cssText='flex:1;padding:9px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.78rem;cursor:pointer;';
+  btnC.onclick=()=>overlay.remove();
+  const btnOk=document.createElement('button');
+  btnOk.textContent='Confirmar destino';
+  btnOk.style.cssText='flex:2;padding:9px;border-radius:9px;border:none;background:var(--font);color:var(--bg);font-family:var(--font-body);font-size:.78rem;font-weight:700;cursor:pointer;';
+  btnOk.onclick=()=>{
+    const selEl=document.getElementById('waci-inst');
+    let instName=selEl?selEl.value:'';
+    if(instName==='+ Nova instituição…'){
+      instName=(document.getElementById('waci-new-inst')?.value||'').trim();
+      if(!instName){waSyncIndicator('Digite o nome da instituição','#E53935',false);return;}
+    }
+    if(!instName){waSyncIndicator('Selecione uma instituição','#E53935',false);return;}
+    const nome=(document.getElementById('waci-nome')?.value||'').trim();
+    if(!nome){waSyncIndicator('Digite o nome do investimento','#E53935',false);return;}
+    // store as special new-inv destination
+    const id='new-inv:::'+instName+':::'+nome;
+    waTransfDestino=id;
+    waTransfDestinoLabel='✦ '+instName+' › '+nome+' (novo)';
+    overlay.remove();
+    waRenderLaunchForm();
+  };
+  row.appendChild(btnC);row.appendChild(btnOk);
+  box.appendChild(row);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  setTimeout(()=>document.getElementById('waci-nome')?.focus(),100);
+}
+
 function waSetTransfConta(side,id,label){
   if(side==='origem'){waTransfOrigem=id;waTransfOrigemLabel=label||id;}
   else{waTransfDestino=id;waTransfDestinoLabel=label||id;}
@@ -7053,9 +7233,29 @@ async function waSave(){
 
     // update investment saldos
     updInvSaldo(waTransfOrigem,-val,s.date,'Saída via transferência');
-    updInvSaldo(waTransfDestino,+val,s.date,'Entrada via transferência');
+
+    // handle new-inv destination
+    let _newInvRef=null;
+    if(waTransfDestino.startsWith('new-inv:::')){
+      const parts=waTransfDestino.slice(10).split(':::');
+      const instName=parts[0],nome=parts[1];
+      const {instIdx,ativoIdx}=createNewAtivoForTransf(instName,nome,val,s.date);
+      _newInvRef={instIdx,ativoIdx};
+    } else {
+      updInvSaldo(waTransfDestino,+val,s.date,'Entrada via transferência');
+    }
 
     waSyncIndicator('✓ Transferência salva','#059669',false);
+    // open new ativo for editing if created
+    if(_newInvRef!==null){
+      setTimeout(()=>{
+        waGo('inv');
+        waInvInstIdx=_newInvRef.instIdx;
+        waInvRenderInst();
+        waInvSelectAtivo(_newInvRef.ativoIdx);
+        waInvShowEditForm(_newInvRef.ativoIdx);
+      },600);
+    }
     waResetLaunch();
     waRenderExtrato();
     renderDash();
