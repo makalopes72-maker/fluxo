@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1B5E20,#006064);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
-  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
-  #splash .splash-btn{background:#F1F8E9 !important;color:#1B5E20 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4527A0,#1B5E20);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#EDE7F6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(237,231,246,.65) !important;}
+  #splash .splash-version{color:rgba(237,231,246,.35) !important;}
+  #splash .splash-btn{background:#EDE7F6 !important;color:#4527A0 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EDE7F6 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -193,6 +193,10 @@
   #screen-add.fields-mode .add-fields-wrap{display:flex !important;flex:1;}
   #screen-add.fields-mode .add-save-bar{display:flex !important;}
   #screen-add.fields-mode .add-left-panel{display:none !important;}
+  /* TRANSFERÊNCIA: add-left-panel scrollable, keypad oculto */
+  #screen-add.transf-mode .add-left-panel{display:flex;flex-direction:column;flex:1;overflow:hidden;}
+  #screen-add.transf-mode #transf-panel{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  #screen-add.transf-mode .add-desc-bar{display:flex !important;}
   /* portrait: left-panel é coluna única, sem right-panel */
   @media (max-width:599px){
     #screen-add{flex-direction:column !important;}
@@ -1452,7 +1456,7 @@
           </div>
         </div>
         <!-- TRANSFERÊNCIA FIELDS (shown when type=transferência) -->
-        <div id="transf-panel" style="display:none;">
+        <div id="transf-panel" style="display:none;overflow-y:auto;flex:1;">
           <div class="transf-fields">
             <div class="transf-side">
               <div class="transf-side-label origem">↑ Origem -- sai daqui</div>
@@ -2069,7 +2073,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.26';
+const APP_VERSION='15.27';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2844,12 +2848,56 @@ function openTransfDrop(side){
 }
 
 function openCreateAtivoModal(){
-  // close drop panels first
+  // Step 1: pick institution first
   ['origem','destino'].forEach(s=>{const p=document.getElementById('transf-'+s+'-panel');if(p)p.style.display='none';});
+  // build institution picker sheet
+  const existing=document.getElementById('mob-inst-pick-sheet');if(existing)existing.remove();
+  const overlay=document.createElement('div');
+  overlay.id='mob-inst-pick-sheet';
+  overlay.style.cssText='position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;';
+  const sheet=document.createElement('div');
+  sheet.style.cssText='width:100%;background:var(--card);border-radius:24px 24px 0 0;padding:20px 20px 44px;max-height:75vh;overflow-y:auto;';
+  const ttl=document.createElement('div');
+  ttl.style.cssText='font-family:var(--font-display);font-size:1.1rem;color:var(--font);margin-bottom:14px;';
+  ttl.textContent='Escolha a instituição';
+  sheet.appendChild(ttl);
+  // existing institutions
+  instituicoes.forEach(inst=>{
+    const btn=document.createElement('button');
+    btn.textContent=inst.icon+' '+inst.name;
+    btn.style.cssText='width:100%;padding:13px 16px;margin-bottom:8px;border-radius:12px;border:1.5px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.9rem;text-align:left;cursor:pointer;';
+    btn.onclick=()=>{overlay.remove();openCreateAtivoForm(inst.name);};
+    sheet.appendChild(btn);
+  });
+  // new institution
+  const newRow=document.createElement('div');
+  newRow.style.cssText='display:flex;gap:8px;margin-top:8px;';
+  const inp=document.createElement('input');
+  inp.placeholder='Nova instituição…';
+  inp.style.cssText='flex:1;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.9rem;';
+  const addBtn=document.createElement('button');
+  addBtn.textContent='Criar';
+  addBtn.style.cssText='padding:12px 18px;border-radius:12px;border:none;background:var(--font);color:var(--bg);font-family:var(--font-body);font-size:.88rem;font-weight:700;cursor:pointer;';
+  addBtn.onclick=()=>{const v=inp.value.trim();if(!v)return;overlay.remove();openCreateAtivoForm(v);};
+  newRow.appendChild(inp);newRow.appendChild(addBtn);
+  sheet.appendChild(newRow);
+  const cancelBtn=document.createElement('button');
+  cancelBtn.textContent='Cancelar';
+  cancelBtn.style.cssText='width:100%;margin-top:10px;padding:12px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.88rem;cursor:pointer;';
+  cancelBtn.onclick=()=>overlay.remove();
+  sheet.appendChild(cancelBtn);
+  overlay.appendChild(sheet);
+  overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+  document.body.appendChild(overlay);
+}
+
+function openCreateAtivoForm(instName){
+  // Step 2: open ativo modal pre-filled
   const modal=document.getElementById('ativo-modal');if(!modal)return;
   modal.dataset.editMode='0';
-  modal.dataset.createForTransf='1'; // flag
-  const tt=document.getElementById('ativo-modal-title');if(tt)tt.textContent='Novo investimento';
+  modal.dataset.createForTransf='1';
+  modal.dataset.transfInstName=instName;
+  const tt=document.getElementById('ativo-modal-title');if(tt)tt.textContent='Novo investimento · '+instName;
   ['av-nome','av-taxa','av-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['av-classe','av-tipo','av-indexador','av-liquidez','av-garantia','av-ir'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('av-aplicado').value='';
@@ -2879,6 +2927,8 @@ function resetTransfFields(){
     const seg=document.querySelector('#transf-'+s+'-drop')?.closest('.transf-side')?.querySelector('.transf-seg');
     if(seg){seg.querySelectorAll('.transf-seg-btn').forEach((b,i)=>b.classList.toggle('active',i===0));}
   });
+  document.getElementById('screen-add')?.classList.remove('transf-mode');
+  const createBtn=document.getElementById('transf-destino-create-btn');if(createBtn)createBtn.style.display='none';
 }
 
 // -- FIELDS MODE --
@@ -3298,11 +3348,16 @@ function setTransType(t){
     document.querySelectorAll('#drop-main,.launch-seg,#lp-normal,#lp-parcelar,#lp-avancado').forEach(el=>{if(el)el.style.display='none';});
     const contaCell=document.getElementById('fc-conta-cell');if(contaCell)contaCell.style.display='none';
     const dropConta=document.getElementById('drop-conta');if(dropConta)dropConta.style.display='none';
+    // transf-mode class handles layout (scroll, keypad hidden, full height)
+    document.getElementById('screen-add')?.classList.add('transf-mode');
+    // also reset create-btn visibility
+    const createBtn=document.getElementById('transf-destino-create-btn');if(createBtn)createBtn.style.display='none';
     // auto-consolidate
     isConsolidado=true;
     const chk=document.getElementById('consol-check');if(chk)chk.className='tx-check on';
   } else {
     if(tp)tp.style.display='none';
+    document.getElementById('screen-add')?.classList.remove('transf-mode');
     // restore normal fields
     document.querySelectorAll('#fc-tipo,#fc-cat,.launch-seg,#lp-normal').forEach(el=>{if(el)el.style.display='';});
     const contaCell=document.getElementById('fc-conta-cell');if(contaCell)contaCell.style.display='';
@@ -5058,10 +5113,8 @@ function saveAtivo(){
     // create ativo and set as transfDestino
     const nome=document.getElementById('av-nome').value.trim();
     if(!nome){toast('Digite o nome do ativo','error');return;}
-    // institution: use first instituicao or ask — use the first for now
-    const instSelIdx=instituicoes.length>0?0:null;
-    if(instSelIdx===null){toast('Adicione uma instituição primeiro','error');return;}
-    const instName=instituicoes[instSelIdx].name;
+    const instName=modal.dataset.transfInstName||'';
+    if(!instName){toast('Instituição não definida','error');return;}
     const dataAplic=document.getElementById('av-data-aplic')?.value||'';
     const dateStr=dataAplic?(()=>{const[y,m,d]=dataAplic.split('-');return d+'/'+m+'/'+y;})():'';
     // will be populated with val after transf save — set aplicado as placeholder
