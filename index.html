@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#BF360C,#1565C0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FBE9E7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(251,233,231,.65) !important;}
-  #splash .splash-version{color:rgba(251,233,231,.35) !important;}
-  #splash .splash-btn{background:#FBE9E7 !important;color:#BF360C !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FBE9E7 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4527A0,#00838F);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#EDE7F6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(237,231,246,.65) !important;}
+  #splash .splash-version{color:rgba(237,231,246,.35) !important;}
+  #splash .splash-btn{background:#EDE7F6 !important;color:#4527A0 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EDE7F6 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2064,7 +2064,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.03';
+const APP_VERSION='15.04';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3244,8 +3244,9 @@ function setTransType(t){
     sb.style.background='#7c3aed';
     sb.style.color='#fff';
     if(tp)tp.style.display='block';
-    // hide pasta/cat/launch/date+conta
-    document.querySelectorAll('#fc-tipo,#fc-cat,#drop-main,.launch-seg,#lp-normal,#lp-parcelar,#lp-avancado').forEach(el=>{if(el)el.style.display='none';});
+    // show pasta+cat, hide conta/launch options
+    document.querySelectorAll('#fc-tipo,#fc-cat').forEach(el=>{if(el)el.style.display='';});
+    document.querySelectorAll('#drop-main,.launch-seg,#lp-normal,#lp-parcelar,#lp-avancado').forEach(el=>{if(el)el.style.display='none';});
     const contaCell=document.getElementById('fc-conta-cell');if(contaCell)contaCell.style.display='none';
     const dropConta=document.getElementById('drop-conta');if(dropConta)dropConta.style.display='none';
     // auto-consolidate
@@ -3271,18 +3272,23 @@ async function saveTransaction(syncAfter=false){
 
   // -- TRANSFERÊNCIA --
   if(txType==='transferência'){
+    if(!selTipo){toast('Selecione a pasta','error');return;}
+    if(!selCat){toast('Selecione a categoria','error');return;}
     if(!transfOrigem){toast('Selecione a origem','error');return;}
     if(!transfDestino){toast('Selecione o destino','error');return;}
     if(transfOrigem.id===transfDestino.id){toast('Origem e destino iguais','error');return;}
-    const desc=_descCheck;
+    const descBase=_descCheck;
+    const desc=descBase.endsWith('(transferência)')?descBase:descBase+' (transferência)';
+    const transfCat=selCat||'Transferência';
+    const transfTipo=selTipo||'Transferências';
     const now=new Date();
     const date=window._selectedDate||`${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
     const val=amountCents/100;
     const tId='T'+Date.now();
     // saída da origem
-    const rowSaida={_row:allData.length+2,date,desc,value:val,cat:'Transferência',tipo:'Transferências',account:transfOrigem.label,type:'saída',consolidated:true,_transferId:tId,_transferRoute:transfOrigem.label+' -> '+transfDestino.label};
+    const rowSaida={_row:allData.length+2,date,desc,value:val,cat:transfCat,tipo:transfTipo,account:transfOrigem.label,type:'saída',consolidated:true,_transferId:tId,_transferRoute:transfOrigem.label+' -> '+transfDestino.label};
     // entrada no destino
-    const rowEntrada={_row:allData.length+3,date,desc,value:val,cat:'Transferência',tipo:'Transferências',account:transfDestino.label,type:'entrada',consolidated:true,_transferId:tId,_transferRoute:transfOrigem.label+' -> '+transfDestino.label};
+    const rowEntrada={_row:allData.length+3,date,desc,value:val,cat:transfCat,tipo:transfTipo,account:transfDestino.label,type:'entrada',consolidated:true,_transferId:tId,_transferRoute:transfOrigem.label+' -> '+transfDestino.label};
     allData.push(rowSaida,rowEntrada);
     // update investimento if involved
     const updInv=(item,delta)=>{
@@ -3302,8 +3308,8 @@ async function saveTransaction(syncAfter=false){
     updInv(transfOrigem,-val);
     updInv(transfDestino,+val);
     try{
-      await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'append',row:[date,desc,val.toFixed(2).replace('.',','),'Transferência','Transferências',transfOrigem.label,'saída','1',tId,'',generateTxId()],sheet:SHEET_NAME})});
-      await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'append',row:[date,desc,val.toFixed(2).replace('.',','),'Transferência','Transferências',transfDestino.label,'entrada','1',tId,'',generateTxId()],sheet:SHEET_NAME})});
+      await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'append',row:[date,desc,val.toFixed(2).replace('.',','),transfCat,transfTipo,transfOrigem.label,'saída','1',tId,'',generateTxId()],sheet:SHEET_NAME})});
+      await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'append',row:[date,desc,val.toFixed(2).replace('.',','),transfCat,transfTipo,transfDestino.label,'entrada','1',tId,'',generateTxId()],sheet:SHEET_NAME})});
       toast('Transferência realizada!','success');
     }catch(e){toast('Salvo localmente','');}
     amountCents=0;opPending=null;prevCents=0;displayMode='reais';secondInt=0;updVal();
