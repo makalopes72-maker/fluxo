@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4A148C,#1B5E20);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F3E5F5 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(243,229,245,.65) !important;}
-  #splash .splash-version{color:rgba(243,229,245,.35) !important;}
-  #splash .splash-btn{background:#F3E5F5 !important;color:#4A148C !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F3E5F5 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1B5E20,#1A237E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
+  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
+  #splash .splash-btn{background:#F1F8E9 !important;color:#1B5E20 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1320,18 +1320,22 @@
           <button class="add-tipo-btn saida-on" id="btn-saida" onclick="setTransType('saída')">↓ Saída</button>
           <button class="add-tipo-btn entrada-off" id="btn-entrada" onclick="setTransType('entrada')">↑ Entrada</button>
           <button class="add-tipo-btn transf-off" id="btn-transf" onclick="setTransType('transferência')">⇄ Transf.</button>
-          <div id="consol-check" class="tx-check on" onclick="toggleConsolidado()" style="width:64px;flex-shrink:0;border-radius:0;border:none;border-left:1px solid var(--border);background:var(--kp-dark);display:flex;align-items:center;justify-content:center;cursor:pointer;">
-            <span class="tx-check-ic" style="font-size:.75rem;">✓</span>
-          </div>
         </div>
-        <div class="add-valor-row" id="add-valor-row" onclick="exitFieldsMode()" style="flex:1;display:flex;">
-          <div class="add-valor-area c-saida" id="add-varea" style="flex:1;min-height:60px;">
+        <div class="add-valor-row" id="add-valor-row" onclick="exitFieldsMode()" style="flex:1;">
+          <div class="add-valor-area c-saida" id="add-varea" style="min-height:60px;">
             <div class="add-valor-lbl" id="add-vlbl">Nova despesa</div>
             <div class="add-valor-num" id="add-vnum">R$ 0,00</div>
           </div>
-          <button class="add-del-btn" id="add-del-btn" onclick="kp('del');event.stopPropagation();" style="width:64px;height:100%;border:none;border-left:1px solid var(--border);font-size:1.8rem;">⌫</button>
         </div>
       </div>
+      <!-- Coluna lateral: consolidado em cima, backspace embaixo -->
+      <div style="display:flex;flex-direction:column;width:64px;flex-shrink:0;border-left:1px solid var(--border);align-self:stretch;">
+        <div id="consol-check" class="tx-check on" onclick="toggleConsolidado()" style="flex:1;border-radius:0;border:none;border-bottom:1px solid var(--border);background:var(--kp-dark);display:flex;align-items:center;justify-content:center;cursor:pointer;min-height:40px;">
+          <span class="tx-check-ic" style="font-size:.75rem;">✓</span>
+        </div>
+        <button class="add-del-btn" id="add-del-btn" onclick="kp('del')" style="flex:1;width:100%;min-height:40px;font-size:1.8rem;">⌫</button>
+      </div>
+    </div>
     <!-- Teclado -->
     <div class="add-kp" onpointerdown="(function(e){const k=e.target.closest('.kk');if(!k)return;const r=document.createElement('div');r.className='kk-ripple';k.appendChild(r);setTimeout(()=>r.remove(),350);})(event)"  >
       <div class="kk" onclick="kp('7')">7</div><div class="kk" onclick="kp('8')">8</div><div class="kk" onclick="kp('9')">9</div><div class="kk op" onclick="kp('÷')">÷</div>
@@ -2062,7 +2066,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.11';
+const APP_VERSION='15.15';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3007,10 +3011,34 @@ function buildSettings(){
   buildTiposEditor();
   buildStartScreenUI();
 }
-function savePrefs(){try{localStorage.setItem('fluxo_p8',JSON.stringify(prefs));}catch(e){}}
+function savePrefs(){
+  const u=currentUser||'_default';
+  if(!prefsData[u])prefsData[u]={};
+  prefsData[u]={paletteId:prefs.paletteId,custom:{...prefs.custom},font:prefs.font};
+  try{localStorage.setItem('fluxo_p8_'+u,JSON.stringify(prefs));}catch(e){}
+  pushToSheets('prefs');
+}
 function loadPrefs(){
-  try{const s=JSON.parse(localStorage.getItem('fluxo_p8')||'{}');if(s.paletteId)prefs.paletteId=s.paletteId;if(s.custom)prefs.custom={...prefs.custom,...s.custom};if(s.font)prefs.font=s.font;}catch(e){}
-  applyTheme();const f=FONTS.find(x=>x.id===prefs.font)||FONTS[0];document.documentElement.style.setProperty('--font-body',f.body);document.documentElement.style.setProperty('--font-display',f.display);
+  const u=currentUser||'_default';
+  // try user-specific first, then legacy global
+  try{
+    const key='fluxo_p8_'+u;
+    const s=JSON.parse(localStorage.getItem(key)||localStorage.getItem('fluxo_p8')||'{}');
+    if(s.paletteId)prefs.paletteId=s.paletteId;
+    if(s.custom)prefs.custom={...prefs.custom,...s.custom};
+    if(s.font)prefs.font=s.font;
+  }catch(e){}
+  // also check prefsData (loaded from Sheets)
+  if(prefsData[u]){
+    const p=prefsData[u];
+    if(p.paletteId)prefs.paletteId=p.paletteId;
+    if(p.custom)prefs.custom={...prefs.custom,...p.custom};
+    if(p.font)prefs.font=p.font;
+  }
+  applyTheme();
+  const f=FONTS.find(x=>x.id===prefs.font)||FONTS[0];
+  document.documentElement.style.setProperty('--font-body',f.body);
+  document.documentElement.style.setProperty('--font-display',f.display);
 }
 
 // -- MENU --
@@ -3029,6 +3057,7 @@ function login(u){
   const _mu=document.getElementById('menu-user');if(_mu)_mu.textContent=u;
   const cfu=document.getElementById('cfg-user');if(cfu)cfu.textContent=u;const cu2=document.getElementById('cfg-user2');if(cu2)cu2.textContent=u;
   loadAccounts();seedInstLinks();loadDefaultAccounts();initTiposData();loadKeywords();loadOrc();loadInvestimentos();
+  loadPrefs(); // load prefs for this user
   setTodayDate();buildSettings();buildStartScreenUI();
   extMonth=new Date().getMonth();extYear=new Date().getFullYear();
   goScreen('add');
@@ -5310,7 +5339,10 @@ const SHEETS = {
   contas:        'Contas',
   pastas:        'Pastas',
   keywords:      'PalavrasChave',
+  preferencias:  'Preferencias',
 };
+// per-user prefs storage
+let prefsData={};
 
 // -- UI feedback --
 function animateHeaderSync(spinning){
@@ -5609,6 +5641,19 @@ async function syncAll(manual=false){
       }
     }catch(e){console.warn('kw read fail',e);}
 
+    // 6. Preferencias
+    try{
+      const rows=await sheetsRead(SHEETS.preferencias);
+      if(rows&&rows.length>0){
+        const obj=deserializeKV(rows);
+        if(Object.keys(obj).length>0){
+          Object.keys(obj).forEach(u=>{prefsData[u]=obj[u];});
+          localStorage.setItem('fluxo_p8_'+(currentUser||'_default'),JSON.stringify(prefsData[currentUser||'_default']||{}));
+          loadPrefs();
+        }
+      }
+    }catch(e){console.warn('prefs read fail',e);}
+
     // Refresh UI
     renderDash();
     if(currentInstIdx!==null)renderCcCard();
@@ -5666,6 +5711,8 @@ async function pushToSheets(dataset){
       await sheetsWrite(SHEETS.contas, serializeKV({accounts}));
     } else if(dataset==='pastas'){
       await sheetsWrite(SHEETS.pastas, serializeKV({tiposData}));
+    } else if(dataset==='prefs'){
+      await sheetsWrite(SHEETS.preferencias, serializeKV(prefsData));
     } else if(dataset==='kw'){
       await sheetsWrite(SHEETS.keywords, serializeKV({keywords:keywordsData}));
     }
@@ -8188,6 +8235,19 @@ async function waSyncFull(){
       await waInvSync();
       steps.push('investimentos');
     }catch(e){console.warn('[waSyncFull] inv',e);}
+
+    // 4. preferências
+    try{
+      const rows=await sheetsRead(SHEETS.preferencias);
+      if(rows&&rows.length>0){
+        const obj=deserializeKV(rows);
+        if(Object.keys(obj).length>0){
+          Object.keys(obj).forEach(u=>{prefsData[u]=obj[u];});
+          loadPrefs();
+          steps.push('aparência');
+        }
+      }
+    }catch(e){console.warn('[waSyncFull] prefs',e);}
 
     waSyncIndicator('✓ '+steps.join(' · '),'#059669',false);
   }catch(e){
