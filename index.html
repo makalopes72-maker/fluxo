@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#B71C1C,#4527A0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFEBEE !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(255,235,238,.65) !important;}
-  #splash .splash-version{color:rgba(255,235,238,.35) !important;}
-  #splash .splash-btn{background:#FFEBEE !important;color:#B71C1C !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFEBEE !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#33691E,#1565C0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
+  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
+  #splash .splash-btn{background:#F1F8E9 !important;color:#33691E !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2066,7 +2066,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.21';
+const APP_VERSION='15.22';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -7013,6 +7013,14 @@ async function waSave(){
   if(_descEl&&_descEl.value.trim())waLaunchState.desc=_descEl.value.trim();
   const displayDesc=waLaunchState.desc||(s.cat||s.tipo||'Transação');
 
+  // disable save button immediately
+  const _saveBtn=document.querySelector('#wa-right-body button[onclick="waSave()"]');
+  if(_saveBtn){_saveBtn.disabled=true;_saveBtn.textContent='SALVANDO…';}
+  const _restoreBtn=()=>{if(_saveBtn){_saveBtn.disabled=false;_saveBtn.textContent=s.editingIdx!==null?'ATUALIZAR':'SALVAR';}};
+
+  // keyword check vars — declared here so accessible after if block
+  let _kwDesc=null,_kwTipo=null,_kwCat=null;
+
   // -- TRANSFER --
   if(s.type==='transferência'&&s.editingIdx===null){
     if(!s.tipo){waSyncIndicator('Selecione a pasta','#E53935',false);return;}
@@ -7064,6 +7072,7 @@ async function waSave(){
     else if(t._row){await sheetsPost({action:'update',row:t._row,data:newRow,sheet:SHEET_NAME});}
     Object.assign(allData[s.editingIdx],{date:s.date,desc:displayDesc,value:val,cat:s.cat||s.tipo,tipo:s.tipo,type:s.type,account:s.conta||t.account,consolidated:s.consolidated});
     toast('Atualizado!','success');
+    _restoreBtn();
   } else {
     // new transaction -- handle parcel and advanced modes
     const rows=[];
@@ -7103,12 +7112,11 @@ async function waSave(){
       allData.push({_row:allData.length+2,_id:String(newId),...r});
     }
     toast(rows.length>1?rows.length+' lançamentos salvos!':'Salvo!','success');
-    // save desc/tipo/cat before reset for keyword check
-    const _kwDesc=rows.length===1?rows[0].desc:null;
-    const _kwTipo=s.tipo;
-    const _kwCat=s.cat;
+    // save for keyword check (vars declared at function top)
+    if(rows.length===1){_kwDesc=rows[0].desc;_kwTipo=s.tipo;_kwCat=s.cat;}
   }
   try{
+    _restoreBtn();
     waResetLaunch();
     waRenderExtrato();
     renderDash();
@@ -7116,7 +7124,7 @@ async function waSave(){
     if(_kwDesc&&_kwTipo&&_kwCat){
       setTimeout(()=>waCheckAddKeyword(_kwDesc,_kwTipo,_kwCat),600);
     }
-  }catch(e){console.error('post-save error',e);}
+  }catch(e){console.error('post-save error',e);_restoreBtn();}
 }
 
 function waCheckAddKeyword(desc,tipo,cat){
