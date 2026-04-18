@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4527A0,#00838F);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#EDE7F6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(237,231,246,.65) !important;}
-  #splash .splash-version{color:rgba(237,231,246,.35) !important;}
-  #splash .splash-btn{background:#EDE7F6 !important;color:#4527A0 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EDE7F6 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#263238,#E65100);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
+  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
+  #splash .splash-btn{background:#ECEFF1 !important;color:#263238 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2064,7 +2064,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.04';
+const APP_VERSION='15.05';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3277,6 +3277,8 @@ async function saveTransaction(syncAfter=false){
     if(!transfOrigem){toast('Selecione a origem','error');return;}
     if(!transfDestino){toast('Selecione o destino','error');return;}
     if(transfOrigem.id===transfDestino.id){toast('Origem e destino iguais','error');return;}
+    const btnT=document.getElementById('btn-save');
+    if(btnT){btnT.disabled=true;btnT.textContent='SALVANDO…';btnT.classList.add('saving');}
     const descBase=_descCheck;
     const desc=descBase.endsWith('(transferência)')?descBase:descBase+' (transferência)';
     const transfCat=selCat||'Transferência';
@@ -3312,6 +3314,8 @@ async function saveTransaction(syncAfter=false){
       await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'append',row:[date,desc,val.toFixed(2).replace('.',','),transfCat,transfTipo,transfDestino.label,'entrada','1',tId,'',generateTxId()],sheet:SHEET_NAME})});
       toast('Transferência realizada!','success');
     }catch(e){toast('Salvo localmente','');}
+    const btnTR=document.getElementById('btn-save');
+    if(btnTR){btnTR.disabled=false;btnTR.textContent='SALVAR';btnTR.classList.remove('saving');}
     amountCents=0;opPending=null;prevCents=0;displayMode='reais';secondInt=0;updVal();
     const _dEl=document.getElementById('tx-desc');if(_dEl)_dEl.value='';
   const _dEl2=document.getElementById('tx-desc-fields');if(_dEl2)_dEl2.value='';
