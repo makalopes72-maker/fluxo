@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1B5E20,#1A237E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
-  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
-  #splash .splash-btn{background:#F1F8E9 !important;color:#1B5E20 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4E342E,#1565C0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#EFEBE9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(239,235,233,.65) !important;}
+  #splash .splash-version{color:rgba(239,235,233,.35) !important;}
+  #splash .splash-btn{background:#EFEBE9 !important;color:#4E342E !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EFEBE9 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2066,7 +2066,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.15';
+const APP_VERSION='15.16';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6686,19 +6686,72 @@ function waPick(field,val){
 }
 
 function waOpenDatePicker(){
+  // remove existing
+  const ex=document.getElementById('wa-date-overlay');if(ex)ex.remove();
+
+  // find the date field element to anchor near it
+  const anchor=document.querySelector('#wa-right-body [onclick="waOpenDatePicker()"]');
+  const parts=waLaunchState.date.split('/');
+  const iso=parts.length===3?parts[2]+'-'+parts[1]+'-'+parts[0]:'';
+
+  const overlay=document.createElement('div');
+  overlay.id='wa-date-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9700;';
+  overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+
+  const box=document.createElement('div');
+  box.style.cssText='background:var(--bg);border-radius:12px;padding:16px;box-shadow:0 8px 32px rgba(0,0,0,.25);border:1px solid var(--border);display:inline-block;';
+
+  const lbl=document.createElement('div');
+  lbl.textContent='Data da transação';
+  lbl.style.cssText='font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;font-weight:600;';
+
   const inp=document.createElement('input');
   inp.type='date';
-  const parts=waLaunchState.date.split('/');
-  if(parts.length===3)inp.value=parts[2]+'-'+parts[1]+'-'+parts[0];
-  inp.style.cssText='position:fixed;top:-200px;left:-200px;opacity:0;pointer-events:none;';
-  document.body.appendChild(inp);
-  inp.addEventListener('change',()=>{
+  inp.value=iso;
+  inp.style.cssText='display:block;padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:.9rem;font-family:var(--font-body);background:var(--bg);color:var(--font);outline:none;width:180px;';
+  inp.onchange=()=>{
     const p=inp.value.split('-');
     if(p.length===3)waLaunchState.date=p[2]+'/'+p[1]+'/'+p[0];
-    inp.remove();waRenderLaunchForm();
-  });
-  inp.addEventListener('blur',()=>setTimeout(()=>{if(document.body.contains(inp))inp.remove();},500));
-  setTimeout(()=>inp.showPicker?.(),50);
+    overlay.remove();
+    waRenderLaunchForm();
+  };
+
+  const btnRow=document.createElement('div');
+  btnRow.style.cssText='display:flex;gap:6px;margin-top:10px;';
+  const btnOk=document.createElement('button');
+  btnOk.textContent='OK';
+  btnOk.style.cssText='flex:1;padding:7px;border-radius:8px;border:none;background:var(--font);color:var(--bg);font-family:var(--font-body);font-size:.78rem;font-weight:700;cursor:pointer;';
+  btnOk.onclick=()=>{
+    const p=inp.value.split('-');
+    if(p.length===3)waLaunchState.date=p[2]+'/'+p[1]+'/'+p[0];
+    overlay.remove();
+    waRenderLaunchForm();
+  };
+  const btnCancel=document.createElement('button');
+  btnCancel.textContent='Cancelar';
+  btnCancel.style.cssText='flex:1;padding:7px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.78rem;cursor:pointer;';
+  btnCancel.onclick=()=>overlay.remove();
+  btnRow.appendChild(btnCancel);
+  btnRow.appendChild(btnOk);
+
+  box.appendChild(lbl);
+  box.appendChild(inp);
+  box.appendChild(btnRow);
+
+  // position near anchor or center
+  if(anchor){
+    const r=anchor.getBoundingClientRect();
+    box.style.position='absolute';
+    box.style.top=(r.bottom+6)+'px';
+    box.style.left=r.left+'px';
+  } else {
+    box.style.cssText+=';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);';
+  }
+
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  setTimeout(()=>inp.focus(),50);
 }
 
 async function waSave(){
