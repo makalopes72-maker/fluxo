@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#880E4F,#33691E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FCE4EC !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(252,228,236,.65) !important;}
-  #splash .splash-version{color:rgba(252,228,236,.35) !important;}
-  #splash .splash-btn{background:#FCE4EC !important;color:#880E4F !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FCE4EC !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1A237E,#BF360C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E8EAF6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(232,234,246,.65) !important;}
+  #splash .splash-version{color:rgba(232,234,246,.35) !important;}
+  #splash .splash-btn{background:#E8EAF6 !important;color:#1A237E !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8EAF6 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -245,10 +245,12 @@
 
   /* FIELDS MODE -- handled in ADD SCREEN section above */
   .add-valor-row{cursor:pointer;}
-  .kk{background:var(--kp);display:flex;align-items:center;justify-content:center;font-family:var(--font-body);font-size:2.3rem;font-weight:700;color:var(--font);cursor:pointer;user-select:none;transition:background .1s;}
-  .kk:active{opacity:.7;}
-  .kk.op{font-size:2rem;color:var(--muted);background:var(--kp-dark);}
-  .kk.eq{font-size:1.8rem;font-weight:700;background:var(--btn);}
+  .kk{background:var(--kp);display:flex;align-items:center;justify-content:center;font-family:var(--font-body);font-size:2.8rem;font-weight:700;color:var(--font);cursor:pointer;user-select:none;transition:background .08s,transform .08s;position:relative;overflow:hidden;}
+  .kk:active{transform:scale(.93);}
+  .kk.op{font-size:2.3rem;color:var(--muted);background:var(--kp-dark);}
+  .kk.eq{font-size:2.1rem;font-weight:700;background:var(--btn);}
+  @keyframes kkFlash{0%{opacity:.55}100%{opacity:0;transform:scale(2.5);}}
+  .kk-ripple{position:absolute;inset:0;border-radius:inherit;background:rgba(255,255,255,.35);animation:kkFlash .3s ease-out forwards;pointer-events:none;}
 
   /* FIELDS -- flex:1, scrollable */
   .add-fields-wrap{flex:1;overflow-y:auto;background:var(--bg);padding:10px 12px;min-height:0;display:flex;flex-direction:column;gap:7px;}
@@ -1335,7 +1337,7 @@
       </div>
     </div>
     <!-- Teclado -->
-    <div class="add-kp">
+    <div class="add-kp" onpointerdown="(function(e){const k=e.target.closest('.kk');if(!k)return;const r=document.createElement('div');r.className='kk-ripple';k.appendChild(r);setTimeout(()=>r.remove(),350);})(event)"  >
       <div class="kk" onclick="kp('7')">7</div><div class="kk" onclick="kp('8')">8</div><div class="kk" onclick="kp('9')">9</div><div class="kk op" onclick="kp('÷')">÷</div>
       <div class="kk" onclick="kp('4')">4</div><div class="kk" onclick="kp('5')">5</div><div class="kk" onclick="kp('6')">6</div><div class="kk op" onclick="kp('×')">×</div>
       <div class="kk" onclick="kp('1')">1</div><div class="kk" onclick="kp('2')">2</div><div class="kk" onclick="kp('3')">3</div><div class="kk op" onclick="kp('−')">−</div>
@@ -2064,7 +2066,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.08';
+const APP_VERSION='15.09';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
