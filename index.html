@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1B5E20,#F57F17);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
-  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
-  #splash .splash-btn{background:#F1F8E9 !important;color:#1B5E20 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#004D40,#4A148C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0F2F1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(224,242,241,.65) !important;}
+  #splash .splash-version{color:rgba(224,242,241,.35) !important;}
+  #splash .splash-btn{background:#E0F2F1 !important;color:#004D40 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F2F1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.47';
+const APP_VERSION='15.49';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4532,7 +4532,9 @@ function updInvSaldo(invId, delta, date, note){
   const ativo=getInstAtivos(inst).find(a=>a.nome===ativoNome);if(!ativo)return false;
   const prev=getAtivoAtual(ativo);
   const newVal=Math.max(0,prev+delta);
-  ativo.log.push({date:date,value:newVal,note:note||''});
+  const newEntry={date:date,value:newVal,note:note||''};
+  ativo.log.push(newEntry);
+  // save full state
   saveInvestimentos();
   return true;
 }
@@ -5174,7 +5176,8 @@ function saveAtivo(){
     const cv=document.getElementById('cart-val');if(cv)cv.textContent=fmtInv(getInstTotal(instituicoes[currentInstIdx]));
     renderAtivos();closeAtivoModal();openAtivo(currentAtivoIdx);toast('Atualizado!','success');
   } else {
-    const novo={id:Date.now(),...getFields(),log:[{date:dateStr,value:aplicadoVal,note:'Aplicação inicial'}]};
+    const dataAplicStr=getFields().dataAplic?(()=>{const p=getFields().dataAplic.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:dateStr;})():dateStr;
+  const novo={id:Date.now(),...getFields(),log:[{date:dataAplicStr,value:aplicadoVal,note:'Aplicação inicial'}]};
     getInstAtivos(instituicoes[currentInstIdx]).push(novo);
     saveInvestimentos();
     const cv=document.getElementById('cart-val');if(cv)cv.textContent=fmtInv(getInstTotal(instituicoes[currentInstIdx]));
@@ -5595,11 +5598,8 @@ async function sheetsRead(sheetName){
 
 // -- WRITE to Sheets via POST --
 async function sheetsWrite(sheetName, rows){
-  await fetch(APPS_SCRIPT_URL,{
-    method:'POST',mode:'no-cors',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({action:'write',sheet:sheetName,rows})
-  });
+  // GET-encoded — works reliably with Apps Script doGet
+  await sheetsPost({action:'write',sheet:sheetName,rows});
 }
 // -- sheetsPost: encode payload as GET request (reliable with Apps Script) --
 async function sheetsPost(payload){
@@ -5872,11 +5872,11 @@ async function syncAll(manual=false){
 async function pushToSheets(dataset){
   try{
     if(dataset==='orc'){
-      await sheetsPost({action:'write',sheet:SHEETS.orcamento,rows:serializeKV(orcData)});
+      await sheetsWrite(SHEETS.orcamento, serializeKV(orcData));
     } else if(dataset==='insts'){
       // write global institutions list — use GET-encoded for iOS compatibility
       const rows=[['ID','Nome','Icone'],...instituicoes.map(i=>[i.id||i.name,i.name,i.icon||'🏦'])];
-      await sheetsPost({action:'write',sheet:'Instituições',rows});
+      await sheetsWrite('Instituições', rows);
     } else if(dataset==='inv'){
       // write ativos as table rows
       const user=currentUser||'ALE';
@@ -5901,20 +5901,22 @@ async function pushToSheets(dataset){
           });
         });
       });
-      await sheetsPost({action:'write',sheet:SHEETS.investimentos,rows:ativoRows});
-      await sheetsPost({action:'write',sheet:SHEETS.invlog,rows:logRows});
+      await sheetsWrite(SHEETS.investimentos, ativoRows);
+      // Log: append each entry individually (more reliable than bulk write)
+      // First clear the log sheet, then append all entries
+      await sheetsWrite(SHEETS.invlog, logRows);
       // write CC saldos
       const ccData=ccPorUser[user]||{};
       const ccRows=[['Usuário','Instituição','Saldo','Último Ajuste'],...Object.entries(ccData).map(([inst,v])=>[user,inst,v.saldo||0,v.lastAdj||''])];
-      await sheetsPost({action:'write',sheet:'ContasCorrente',rows:ccRows});
+      await sheetsWrite('ContasCorrente', ccRows);
     } else if(dataset==='accounts'){
-      await sheetsPost({action:'write',sheet:SHEETS.contas,rows:serializeKV({accounts})});
+      await sheetsWrite(SHEETS.contas, serializeKV({accounts}));
     } else if(dataset==='pastas'){
-      await sheetsPost({action:'write',sheet:SHEETS.pastas,rows:serializeKV({tiposData})});
+      await sheetsWrite(SHEETS.pastas, serializeKV({tiposData}));
     } else if(dataset==='prefs'){
-      await sheetsPost({action:'write',sheet:SHEETS.preferencias,rows:serializeKV(prefsData)});
+      await sheetsWrite(SHEETS.preferencias, serializeKV(prefsData));
     } else if(dataset==='kw'){
-      await sheetsPost({action:'write',sheet:SHEETS.keywords,rows:serializeKV({keywords:keywordsData})});
+      await sheetsWrite(SHEETS.keywords, serializeKV({keywords:keywordsData}));
     }
   }catch(e){console.warn('push failed silently',dataset,e);}
 }
@@ -7318,18 +7320,20 @@ async function waSave(){
     const destinoLabel=destinoIsInv?waTransfDestino.slice(4).replace(':::','  ›  '):waTransfDestino;
 
     // only save account-side transactions to extrato
-    if(!origemIsInv){
-      const rSaida={date:s.date,desc:descT,value:val,cat:s.cat,tipo:s.tipo,account:waTransfOrigem,type:'saída',consolidated:true,_transferId:tId};
-      await sheetsAppend([s.date,descT,val.toFixed(2).replace('.',','),s.cat,s.tipo,waTransfOrigem,'saída','1',tId,'',newId1]);
-      allData.push({_row:allData.length+2,_id:String(newId1),...rSaida});
-    }
-    if(!destinoIsInv){
-      const rEntrada={date:s.date,desc:descT,value:val,cat:s.cat,tipo:s.tipo,account:waTransfDestino,type:'entrada',consolidated:true,_transferId:tId};
-      await sheetsAppend([s.date,descT,val.toFixed(2).replace('.',','),s.cat,s.tipo,waTransfDestino,'entrada','1',tId,'',newId2]);
-      allData.push({_row:allData.length+2,_id:String(newId2),...rEntrada});
-    }
+    try{
+      if(!origemIsInv){
+        const rSaida={date:s.date,desc:descT,value:val,cat:s.cat,tipo:s.tipo,account:waTransfOrigem,type:'saída',consolidated:true,_transferId:tId};
+        await sheetsAppend([s.date,descT,val.toFixed(2).replace('.',','),s.cat,s.tipo,waTransfOrigem,'saída','1',tId,'',newId1]);
+        allData.push({_row:allData.length+2,_id:String(newId1),...rSaida});
+      }
+      if(!destinoIsInv){
+        const rEntrada={date:s.date,desc:descT,value:val,cat:s.cat,tipo:s.tipo,account:waTransfDestino,type:'entrada',consolidated:true,_transferId:tId};
+        await sheetsAppend([s.date,descT,val.toFixed(2).replace('.',','),s.cat,s.tipo,waTransfDestino,'entrada','1',tId,'',newId2]);
+        allData.push({_row:allData.length+2,_id:String(newId2),...rEntrada});
+      }
+    }catch(e){console.warn('transf append fail',e);}
 
-    // update investment saldos
+    // update investment saldos — always runs regardless of sheets result
     updInvSaldo(waTransfOrigem,-val,s.date,'Saída via transferência');
 
     // handle new-inv destination
@@ -8892,6 +8896,7 @@ function waInvSaveNew(){
   const toDate=iso=>{if(!iso)return'';const[y,m,d]=iso.split('-');return d+'/'+m+'/'+y;};
   const dataAplic=g('data-aplic');
   const dateStr=toDate(dataAplic)||new Date().toLocaleDateString('pt-BR');
+  const dataAplicLogDate=dataAplic?(()=>{const p=dataAplic.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:dateStr;})():dateStr;
   const novo={
     id:Date.now(),nome,
     classe:g('classe'),tipo:'',
@@ -8899,7 +8904,7 @@ function waInvSaveNew(){
     dataAplic,vencimento:toDate(g('vencimento')),
     liquidez:g('liquidez'),garantia:g('garantia'),ir:g('ir'),obs:g('obs'),
     encerrado:false,
-    log:[{date:dateStr,value:aplicado,note:'Aplicação inicial'}]
+    log:[{date:dataAplicLogDate,value:aplicado,note:'Aplicação inicial'}]
   };
   const inst=instituicoes[waInvInstIdx];
   getInstAtivos(inst).push(novo);
