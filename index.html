@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#33691E,#1A237E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
-  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
-  #splash .splash-btn{background:#F1F8E9 !important;color:#33691E !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#BF360C,#006064);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FBE9E7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(251,233,231,.65) !important;}
+  #splash .splash-version{color:rgba(251,233,231,.35) !important;}
+  #splash .splash-btn{background:#FBE9E7 !important;color:#BF360C !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FBE9E7 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.54';
+const APP_VERSION='15.55';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4522,7 +4522,7 @@ function loadInvestimentos(){
   }catch(e){}
 }
 // Update investment saldo: add log entry with new value and return the new value
-function updInvSaldo(invId, delta, date, note){
+async function updInvSaldo(invId, delta, date, note){
   // invId format: 'inv:InstName:::AtivoNome'
   if(!invId||!invId.startsWith('inv:'))return false;
   const parts=invId.slice(4).split(':::');
@@ -4536,7 +4536,7 @@ function updInvSaldo(invId, delta, date, note){
   ativo.log.push(newEntry);
   // Append log entry — reliable via appendLog action
   const _user=currentUser||'ALE';
-  sheetsAppendLog(_user,instName,ativoNome,date,newVal,note||'');
+  await sheetsAppendLog(_user,instName,ativoNome,date,newVal,note||'');
   // Save locally only (Investimentos sheet valor atual recalculated from log on sync)
   try{localStorage.setItem('fluxo_ativos_'+(_user),JSON.stringify(ativosPorUser[_user]||{}));}catch(e){}
   return true;
@@ -5131,7 +5131,7 @@ function updVal2(){
   }
 }
 
-function saveUpdVal(){
+async function saveUpdVal(){
   if(!updCents){toast('Digite o valor','error');return;}
   const a=getInstAtivos(instituicoes[currentInstIdx])?.[currentAtivoIdx];
   if(!a)return;
@@ -5148,7 +5148,7 @@ function saveUpdVal(){
   a.log.push({date:dateStr,value:valMob,note:noteMob});
   const _userM=currentUser||'ALE';
   const _instM=instituicoes[currentInstIdx];
-  if(_instM)sheetsAppendLog(_userM,_instM.name,a.nome,dateStr,valMob,noteMob);
+  if(_instM)await sheetsAppendLog(_userM,_instM.name,a.nome,dateStr,valMob,noteMob);
   saveInvestimentos();
   openAtivo(currentAtivoIdx);
   closeUpdModal();
@@ -8715,7 +8715,7 @@ function waInvUpdHint(idx){
   hint.textContent='Variação: '+sign+fmtInvFull(delta)+' (saldo anterior: '+fmtInvFull(prev)+')';
 }
 
-function waInvSaveUpd(idx){
+async function waInvSaveUpd(idx){
   const inst=instituicoes[waInvInstIdx];
   const a=getInstAtivos(inst)[idx];
   if(!a)return;
@@ -8731,7 +8731,7 @@ function waInvSaveUpd(idx){
   const autoNote=note||'Atualização de saldo';
   a.log.push({date:ds,value:val,note:autoNote});
   const _user2=currentUser||'ALE';
-  sheetsAppendLog(_user2,inst.name,a.nome,ds,val,autoNote);
+  await sheetsAppendLog(_user2,inst.name,a.nome,ds,val,autoNote);
   saveInvestimentos();
   const sign2=delta2>=0?'+':'';
   waSyncIndicator('Saldo: '+sign2+fmtInvFull(delta2),'#059669',false);
