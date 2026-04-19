@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#880E4F,#006064);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FCE4EC !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(252,228,236,.65) !important;}
-  #splash .splash-version{color:rgba(252,228,236,.35) !important;}
-  #splash .splash-btn{background:#FCE4EC !important;color:#880E4F !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FCE4EC !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1B5E20,#880E4F);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
+  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
+  #splash .splash-btn{background:#F1F8E9 !important;color:#1B5E20 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.41';
+const APP_VERSION='15.42';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -7713,7 +7713,7 @@ function waDashRender(){
     st.id='wa-dash-style';
     st.textContent=`
       .wad-wrap{min-width:0;}
-      .wad-tbl{border-collapse:collapse;font-size:10px;min-width:900px;width:100%;table-layout:fixed;}
+      .wad-tbl{border-collapse:collapse;font-size:10px;width:100%;table-layout:fixed;}
       .wad-tbl th,.wad-inv-col{min-width:70px;width:70px;}
       .wad-tbl th,.wad-tbl td{border:0.5px solid #D3D1C7;padding:0;}
       .wad-lbl{position:sticky;left:0;z-index:3;background:#fff;white-space:nowrap;padding:3px 8px 3px 10px;font-size:10px;color:#2C2C2A;min-width:140px;max-width:170px;overflow:hidden;text-overflow:ellipsis;box-shadow:2px 0 4px rgba(0,0,0,.08);}
@@ -7732,7 +7732,7 @@ function waDashRender(){
       .wad-h-sub.prev.cur{background:#FFF3CD;color:#A1887F;border-left:none!important;}
       .wad-h-sub.real.fut{background:#F5F5F5;color:#BDBDBD;}
       .wad-h-sub.prev.fut{background:#EEEEEE;color:#BDBDBD;border-left:none!important;}
-      .wad-real{text-align:right;padding:3px 8px 3px 5px;white-space:nowrap;font-size:10px;background:#fff;color:#2C2C2A;}
+      .wad-real{text-align:right;padding:3px 8px 3px 5px;white-space:nowrap;font-size:10px;background:#fff;color:#2C2C2A;border-left:2px solid #B0BEC5;}
       .wad-prev{text-align:right;padding:3px 8px 3px 5px;font-style:italic;white-space:nowrap;cursor:pointer;font-size:10px;background:#F5EFE6;color:#A1887F;border-left:none!important;}
       .wad-prev:hover{filter:brightness(.95);}
       .wad-real.cur{background:#FFF9C4;color:#5D4037;}
@@ -7774,13 +7774,13 @@ function waDashRender(){
   // -- build header --
   let html='<div style="overflow-x:auto;overflow-y:visible;"><div class="wad-wrap"><table class="wad-tbl" id="wa-dash-table">';
   // colgroup for fixed col alignment
-  html+='<colgroup><col style="min-width:160px;width:160px;">';
+  html+='<colgroup><col style="width:160px;">';
   visMonths.forEach(m=>{
     const showOrc2=!isPastYear&&(m===effectiveCurM||m<effectiveCurM||(window.waDashShowOrc&&window.waDashShowOrc[m]));
-    const c=showOrc2?2:1;for(let i=0;i<c;i++)html+='<col style="min-width:55px;width:55px;">';
+    const c=showOrc2?2:1;for(let i=0;i<c;i++)html+='<col>';
   });
-  html+='<col style="width:8px;min-width:8px;">';
-  if(showTotals)for(let i=0;i<6;i++)html+='<col style="min-width:55px;width:55px;">';
+  html+='<col style="width:8px;">';
+  if(showTotals)for(let i=0;i<6;i++)html+='<col>';
   html+='</colgroup>';
   html+='<thead class="wad-head"><tr>';
   html+='<th class="wad-lbl-h" rowspan="2">Pasta / Categoria</th>';
@@ -7807,7 +7807,7 @@ function waDashRender(){
     const showOrc=!isPastYear&&(isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]));
     const tc=isCur?'cur':isFut?'fut':'';
     const hbg=isCur?'#FFF9C4':isFut?'#F5F5F5':'#fff';
-    html+='<th class="wad-h-sub real '+tc+'" style="border-left:1px solid #CCC;">real</th>';
+    html+='<th class="wad-h-sub real '+tc+'" style="border-left:2px solid #B0BEC5;">real</th>';
 
     if(showOrc)html+='<th class="wad-h-sub prev '+tc+'"><em>prev.</em></th>';
   });
@@ -8100,7 +8100,7 @@ function waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,sho
   let h='<tbody>';
 
   // separator + header row for investments section
-  h+='<tr><td colspan="999" style="padding:0;height:6px;background:var(--bg);border:none;"></td></tr>';
+  h+='<tr><td colspan="999" style="padding:0;height:14px;background:#ECEFF1;border:none;border-top:3px solid #78909C;"></td></tr>';
   h+='<tr>';
   h+='<td style="position:sticky;left:0;z-index:3;background:#263238;color:#CFD8DC;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:6px 8px;cursor:pointer;white-space:nowrap;box-shadow:2px 0 4px rgba(0,0,0,.15);" onclick="window.waDashShowEncerrados=!window.waDashShowEncerrados;waDashRender();">'
     +'Investimentos <span style="font-size:6px;background:rgba(255,255,255,.2);padding:1px 5px;border-radius:4px;">'+(showEnc?'▲ ocultar superados':'▼ mostrar superados')+'</span></td>';
