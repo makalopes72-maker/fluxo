@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#004D40,#4A148C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F2F1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(224,242,241,.65) !important;}
-  #splash .splash-version{color:rgba(224,242,241,.35) !important;}
-  #splash .splash-btn{background:#E0F2F1 !important;color:#004D40 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F2F1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#F57F17,#1A237E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFF8E1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(255,248,225,.65) !important;}
+  #splash .splash-version{color:rgba(255,248,225,.35) !important;}
+  #splash .splash-btn{background:#FFF8E1 !important;color:#F57F17 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFF8E1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.49';
+const APP_VERSION='15.50';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4534,7 +4534,10 @@ function updInvSaldo(invId, delta, date, note){
   const newVal=Math.max(0,prev+delta);
   const newEntry={date:date,value:newVal,note:note||''};
   ativo.log.push(newEntry);
-  // save full state
+  // Append just this new log entry (fast, reliable)
+  const _user=currentUser||'ALE';
+  sheetsAppendLog(_user,instName,ativoNome,date,newVal,note||'');
+  // Also update the Investimentos sheet (valor atual)
   saveInvestimentos();
   return true;
 }
@@ -5119,8 +5122,12 @@ function saveUpdVal(){
   const obs=document.getElementById('upd-obs-input')?.value.trim()||'';
   const prevMob=getAtivoAtual(a);
   const deltaMob=(updCents/100)-prevMob;
-  const noteMob=obs||(deltaMob>=0?'Atualização de saldo':'Atualização de saldo');
-  a.log.push({date:dateStr,value:updCents/100,note:noteMob});
+  const noteMob=obs||'Atualização de saldo';
+  const valMob=updCents/100;
+  a.log.push({date:dateStr,value:valMob,note:noteMob});
+  const _userM=currentUser||'ALE';
+  const _instM=instituicoes[currentInstIdx];
+  if(_instM)sheetsAppendLog(_userM,_instM.name,a.nome,dateStr,valMob,noteMob);
   saveInvestimentos();
   openAtivo(currentAtivoIdx);
   closeUpdModal();
@@ -5598,8 +5605,12 @@ async function sheetsRead(sheetName){
 
 // -- WRITE to Sheets via POST --
 async function sheetsWrite(sheetName, rows){
-  // GET-encoded — works reliably with Apps Script doGet
-  await sheetsPost({action:'write',sheet:sheetName,rows});
+  // POST — Apps Script doPost handles action:'write'
+  await fetch(APPS_SCRIPT_URL,{
+    method:'POST',mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'write',sheet:sheetName,rows})
+  });
 }
 // -- sheetsPost: encode payload as GET request (reliable with Apps Script) --
 async function sheetsPost(payload){
@@ -5621,6 +5632,14 @@ function generateTxId(){
 // -- Append to Sheets (ID already embedded in row[10]) --
 async function sheetsAppend(row){
   await sheetsPost({action:'append',row,sheet:SHEET_NAME});
+}
+// Append a single investment log entry
+async function sheetsAppendLog(user,instName,ativoNome,date,value,note){
+  await fetch(APPS_SCRIPT_URL,{
+    method:'POST',mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'appendLog',sheet:'InvestimentosLog',row:[user,instName,ativoNome,date,value,note||'']})
+  });
 }
 
 // -- SERIALIZE / DESERIALIZE --
@@ -8689,8 +8708,10 @@ function waInvSaveUpd(idx){
   const ds=toDate(dateISO)||new Date().toLocaleDateString('pt-BR');
   const prev2=getAtivoAtual(a);
   const delta2=val-prev2;
-  const autoNote=note||(delta2>=0?'Atualização de saldo':'Atualização de saldo');
+  const autoNote=note||'Atualização de saldo';
   a.log.push({date:ds,value:val,note:autoNote});
+  const _user2=currentUser||'ALE';
+  sheetsAppendLog(_user2,inst.name,a.nome,ds,val,autoNote);
   saveInvestimentos();
   const sign2=delta2>=0?'+':'';
   waSyncIndicator('Saldo: '+sign2+fmtInvFull(delta2),'#059669',false);
