@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#006064,#B71C1C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
-  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
-  #splash .splash-btn{background:#E0F7FA !important;color:#006064 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1A237E,#004D40);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E8EAF6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(232,234,246,.65) !important;}
+  #splash .splash-version{color:rgba(232,234,246,.35) !important;}
+  #splash .splash-btn{background:#E8EAF6 !important;color:#1A237E !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8EAF6 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -193,13 +193,6 @@
   #screen-add.fields-mode .add-fields-wrap{display:flex !important;flex:1;}
   #screen-add.fields-mode .add-save-bar{display:flex !important;}
   #screen-add.fields-mode .add-left-panel{display:none !important;}
-  /* TRANSFERÊNCIA: add-left-panel scrollable, keypad oculto */
-  #screen-add.transf-mode .add-left-panel{display:flex;flex-direction:column;flex:1;overflow:hidden;}
-  #screen-add.transf-mode .add-kp{display:none !important;}
-  #screen-add.transf-mode #add-del-btn{display:none !important;}
-  #screen-add.transf-mode .add-valor-row{flex-shrink:0;}
-  #screen-add.transf-mode #transf-panel{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0;}
-  #screen-add.transf-mode .add-desc-bar{display:flex !important;}
   /* portrait: left-panel é coluna única, sem right-panel */
   @media (max-width:599px){
     #screen-add{flex-direction:column !important;}
@@ -1344,7 +1337,7 @@
       </div>
     </div>
     <!-- Teclado -->
-    <div class="add-kp" onpointerdown="(function(e){const k=e.target.closest('.kk');if(!k)return;const r=document.createElement('div');r.className='kk-ripple';k.appendChild(r);setTimeout(()=>r.remove(),350);})(event)"  >
+    <div class="add-kp" id="add-kp-grid" onpointerdown="(function(e){const k=e.target.closest('.kk');if(!k)return;const r=document.createElement('div');r.className='kk-ripple';k.appendChild(r);setTimeout(()=>r.remove(),350);})(event)"  >
       <div class="kk" onclick="kp('7')">7</div><div class="kk" onclick="kp('8')">8</div><div class="kk" onclick="kp('9')">9</div><div class="kk op" onclick="kp('÷')">÷</div>
       <div class="kk" onclick="kp('4')">4</div><div class="kk" onclick="kp('5')">5</div><div class="kk" onclick="kp('6')">6</div><div class="kk op" onclick="kp('×')">×</div>
       <div class="kk" onclick="kp('1')">1</div><div class="kk" onclick="kp('2')">2</div><div class="kk" onclick="kp('3')">3</div><div class="kk op" onclick="kp('−')">−</div>
@@ -2076,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.28';
+const APP_VERSION='15.29';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2935,6 +2928,8 @@ function resetTransfFields(){
   });
   document.getElementById('screen-add')?.classList.remove('transf-mode');
   const createBtn=document.getElementById('transf-destino-create-btn');if(createBtn)createBtn.style.display='none';
+  const kpEl2=document.getElementById('add-kp-grid');if(kpEl2)kpEl2.style.display='';
+  const delBtn2=document.getElementById('add-del-btn');if(delBtn2)delBtn2.style.display='';
 }
 
 // -- FIELDS MODE --
@@ -3354,19 +3349,21 @@ function setTransType(t){
     document.querySelectorAll('#drop-main,.launch-seg,#lp-normal,#lp-parcelar,#lp-avancado').forEach(el=>{if(el)el.style.display='none';});
     const contaCell=document.getElementById('fc-conta-cell');if(contaCell)contaCell.style.display='none';
     const dropConta=document.getElementById('drop-conta');if(dropConta)dropConta.style.display='none';
-    // transf-mode class handles layout (scroll, keypad hidden, full height)
-    document.getElementById('screen-add')?.classList.add('transf-mode');
-    // also reset create-btn visibility
-    const createBtn=document.getElementById('transf-destino-create-btn');if(createBtn)createBtn.style.display='none';
+    // hide keypad and backspace to free space
+    const kpEl=document.getElementById('add-kp-grid');if(kpEl)kpEl.style.display='none';
+    document.getElementById('add-del-btn').style.display='none';
+    // make drop lists inside transf-panel taller
+    document.querySelectorAll('#transf-panel .drop-panel').forEach(p=>p.style.maxHeight='40vh');
     // auto-consolidate
     isConsolidado=true;
     const chk=document.getElementById('consol-check');if(chk)chk.className='tx-check on';
   } else {
     if(tp)tp.style.display='none';
-    document.getElementById('screen-add')?.classList.remove('transf-mode');
-    // restore normal fields
+    // restore
     document.querySelectorAll('#fc-tipo,#fc-cat,.launch-seg,#lp-normal').forEach(el=>{if(el)el.style.display='';});
     const contaCell=document.getElementById('fc-conta-cell');if(contaCell)contaCell.style.display='';
+    const kpEl=document.getElementById('add-kp-grid');if(kpEl)kpEl.style.display='';
+    const delBtn=document.getElementById('add-del-btn');if(delBtn)delBtn.style.display='';
     if(t==='saída'){va.className='add-valor-area c-saida';bs.className='add-tipo-btn saida-on';lbl.textContent='Nova despesa';sb.style.background='var(--btn)';sb.style.color='';}
     else{va.className='add-valor-area c-entrada';be.className='add-tipo-btn entrada-on';lbl.textContent='Nova entrada';sb.style.background='#10b981';sb.style.color='';}
   }
