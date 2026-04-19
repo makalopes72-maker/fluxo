@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#BF360C,#1A237E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FBE9E7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(251,233,231,.65) !important;}
-  #splash .splash-version{color:rgba(251,233,231,.35) !important;}
-  #splash .splash-btn{background:#FBE9E7 !important;color:#BF360C !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FBE9E7 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1B5E20,#4527A0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
+  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
+  #splash .splash-btn{background:#F1F8E9 !important;color:#1B5E20 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2068,7 +2068,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.31';
+const APP_VERSION='15.32';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2887,22 +2887,65 @@ function openCreateAtivoModal(){
 }
 
 function openCreateAtivoForm(instName){
-  // Step 2: open ativo modal pre-filled with transfer amount
-  const modal=document.getElementById('ativo-modal');if(!modal)return;
-  modal.dataset.editMode='0';
-  modal.dataset.createForTransf='1';
-  modal.dataset.transfInstName=instName;
-  const tt=document.getElementById('ativo-modal-title');if(tt)tt.textContent='Novo investimento · '+instName;
-  ['av-nome','av-taxa','av-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  ['av-classe','av-tipo','av-indexador','av-liquidez','av-garantia','av-ir'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  // pre-fill with the transfer amount
-  const valAplicado=amountCents>0?(amountCents/100).toFixed(2).replace('.',','):'';
-  const elAplic=document.getElementById('av-aplicado');
-  if(elAplic)elAplic.value=valAplicado;
-  const today=new Date();const iso=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-  document.getElementById('av-data-aplic').value=iso;
-  modal.style.opacity='1';modal.style.pointerEvents='all';
-  document.getElementById('ativo-modal-sheet').style.transform='translateY(0)';
+  // Simple bottom sheet: only ask for the investment name
+  const ex=document.getElementById('mob-nome-inv-sheet');if(ex)ex.remove();
+  const overlay=document.createElement('div');
+  overlay.id='mob-nome-inv-sheet';
+  overlay.style.cssText='position:fixed;inset:0;z-index:401;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;';
+  overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+
+  const sheet=document.createElement('div');
+  sheet.style.cssText='width:100%;background:var(--card);border-radius:24px 24px 0 0;padding:24px 20px 48px;';
+  sheet.onclick=e=>e.stopPropagation();
+
+  const ttl=document.createElement('div');
+  ttl.style.cssText='font-family:var(--font-display);font-size:1rem;color:var(--font);margin-bottom:4px;';
+  ttl.textContent='Novo investimento';
+
+  const sub=document.createElement('div');
+  sub.style.cssText='font-size:.75rem;color:var(--muted);margin-bottom:18px;';
+  sub.textContent=instName+' · R$ '+(amountCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2})+' como valor aplicado';
+
+  const inp=document.createElement('input');
+  inp.id='mob-novo-inv-nome';
+  inp.placeholder='Nome do investimento (ex: CDB 110% CDI)';
+  inp.style.cssText='width:100%;padding:14px 16px;border-radius:14px;border:1.5px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.95rem;margin-bottom:14px;box-sizing:border-box;';
+  inp.onkeydown=e=>{if(e.key==='Enter')confirm();};
+
+  const confirm=()=>{
+    const nome=inp.value.trim();
+    if(!nome){inp.style.borderColor='var(--red)';return;}
+    overlay.remove();
+    // set as transfer destination
+    const id='new-inv:::'+instName+':::'+nome;
+    transfDestino={id,label:instName+' › '+nome,icon:'📈'};
+    const valEl=document.getElementById('transf-destino-val');
+    if(valEl){valEl.textContent='📈 '+instName+' › '+nome;valEl.className='transf-drop-val';}
+    // store for after save
+    const today=new Date();
+    const ds=String(today.getDate()).padStart(2,'0')+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+today.getFullYear();
+    window._pendingNewInv={instName,nome,dataAplic:today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0')};
+    toast('✦ '+nome+' selecionado como destino','');
+  };
+
+  const btn=document.createElement('button');
+  btn.textContent='Confirmar destino';
+  btn.style.cssText='width:100%;padding:15px;border-radius:14px;border:none;background:var(--font);color:var(--bg);font-family:var(--font-body);font-size:.95rem;font-weight:700;cursor:pointer;';
+  btn.onclick=confirm;
+
+  const cancelBtn=document.createElement('button');
+  cancelBtn.textContent='Cancelar';
+  cancelBtn.style.cssText='width:100%;margin-top:10px;padding:12px;border-radius:14px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.88rem;cursor:pointer;';
+  cancelBtn.onclick=()=>overlay.remove();
+
+  sheet.appendChild(ttl);
+  sheet.appendChild(sub);
+  sheet.appendChild(inp);
+  sheet.appendChild(btn);
+  sheet.appendChild(cancelBtn);
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
+  setTimeout(()=>inp.focus(),100);
 }
 
 function pickTransf(side,id,label,icon){
@@ -5098,28 +5141,7 @@ function saveAtivo(){
     obs:document.getElementById('av-obs')?.value||'',
   });
   const modal=document.getElementById('ativo-modal');
-  const isCreateForTransf=modal?.dataset.createForTransf==='1';
   const isEdit=modal?.dataset.editMode==='1';
-  if(isCreateForTransf&&!isEdit){
-    // create ativo and set as transfDestino
-    const nome=document.getElementById('av-nome').value.trim();
-    if(!nome){toast('Digite o nome do ativo','error');return;}
-    const instName=modal.dataset.transfInstName||'';
-    if(!instName){toast('Instituição não definida','error');return;}
-    const dataAplic=document.getElementById('av-data-aplic')?.value||'';
-    const dateStr=dataAplic?(()=>{const[y,m,d]=dataAplic.split('-');return d+'/'+m+'/'+y;})():'';
-    // will be populated with val after transf save — set aplicado as placeholder
-    const id='new-inv:::'+instName+':::'+nome;
-    transfDestino={id,label:instName+' › '+nome,icon:'📈'};
-    const val=document.getElementById('transf-destino-val');
-    if(val){val.textContent='📈 '+instName+' › '+nome;val.className='transf-drop-val';}
-    modal.dataset.createForTransf='0';
-    closeAtivoModal();
-    toast('Destino: '+nome,'');
-    // store creation params for after save
-    window._pendingNewInv={instName,nome,dataAplic};
-    return;
-  }
   if(isEdit){
     Object.assign(getInstAtivos(instituicoes[currentInstIdx])[currentAtivoIdx],getFields());
     saveInvestimentos();
