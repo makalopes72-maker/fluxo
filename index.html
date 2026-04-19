@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#F57F17,#1A237E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFF8E1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(255,248,225,.65) !important;}
-  #splash .splash-version{color:rgba(255,248,225,.35) !important;}
-  #splash .splash-btn{background:#FFF8E1 !important;color:#F57F17 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFF8E1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#006064,#880E4F);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
+  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
+  #splash .splash-btn{background:#E0F7FA !important;color:#006064 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.50';
+const APP_VERSION='15.51';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4576,6 +4576,28 @@ function saveInvestimentos(){
   pushToSheets('inv');
 }
 
+// Force-write all investment log entries after structural changes (delete, etc.)
+async function saveInvestimentosFull(){
+  saveInvestimentos();
+  // Additionally, explicitly rewrite InvestimentosLog line by line via appendLog
+  // First clear the sheet (via write with just header), then re-append all entries
+  const user=currentUser||'ALE';
+  const logHeader=[['Usuário','Instituição','Ativo','Data','Valor','Nota']];
+  await fetch(APPS_SCRIPT_URL,{
+    method:'POST',mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'write',sheet:'InvestimentosLog',rows:logHeader})
+  });
+  // Now append all log entries one by one
+  for(const inst of instituicoes){
+    for(const a of (getInstAtivos(inst)||[])){
+      for(const l of (a.log||[])){
+        await sheetsAppendLog(user,inst.name,a.nome,l.date,l.value,l.note||'');
+      }
+    }
+  }
+}
+
 function seedInstLinks(){
   // auto-link accounts to institutions based on name
   const map={'Itaú':['ALE Conta Itaú','ALE Crédito Itaú','SI Conta Itaú','SI Crédito Itaú','SI Itaú PJ UNO'],
@@ -5051,14 +5073,13 @@ function apagarAtivo(){
   if(!a||!a.encerrado){toast('Encerre o investimento antes de apagar','error');return;}
   if(!confirm('Apagar definitivamente "'+a.nome+'"?\nTodo o histórico será perdido e não poderá ser recuperado.'))return;
   getInstAtivos(instituicoes[currentInstIdx]).splice(currentAtivoIdx,1);
-  // remove institution if no ativos left
   if(getInstAtivos(instituicoes[currentInstIdx]).length===0){
     if(confirm('A instituição ficou sem investimentos. Remover também?')){
       instituicoes.splice(currentInstIdx,1);
       currentInstIdx=Math.max(0,currentInstIdx-1);
     }
   }
-  saveInvestimentos();
+  saveInvestimentosFull();
   renderAtivos();
   // close ativo detail
   const ativoEl=document.getElementById('screen-ativo');if(ativoEl)ativoEl.style.display='none';
@@ -8726,8 +8747,8 @@ function waInvApagarAtivo(idx){
   if(!a.encerrado){waSyncIndicator('Encerre antes de apagar','#E53935',false);return;}
   if(!confirm('Apagar definitivamente "'+a.nome+'"?\nTodo o histórico será perdido permanentemente.'))return;
   getInstAtivos(inst).splice(idx,1);
-  saveInvestimentos();
-  waSyncIndicator('🗑 Investimento apagado','#E53935',false);
+  saveInvestimentosFull();
+  waSyncIndicator('🗑 Investimento apagado — sincronizando…','#E53935',false);
   // clear detail panel
   const db=document.getElementById('wai-detail-body');
   if(db)db.innerHTML='<div style="color:var(--muted);font-size:.75rem;padding:20px;text-align:center;">Selecione um ativo</div>';
