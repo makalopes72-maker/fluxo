@@ -8068,42 +8068,40 @@ function waDashRender(){
 function waDashInvTable(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,showTotals){
   if(!instituicoes||!instituicoes.length)return'';
 
-  // helper: get ativo saldo for a given month
-  // returns last log entry value for that month, or last known before it
+  const fmtI=n=>{if(!n&&n!==0)return'';const a=Math.abs(n);if(a>=1000)return(a/1000).toFixed(1)+'k';return a.toFixed(1);};
+
   const getAtivoSaldoMes=(ativo,m)=>{
     if(!ativo.log||!ativo.log.length)return null;
     const sorted=[...ativo.log].sort((a,b)=>(parseDate(a.date)||0)-(parseDate(b.date)||0));
-    // find last entry up to and including month m of dashYear
-    const limit=new Date(dashYear,m+1,0); // last day of month m
+    const limit=new Date(dashYear,m+1,0);
     let last=null;
-    for(const l of sorted){
-      const d=parseDate(l.date);
-      if(d&&d<=limit)last=l.value;
-    }
+    for(const l of sorted){const d=parseDate(l.date);if(d&&d<=limit)last=l.value;}
     return last;
   };
 
   const colStyle='text-align:right;padding:3px 8px;font-size:9px;border-left:1px solid rgba(0,0,0,.06);';
-  const colW='width:55px;min-width:55px;max-width:55px;overflow:hidden;';
+  const showEnc=!!window.waDashShowEncerrados;
+  const colsPerMonth=m=>{
+    const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
+    const showOrc=!isPastYear&&(isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]));
+    return showOrc?2:1;
+  };
 
-  let h='<div class="wad-wrap" style="margin-top:16px;">';
+  let h='<div class="wad-wrap" style="margin-top:0;">';
   h+='<table class="wad-tbl" style="font-size:9px;">';
-
-  // header — same structure as main table but only real cols
   h+='<thead><tr>';
-  h+='<th class="wad-lbl" style="position:sticky;left:0;z-index:4;background:#263238;color:#CFD8DC;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;min-width:160px;padding:6px 8px;">Investimentos</th>';
+  h+='<th style="position:sticky;left:0;z-index:4;background:#263238;color:#CFD8DC;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;min-width:160px;padding:6px 8px;cursor:pointer;white-space:nowrap;" onclick="window.waDashShowEncerrados=!window.waDashShowEncerrados;waDashRender();">'
+    +'Investimentos <span style="font-size:6px;background:rgba(255,255,255,.2);padding:1px 5px;border-radius:4px;">'+(showEnc?'▲ ocultar superados':'▼ mostrar superados')+'</span></th>';
   visMonths.forEach(m=>{
     const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
+    const cols=colsPerMonth(m);
     const bg=isCur?'#E6C200':isPast?'#607D8B':'#78909C';
-    h+='<th colspan="1" style="background:'+bg+';color:#fff;font-size:8px;font-weight:700;padding:4px 8px;text-align:right;min-width:70px;">'+MESES[m]+'</th>';
+    h+='<th colspan="'+cols+'" style="background:'+bg+';color:#fff;font-size:8px;font-weight:700;padding:4px 8px;text-align:right;border-left:1px solid #CCC;">'+MESES[m]+'.</th>';
   });
-  if(showTotals){
-    h+='<th style="width:8px;background:#D0D0D0;padding:0;border-left:3px solid #999;"></th>';
-    h+='<th colspan="2" style="background:#455A64;color:#CFD8DC;font-size:8px;font-weight:700;padding:4px 8px;text-align:right;">Realizado</th>';
-  }
+  h+='<th style="width:8px;background:#D0D0D0;padding:0;border-left:3px solid #999;"></th>';
+  if(showTotals)h+='<th colspan="2" style="background:#455A64;color:#CFD8DC;font-size:8px;font-weight:700;padding:4px 8px;text-align:right;">Saldo atual</th>';
   h+='</tr></thead><tbody>';
 
-  // helper to render one institution+ativos block
   const renderInst=(inst,ativos,isEnc)=>{
     if(!ativos.length)return;
     const instTotals=visMonths.map(m=>{
@@ -8123,17 +8121,13 @@ function waDashInvTable(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,sh
       h+='<td colspan="'+cols+'" style="'+colStyle+'background:'+bg+';font-weight:700;color:#263238;">'+(v!==null?fmtI(v):'')+'</td>';
     });
     h+='<td style="width:8px;background:#D0D0D0;border-left:3px solid #999;padding:0;"></td>';
-    if(showTotals){
-      const lastReal=instTotals.filter(v=>v!==null).slice(-1)[0]||0;
-      h+='<td colspan="2" style="'+colStyle+'background:#E8EAF6;font-weight:700;color:#263238;border-left:3px solid #888;">'+fmtI(lastReal)+'</td>';
-    }
+    if(showTotals){const lr=instTotals.filter(v=>v!==null).slice(-1)[0]||0;h+='<td colspan="2" style="'+colStyle+'background:#E8EAF6;font-weight:700;color:#263238;border-left:3px solid #888;">'+fmtI(lr)+'</td>';}
     h+='</tr>';
     ativos.forEach(ativo=>{
       h+='<tr>';
       const tag=ativo.classe?ativo.classe.replace('Renda ','').replace('Fundos de Investimento','Fundos').replace('Previdência Privada','Prev.').substring(0,2).toUpperCase():'--';
       const irTag=ativo.ir?ativo.ir.replace('Tabela Regressiva','TR').replace('Isento (PF)','IS').replace('15% (ganho de capital)','15%').replace('20% (day trade)','20%'):'';
-      const bgLabel=isEnc?'#ECEFF1':'#fff';
-      h+='<td style="position:sticky;left:0;z-index:3;background:'+bgLabel+';color:var(--font);font-size:8px;padding:3px 8px;box-shadow:2px 0 4px rgba(0,0,0,.06);">'
+      h+='<td style="position:sticky;left:0;z-index:3;background:'+(isEnc?'#ECEFF1':'#fff')+';color:var(--font);font-size:8px;padding:3px 8px;box-shadow:2px 0 4px rgba(0,0,0,.06);">'
         +'<span style="color:#78909C;margin-right:3px;">'+tag+'</span>'
         +(irTag?'<span style="color:#90A4AE;margin-right:4px;font-size:7px;">'+irTag+'</span>':'')
         +ativo.nome+(ativo.taxa?'<span style="color:#90A4AE;margin-left:4px;">'+ativo.taxa+'</span>':'')+'</td>';
@@ -8148,52 +8142,33 @@ function waDashInvTable(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,sh
         h+='<td colspan="'+cols+'" style="'+colStyle+'background:'+bg+';color:'+(isEnc?'#78909C':'#37474F')+';'+(isEnc?'font-style:italic;':'')+'">'+( display!==null?fmtI(display):'')+'</td>';
       });
       h+='<td style="width:8px;background:#D0D0D0;border-left:3px solid #999;padding:0;"></td>';
-      if(showTotals){
-        const cur=isEnc?0:getAtivoAtual(ativo);
-        h+='<td colspan="2" style="'+colStyle+'background:#E8EAF6;color:'+(isEnc?'#90A4AE':'#37474F')+';border-left:3px solid #888;">'+(cur?fmtI(cur):'')+'</td>';
-      }
+      if(showTotals){const cur=isEnc?0:getAtivoAtual(ativo);h+='<td colspan="2" style="'+colStyle+'background:#E8EAF6;color:'+(isEnc?'#90A4AE':'#37474F')+';border-left:3px solid #888;">'+(cur?fmtI(cur):'')+'</td>';}
       h+='</tr>';
     });
   };
 
-  // ACTIVE investments
-  instituicoes.forEach(inst=>{
-    renderInst(inst,getInstAtivos(inst).filter(a=>!a.encerrado),false);
-  });
+  instituicoes.forEach(inst=>renderInst(inst,getInstAtivos(inst).filter(a=>!a.encerrado),false));
 
-  // ENCERRADOS section
   if(showEnc){
     const encInsts=[];
-    instituicoes.forEach(inst=>{
-      const enc=getInstAtivos(inst).filter(a=>a.encerrado);
-      if(enc.length)encInsts.push({inst,enc});
-    });
+    instituicoes.forEach(inst=>{const enc=getInstAtivos(inst).filter(a=>a.encerrado);if(enc.length)encInsts.push({inst,enc});});
     if(encInsts.length){
-      const totalEncCols=visMonths.reduce((s,m)=>s+colsPerMonth(m),0);
-      h+='<tr><td colspan="'+(1+totalEncCols+1+2)+'" style="background:#455A64;color:#CFD8DC;font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:4px 10px;">▾ Superados (encerrados)</td></tr>';
+      h+='<tr><td colspan="999" style="background:#455A64;color:#CFD8DC;font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:4px 10px;">▾ Superados (encerrados)</td></tr>';
       encInsts.forEach(({inst,enc})=>renderInst(inst,enc,true));
     }
   }
 
-  // total geral row (active only)
   h+='<tr style="border-top:2px solid #455A64;">';
   h+='<td style="position:sticky;left:0;z-index:3;background:#263238;color:#CFD8DC;font-size:8px;font-weight:700;padding:5px 8px;box-shadow:2px 0 4px rgba(0,0,0,.15);">Total Geral</td>';
   visMonths.forEach(m=>{
     const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
     const bg=isCur?'#1a1a1a':isPast?'#263238':'#37474F';
     const cols=colsPerMonth(m);
-    const total=(isPast||isCur)?instituicoes.reduce((s,inst)=>{
-      return s+getInstAtivos(inst).filter(a=>!a.encerrado).reduce((ss,a)=>{
-        const v=getAtivoSaldoMes(a,m);return ss+(v||0);
-      },0);
-    },0):null;
+    const total=(isPast||isCur)?instituicoes.reduce((s,inst)=>s+getInstAtivos(inst).filter(a=>!a.encerrado).reduce((ss,a)=>{const v=getAtivoSaldoMes(a,m);return ss+(v||0);},0),0):null;
     h+='<td colspan="'+cols+'" style="'+colStyle+'background:'+bg+';color:#A5D6A7;font-weight:700;">'+(total!==null?fmtI(total):'')+'</td>';
   });
   h+='<td style="width:8px;background:#D0D0D0;border-left:3px solid #999;padding:0;"></td>';
-  if(showTotals){
-    const totalGeral=getTotalGeral();
-    h+='<td colspan="2" style="'+colStyle+'background:#1C313A;color:#A5D6A7;font-weight:700;border-left:3px solid #888;">'+fmtI(totalGeral)+'</td>';
-  }
+  if(showTotals){const tg=getTotalGeral();h+='<td colspan="2" style="'+colStyle+'background:#1C313A;color:#A5D6A7;font-weight:700;border-left:3px solid #888;">'+fmtI(tg)+'</td>';}
   h+='</tr>';
   h+='</tbody></table></div>';
   return h;
