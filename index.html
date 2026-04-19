@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#006064,#1A237E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
-  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
-  #splash .splash-btn{background:#E0F7FA !important;color:#006064 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#BF360C,#1A237E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FBE9E7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(251,233,231,.65) !important;}
+  #splash .splash-version{color:rgba(251,233,231,.35) !important;}
+  #splash .splash-btn{background:#FBE9E7 !important;color:#BF360C !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FBE9E7 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.45';
+const APP_VERSION='15.46';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5709,7 +5709,7 @@ async function loadInvFromSheets(){
           liquidez:String(r[11]||''),garantia:String(r[12]||''),
           ir:String(r[13]||''),obs:String(r[14]||''),
           encerrado:String(r[15]||'')==='Sim',
-          log:valorAtual>0?[{date:new Date().toLocaleDateString('pt-BR'),value:valorAtual,note:'Valor atual'}]:[],
+          log:[],  // filled from InvestimentosLog
         });
       });
     }
@@ -5727,7 +5727,7 @@ async function loadInvFromSheets(){
           const ativo=arr.find(a=>a.nome===nome);if(!ativo)return;
           const logVal=parseBRNumber(l[4]);
           const logDate=normalizeDate(l[3])||String(l[3]||'');
-          if(!ativo.log.some(x=>Math.abs(x.value-logVal)<0.01&&x.date===logDate))
+          if(logDate&&!isNaN(logVal)&&logVal>0)
             ativo.log.push({date:logDate,value:logVal,note:String(l[5]||'')});
         });
         Object.values(userAtivos).forEach(arr=>arr.forEach(a=>
@@ -8351,7 +8351,7 @@ async function waInvSync(){
         liquidez:String(r[11]||''),garantia:String(r[12]||''),
         ir:String(r[13]||''),obs:String(r[14]||''),
         encerrado:String(r[15]||'')==='Sim',
-        log:valorAtual>0?[{date:new Date().toLocaleDateString('pt-BR'),value:valorAtual,note:'Valor atual'}]:[],
+        log:[],  // will be filled from InvestimentosLog
       });
     });
     // 3. Log
@@ -8366,7 +8366,7 @@ async function waInvSync(){
           const ativo=arr.find(a=>a.nome===nome);if(!ativo)return;
           const logVal=parseBRNumber(l[4]);
           const logDate=normalizeDate(l[3])||String(l[3]||'');
-          if(!ativo.log.some(x=>Math.abs(x.value-logVal)<0.01&&x.date===logDate))
+          if(logDate&&!isNaN(logVal)&&logVal>0)
             ativo.log.push({date:logDate,value:logVal,note:String(l[5]||'')});
         });
         Object.values(userAtivos).forEach(arr=>arr.forEach(a=>
