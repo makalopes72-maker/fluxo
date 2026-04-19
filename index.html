@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#263238,#1565C0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
-  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
-  #splash .splash-btn{background:#ECEFF1 !important;color:#263238 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#E65100,#1A237E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFF3E0 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(255,243,224,.65) !important;}
+  #splash .splash-version{color:rgba(255,243,224,.35) !important;}
+  #splash .splash-btn{background:#FFF3E0 !important;color:#E65100 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFF3E0 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.39';
+const APP_VERSION='15.40';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -7713,7 +7713,8 @@ function waDashRender(){
     st.id='wa-dash-style';
     st.textContent=`
       .wad-wrap{min-width:0;}
-      .wad-tbl{border-collapse:collapse;font-size:10px;min-width:900px;width:100%;}
+      .wad-tbl{border-collapse:collapse;font-size:10px;min-width:900px;width:100%;table-layout:fixed;}
+      .wad-tbl th,.wad-inv-col{min-width:70px;width:70px;}
       .wad-tbl th,.wad-tbl td{border:0.5px solid #D3D1C7;padding:0;}
       .wad-lbl{position:sticky;left:0;z-index:3;background:#fff;white-space:nowrap;padding:3px 8px 3px 10px;font-size:10px;color:#2C2C2A;min-width:140px;max-width:170px;overflow:hidden;text-overflow:ellipsis;box-shadow:2px 0 4px rgba(0,0,0,.08);}
       .wad-lbl.grupo{background:#1a1a1a;color:#fff;font-weight:700;font-size:8px;text-align:left;letter-spacing:.05em;cursor:pointer;}
@@ -7771,7 +7772,17 @@ function waDashRender(){
   }
 
   // -- build header --
-  let html='<div style="overflow-x:auto;overflow-y:visible;"><div class="wad-wrap"><table class="wad-tbl" id="wa-dash-table"><thead class="wad-head"><tr>';
+  let html='<div style="overflow-x:auto;overflow-y:visible;"><div class="wad-wrap"><table class="wad-tbl" id="wa-dash-table">';
+  // colgroup for fixed col alignment
+  html+='<colgroup><col style="min-width:160px;width:160px;">';
+  visMonths.forEach(m=>{
+    const showOrc2=!isPastYear&&(m===effectiveCurM||m<effectiveCurM||(window.waDashShowOrc&&window.waDashShowOrc[m]));
+    const c=showOrc2?2:1;for(let i=0;i<c;i++)html+='<col style="min-width:55px;width:55px;">';
+  });
+  html+='<col style="width:8px;min-width:8px;">';
+  if(showTotals)for(let i=0;i<6;i++)html+='<col style="min-width:55px;width:55px;">';
+  html+='</colgroup>';
+  html+='<thead class="wad-head"><tr>';
   html+='<th class="wad-lbl-h" rowspan="2">Pasta / Categoria</th>';
 
   visMonths.forEach(m=>{
@@ -8068,7 +8079,7 @@ function waDashRender(){
 function waDashInvTable(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,showTotals){
   if(!instituicoes||!instituicoes.length)return'';
 
-  const fmtI=n=>{if(!n&&n!==0)return'';const a=Math.abs(n);if(a>=1000)return(a/1000).toFixed(1)+'k';return a.toFixed(1);};
+  const fmtI=n=>{if(!n&&n!==0)return'';const a=Math.abs(n);return a.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});};
 
   const getAtivoSaldoMes=(ativo,m)=>{
     if(!ativo.log||!ativo.log.length)return null;
@@ -8088,7 +8099,13 @@ function waDashInvTable(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,sh
   };
 
   let h='<div class="wad-wrap" style="margin-top:0;">';
+  // colgroup mirrors main table exact column widths
   h+='<table class="wad-tbl" style="font-size:9px;">';
+  h+='<colgroup><col style="min-width:160px;width:160px;">';
+  visMonths.forEach(m=>{const c=colsPerMonth(m);for(let i=0;i<c;i++)h+='<col style="min-width:55px;width:55px;">';});
+  h+='<col style="width:8px;min-width:8px;">';
+  if(showTotals){h+='<col style="min-width:55px;width:55px;"><col style="min-width:55px;width:55px;">';}
+  h+='</colgroup>';
   h+='<thead><tr>';
   h+='<th style="position:sticky;left:0;z-index:4;background:#263238;color:#CFD8DC;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;min-width:160px;padding:6px 8px;cursor:pointer;white-space:nowrap;" onclick="window.waDashShowEncerrados=!window.waDashShowEncerrados;waDashRender();">'
     +'Investimentos <span style="font-size:6px;background:rgba(255,255,255,.2);padding:1px 5px;border-radius:4px;">'+(showEnc?'▲ ocultar superados':'▼ mostrar superados')+'</span></th>';
@@ -8147,16 +8164,19 @@ function waDashInvTable(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,sh
     });
   };
 
-  instituicoes.forEach(inst=>renderInst(inst,getInstAtivos(inst).filter(a=>!a.encerrado),false));
-
+  // Encerrados first (if showing), then separator, then active
   if(showEnc){
     const encInsts=[];
     instituicoes.forEach(inst=>{const enc=getInstAtivos(inst).filter(a=>a.encerrado);if(enc.length)encInsts.push({inst,enc});});
     if(encInsts.length){
       h+='<tr><td colspan="999" style="background:#455A64;color:#CFD8DC;font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:4px 10px;">▾ Superados (encerrados)</td></tr>';
       encInsts.forEach(({inst,enc})=>renderInst(inst,enc,true));
+      h+='<tr><td colspan="999" style="background:transparent;padding:6px 0;border:none;"></td></tr>';
+      h+='<tr><td colspan="999" style="background:#37474F;color:#CFD8DC;font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:4px 10px;">▾ Investimentos ativos</td></tr>';
     }
   }
+
+  instituicoes.forEach(inst=>renderInst(inst,getInstAtivos(inst).filter(a=>!a.encerrado),false));
 
   h+='<tr style="border-top:2px solid #455A64;">';
   h+='<td style="position:sticky;left:0;z-index:3;background:#263238;color:#CFD8DC;font-size:8px;font-weight:700;padding:5px 8px;box-shadow:2px 0 4px rgba(0,0,0,.15);">Total Geral</td>';
