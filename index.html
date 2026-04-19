@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1A237E,#33691E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E8EAF6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(232,234,246,.65) !important;}
-  #splash .splash-version{color:rgba(232,234,246,.35) !important;}
-  #splash .splash-btn{background:#E8EAF6 !important;color:#1A237E !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8EAF6 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#37474F,#BF360C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
+  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
+  #splash .splash-btn{background:#ECEFF1 !important;color:#37474F !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -245,12 +245,12 @@
 
   /* FIELDS MODE -- handled in ADD SCREEN section above */
   .add-valor-row{cursor:pointer;}
-  .kk{background:var(--kp);display:flex;align-items:center;justify-content:center;font-family:var(--font-body);font-size:2.8rem;font-weight:700;color:var(--font);cursor:pointer;user-select:none;transition:transform .07s;position:relative;overflow:hidden;}
-  .kk:active{transform:scale(.86);}
+  .kk{background:var(--kp);display:flex;align-items:center;justify-content:center;font-family:var(--font-body);font-size:2.8rem;font-weight:700;color:var(--font);cursor:pointer;user-select:none;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;}
+  .kk:active{background:var(--kp-dark);transform:scale(.93);}
   .kk.op{font-size:2.3rem;color:var(--muted);background:var(--kp-dark);}
+  .kk.op:active{background:var(--border);}
   .kk.eq{font-size:2.1rem;font-weight:700;background:var(--btn);}
-  @keyframes kkFlash{0%{opacity:.55;background:rgba(255,255,255,.9)}100%{opacity:0;background:rgba(255,255,255,.9);}}
-  .kk-ripple{position:absolute;inset:0;animation:kkFlash .28s ease-out forwards;pointer-events:none;}
+  .kk.eq:active{opacity:.75;}
 
   /* FIELDS -- flex:1, scrollable */
   .add-fields-wrap{flex:1;overflow-y:auto;background:var(--bg);padding:10px 12px;min-height:0;display:flex;flex-direction:column;gap:7px;}
@@ -1337,7 +1337,7 @@
       </div>
     </div>
     <!-- Teclado -->
-    <div class="add-kp" id="add-kp-grid" onpointerdown="(function(e){const k=e.target.closest('.kk');if(!k)return;const r=document.createElement('div');r.className='kk-ripple';k.appendChild(r);setTimeout(()=>r.remove(),350);})(event)"  >
+    <div class="add-kp" id="add-kp-grid">
       <div class="kk" onclick="kp('7')">7</div><div class="kk" onclick="kp('8')">8</div><div class="kk" onclick="kp('9')">9</div><div class="kk op" onclick="kp('÷')">÷</div>
       <div class="kk" onclick="kp('4')">4</div><div class="kk" onclick="kp('5')">5</div><div class="kk" onclick="kp('6')">6</div><div class="kk op" onclick="kp('×')">×</div>
       <div class="kk" onclick="kp('1')">1</div><div class="kk" onclick="kp('2')">2</div><div class="kk" onclick="kp('3')">3</div><div class="kk op" onclick="kp('−')">−</div>
@@ -2068,7 +2068,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.35';
+const APP_VERSION='15.36';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
