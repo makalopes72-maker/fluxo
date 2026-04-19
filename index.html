@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#880E4F,#1565C0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FCE4EC !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(252,228,236,.65) !important;}
-  #splash .splash-version{color:rgba(252,228,236,.35) !important;}
-  #splash .splash-btn{background:#FCE4EC !important;color:#880E4F !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FCE4EC !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1A237E,#33691E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E8EAF6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(232,234,246,.65) !important;}
+  #splash .splash-version{color:rgba(232,234,246,.35) !important;}
+  #splash .splash-btn{background:#E8EAF6 !important;color:#1A237E !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8EAF6 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2068,7 +2068,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.34';
+const APP_VERSION='15.35';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8699,6 +8699,87 @@ function waInvEditAtivo(idx){
     }
   });
   observer.observe(document.getElementById('ativo-modal'),{attributes:true,attributeFilter:['style']});
+}
+
+function waInvShowEditForm(idx){
+  if(waInvInstIdx===null)return;
+  const inst=instituicoes[waInvInstIdx];
+  const ativos=getInstAtivos(inst);
+  const a=ativos[idx];if(!a)return;
+  const db=document.getElementById('wai-detail-body');if(!db)return;
+
+  const field=(lbl,id,val,type='text',placeholder='')=>
+    '<div style="margin-bottom:10px;">'
+    +'<label style="display:block;font-size:.62rem;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:3px;">'+lbl+'</label>'
+    +'<input type="'+type+'" id="waie-'+id+'" value="'+String(val||'')+'" placeholder="'+placeholder+'"'
+    +' style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:.8rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">'
+    +'</div>';
+  const sel=(lbl,id,opts,curVal)=>
+    '<div style="margin-bottom:10px;">'
+    +'<label style="display:block;font-size:.62rem;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:3px;">'+lbl+'</label>'
+    +'<select id="waie-'+id+'" style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:.8rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">'
+    +opts.map(o=>'<option value="'+o+'"'+(o===curVal?' selected':'')+'>'+o+'</option>').join('')
+    +'</select>'
+    +'</div>';
+
+  const classes=['','Renda Fixa','Renda Variável','Fundos de Investimento','Previdência Privada'];
+  const indexadores=['','% do CDI','SELIC','Prefixado (% a.a.)','IPCA + taxa','Dólar','Euro','Outro'];
+  const liquidezOpts=['','Diária (D+0)','D+1','No vencimento','Perpétuo','Outro'];
+  const garantiaOpts=['','FGC (até R$ 250 mil/CPF)','Risco Soberano (Tesouro)','Risco Privado (sem FGC)','N/A'];
+  const irOpts=['','Isento (PF)','Tabela Regressiva','15% (ganho de capital)','20% (day trade)','Come-cotas','Outro'];
+
+  // convert stored vencimento dd/mm/yyyy → yyyy-mm-dd for date input
+  const toISO=ds=>{if(!ds)return'';const p=ds.split('/');return p.length===3?p[2]+'-'+p[1]+'-'+p[0]:ds;};
+
+  db.innerHTML='<div style="padding:14px 16px;">'
+    +'<div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:12px;letter-spacing:.06em;">Editar ativo</div>'
+    +field('Nome','nome',a.nome,'text')
+    +sel('Classe','classe',classes,a.classe||'')
+    +field('Valor aplicado (R$)','aplicado',a.aplicado,'number')
+    +sel('Indexador','indexador',indexadores,a.indexador||'')
+    +field('Taxa / Percentual','taxa',a.taxa||'','text')
+    +field('Data aplicação','data-aplic',a.dataAplic||'','date')
+    +field('Vencimento','vencimento',toISO(a.vencimento)||'','date')
+    +sel('Liquidez','liquidez',liquidezOpts,a.liquidez||'')
+    +sel('Garantia','garantia',garantiaOpts,a.garantia||'')
+    +sel('IR','ir',irOpts,a.ir||'')
+    +field('Observações','obs',a.obs||'','text')
+    +'<div style="display:flex;gap:8px;margin-top:4px;">'
+    +'<button onclick="waInvCancelNew()" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.72rem;cursor:pointer;">Cancelar</button>'
+    +'<button onclick="waInvSaveEdit('+idx+')" style="flex:1;padding:9px;border-radius:8px;border:none;background:var(--font);color:var(--bg);font-size:.72rem;font-weight:700;cursor:pointer;">✓ Salvar</button>'
+    +'</div>'
+    +'</div>';
+}
+
+function waInvSaveEdit(idx){
+  if(waInvInstIdx===null)return;
+  const inst=instituicoes[waInvInstIdx];
+  const ativos=getInstAtivos(inst);
+  const a=ativos[idx];if(!a)return;
+  const g=id=>document.getElementById('waie-'+id)?.value||'';
+  const nome=g('nome').trim();
+  if(!nome){waSyncIndicator('Digite o nome do ativo','#E53935',false);return;}
+  const aplicado=parseFloat(g('aplicado'));
+  if(!aplicado||isNaN(aplicado)){waSyncIndicator('Digite o valor aplicado','#E53935',false);return;}
+  const toDate=iso=>{if(!iso)return'';const[y,m,d]=iso.split('-');return d+'/'+m+'/'+y;};
+  Object.assign(a,{
+    nome,
+    classe:g('classe'),
+    aplicado,
+    indexador:g('indexador'),
+    taxa:g('taxa'),
+    dataAplic:g('data-aplic'),
+    vencimento:toDate(g('vencimento')),
+    liquidez:g('liquidez'),
+    garantia:g('garantia'),
+    ir:g('ir'),
+    obs:g('obs'),
+  });
+  saveInvestimentos();
+  waSyncIndicator('✓ Ativo atualizado','#059669',false);
+  waInvRenderAtivos();
+  waInvRenderInst();
+  waInvSelectAtivo(idx);
 }
 
 function waInvNewAtivo(){
