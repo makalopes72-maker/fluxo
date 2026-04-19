@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#37474F,#BF360C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
-  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
-  #splash .splash-btn{background:#ECEFF1 !important;color:#37474F !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#B71C1C,#263238);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFEBEE !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(255,235,238,.65) !important;}
+  #splash .splash-version{color:rgba(255,235,238,.35) !important;}
+  #splash .splash-btn{background:#FFEBEE !important;color:#B71C1C !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFEBEE !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1593,7 +1593,8 @@
         <button class="upd-btn" style="flex:2;" onclick="openUpdModal()">Atualizar valor</button>
         <button class="upd-btn" style="flex:1;background:var(--kp);color:var(--font);border:1px solid var(--border);" onclick="editAtivo()">✏️ Editar</button>
       </div>
-      <button id="encerrar-btn" style="width:100%;padding:10px;border-radius:12px;border:1.5px solid var(--red);background:transparent;color:var(--red);font-family:var(--font-body);font-size:.85rem;font-weight:600;cursor:pointer;margin-bottom:12px;" onclick="encerrarAtivo()">Encerrar investimento</button>
+      <button id="encerrar-btn" style="width:100%;padding:10px;border-radius:12px;border:1.5px solid var(--red);background:transparent;color:var(--red);font-family:var(--font-body);font-size:.85rem;font-weight:600;cursor:pointer;margin-bottom:8px;" onclick="encerrarAtivo()">Encerrar investimento</button>
+      <button id="apagar-inv-btn" style="display:none;width:100%;padding:10px;border-radius:12px;border:1.5px solid var(--red);background:var(--red);color:#fff;font-family:var(--font-body);font-size:.85rem;font-weight:600;cursor:pointer;margin-bottom:12px;" onclick="apagarAtivo()">🗑 Apagar definitivamente</button>
       <div class="inv-section-title">Detalhes</div>
       <div class="detail-info-card" id="ativo-info-card"></div>
       <div class="inv-section-title">Histórico de valores</div>
@@ -2068,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.36';
+const APP_VERSION='15.37';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4845,6 +4846,8 @@ function openAtivo(idx){
     const _a=getInstAtivos(instituicoes[currentInstIdx])[idx];
     if(_a&&_a.encerrado){eb.textContent='Reativar investimento';eb.style.borderColor='var(--accent2)';eb.style.color='var(--accent2)';eb.onclick=reativarAtivo;}
     else{eb.textContent='Encerrar investimento';eb.style.borderColor='var(--red)';eb.style.color='var(--red)';eb.onclick=encerrarAtivo;}
+    const apagarBtn=document.getElementById('apagar-inv-btn');
+    if(apagarBtn)apagarBtn.style.display=(_a&&_a.encerrado)?'block':'none';
   }
   if(window.innerWidth>=600){
     // show ativo detail replacing cart content in inv-main
@@ -5037,6 +5040,25 @@ function reativarAtivo(){
   const a=getInstAtivos(instituicoes[currentInstIdx])[currentAtivoIdx];
   a.encerrado=false;delete a.dataEncerramento;
   saveInvestimentos();renderAtivos();openAtivo(currentAtivoIdx);toast('Reativado','success');
+}
+function apagarAtivo(){
+  const a=getInstAtivos(instituicoes[currentInstIdx])[currentAtivoIdx];
+  if(!a||!a.encerrado){toast('Encerre o investimento antes de apagar','error');return;}
+  if(!confirm('Apagar definitivamente "'+a.nome+'"?\nTodo o histórico será perdido e não poderá ser recuperado.'))return;
+  getInstAtivos(instituicoes[currentInstIdx]).splice(currentAtivoIdx,1);
+  // remove institution if no ativos left
+  if(getInstAtivos(instituicoes[currentInstIdx]).length===0){
+    if(confirm('A instituição ficou sem investimentos. Remover também?')){
+      instituicoes.splice(currentInstIdx,1);
+      currentInstIdx=Math.max(0,currentInstIdx-1);
+    }
+  }
+  saveInvestimentos();
+  renderAtivos();
+  // close ativo detail
+  const ativoEl=document.getElementById('screen-ativo');if(ativoEl)ativoEl.style.display='none';
+  goScreen('inv');
+  toast('Investimento apagado','success');
 }
 function openUpdModal(){
   updCents=0;
@@ -8573,6 +8595,7 @@ function waInvRenderDetail(idx){
     +'<div style="display:flex;gap:5px;margin-top:10px;">'
     +'<button onclick="waInvShowEditForm('+idx+')" style="flex:1;padding:6px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--font);font-size:.63rem;font-weight:600;cursor:pointer;">Editar</button>'
     +'<button onclick="waInvToggleEnc('+idx+')" style="flex:1;padding:6px;border-radius:7px;border:1px solid var(--border);background:transparent;color:'+(a.encerrado?'#059669':'var(--red)')+';font-size:.63rem;font-weight:600;cursor:pointer;">'+(a.encerrado?'Reativar':'Encerrar')+'</button>'
+    +(a.encerrado?'<button onclick="waInvApagarAtivo('+idx+')" style="flex:1;padding:6px;border-radius:7px;border:1px solid var(--red);background:var(--red);color:#fff;font-size:.63rem;font-weight:600;cursor:pointer;">🗑 Apagar</button>':'')
     +'</div>'
     +'</div>'
     // RIGHT COL
@@ -8660,6 +8683,23 @@ function waInvSaveUpd(idx){
   waInvRenderAtivos();waInvRenderDetail(idx);waInvRenderInst();
 }
 
+
+function waInvApagarAtivo(idx){
+  if(waInvInstIdx===null)return;
+  const inst=instituicoes[waInvInstIdx];
+  const a=getInstAtivos(inst)[idx];if(!a)return;
+  if(!a.encerrado){waSyncIndicator('Encerre antes de apagar','#E53935',false);return;}
+  if(!confirm('Apagar definitivamente "'+a.nome+'"?\nTodo o histórico será perdido permanentemente.'))return;
+  getInstAtivos(inst).splice(idx,1);
+  saveInvestimentos();
+  waSyncIndicator('🗑 Investimento apagado','#E53935',false);
+  // clear detail panel
+  const db=document.getElementById('wai-detail-body');
+  if(db)db.innerHTML='<div style="color:var(--muted);font-size:.75rem;padding:20px;text-align:center;">Selecione um ativo</div>';
+  document.getElementById('wa-right-title').textContent='--';
+  waInvRenderAtivos();
+  waInvRenderInst();
+}
 
 function waInvToggleEnc(idx){
   const inst=instituicoes[waInvInstIdx];
