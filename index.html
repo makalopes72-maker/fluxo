@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4A148C,#E65100);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F3E5F5 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(243,229,245,.65) !important;}
-  #splash .splash-version{color:rgba(243,229,245,.35) !important;}
-  #splash .splash-btn{background:#F3E5F5 !important;color:#4A148C !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F3E5F5 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#006064,#1A237E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
+  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
+  #splash .splash-btn{background:#E0F7FA !important;color:#006064 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1682,7 +1682,7 @@
   <!-- MODAL: Atualizar Valor -->
   <div id="upd-modal">
     <div class="upd-sheet">
-      <div style="font-size:.75rem;color:var(--muted);margin-bottom:8px;" id="upd-modal-title">Atualizar valor</div>
+      <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px;" id="upd-modal-title">Declarar saldo atual</div><div style="font-size:.62rem;color:var(--muted);margin-bottom:8px;">O sistema calculará a variação automaticamente.</div>
       <div style="margin-bottom:10px;">
         <label style="font-size:.7rem;color:var(--muted);display:block;margin-bottom:4px;">Data do saldo</label>
         <input type="date" id="upd-date-input" style="width:100%;padding:8px 12px;border-radius:10px;border:1px solid var(--border);font-size:.85rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.44';
+const APP_VERSION='15.45';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4902,7 +4902,7 @@ function renderLog(){
     const delta=prev?entry.value-prev.value:null;
     const isBase=i===reversed.length-1;
     const dotColor=isBase?'var(--muted)':delta>=0?'var(--accent2)':'var(--red)';
-    const deltaStr=isBase?'base':delta!==null?((delta>=0?'+':'')+fmtInvFull(delta)):'--';
+    const deltaStr=isBase?'inicial':delta!==null?((delta>=0?'+':'')+fmtInvFull(delta)):'--';
     const deltaClass=isBase?'':delta>=0?'pos':'neg';
     return '<div id="mob-log-row-'+realIdx+'" class="log-row" style="position:relative;">'
       +'<div class="log-dot" style="background:'+dotColor+'"></div>'
@@ -5075,7 +5075,7 @@ function openUpdModal(){
   const obs=document.getElementById('upd-obs-input');
   if(obs)obs.value='';
   const title=document.getElementById('upd-modal-title');
-  if(title)title.textContent='Atualizar valor -- '+a.nome;
+  if(title)title.textContent='Saldo atual — '+a.nome;
 }
 
 function closeUpdModal(){
@@ -5115,7 +5115,10 @@ function saveUpdVal(){
   const fallback=String(today.getDate()).padStart(2,'0')+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+today.getFullYear();
   const dateStr=toDate(dateISO)||fallback;
   const obs=document.getElementById('upd-obs-input')?.value.trim()||'';
-  a.log.push({date:dateStr,value:updCents/100,note:obs});
+  const prevMob=getAtivoAtual(a);
+  const deltaMob=(updCents/100)-prevMob;
+  const noteMob=obs||(deltaMob>=0?'Atualização de saldo':'Atualização de saldo');
+  a.log.push({date:dateStr,value:updCents/100,note:noteMob});
   saveInvestimentos();
   openAtivo(currentAtivoIdx);
   closeUpdModal();
@@ -8536,11 +8539,18 @@ function waInvRenderDetail(idx){
       +'<span>'+logSorted[0].date+'</span><span>'+logSorted[logSorted.length-1].date+'</span></div>';
   })();
   // Log rows
-  const logRows=logSorted.slice().reverse().map((l,i)=>{
+  const reversed=logSorted.slice().reverse();
+  const logRows=reversed.map((l,i)=>{
     const realIdx=logSorted.length-1-i;
-    return '<div id="wai-log-row-'+realIdx+'" style="display:grid;grid-template-columns:90px 110px 1fr 24px 24px;align-items:center;gap:4px;padding:4px 0;border-bottom:1px solid var(--border);font-size:.68rem;">'
+    const prev=reversed[i+1];
+    const delta=prev!=null?l.value-prev.value:null;
+    const isBase=i===reversed.length-1;
+    const deltaStr=isBase?'inicial':delta!=null?((delta>=0?'+':'')+fmtInvFull(delta)):'--';
+    const deltaColor=isBase?'var(--muted)':delta>0?'#059669':delta<0?'#E53935':'var(--muted)';
+    return '<div id="wai-log-row-'+realIdx+'" style="display:grid;grid-template-columns:80px 100px 80px 1fr 24px 24px;align-items:center;gap:4px;padding:4px 0;border-bottom:1px solid var(--border);font-size:.68rem;">'
       +'<span style="color:var(--muted);white-space:nowrap;">'+l.date+'</span>'
       +'<span style="font-weight:700;color:var(--font);text-align:right;padding-right:4px;">'+fmtInvFull(l.value)+'</span>'
+      +'<span style="font-weight:600;color:'+deltaColor+';text-align:right;padding-right:4px;">'+deltaStr+'</span>'
       +'<span style="color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(l.note||'')+'</span>'
       +'<button onclick="waInvEditLog('+idx+','+realIdx+')" title="Editar" style="width:22px;height:22px;border:none;background:transparent;cursor:pointer;color:var(--muted);font-size:13px;padding:0;">&#9998;</button>'
       +'<button onclick="waInvDelLog('+idx+','+realIdx+')" title="Apagar" style="width:22px;height:22px;border:none;background:transparent;cursor:pointer;color:var(--red);font-size:13px;padding:0;">&#x2715;</button>'
@@ -8582,12 +8592,12 @@ function waInvRenderDetail(idx){
     // RIGHT COL
     +'<div style="flex:1;overflow-y:auto;padding:12px;">'
     // add saldo
-    +'<div style="font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px;">Adicionar saldo</div>'
+    +'<div style="font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:2px;">Declarar saldo atual</div>'+'<div id="wai-delta-hint" style="font-size:.58rem;color:var(--muted);margin-bottom:5px;">Digite o saldo total atual</div>'
     +'<div style="display:grid;grid-template-columns:100px 1fr 1fr;gap:5px;margin-bottom:4px;">'
     +'<div><div style="font-size:.58rem;color:var(--muted);margin-bottom:2px;">Data</div>'
     +'<input id="wai-upd-date" type="date" value="'+todayISO+'" style="width:100%;padding:5px 6px;border-radius:6px;border:1px solid var(--border);font-size:.7rem;font-family:var(--font-body);background:var(--bg);color:var(--font);"></div>'
-    +'<div><div style="font-size:.58rem;color:var(--muted);margin-bottom:2px;">Valor (R$)</div>'
-    +'<input id="wai-upd-val" type="text" placeholder="Ex: 27.500,00" style="width:100%;padding:5px 6px;border-radius:6px;border:1px solid var(--border);font-size:.7rem;font-family:var(--font-body);background:var(--bg);color:var(--font);"></div>'
+    +'<div><div style="font-size:.58rem;color:var(--muted);margin-bottom:2px;">Saldo total atual (R$)</div>'
+    +'<input id="wai-upd-val" type="text" placeholder="Ex: 27.500,00" oninput="waInvUpdHint('+idx+')" style="width:100%;padding:5px 6px;border-radius:6px;border:1px solid var(--border);font-size:.7rem;font-family:var(--font-body);background:var(--bg);color:var(--font);"></div>'
     +'<div><div style="font-size:.58rem;color:var(--muted);margin-bottom:2px;">Observacao</div>'
     +'<input id="wai-upd-note" type="text" placeholder="Opcional" style="width:100%;padding:5px 6px;border-radius:6px;border:1px solid var(--border);font-size:.7rem;font-family:var(--font-body);background:var(--bg);color:var(--font);"></div>'
     +'</div>'
@@ -8597,8 +8607,8 @@ function waInvRenderDetail(idx){
     +'<div style="margin-bottom:12px;">'+chartHTML+'</div>'
     // log header
     +'<div style="font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px;">Historico ('+logSorted.length+')</div>'
-    +'<div style="display:grid;grid-template-columns:90px 110px 1fr 24px 24px;gap:4px;padding:3px 0;border-bottom:2px solid var(--border);font-size:.55rem;font-weight:700;color:var(--muted);text-transform:uppercase;">'
-    +'<span>Data</span><span style="text-align:right;padding-right:4px;">Valor</span><span>Obs</span><span></span><span></span>'
+    +'<div style="display:grid;grid-template-columns:80px 100px 80px 1fr 24px 24px;gap:4px;padding:3px 0;border-bottom:2px solid var(--border);font-size:.55rem;font-weight:700;color:var(--muted);text-transform:uppercase;">'
+    +'<span>Data</span><span style="text-align:right;padding-right:4px;">Saldo</span><span style="text-align:right;padding-right:4px;">Variação</span><span>Obs</span><span></span><span></span>'
     +'</div>'
     +(logRows||'<div style="color:var(--muted);font-size:.72rem;padding:8px 0;">Sem registros</div>')
     +'</div>'
@@ -8647,6 +8657,21 @@ function waInvDelLog(ativoIdx,logIdx){
   waInvRenderAtivos();waInvRenderDetail(ativoIdx);waInvRenderInst();
 }
 
+function waInvUpdHint(idx){
+  const inst=instituicoes[waInvInstIdx];
+  const a=getInstAtivos(inst)[idx];if(!a)return;
+  const prev=getAtivoAtual(a);
+  const valStr=((document.getElementById('wai-upd-val')||{}).value||'').trim().replace(/\./g,'').replace(',','.');
+  const val=parseFloat(valStr);
+  const hint=document.getElementById('wai-delta-hint');if(!hint)return;
+  if(isNaN(val)||!val){hint.textContent='Digite o saldo total atual';hint.style.color='var(--muted)';return;}
+  const delta=val-prev;
+  const sign=delta>=0?'+':'';
+  const col=delta>0?'#059669':delta<0?'#E53935':'var(--muted)';
+  hint.style.color=col;
+  hint.textContent='Variação: '+sign+fmtInvFull(delta)+' (saldo anterior: '+fmtInvFull(prev)+')';
+}
+
 function waInvSaveUpd(idx){
   const inst=instituicoes[waInvInstIdx];
   const a=getInstAtivos(inst)[idx];
@@ -8658,9 +8683,13 @@ function waInvSaveUpd(idx){
   const dateISO=((document.getElementById('wai-upd-date')||{}).value||'');
   const toDate=iso=>{if(!iso)return'';const[y,m,d]=iso.split('-');return d+'/'+m+'/'+y;};
   const ds=toDate(dateISO)||new Date().toLocaleDateString('pt-BR');
-  a.log.push({date:ds,value:val,note:note});
+  const prev2=getAtivoAtual(a);
+  const delta2=val-prev2;
+  const autoNote=note||(delta2>=0?'Atualização de saldo':'Atualização de saldo');
+  a.log.push({date:ds,value:val,note:autoNote});
   saveInvestimentos();
-  waSyncIndicator('Saldo adicionado','#059669',false);
+  const sign2=delta2>=0?'+':'';
+  waSyncIndicator('Saldo: '+sign2+fmtInvFull(delta2),'#059669',false);
   waInvRenderAtivos();waInvRenderDetail(idx);waInvRenderInst();
 }
 
