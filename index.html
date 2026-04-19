@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1A237E,#004D40);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E8EAF6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(232,234,246,.65) !important;}
-  #splash .splash-version{color:rgba(232,234,246,.35) !important;}
-  #splash .splash-btn{background:#E8EAF6 !important;color:#1A237E !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8EAF6 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4A148C,#006064);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F3E5F5 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(243,229,245,.65) !important;}
+  #splash .splash-version{color:rgba(243,229,245,.35) !important;}
+  #splash .splash-btn{background:#F3E5F5 !important;color:#4A148C !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F3E5F5 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -209,9 +209,9 @@
   .add-tipo-btn.transf-off{background:var(--bg);color:var(--muted);}
   .add-valor-area.c-transf{background:#7c3aed;}
   /* TRANSFER FIELDS */
-  .transf-fields{display:flex;flex-direction:column;gap:7px;}
-  .transf-side{background:var(--card);border-radius:12px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
-  .transf-side-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:8px;}
+  .transf-fields{display:flex;flex-direction:column;gap:4px;}
+  .transf-side{background:var(--card);border-radius:12px;padding:8px 12px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+  .transf-side-label{font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:5px;}
   .transf-side-label.origem{color:#7c3aed;}
   .transf-side-label.destino{color:#059669;}
   .transf-seg{display:flex;background:var(--kp);border-radius:9px;padding:2px;gap:2px;margin-bottom:8px;}
@@ -221,7 +221,7 @@
   .transf-drop-val{flex:1;font-size:.88rem;font-weight:500;color:var(--font);}
   .transf-drop-val.ph{color:var(--muted);}
   .transf-drop-arr{font-size:.8rem;color:var(--muted);}
-  .transf-arrow{text-align:center;font-size:1.3rem;color:#7c3aed;margin:2px 0;}
+  
   /* TX extrato transferência */
   .tx-item.transf-tx{border-left:3px solid #7c3aed;}
   .tx-transf-route{font-size:.72rem;color:#7c3aed;margin-top:2px;font-weight:600;}
@@ -1467,7 +1467,6 @@
               </div>
               <div id="transf-origem-panel" style="display:none;margin-top:6px;"></div>
             </div>
-            <div class="transf-arrow">⇣</div>
             <div class="transf-side">
               <div class="transf-side-label destino">↓ Destino -- entra aqui</div>
               <div class="transf-seg">
@@ -2069,7 +2068,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.29';
+const APP_VERSION='15.30';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
