@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1A237E,#E65100);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E8EAF6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(232,234,246,.65) !important;}
-  #splash .splash-version{color:rgba(232,234,246,.35) !important;}
-  #splash .splash-btn{background:#E8EAF6 !important;color:#1A237E !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8EAF6 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4A148C,#E65100);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F3E5F5 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(243,229,245,.65) !important;}
+  #splash .splash-version{color:rgba(243,229,245,.35) !important;}
+  #splash .splash-btn{background:#F3E5F5 !important;color:#4A148C !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F3E5F5 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.59';
+const APP_VERSION='15.60';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5771,13 +5771,21 @@ async function loadInvFromSheets(){
           if(String(l[0]||'').trim()!==user)return;
           const inst=String(l[1]||'').trim();
           const nome=String(l[2]||'').trim();
-          const arr=userAtivos[inst];if(!arr)return;
-          const ativo=arr.find(a=>a.nome===nome);if(!ativo)return;
+          // Try exact match first, then case-insensitive
+          let arr=userAtivos[inst];
+          if(!arr){
+            const instLow=inst.toLowerCase();
+            const key=Object.keys(userAtivos).find(k=>k.toLowerCase()===instLow);
+            if(key)arr=userAtivos[key];
+          }
+          if(!arr)return;
+          const ativo=arr.find(a=>a.nome===nome)||arr.find(a=>a.nome.toLowerCase()===nome.toLowerCase());
+          if(!ativo)return;
           const logVal=parseBRNumber(l[4]);
-          // Handle date in any format (dd/mm/yyyy, ISO, or Sheets display format)
           const rawDate=String(l[3]||'').trim();
           const logDate=normalizeDate(rawDate)||rawDate;
-          if(logDate&&logVal>0)
+          // Allow logVal >= 0 (including zero for transfers that zero out)
+          if(logDate&&!isNaN(logVal)&&logVal>=0)
             ativo.log.push({date:logDate,value:logVal,note:String(l[5]||'')});
         });
         Object.values(userAtivos).forEach(arr=>arr.forEach(a=>
@@ -8416,10 +8424,12 @@ async function waInvSync(){
           const inst=String(l[1]||'').trim();
           const nome=String(l[2]||'').trim();
           const arr=userAtivos[inst];if(!arr)return;
-          const ativo=arr.find(a=>a.nome===nome);if(!ativo)return;
+          const ativo=arr.find(a=>a.nome===nome)||arr.find(a=>a.nome.toLowerCase()===nome.toLowerCase());
+          if(!ativo)return;
           const logVal=parseBRNumber(l[4]);
-          const logDate=normalizeDate(l[3])||String(l[3]||'');
-          if(logDate&&!isNaN(logVal)&&logVal>0)
+          const rawDate2=String(l[3]||'').trim();
+          const logDate=normalizeDate(rawDate2)||rawDate2;
+          if(logDate&&!isNaN(logVal)&&logVal>=0)
             ativo.log.push({date:logDate,value:logVal,note:String(l[5]||'')});
         });
         Object.values(userAtivos).forEach(arr=>arr.forEach(a=>
