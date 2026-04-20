@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4A148C,#E65100);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F3E5F5 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(243,229,245,.65) !important;}
-  #splash .splash-version{color:rgba(243,229,245,.35) !important;}
-  #splash .splash-btn{background:#F3E5F5 !important;color:#4A148C !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F3E5F5 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#006064,#F57F17);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
+  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
+  #splash .splash-btn{background:#E0F7FA !important;color:#006064 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.60';
+const APP_VERSION='15.61';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8601,10 +8601,11 @@ function waInvRenderDetail(idx){
       +'<div style="display:flex;justify-content:space-between;font-size:.58rem;color:var(--muted);margin-top:1px;">'
       +'<span>'+logSorted[0].date+'</span><span>'+logSorted[logSorted.length-1].date+'</span></div>';
   })();
-  // Log rows
+  // Log rows — show newest first, but use index from a.log (not logSorted) for edit/delete
   const reversed=logSorted.slice().reverse();
   const logRows=reversed.map((l,i)=>{
-    const realIdx=logSorted.length-1-i;
+    // Find actual index in a.log (source of truth for edit/delete)
+    const realIdx=a.log.indexOf(l);
     const prev=reversed[i+1];
     const delta=prev!=null?l.value-prev.value:null;
     const isBase=i===reversed.length-1;
