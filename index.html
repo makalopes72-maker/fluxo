@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1A237E,#33691E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E8EAF6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(232,234,246,.65) !important;}
-  #splash .splash-version{color:rgba(232,234,246,.35) !important;}
-  #splash .splash-btn{background:#E8EAF6 !important;color:#1A237E !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8EAF6 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#880E4F,#006064);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FCE4EC !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(252,228,236,.65) !important;}
+  #splash .splash-version{color:rgba(252,228,236,.35) !important;}
+  #splash .splash-btn{background:#FCE4EC !important;color:#880E4F !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FCE4EC !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.67';
+const APP_VERSION='15.68';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8670,10 +8670,14 @@ function waInvRenderDetail(idx){
       const pxNum=parseFloat(px);
       const lblAnchor=pxNum>W*0.75?'end':pxNum<W*0.25?'start':'middle';
       const lblX=pxNum>W*0.75?(pxNum-6).toFixed(1):pxNum<W*0.25?(pxNum+6).toFixed(1):px;
+      const pyNum=parseFloat(py);
+      // value label: above dot with background rect for readability
+      const lblY=(pyNum-12).toFixed(1);
       projSvg='<line x1="'+lastX+'" y1="'+lastY+'" x2="'+px+'" y2="'+py+'" stroke="#059669" stroke-width="1.5" stroke-dasharray="4,3" opacity=".8"/>'
-        +'<circle cx="'+px+'" cy="'+py+'" r="4" fill="#059669"/>'
-        +'<text x="'+lblX+'" y="'+(parseFloat(py)-8).toFixed(1)+'" text-anchor="'+lblAnchor+'" font-size="8" font-weight="700" fill="#059669">'+valLbl+'</text>'
-        +'<text x="'+px+'" y="'+(H)+'" text-anchor="middle" font-size="7" fill="#059669">'+vLbl+'</text>';
+        +'<circle cx="'+px+'" cy="'+py+'" r="5" fill="#fff" stroke="#059669" stroke-width="1.5"/>'
+        +'<circle cx="'+px+'" cy="'+py+'" r="3" fill="#059669"/>'
+        +'<text x="'+lblX+'" y="'+lblY+'" text-anchor="'+lblAnchor+'" font-size="8.5" font-weight="700" fill="#059669">'+valLbl+'</text>'
+        +'<text x="'+px+'" y="'+H+'" text-anchor="middle" font-size="7" fill="#059669">'+vLbl+'</text>';
     }
 
     // Extra right padding when projection exists so date/value aren't clipped
