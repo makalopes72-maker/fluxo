@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#BF360C,#1A237E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FBE9E7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(251,233,231,.65) !important;}
-  #splash .splash-version{color:rgba(251,233,231,.35) !important;}
-  #splash .splash-btn{background:#FBE9E7 !important;color:#BF360C !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FBE9E7 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#006064,#4A148C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
+  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
+  #splash .splash-btn{background:#E0F7FA !important;color:#006064 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.64';
+const APP_VERSION='15.65';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8541,27 +8541,37 @@ function waInvRenderAtivos(){
 
   al.innerHTML=ativos.map(({a,i})=>{
     const sel=waInvAtivoIdx===i;
-    // classe badge
+    const atual=getAtivoAtual(a);
+    const rend=atual-a.aplicado;
+    const pct=a.aplicado?((rend/a.aplicado)*100).toFixed(1):'0.0';
+    const rendSign=rend>=0?'+':'';
+    const rendColor=rend>=0?'#059669':'#E53935';
     const clLow=(a.classe||'').toLowerCase();
     const clTag=clLow.includes('fixa')?'RF':clLow.includes('vari')?'RV':clLow.includes('fundo')||clLow.includes('prev')?'FI':'--';
-    const clBg=clTag==='RF'?'#E3F2FD':clTag==='RV'?'#FFF3E0':clTag==='FI'?'#F3E5F5':'#F5F5F5';
     const clCo=clTag==='RF'?'#1565C0':clTag==='RV'?'#E65100':clTag==='FI'?'#6A1B9A':'#888';
-    // IR badge
+    const borderColor=clCo;
     const ir=String(a.ir||'');
     const isIsento=ir.toLowerCase().includes('isento');
     const irLabel=isIsento?'IS':ir.includes('15')?'15%':ir.includes('20')?'20%':'IR';
     const irBg=isIsento?'#E8F5E9':'#FCE4EC';
     const irCo=isIsento?'#1B5E20':'#B71C1C';
-    // detalhe: taxa + vencimento
     const taxa=a.taxa&&a.taxa!=='--'?a.taxa:'';
     const venc=a.vencimento?(()=>{const n=normVenc(a.vencimento);if(!n||n==='N/A')return'';const p=n.split('/');return p.length===3?p[1]+'/'+p[2].slice(2):'';})():'';
-    const det=[taxa,venc].filter(Boolean).join(' · ')||(a.liquidez||'');
-    const badge=(txt,bg,co)=>'<span style="font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;background:'+bg+';color:'+co+';white-space:nowrap;flex-shrink:0;">'+txt+'</span>';
-    return '<div onclick="waInvSelectAtivo('+i+')" style="display:flex;align-items:center;gap:6px;padding:5px 7px;border-radius:5px;margin-bottom:1px;cursor:pointer;background:'+(sel?'var(--kp)':'transparent')+';border:1px solid '+(sel?'var(--border)':'transparent')+';">'
-      +'<span style="font-size:11.5px;font-weight:700;color:var(--font);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">'+a.nome+(a.encerrado?' <span style="font-size:8px;color:var(--red);">enc.</span>':'')+'</span>'
-      +badge(clTag,clBg,clCo)
+    const det=[taxa,venc?'venc '+venc:''].filter(Boolean).join(' · ')||(a.liquidez||'');
+    const badge=(txt,bg,co)=>'<span style="font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;background:'+bg+';color:'+co+';white-space:nowrap;">'+txt+'</span>';
+    return '<div onclick="waInvSelectAtivo('+i+')" style="display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;margin-bottom:2px;cursor:pointer;border-left:3px solid '+(sel?borderColor:'#E0E0E0')+';background:'+(sel?'var(--kp)':'var(--bg)')+';border-top:0.5px solid var(--border);border-right:0.5px solid var(--border);border-bottom:0.5px solid var(--border);">'
+      +'<div style="min-width:0;">'
+      +'<div style="font-size:12.5px;font-weight:700;color:var(--font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+a.nome+(a.encerrado?' <span style="font-size:8px;color:var(--red);">enc.</span>':'')+'</div>'
+      +'<div style="display:flex;gap:4px;align-items:center;margin-top:3px;">'
+      +badge(clTag,'transparent',clCo)
       +badge(irLabel,irBg,irCo)
-      +'<span style="font-size:9px;color:var(--muted);white-space:nowrap;flex-shrink:0;">'+det+'</span>'
+      +'<span style="font-size:9px;color:var(--muted);">'+det+'</span>'
+      +'</div>'
+      +'</div>'
+      +'<div style="text-align:right;flex-shrink:0;">'
+      +'<div style="font-size:13px;font-weight:700;color:var(--font);">'+fmtInvFull(atual)+'</div>'
+      +'<div style="font-size:10px;font-weight:600;color:'+rendColor+';">'+rendSign+pct+'%</div>'
+      +'</div>'
       +'</div>';
   }).join('');
 }
