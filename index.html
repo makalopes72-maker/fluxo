@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1B5E20,#4A148C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
-  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
-  #splash .splash-btn{background:#F1F8E9 !important;color:#1B5E20 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#BF360C,#1A237E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FBE9E7 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(251,233,231,.65) !important;}
+  #splash .splash-version{color:rgba(251,233,231,.35) !important;}
+  #splash .splash-btn{background:#FBE9E7 !important;color:#BF360C !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FBE9E7 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.63';
+const APP_VERSION='15.64';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4906,22 +4906,26 @@ function renderLog(){
     const times=logSorted.map(l=>(parseDate(l.date)||new Date()).getTime());
     const mn=Math.min(...vals),mx=Math.max(...vals),range=mx-mn||1;
     const tMin=times[0],tMax=times[times.length-1],tRange=tMax-tMin||1;
-    const W=400,H=80,pad=6;
-    const pts=vals.map((v,i)=>{
-      const x=pad+((times[i]-tMin)/tRange)*(W-pad*2);
-      const y=H-pad-((v-mn)/range)*(H-pad*2);
-      return x.toFixed(1)+','+y.toFixed(1);
-    }).join(' ');
+    const W=400,H=90,padL=6,padR=6,padT=6,padB=20;
+    const xOf=i=>padL+((times[i]-tMin)/tRange)*(W-padL-padR);
+    const yOf=v=>padT+((mx-v)/range)*(H-padT-padB);
+    const pts=vals.map((v,i)=>xOf(i).toFixed(1)+','+yOf(v).toFixed(1)).join(' ');
     const rend=vals[vals.length-1]-vals[0];
     const lc2=rend>=0?'#059669':'#E53935',fc=rend>=0?'rgba(5,150,105,.12)':'rgba(229,57,53,.12)';
+    const vlinesMob=logSorted.map((l,i)=>{
+      const x=xOf(i).toFixed(1);
+      const dd=l.date.split('/');
+      const lbl=dd.length===3?dd[0]+'/'+dd[1]:'';
+      return '<line x1="'+x+'" y1="'+padT+'" x2="'+x+'" y2="'+(H-padB)+'" stroke="rgba(255,255,255,.2)" stroke-width="1" stroke-dasharray="2,2"/>'
+        +'<text x="'+x+'" y="'+H+'" text-anchor="middle" font-size="8" fill="rgba(255,255,255,.4)">'+lbl+'</text>';
+    }).join('');
     chartHtml='<div style="background:var(--card);border-radius:12px;padding:12px;margin-bottom:10px;border:1px solid var(--border);">'
       +'<div style="font-size:.65rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.07em;">Evolucao</div>'
-      +'<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:80px;" preserveAspectRatio="none">'
-      +'<polygon points="'+pad+','+H+' '+pts+' '+(W-pad)+','+H+'" fill="'+fc+'"/>'
+      +'<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:'+H+'px;" preserveAspectRatio="none">'
+      +'<polygon points="'+padL+','+(H-padB)+' '+pts+' '+(W-padR)+','+(H-padB)+'" fill="'+fc+'"/>'
+      +vlinesMob
       +'<polyline points="'+pts+'" fill="none" stroke="'+lc2+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'
       +'</svg>'
-      +'<div style="display:flex;justify-content:space-between;font-size:.6rem;color:var(--muted);margin-top:4px;">'
-      +'<span>'+logSorted[0].date+'</span><span>'+logSorted[logSorted.length-1].date+'</span></div>'
       +'</div>';
   }
 
@@ -8197,10 +8201,19 @@ function waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,sho
       h+='<tr>';
       const tag=ativo.classe?ativo.classe.replace('Renda ','').replace('Fundos de Investimento','Fundos').replace('Previdência Privada','Prev.').substring(0,2).toUpperCase():'--';
       const irTag=ativo.ir?ativo.ir.replace('Tabela Regressiva','TR').replace('Isento (PF)','IS').replace('15% (ganho de capital)','15%').replace('20% (day trade)','20%'):'';
-      h+='<td style="position:sticky;left:0;z-index:3;background:'+(isEnc?'#ECEFF1':'#fff')+';color:var(--font);font-size:8px;padding:3px 8px;box-shadow:2px 0 4px rgba(0,0,0,.06);white-space:normal;word-break:break-word;">'
-        +'<span style="color:#78909C;margin-right:3px;">'+tag+'</span>'
-        +(irTag?'<span style="color:#90A4AE;margin-right:4px;font-size:7px;">'+irTag+'</span>':'')
-        +ativo.nome+(ativo.taxa?'<span style="color:#90A4AE;margin-left:4px;">'+ativo.taxa+'</span>':'')+'</td>';
+      // class badge colors
+      const clBg2=tag==='RF'?'#E3F2FD':tag==='RV'?'#FFF3E0':'#F3E5F5';
+      const clCo2=tag==='RF'?'#1565C0':tag==='RV'?'#E65100':'#6A1B9A';
+      const irBg2=irTag==='IS'||irTag===''?'#E8F5E9':'#FCE4EC';
+      const irCo2=irTag==='IS'||irTag===''?'#1B5E20':'#B71C1C';
+      const vencStr=ativo.vencimento?(()=>{const n=normVenc(ativo.vencimento);if(!n||n==='N/A')return'';const p=n.split('/');return p.length===3?p[1]+'/'+p[2].slice(2):'';})():'';
+      h+='<td style="position:sticky;left:0;z-index:3;background:'+(isEnc?'#ECEFF1':'#fff')+';color:var(--font);font-size:8px;padding:3px 8px;box-shadow:2px 0 4px rgba(0,0,0,.06);white-space:nowrap;overflow:hidden;">'
+        +'<span style="font-size:7.5px;font-weight:700;padding:1px 4px;border-radius:3px;background:'+clBg2+';color:'+clCo2+';margin-right:4px;">'+tag+'</span>'
+        +'<span style="font-weight:700;color:var(--font);">'+ativo.nome+'</span>'
+        +(ativo.taxa&&ativo.taxa!=='--'?'<span style="color:#90A4AE;margin-left:4px;font-size:7px;">'+ativo.taxa+'</span>':'')
+        +(vencStr?'<span style="color:#90A4AE;margin-left:4px;font-size:7px;">'+vencStr+'</span>':'')
+        +(irTag?'<span style="font-size:7px;font-weight:700;padding:1px 4px;border-radius:3px;background:'+irBg2+';color:'+irCo2+';margin-left:4px;">'+irTag+'</span>':'')
+        +'</td>';
       let lastKnown=null;
       visMonths.forEach(m=>{
         const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
@@ -8597,19 +8610,23 @@ function waInvRenderDetail(idx){
     const times=logSorted.map(l=>(parseDate(l.date)||new Date()).getTime());
     const mn=Math.min(...vals),mx=Math.max(...vals),range=mx-mn||1;
     const tMin=times[0],tMax=times[times.length-1],tRange=tMax-tMin||1;
-    const W=400,H=72,pad=4;
-    const pts=vals.map((v,i)=>{
-      const x=pad+((times[i]-tMin)/tRange)*(W-pad*2);
-      const y=H-pad-((v-mn)/range)*(H-pad*2);
-      return x.toFixed(1)+','+y.toFixed(1);
-    }).join(' ');
+    const W=400,H=80,padL=4,padR=4,padT=4,padB=20;
+    const xOf=i=>padL+((times[i]-tMin)/tRange)*(W-padL-padR);
+    const yOf=v=>padT+((mx-v)/range)*(H-padT-padB);
+    const pts=vals.map((v,i)=>xOf(i).toFixed(1)+','+yOf(v).toFixed(1)).join(' ');
     const lc=rend>=0?'#059669':'#E53935',fc=rend>=0?'rgba(5,150,105,.1)':'rgba(229,57,53,.1)';
-    return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:72px;" preserveAspectRatio="none">'
-      +'<polygon points="'+pad+','+H+' '+pts+' '+(W-pad)+','+H+'" fill="'+fc+'"/>'
+    const vlines=logSorted.map((l,i)=>{
+      const x=xOf(i).toFixed(1);
+      const dd=l.date.split('/');
+      const lbl=dd.length===3?dd[0]+'/'+dd[1]:'';
+      return '<line x1="'+x+'" y1="'+padT+'" x2="'+x+'" y2="'+(H-padB)+'" stroke="rgba(0,0,0,.12)" stroke-width="1" stroke-dasharray="2,2"/>'
+        +'<text x="'+x+'" y="'+H+'" text-anchor="middle" font-size="7" fill="#90A4AE">'+lbl+'</text>';
+    }).join('');
+    return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:90px;" preserveAspectRatio="none">'
+      +'<polygon points="'+padL+','+(H-padB)+' '+pts+' '+(W-padR)+','+(H-padB)+'" fill="'+fc+'"/>'
+      +vlines
       +'<polyline points="'+pts+'" fill="none" stroke="'+lc+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'
-      +'</svg>'
-      +'<div style="display:flex;justify-content:space-between;font-size:.58rem;color:var(--muted);margin-top:1px;">'
-      +'<span>'+logSorted[0].date+'</span><span>'+logSorted[logSorted.length-1].date+'</span></div>';
+      +'</svg>';
   })();
   // Log rows — show newest first, but use index from a.log (not logSorted) for edit/delete
   const reversed=logSorted.slice().reverse();
