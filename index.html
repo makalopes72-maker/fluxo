@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#006064,#F57F17);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
-  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
-  #splash .splash-btn{background:#E0F7FA !important;color:#006064 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1B5E20,#4A148C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
+  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
+  #splash .splash-btn{background:#F1F8E9 !important;color:#1B5E20 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.61';
+const APP_VERSION='15.63';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4903,10 +4903,12 @@ function renderLog(){
   let chartHtml='';
   if(logSorted.length>=2){
     const vals=logSorted.map(l=>l.value);
+    const times=logSorted.map(l=>(parseDate(l.date)||new Date()).getTime());
     const mn=Math.min(...vals),mx=Math.max(...vals),range=mx-mn||1;
+    const tMin=times[0],tMax=times[times.length-1],tRange=tMax-tMin||1;
     const W=400,H=80,pad=6;
     const pts=vals.map((v,i)=>{
-      const x=pad+(i/(vals.length-1))*(W-pad*2);
+      const x=pad+((times[i]-tMin)/tRange)*(W-pad*2);
       const y=H-pad-((v-mn)/range)*(H-pad*2);
       return x.toFixed(1)+','+y.toFixed(1);
     }).join(' ');
@@ -8525,22 +8527,28 @@ function waInvRenderAtivos(){
   if(!ativos.length){al.innerHTML='<div style="color:var(--muted);font-size:.75rem;padding:20px;text-align:center;">Nenhum ativo</div>';return;}
 
   al.innerHTML=ativos.map(({a,i})=>{
-    const atual=getAtivoAtual(a);
-    const rend=atual-a.aplicado;
-    const pct=a.aplicado?((rend/a.aplicado)*100).toFixed(1):0;
-    const rendSign=rend>=0?'+':'';
-    const rendColor=rend>=0?'var(--accent2)':'var(--red)';
-    const badge=ATIVO_BADGE[a.classe]||'badge-rf';
     const sel=waInvAtivoIdx===i;
-    return '<div onclick="waInvSelectAtivo('+i+')" style="padding:8px 10px;border-radius:8px;margin-bottom:4px;cursor:pointer;background:'+(sel?'var(--kp)':'transparent')+';border:1px solid '+(sel?'var(--border)':'transparent')+';">'
-      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'
-      +'<span style="font-size:.75rem;font-weight:600;color:var(--font);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">'+a.nome+(a.encerrado?'  <span style="font-size:.6rem;color:var(--red);">enc.</span>':'')+'</span>'
-      +'<span style="font-size:.6rem;font-weight:700;padding:1px 5px;border-radius:20px;margin-left:4px;" class="ativo-badge '+badge+'">'+a.classe.split(' ')[0]+'</span>'
-      +'</div>'
-      +'<div style="display:flex;justify-content:space-between;align-items:baseline;">'
-      +'<div style="font-size:.7rem;color:var(--muted);">'+fmtInvFull(atual)+'</div>'
-      +'<div style="font-size:.68rem;font-weight:600;color:'+rendColor+';">'+rendSign+fmtInvFull(rend)+' ('+rendSign+pct+'%)</div>'
-      +'</div>'
+    // classe badge
+    const clLow=(a.classe||'').toLowerCase();
+    const clTag=clLow.includes('fixa')?'RF':clLow.includes('vari')?'RV':clLow.includes('fundo')||clLow.includes('prev')?'FI':'--';
+    const clBg=clTag==='RF'?'#E3F2FD':clTag==='RV'?'#FFF3E0':clTag==='FI'?'#F3E5F5':'#F5F5F5';
+    const clCo=clTag==='RF'?'#1565C0':clTag==='RV'?'#E65100':clTag==='FI'?'#6A1B9A':'#888';
+    // IR badge
+    const ir=String(a.ir||'');
+    const isIsento=ir.toLowerCase().includes('isento');
+    const irLabel=isIsento?'IS':ir.includes('15')?'15%':ir.includes('20')?'20%':'IR';
+    const irBg=isIsento?'#E8F5E9':'#FCE4EC';
+    const irCo=isIsento?'#1B5E20':'#B71C1C';
+    // detalhe: taxa + vencimento
+    const taxa=a.taxa&&a.taxa!=='--'?a.taxa:'';
+    const venc=a.vencimento?(()=>{const n=normVenc(a.vencimento);if(!n||n==='N/A')return'';const p=n.split('/');return p.length===3?p[1]+'/'+p[2].slice(2):'';})():'';
+    const det=[taxa,venc].filter(Boolean).join(' · ')||(a.liquidez||'');
+    const badge=(txt,bg,co)=>'<span style="font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;background:'+bg+';color:'+co+';white-space:nowrap;flex-shrink:0;">'+txt+'</span>';
+    return '<div onclick="waInvSelectAtivo('+i+')" style="display:flex;align-items:center;gap:6px;padding:5px 7px;border-radius:5px;margin-bottom:1px;cursor:pointer;background:'+(sel?'var(--kp)':'transparent')+';border:1px solid '+(sel?'var(--border)':'transparent')+';">'
+      +'<span style="font-size:11.5px;font-weight:700;color:var(--font);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">'+a.nome+(a.encerrado?' <span style="font-size:8px;color:var(--red);">enc.</span>':'')+'</span>'
+      +badge(clTag,clBg,clCo)
+      +badge(irLabel,irBg,irCo)
+      +'<span style="font-size:9px;color:var(--muted);white-space:nowrap;flex-shrink:0;">'+det+'</span>'
       +'</div>';
   }).join('');
 }
@@ -8586,10 +8594,12 @@ function waInvRenderDetail(idx){
   const chartHTML=(()=>{
     if(logSorted.length<2)return '<div style="color:var(--muted);font-size:.68rem;text-align:center;padding:10px 0;">Grafico disponivel com 2+ registros</div>';
     const vals=logSorted.map(l=>l.value);
+    const times=logSorted.map(l=>(parseDate(l.date)||new Date()).getTime());
     const mn=Math.min(...vals),mx=Math.max(...vals),range=mx-mn||1;
+    const tMin=times[0],tMax=times[times.length-1],tRange=tMax-tMin||1;
     const W=400,H=72,pad=4;
     const pts=vals.map((v,i)=>{
-      const x=pad+(i/(vals.length-1))*(W-pad*2);
+      const x=pad+((times[i]-tMin)/tRange)*(W-pad*2);
       const y=H-pad-((v-mn)/range)*(H-pad*2);
       return x.toFixed(1)+','+y.toFixed(1);
     }).join(' ');
