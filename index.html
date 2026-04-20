@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#006064,#4A148C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
-  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
-  #splash .splash-btn{background:#E0F7FA !important;color:#006064 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#E65100,#1B5E20);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFF3E0 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(255,243,224,.65) !important;}
+  #splash .splash-version{color:rgba(255,243,224,.35) !important;}
+  #splash .splash-btn{background:#FFF3E0 !important;color:#E65100 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFF3E0 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.65';
+const APP_VERSION='15.66';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8618,24 +8618,63 @@ function waInvRenderDetail(idx){
     if(logSorted.length<2)return '<div style="color:var(--muted);font-size:.68rem;text-align:center;padding:10px 0;">Grafico disponivel com 2+ registros</div>';
     const vals=logSorted.map(l=>l.value);
     const times=logSorted.map(l=>(parseDate(l.date)||new Date()).getTime());
-    const mn=Math.min(...vals),mx=Math.max(...vals),range=mx-mn||1;
-    const tMin=times[0],tMax=times[times.length-1],tRange=tMax-tMin||1;
+
+    // Projected point for pre-fixed investments
+    const isPrefixado=(a.indexador||'').toLowerCase().includes('prefixado')||
+                      (a.indexador||'').toLowerCase().includes('pré')||
+                      (a.indexador||'').toLowerCase().includes('pre');
+    let projT=null,projV=null;
+    if(isPrefixado&&a.vencimento&&a.taxa){
+      const vencDate=parseDate(normVenc(a.vencimento));
+      const taxaStr=String(a.taxa).replace('%','').replace(',','.').trim();
+      const taxaAA=parseFloat(taxaStr)/100;
+      if(vencDate&&!isNaN(taxaAA)&&taxaAA>0){
+        const saldoAtual=vals[vals.length-1];
+        const dtAtual=new Date(times[times.length-1]);
+        const anosRestantes=(vencDate-dtAtual)/(1000*60*60*24*365.25);
+        if(anosRestantes>0){
+          projV=saldoAtual*Math.pow(1+taxaAA,anosRestantes);
+          projT=vencDate.getTime();
+        }
+      }
+    }
+
+    const allVals=projV!=null?[...vals,projV]:vals;
+    const allTimes=projT!=null?[...times,projT]:times;
+    const mn=Math.min(...allVals),mx=Math.max(...allVals),range=mx-mn||1;
+    const tMin=allTimes[0],tMax=allTimes[allTimes.length-1],tRange=tMax-tMin||1;
     const W=400,H=80,padL=4,padR=4,padT=4,padB=20;
-    const xOf=i=>padL+((times[i]-tMin)/tRange)*(W-padL-padR);
+    const xOf=t=>padL+((t-tMin)/tRange)*(W-padL-padR);
     const yOf=v=>padT+((mx-v)/range)*(H-padT-padB);
-    const pts=vals.map((v,i)=>xOf(i).toFixed(1)+','+yOf(v).toFixed(1)).join(' ');
+    const pts=vals.map((v,i)=>xOf(times[i]).toFixed(1)+','+yOf(v).toFixed(1)).join(' ');
     const lc=rend>=0?'#059669':'#E53935',fc=rend>=0?'rgba(5,150,105,.1)':'rgba(229,57,53,.1)';
     const vlines=logSorted.map((l,i)=>{
-      const x=xOf(i).toFixed(1);
+      const x=xOf(times[i]).toFixed(1);
       const dd=l.date.split('/');
       const lbl=dd.length===3?dd[0]+'/'+dd[1]:'';
       return '<line x1="'+x+'" y1="'+padT+'" x2="'+x+'" y2="'+(H-padB)+'" stroke="rgba(0,0,0,.12)" stroke-width="1" stroke-dasharray="2,2"/>'
         +'<text x="'+x+'" y="'+H+'" text-anchor="middle" font-size="7" fill="#90A4AE">'+lbl+'</text>';
     }).join('');
+
+    // Projected line + point
+    let projSvg='';
+    if(projV!=null){
+      const lastX=xOf(times[times.length-1]).toFixed(1);
+      const lastY=yOf(vals[vals.length-1]).toFixed(1);
+      const px=xOf(projT).toFixed(1);
+      const py=yOf(projV).toFixed(1);
+      const vd=new Date(projT);
+      const vLbl=String(vd.getDate()).padStart(2,'0')+'/'+(vd.getMonth()+1);
+      projSvg='<line x1="'+lastX+'" y1="'+lastY+'" x2="'+px+'" y2="'+py+'" stroke="#059669" stroke-width="1.5" stroke-dasharray="4,3" opacity=".7"/>'
+        +'<circle cx="'+px+'" cy="'+py+'" r="4" fill="#059669" opacity=".9"/>'
+        +'<text x="'+px+'" y="'+(H)+'" text-anchor="middle" font-size="7" fill="#059669">'+vLbl+'</text>';
+    }
+
     return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:90px;" preserveAspectRatio="none">'
       +'<polygon points="'+padL+','+(H-padB)+' '+pts+' '+(W-padR)+','+(H-padB)+'" fill="'+fc+'"/>'
       +vlines
       +'<polyline points="'+pts+'" fill="none" stroke="'+lc+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'
+      +projSvg
       +'</svg>';
   })();
   // Log rows — show newest first, but use index from a.log (not logSorted) for edit/delete
