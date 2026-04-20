@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#880E4F,#1B5E20);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FCE4EC !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(252,228,236,.65) !important;}
-  #splash .splash-version{color:rgba(252,228,236,.35) !important;}
-  #splash .splash-btn{background:#FCE4EC !important;color:#880E4F !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FCE4EC !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#37474F,#E65100);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
+  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
+  #splash .splash-btn{background:#ECEFF1 !important;color:#37474F !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.57';
+const APP_VERSION='15.58';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5767,7 +5767,11 @@ async function loadInvFromSheets(){
       const logRes=await fetch(APPS_SCRIPT_URL+'?sheet='+encodeURIComponent('InvestimentosLog')+'&_='+Date.now(),{cache:'no-store'});
       const logJson=await logRes.json();
       if(logJson.ok&&logJson.data&&logJson.data.length>1){
-        logJson.data.slice(1).forEach(l=>{
+        const logRows=logJson.data.slice(1);
+        // DEBUG: show last entry
+        const last=logRows[logRows.length-1];
+        if(typeof toast==='function')toast('Log: '+logRows.length+' entradas. Última: '+JSON.stringify(last),'');
+        logRows.forEach(l=>{
           if(String(l[0]||'').trim()!==user)return;
           const inst=String(l[1]||'').trim();
           const nome=String(l[2]||'').trim();
@@ -5781,8 +5785,13 @@ async function loadInvFromSheets(){
         Object.values(userAtivos).forEach(arr=>arr.forEach(a=>
           a.log.sort((x,y)=>(parseDate(x.date)||0)-(parseDate(y.date)||0))
         ));
+      } else {
+        if(typeof toast==='function')toast('Log vazio ou erro: '+JSON.stringify(logJson).substring(0,80),'error');
       }
-    }catch(e){console.warn('log fetch fail',e);}
+    }catch(e){
+      if(typeof toast==='function')toast('Log exception: '+e.message,'error');
+      console.warn('log fetch fail',e);
+    }
 
     // 4. load CC
     try{
