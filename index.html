@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#BE185D,#1E40AF);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FCE7F3 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(252,231,243,.65) !important;}
-  #splash .splash-version{color:rgba(252,231,243,.35) !important;}
-  #splash .splash-btn{background:#FCE7F3 !important;color:#BE185D !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FCE7F3 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#6D28D9,#EA580C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#EDE9FE !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(237,233,254,.65) !important;}
+  #splash .splash-version{color:rgba(237,233,254,.35) !important;}
+  #splash .splash-btn{background:#EDE9FE !important;color:#6D28D9 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EDE9FE !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='16.06';
+const APP_VERSION='16.07';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4442,7 +4442,16 @@ function getInstLinkedAccounts(instName){
 }
 
 function calcCcSaldo(instName){
-  return getUserCc(instName).saldo||0;
+  // v16.07: usa saldo mensal da nova estrutura
+  const now=new Date();
+  const v=getCcSaldoMes(instName,now.getFullYear(),now.getMonth());
+  if(v!==null)return v;
+  // fallback: procura mês mais recente com saldo neste ano
+  for(let m=now.getMonth()-1;m>=0;m--){
+    const vv=getCcSaldoMes(instName,now.getFullYear(),m);
+    if(vv!==null)return vv;
+  }
+  return 0;
 }
 
 function renderCcCard(){
@@ -4455,8 +4464,9 @@ function renderCcCard(){
   if(mv)mv.textContent=fmtInvFull(saldo);
   // card
   const wrap=document.getElementById('cc-card-wrap');if(!wrap)return;
-  const cc=getUserCc(inst.name);
-  const lastAdj=cc.lastAdj?`Último ajuste: ${cc.lastAdj}`:'Sem ajuste manual ainda';
+  const _ccNow=new Date();
+  const _ccEntry=(ccMensalData[user]&&ccMensalData[user][inst.name]&&ccMensalData[user][inst.name][_ccNow.getFullYear()])?ccMensalData[user][inst.name][_ccNow.getFullYear()][_ccNow.getMonth()]:null;
+  const lastAdj=_ccEntry&&_ccEntry.dataAjuste?`Último ajuste: ${_ccEntry.dataAjuste}`:'Sem ajuste registrado';
   const linkedNames=linked.map(a=>a.name);
   wrap.innerHTML=`
     <div class="cc-card" style="margin-bottom:0;">
@@ -4508,57 +4518,20 @@ function closeCcAjuste(){
 }
 
 function confirmCcAjuste(){
+  // v16.07: grava direto na estrutura mensal, sem lançar no extrato
   const inst=instituicoes[currentInstIdx];if(!inst)return;
-  const user=currentUser||'ALE';
   const inp=document.getElementById('cc-ajuste-input');if(!inp)return;
-  const raw=inp.value.replace(/[^0-9,]/g,'').replace(',','.');
+  const raw=inp.value.replace(/[^0-9,.]/g,'').replace(',','.');
   const novoValor=parseFloat(raw);
   if(isNaN(novoValor)||novoValor<0){toast('Valor inválido','error');return;}
-  const saldoAtual=calcCcSaldo(inst.name);
-  const diff=novoValor-saldoAtual;
-  // 1. Salvar novo saldo no modelo por usuário
   const now=new Date();
-  const date=String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear();
-  setUserCc(inst.name,{saldo:novoValor,lastAdj:date+' · '+fmtInvFull(novoValor)});
-  saveInvestimentos();
+  // Grava no mês atual
+  setCcSaldoMes(inst.name, now.getFullYear(), now.getMonth(), novoValor);
   closeCcAjuste();
-  // 2. Lançar diferença no extrato
-  if(Math.abs(diff)>=0.01){
-    const linked=getInstLinkedAccounts(inst.name);
-    const accName=linked.length?linked[0].name:inst.name;
-    const tipo=diff>0?'entrada':'saída';
-    const desc='Ajuste de saldo -- '+inst.name;
-    allData.push({_row:allData.length+2,_id:null,date,desc,value:Math.abs(diff),cat:'Ajuste',tipo:'Ajuste de Saldo',account:accName,type:tipo,consolidated:true,_isAdjust:true});
-    fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'append',row:[date,desc,Math.abs(diff).toFixed(2).replace('.',','),'Ajuste','Ajuste de Saldo',accName,tipo,'1','','1',generateTxId()],sheet:SHEET_NAME})
-    }).catch(()=>{});
-    // 3. Popup de confirmação
-    const sinal=diff>0?'+':'-';
-    const cor=diff>0?'var(--accent2)':'var(--red)';
-    const tipoTexto=diff>0?'crédito':'débito';
-    const popup=document.createElement('div');
-    popup.id='ajuste-popup';
-    popup.style.cssText='position:fixed;inset:0;z-index:600;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);padding:24px;';
-    popup.innerHTML='<div style="background:var(--card);border-radius:20px;padding:24px;width:100%;max-width:320px;text-align:center;">'
-      +'<div style="font-size:2rem;margin-bottom:8px;">'+(diff>0?'📥':'📤')+'</div>'
-      +'<div style="font-family:var(--font-display);font-size:1.1rem;color:var(--font);margin-bottom:6px;">Ajuste realizado!</div>'
-      +'<div style="font-size:.85rem;color:var(--muted);margin-bottom:14px;">Um '+tipoTexto+' de ajuste foi lançado no extrato.</div>'
-      +'<div style="background:var(--kp);border-radius:12px;padding:12px;margin-bottom:14px;">'
-        +'<div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px;">'+date+'</div>'
-        +'<div style="font-size:1.4rem;font-weight:700;color:'+cor+';">'+sinal+fmtInvFull(Math.abs(diff))+'</div>'
-        +'<div style="font-size:.75rem;color:var(--muted);margin-top:3px;">'+desc+'</div>'
-      +'</div>'
-      +'<div style="font-size:.8rem;color:var(--muted);margin-bottom:16px;">Novo saldo: <strong style="color:var(--font);">'+fmtInvFull(novoValor)+'</strong></div>'
-      +'<button onclick="closeAjustePopup()" '
-        +'style="width:100%;padding:13px;border-radius:12px;border:none;background:var(--font);color:var(--bg);font-family:var(--font-body);font-size:.95rem;font-weight:700;cursor:pointer;">'
-        +'Entendido'
-      +'</button>'
-    +'</div>';
-    document.body.appendChild(popup);
-  } else {
-    renderCcCard();renderDash();
-    toast('Saldo mantido -- sem diferença','');
-  }
+  renderCcCard();
+  renderDash();
+  if(typeof waDashRender==='function')waDashRender();
+  toast('Saldo de '+inst.name+' atualizado','success');
 }
 
 
