@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0F766E,#F97316);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F0FDFA !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(240,253,250,.65) !important;}
-  #splash .splash-version{color:rgba(240,253,250,.35) !important;}
-  #splash .splash-btn{background:#F0FDFA !important;color:#0F766E !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F0FDFA !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1E293B,#EAB308);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FEF9C3 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(254,249,195,.65) !important;}
+  #splash .splash-version{color:rgba(254,249,195,.35) !important;}
+  #splash .splash-btn{background:#FEF9C3 !important;color:#1E293B !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FEF9C3 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='16.04';
+const APP_VERSION='16.05';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8262,9 +8262,12 @@ function _waDashRender(){
 
   html+='</tbody>';
 
-  // ── INVESTIMENTOS — continuação da mesma tabela ──
+  // ── CONTA CORRENTE — nova seção (v16.05) ──
   const _colsPerM=m=>{const ip=isPastYear||(m<effectiveCurM),ic=!isPastYear&&m===effectiveCurM;const so=!isPastYear&&(ic||!ip||(window.waDashShowOrc&&window.waDashShowOrc[m]));return so?2:1;};
   const _totalCols=1+visMonths.reduce((s,m)=>s+_colsPerM(m),0)+1+(showTotals?6:0);
+  html+=waDashCcRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTotals,_totalCols);
+
+  // ── INVESTIMENTOS — continuação da mesma tabela ──
   html+=waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,showTotals,_totalCols);
 
   // ── BENS ──
@@ -8282,6 +8285,129 @@ function getAtivoSaldoMes(ativo,m,year){
   const limit=new Date(year,m+1,0);let last=null;
   for(const l of sorted){const d=parseDate(l.date);if(d&&d<=limit)last=l.value;}
   return last;
+}
+
+function waDashCcRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTotals,totalCols){
+  if(!instituicoes||!instituicoes.length)return'';
+  const user=currentUser||'ALE';
+  const fmtI=n=>{if(!n&&n!==0)return'';return Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});};
+  const colStyle='text-align:right;padding:3px 8px;font-size:9px;border-left:1px solid rgba(0,0,0,.06);';
+  const colsPerMonth=m=>{
+    const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
+    const showOrc=!isPastYear&&(isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]));
+    return showOrc?2:1;
+  };
+  const _ccC=waDashSecCol('cc');
+
+  // helper: returns the most-recent saldo at or before month `m` for inst (for "Saldo atual")
+  const lastSaldo=(inst)=>{
+    for(let m=11;m>=0;m--){
+      const v=getCcSaldoMes(inst,dashYear,m);
+      if(v!==null)return v;
+    }
+    return null;
+  };
+
+  let h='<tbody>';
+
+  // separator
+  h+='<tr><td colspan="'+totalCols+'" style="padding:0;height:10px;background:#F0F0F0;border:none;border-top:3px solid #B4B2A9;border-bottom:3px solid #0F766E;"></td></tr>';
+
+  // section title row
+  h+='<tr onclick="waDashTogSection(&quot;cc&quot;)" style="cursor:pointer;">'
+    +'<td colspan="'+totalCols+'" style="position:sticky;left:0;z-index:3;background:#134E4A;color:#5EEAD4;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:6px 10px;border-left:4px solid #0F766E;">'+(_ccC?'▸':'▾')+' Conta Corrente</td></tr>';
+
+  if(!_ccC){
+    // months header row
+    h+='<tr><td style="position:sticky;left:0;z-index:3;background:#115E59;color:#CCFBF1;font-size:8px;font-weight:700;padding:4px 8px;border-left:4px solid #0F766E;">Instituição</td>';
+    visMonths.forEach(m=>{
+      const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
+      const cols=colsPerMonth(m);
+      const bg=isCur?'#115E59':'#115E59';
+      h+='<td colspan="'+cols+'" style="background:'+bg+';color:#5EEAD4;font-size:8px;font-weight:700;padding:4px 8px;text-align:right;border-left:1px solid rgba(255,255,255,.1);">'+MESES[m]+'.</td>';
+    });
+    h+='<td style="width:8px;background:#D0D0D0;padding:0;border-left:3px solid #999;"></td>';
+    if(showTotals)h+='<td colspan="6" style="width:330px;min-width:330px;max-width:330px;background:#115E59;color:#5EEAD4;font-size:8px;font-weight:700;padding:4px 8px;text-align:center;">Saldo atual</td>';
+    h+='</tr>';
+
+    // one row per institution
+    instituicoes.forEach(inst=>{
+      h+='<tr>';
+      h+='<td style="position:sticky;left:0;z-index:3;background:#fff;color:var(--font);font-size:9px;font-weight:600;padding:4px 8px;box-shadow:2px 0 4px rgba(0,0,0,.06);white-space:nowrap;overflow:hidden;">'
+        +(inst.icon||'🏦')+' '+inst.name
+        +'</td>';
+      visMonths.forEach(m=>{
+        const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
+        const bg=isCur?'#CCFBF1':isPast?'#fff':'#FAFAFA';
+        const v=getCcSaldoMes(inst.name,dashYear,m);
+        const cols=colsPerMonth(m);
+        const escName=inst.name.replace(/'/g,"\\'");
+        h+='<td colspan="'+cols+'" onclick="waCcCellClick(\''+escName+'\','+dashYear+','+m+')" style="'+colStyle+'background:'+bg+';color:#0F766E;cursor:pointer;" title="Clique para editar o saldo da conta corrente">'+(v!==null?fmtI(v):'')+'</td>';
+      });
+      h+='<td style="width:8px;background:#D0D0D0;border-left:3px solid #999;padding:0;"></td>';
+      if(showTotals){const ls=lastSaldo(inst.name);h+='<td colspan="6" style="width:330px;min-width:330px;max-width:330px;'+colStyle+'background:#E8EAF6;font-weight:700;color:#0F766E;border-left:3px solid #888;">'+(ls!==null?fmtI(ls):'')+'</td>';}
+      h+='</tr>';
+    });
+
+    // Total row
+    h+='<tr style="border-top:1px solid #0F766E;">';
+    h+='<td style="position:sticky;left:0;z-index:3;background:#CCFBF1;color:#134E4A;font-size:8px;font-weight:700;padding:5px 8px;box-shadow:2px 0 4px rgba(0,0,0,.15);border-left:4px solid #0F766E;">Total CC</td>';
+    visMonths.forEach(m=>{
+      const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
+      const bg=isCur?'#99F6E4':isPast?'#CCFBF1':'#F0FDFA';
+      // sum across institutions for this month
+      let tot=0,has=false;
+      instituicoes.forEach(inst=>{
+        const v=getCcSaldoMes(inst.name,dashYear,m);
+        if(v!==null){tot+=v;has=true;}
+      });
+      const cols=colsPerMonth(m);
+      h+='<td colspan="'+cols+'" style="'+colStyle+'background:'+bg+';color:#134E4A;font-weight:700;">'+(has?fmtI(tot):'')+'</td>';
+    });
+    h+='<td style="width:8px;background:#D0D0D0;border-left:3px solid #999;padding:0;"></td>';
+    if(showTotals){
+      let grand=0,hasG=false;
+      instituicoes.forEach(inst=>{const ls=lastSaldo(inst.name);if(ls!==null){grand+=ls;hasG=true;}});
+      h+='<td colspan="6" style="width:330px;min-width:330px;max-width:330px;'+colStyle+'background:#CCFBF1;color:#134E4A;font-weight:700;border-left:3px solid #0F766E;">'+(hasG?fmtI(grand):'')+'</td>';
+    }
+    h+='</tr>';
+  }
+
+  h+='</tbody>';
+  return h;
+}
+
+// Click handler for CC cell — opens a small modal to edit the saldo of that month/inst
+function waCcCellClick(instName, year, month){
+  const MESES2=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const curVal=getCcSaldoMes(instName, year, month);
+  const html='<div id="cc-cell-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9000;display:flex;align-items:center;justify-content:center;" onclick="if(event.target===this)closeCcCellModal();">'
+    +'<div style="background:var(--bg);border-radius:10px;padding:16px;width:280px;box-shadow:0 8px 24px rgba(0,0,0,.3);">'
+    +'<div style="font-size:.75rem;font-weight:700;color:var(--font);margin-bottom:4px;">'+instName+' · Conta Corrente</div>'
+    +'<div style="font-size:.65rem;color:var(--muted);margin-bottom:10px;">'+MESES2[month]+' '+year+(curVal!==null?' · atual: R$ '+Math.round(curVal).toLocaleString("pt-BR"):'')+'</div>'
+    +'<div style="font-size:.6rem;color:var(--muted);margin-bottom:3px;">Saldo em '+MESES2[month]+'/'+year+'</div>'
+    +'<input id="cc-cell-val" type="text" placeholder="Ex: 10000" value="'+(curVal!==null?curVal:'')+'" style="width:100%;padding:7px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--font);font-size:.8rem;font-family:var(--font-body);margin-bottom:10px;">'
+    +'<div style="display:flex;gap:8px;">'
+    +'<button onclick="closeCcCellModal()" style="flex:1;padding:7px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--font);font-size:.72rem;cursor:pointer;">Cancelar</button>'
+    +'<button onclick="waCcCellSave(\''+instName.replace(/\'/g,"\\\\'")+'\','+year+','+month+')" style="flex:1;padding:7px;border-radius:7px;border:none;background:#0F766E;color:#fff;font-size:.72rem;font-weight:700;cursor:pointer;">Salvar</button>'
+    +'</div></div></div>';
+  document.body.insertAdjacentHTML('beforeend',html);
+  setTimeout(()=>{const el=document.getElementById('cc-cell-val');if(el){el.focus();el.select();}},50);
+}
+
+function closeCcCellModal(){
+  const o=document.getElementById('cc-cell-overlay');
+  if(o)o.remove();
+}
+
+function waCcCellSave(instName, year, month){
+  const valStr=(document.getElementById('cc-cell-val')?.value||'').trim().replace(',','.');
+  const val=parseFloat(valStr);
+  if(isNaN(val)||val<0){alert('Valor inválido');return;}
+  setCcSaldoMes(instName, year, month, val);
+  closeCcCellModal();
+  waDashRender();
+  toast('Saldo de '+instName+' atualizado','success');
 }
 
 function waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,showTotals,totalCols){
