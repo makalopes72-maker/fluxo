@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.71';
+const APP_VERSION='15.72';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -7876,9 +7876,7 @@ function waDashRender(){
 
   const _rdC=waDashSecCol('rd');
   html+='<thead class="wad-head">';
-  html+='<tr data-sec="rd" onclick="waDashTogSection(this.dataset.sec)" style="cursor:pointer;">'
-    +'<td colspan="999" style="background:#1E3A2F;color:#A5D6A7;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:6px 10px;border-left:4px solid #2E7D32;">'+(_rdC?'▸':'▾')+' Receitas e Despesas</td>'
-    +'</tr>';
+  html+='<tr onclick="waDashTogSection(&quot;rd&quot;)" style="cursor:pointer;"><td colspan="999" style="background:#1E3A2F;color:#A5D6A7;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:6px 10px;border-left:4px solid #2E7D32;">'+(_rdC?'▸':'▾')+' Receitas e Despesas</td></tr>';
   html+='<tr>';
   html+='<th class="wad-lbl-h" rowspan="2">Pasta / Categoria</th>';
 
@@ -8147,7 +8145,6 @@ function waDashRender(){
   const recR=[...sumReceita];recR[12]=sumReceita.reduce((s,v)=>s+v,0);
 
   // ROW 1: Receita
-  if(!_rdC){
   mkSumRow('Receita','#C8E6C9','#1B5E20','#E8F5E9',sumReceita,sumMetaReceita,false,false);
   // ROW 2: Investimentos
   mkSumRow('Invest.','#BBDEFB','#1565C0','#E3F2FD',sumInvest,sumMetaInvest,false,false);
@@ -8164,7 +8161,6 @@ function waDashRender(){
   // ROW 7: Acumulado
   mkSumRow('Acumulado','#1C313A','#CFD8DC','#263238',acumR,acumM,false,true);
 
-  } // end RD
   html+='</tbody>';
 
   // ── INVESTIMENTOS — continuação da mesma tabela ──
@@ -8204,9 +8200,9 @@ function waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,sho
   h+='<tr><td colspan="999" style="padding:0;height:14px;background:#ECEFF1;border:none;border-top:3px solid #78909C;"></td></tr>';
   const _invC=waDashSecCol('inv');
   h+='<tr><td colspan="999" style="padding:0;height:10px;background:#F0F0F0;border:none;border-top:3px solid #2E7D32;border-bottom:3px solid #1565C0;"></td></tr>';
-  h+='<tr data-sec="inv" onclick="waDashTogSection(this.dataset.sec)" style="cursor:pointer;">';
+  h+='<tr onclick="waDashTogSection(&quot;inv&quot;)" style="cursor:pointer;">';
   h+='<td colspan="999" style="position:sticky;left:0;z-index:3;background:#0D2744;color:#90CAF9;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:6px 10px;border-left:4px solid #1565C0;">'+(_invC?'▸':'▾')+' Investimentos'
-    +' <span onclick="event.stopPropagation();window.waDashShowEncerrados=!window.waDashShowEncerrados;waDashRender();" style="font-size:7px;background:rgba(255,255,255,.15);padding:1px 6px;border-radius:3px;margin-left:6px;cursor:pointer;">'+(showEnc?'▲ enc.':'▼ enc.')+'</span>'
+    +' <span onclick="event.stopPropagation();window.waDashShowEncerrados=!window.waDashShowEncerrados;waDashRender();" style="font-size:7px;background:rgba(255,255,255,.15);padding:1px 6px;border-radius:3px;margin-left:6px;">'+(showEnc?'▲ enc.':'▼ enc.')+'</span>'
     +'</td>';
   visMonths.forEach(m=>{
     const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
@@ -8270,23 +8266,21 @@ function waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,sho
     });
   };
 
-  if(!_invC){
   if(showEnc){
     const encInsts=[];
     instituicoes.forEach(inst=>{const enc=getInstAtivos(inst).filter(a=>a.encerrado);if(enc.length)encInsts.push({inst,enc});});
     if(encInsts.length){
       h+='<tr><td colspan="999" style="background:#455A64;color:#CFD8DC;font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:4px 10px;">▾ Superados (encerrados)</td></tr>';
-      encInsts.forEach(({inst,enc})=>renderInst(inst,enc,true));
+      if(!_invC)encInsts.forEach(({inst,enc})=>renderInst(inst,enc,true));
       h+='<tr><td colspan="999" style="padding:4px 0;background:transparent;border:none;"></td></tr>';
       h+='<tr><td colspan="999" style="background:#37474F;color:#CFD8DC;font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:4px 10px;">▾ Investimentos ativos</td></tr>';
     }
   }
-  instituicoes.forEach(inst=>renderInst(inst,getInstAtivos(inst).filter(a=>!a.encerrado),false));
+  if(!_invC)instituicoes.forEach(inst=>renderInst(inst,getInstAtivos(inst).filter(a=>!a.encerrado),false));
 
-  } // end inv collapse
   // total geral
-  h+='<tr style="border-top:1px solid #1565C0;border-left:4px solid #1565C0;">';
-  h+='<td style="position:sticky;left:0;z-index:3;background:#E3F2FD;color:#0D47A1;font-size:8px;font-weight:700;padding:5px 8px;box-shadow:2px 0 4px rgba(0,0,0,.15);">Total Investido</td>';
+  h+='<tr style="border-top:1px solid #1565C0;">';
+  h+='<td style="position:sticky;left:0;z-index:3;background:#E3F2FD;color:#0D47A1;font-size:8px;font-weight:700;padding:5px 8px;box-shadow:2px 0 4px rgba(0,0,0,.15);border-left:4px solid #1565C0;">Total Investido</td>';
   visMonths.forEach(m=>{
     const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
     const bg=isCur?'#BBDEFB':isPast?'#E3F2FD':'#FAFCFF';
@@ -8313,7 +8307,7 @@ function waDashBensRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTo
   // separator + header
   const _bensC=waDashSecCol('bens');
   h+='<tr><td colspan="999" style="padding:0;height:10px;background:#F0F0F0;border:none;border-top:3px solid #1565C0;border-bottom:3px solid #6A1B9A;"></td></tr>';
-  h+='<tr data-sec="bens" onclick="waDashTogSection(this.dataset.sec)" style="cursor:pointer;">';
+  h+='<tr onclick="waDashTogSection(&quot;bens&quot;)" style="cursor:pointer;">';
   h+='<td colspan="999" style="position:sticky;left:0;z-index:3;background:#2D1B4E;color:#CE93D8;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:6px 10px;border-left:4px solid #6A1B9A;">'+(_bensC?'▸':'▾')+' Bens</td>';
   visMonths.forEach(m=>{
     const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
@@ -8348,10 +8342,10 @@ function waDashBensRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTo
     if(showTotals)h+='<td colspan="6" style="'+colStyle+'background:#E8EAF6;color:#37474F;border-left:3px solid #888;">'+(lastVal!==null?fmtI(lastVal):'')+'</td>';
     h+='</tr>';
   });
-  } // end bens collapse
+  } // end bens rows
   // total bens
-  h+='<tr style="border-top:1px solid #6A1B9A;border-left:4px solid #6A1B9A;">';
-  h+='<td style="position:sticky;left:0;z-index:3;background:#F3E5F5;color:#4A148C;font-size:8px;font-weight:700;padding:5px 8px;box-shadow:2px 0 4px rgba(0,0,0,.15);">Total Bens</td>';
+  h+='<tr style="border-top:1px solid #6A1B9A;">';
+  h+='<td style="position:sticky;left:0;z-index:3;background:#F3E5F5;color:#4A148C;font-size:8px;font-weight:700;padding:5px 8px;box-shadow:2px 0 4px rgba(0,0,0,.15);border-left:4px solid #6A1B9A;">Total Bens</td>';
   visMonths.forEach(m=>{
     const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
     const bg=isCur?'#E1BEE7':isPast?'#F3E5F5':'#FDF8FF';
