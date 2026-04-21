@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='16.01';
+const APP_VERSION='16.02';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -7819,7 +7819,7 @@ function _waDashRender(){
     st.id='wa-dash-style';
     st.textContent=`
       .wad-wrap{min-width:0;}
-      .wad-tbl{border-collapse:collapse;font-size:10px;width:100%;table-layout:auto;}
+      .wad-tbl{border-collapse:collapse;font-size:10px;table-layout:fixed;}
       .wad-tbl th,.wad-inv-col{min-width:70px;width:70px;}
       .wad-tbl th,.wad-tbl td{border:0.5px solid #D3D1C7;padding:0;}
       .wad-lbl{position:sticky;left:0;z-index:3;background:#fff;white-space:nowrap;padding:3px 8px 3px 10px;font-size:10px;color:#2C2C2A;min-width:140px;max-width:170px;overflow:hidden;text-overflow:ellipsis;box-shadow:2px 0 4px rgba(0,0,0,.08);}
@@ -7879,7 +7879,20 @@ function _waDashRender(){
 
   // -- build header --
   let html='<div class="wad-wrap"><table class="wad-tbl" id="wa-dash-table">';
-  // colgroup for fixed col alignment
+  // colgroup for fixed col alignment — ensures all tbody sections use the same column widths
+  html+='<colgroup>';
+  html+='<col style="width:150px;">';  // label column
+  visMonths.forEach(m=>{
+    const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
+    const showOrc=!isPastYear&&(isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]));
+    html+='<col style="width:55px;">';
+    if(showOrc)html+='<col style="width:55px;">';
+  });
+  html+='<col style="width:8px;">';  // spacer
+  if(showTotals){
+    for(let i=0;i<6;i++)html+='<col style="width:55px;">';
+  }
+  html+='</colgroup>';
 
   const _rdC=waDashSecCol('rd');
   html+='<thead class="wad-head">';
