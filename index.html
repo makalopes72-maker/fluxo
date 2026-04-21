@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#006064,#4A148C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
-  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
-  #splash .splash-btn{background:#E0F7FA !important;color:#006064 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#3730A3,#E11D48);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F5F3FF !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(245,243,255,.65) !important;}
+  #splash .splash-version{color:rgba(245,243,255,.35) !important;}
+  #splash .splash-btn{background:#F5F3FF !important;color:#3730A3 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F5F3FF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='16.02';
+const APP_VERSION='16.03';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8334,7 +8334,10 @@ function waDashBensRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTo
   const _bensC=waDashSecCol('bens');
   h+='<tr><td colspan="'+totalCols+'" style="padding:0;height:10px;background:#F0F0F0;border:none;border-top:3px solid #1565C0;border-bottom:3px solid #6A1B9A;"></td></tr>';
   h+='<tr onclick="waDashTogSection(&quot;bens&quot;)" style="cursor:pointer;">';
-  h+='<td colspan="'+totalCols+'" style="position:sticky;left:0;z-index:3;background:#2D1B4E;color:#CE93D8;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:6px 10px;border-left:4px solid #6A1B9A;">'+(_bensC?'▸':'▾')+' Bens</td>';
+  h+='<td colspan="'+totalCols+'" style="position:sticky;left:0;z-index:3;background:#2D1B4E;color:#CE93D8;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:6px 10px;border-left:4px solid #6A1B9A;">'+(_bensC?'▸':'▾')+' Bens</td></tr>';
+  // second row: months header (only if section is expanded)
+  if(!_bensC){
+  h+='<tr><td style="position:sticky;left:0;z-index:3;background:#455A64;color:#CFD8DC;font-size:8px;font-weight:700;padding:4px 8px;border-left:4px solid #6A1B9A;">Bem</td>';
   visMonths.forEach(m=>{
     const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
     const cols=colsPerMonth(m);
@@ -8344,6 +8347,7 @@ function waDashBensRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTo
   h+='<td style="width:8px;background:#D0D0D0;padding:0;border-left:3px solid #999;"></td>';
   if(showTotals)h+='<td colspan="6" style="width:330px;min-width:330px;max-width:330px;background:#455A64;color:#CFD8DC;font-size:8px;font-weight:700;padding:4px 8px;text-align:center;">Valor atual</td>';
   h+='</tr>';
+  } // end if(!_bensC) months header
   if(!_bensC){
   // add bem button row
   h+='<tr><td colspan="'+totalCols+'" style="padding:2px 8px;">'
