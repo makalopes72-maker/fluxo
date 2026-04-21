@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4A148C,#BF360C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F3E5F5 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(243,229,245,.65) !important;}
-  #splash .splash-version{color:rgba(243,229,245,.35) !important;}
-  #splash .splash-btn{background:#F3E5F5 !important;color:#4A148C !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F3E5F5 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#263238,#E65100);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECEFF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(236,239,241,.65) !important;}
+  #splash .splash-version{color:rgba(236,239,241,.35) !important;}
+  #splash .splash-btn{background:#ECEFF1 !important;color:#263238 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECEFF1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.69';
+const APP_VERSION='15.70';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3169,7 +3169,7 @@ function login(u){
   const sv=document.getElementById('splash-version');if(sv)sv.textContent='v'+APP_VERSION;
   const _mu=document.getElementById('menu-user');if(_mu)_mu.textContent=u;
   const cfu=document.getElementById('cfg-user');if(cfu)cfu.textContent=u;const cu2=document.getElementById('cfg-user2');if(cu2)cu2.textContent=u;
-  loadAccounts();seedInstLinks();loadDefaultAccounts();initTiposData();loadKeywords();loadOrc();loadInvestimentos();
+  loadAccounts();seedInstLinks();loadDefaultAccounts();initTiposData();loadKeywords();loadOrc();loadInvestimentos();loadBens();
   loadPrefs(); // load prefs for this user
   setTodayDate();buildSettings();buildStartScreenUI();
   extMonth=new Date().getMonth();extYear=new Date().getFullYear();
@@ -5577,9 +5577,31 @@ const SHEETS = {
   pastas:        'Pastas',
   keywords:      'PalavrasChave',
   preferencias:  'Preferencias',
+  bens:          'Bens',
 };
 // per-user prefs storage
 let prefsData={};
+// Bens data: {user: [{id, nome, log:[{date,value,note}]}]}
+let bensData={};
+function loadBens(){
+  const u=currentUser||'ALE';
+  try{const s=localStorage.getItem('fluxo_bens_'+u);if(s)bensData[u]=JSON.parse(s)||[];}catch(e){}
+  if(!bensData[u])bensData[u]=[];
+}
+function saveBens(){
+  const u=currentUser||'ALE';
+  try{localStorage.setItem('fluxo_bens_'+u,JSON.stringify(bensData[u]||[]));}catch(e){}
+  pushToSheets('bens');
+}
+function getUserBens(){return bensData[currentUser||'ALE']||[];}
+function getBensSaldoMes(bem,year,m){
+  if(!bem.log||!bem.log.length)return null;
+  const sorted=[...bem.log].sort((a,b)=>(parseDate(a.date)||0)-(parseDate(b.date)||0));
+  const limit=new Date(year,m+1,0);
+  let last=null;
+  for(const l of sorted){const d=parseDate(l.date);if(d&&d<=limit)last=l.value;}
+  return last;
+}
 
 // -- UI feedback --
 function animateHeaderSync(spinning){
@@ -5981,6 +6003,12 @@ async function pushToSheets(dataset){
       await sheetsWrite(SHEETS.preferencias, serializeKV(prefsData));
     } else if(dataset==='kw'){
       await sheetsWrite(SHEETS.keywords, serializeKV({keywords:keywordsData}));
+    } else if(dataset==='bens'){
+      const u=currentUser||'ALE';
+      const bens=bensData[u]||[];
+      const rows=[['Usuário','Nome','Data','Valor','Nota']];
+      bens.forEach(b=>(b.log||[]).forEach(l=>rows.push([u,b.nome,l.date,l.value,l.note||''])));
+      await sheetsWrite(SHEETS.bens,rows);
     }
   }catch(e){console.warn('push failed silently',dataset,e);}
 }
@@ -7846,7 +7874,9 @@ function waDashRender(){
   let html='<div class="wad-wrap"><table class="wad-tbl" id="wa-dash-table">';
   // colgroup for fixed col alignment
 
-  html+='<thead class="wad-head"><tr>';
+  html+='<thead class="wad-head">';
+  html+='<tr><td colspan="999" style="background:#37474F;color:#CFD8DC;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:4px 10px;position:sticky;left:0;">Receitas e Despesas</td></tr>';
+  html+='<tr>';
   html+='<th class="wad-lbl-h" rowspan="2">Pasta / Categoria</th>';
 
   visMonths.forEach(m=>{
@@ -8135,6 +8165,9 @@ function waDashRender(){
   // ── INVESTIMENTOS — continuação da mesma tabela ──
   html+=waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,showTotals);
 
+  // ── BENS ──
+  html+=waDashBensRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTotals);
+
   html+='</table></div>';
 
   document.getElementById('wa-center-body').innerHTML=html;
@@ -8163,6 +8196,7 @@ function waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,sho
   let h='<tbody>';
 
   // separator + header row for investments section
+  h+='<tr><td colspan="999" style="padding:0;height:14px;background:#ECEFF1;border:none;border-top:3px solid #78909C;"></td></tr>';
   h+='<tr><td colspan="999" style="padding:0;height:14px;background:#ECEFF1;border:none;border-top:3px solid #78909C;"></td></tr>';
   h+='<tr>';
   h+='<td style="position:sticky;left:0;z-index:3;background:#263238;color:#CFD8DC;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:6px 8px;cursor:pointer;white-space:nowrap;box-shadow:2px 0 4px rgba(0,0,0,.15);" onclick="window.waDashShowEncerrados=!window.waDashShowEncerrados;waDashRender();">'
@@ -8255,6 +8289,222 @@ function waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,sho
   h+='</tr>';
   h+='</tbody>';
   return h;
+}
+
+function waDashBensRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTotals){
+  const bens=getUserBens();
+  const fmtI=n=>{if(!n&&n!==0)return'';return Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});};
+  const colStyle='text-align:right;padding:3px 8px;font-size:9px;border-left:1px solid rgba(0,0,0,.06);';
+  const colsPerMonth=m=>{
+    const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
+    const showOrc=!isPastYear&&(isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]));
+    return showOrc?2:1;
+  };
+  let h='<tbody>';
+  // separator + header
+  h+='<tr><td colspan="999" style="padding:0;height:14px;background:#ECEFF1;border:none;border-top:3px solid #78909C;"></td></tr>';
+  h+='<tr>';
+  h+='<td style="position:sticky;left:0;z-index:3;background:#37474F;color:#CFD8DC;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:6px 8px;box-shadow:2px 0 4px rgba(0,0,0,.15);">Bens</td>';
+  visMonths.forEach(m=>{
+    const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
+    const cols=colsPerMonth(m);
+    const bg=isCur?'#E6C200':isPast?'#607D8B':'#78909C';
+    h+='<td colspan="'+cols+'" style="background:'+bg+';color:#fff;font-size:8px;font-weight:700;padding:4px 8px;text-align:right;border-left:1px solid #CCC;">'+MESES[m]+'.</td>';
+  });
+  h+='<td style="width:8px;background:#D0D0D0;padding:0;border-left:3px solid #999;"></td>';
+  if(showTotals)h+='<td colspan="6" style="background:#455A64;color:#CFD8DC;font-size:8px;font-weight:700;padding:4px 8px;text-align:center;">Valor atual</td>';
+  h+='</tr>';
+  // add bem button row
+  h+='<tr><td colspan="999" style="padding:2px 8px;">'
+    +'<button onclick="waBemCreate()" style="font-size:8px;padding:2px 8px;border-radius:4px;border:1px dashed #90A4AE;background:transparent;color:#607D8B;cursor:pointer;">+ Adicionar bem</button>'
+    +'</td></tr>';
+  // bem rows
+  bens.forEach((bem,bi)=>{
+    const lastVal=bem.log&&bem.log.length?bem.log[bem.log.length-1].value:null;
+    h+='<tr>';
+    h+='<td style="position:sticky;left:0;z-index:3;background:#fff;color:var(--font);font-size:9px;font-weight:600;padding:3px 8px;box-shadow:2px 0 4px rgba(0,0,0,.06);white-space:nowrap;overflow:hidden;">'
+      +bem.nome
+      +' <button onclick="waBemEdit('+bi+')" style="border:none;background:transparent;cursor:pointer;font-size:10px;color:#90A4AE;padding:0 2px;">✎</button>'
+      +'</td>';
+    visMonths.forEach(m=>{
+      const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
+      const bg=isCur?'#FFF9C4':isPast?'#fff':'#FAFAFA';
+      const v=getBensSaldoMes(bem,dashYear,m);
+      const cols=colsPerMonth(m);
+      h+='<td colspan="'+cols+'" onclick="waBemCellClick('+bi+','+dashYear+','+m+')" style="'+colStyle+'background:'+bg+';color:#37474F;cursor:pointer;" title="Clique para editar">'+(v!==null?fmtI(v):'')+'</td>';
+    });
+    h+='<td style="width:8px;background:#D0D0D0;border-left:3px solid #999;padding:0;"></td>';
+    if(showTotals)h+='<td colspan="6" style="'+colStyle+'background:#E8EAF6;color:#37474F;border-left:3px solid #888;">'+(lastVal!==null?fmtI(lastVal):'')+'</td>';
+    h+='</tr>';
+  });
+  // total bens
+  h+='<tr style="border-top:1px solid #90A4AE;">';
+  h+='<td style="position:sticky;left:0;z-index:3;background:#455A64;color:#CFD8DC;font-size:8px;font-weight:700;padding:5px 8px;box-shadow:2px 0 4px rgba(0,0,0,.15);">Total Bens</td>';
+  visMonths.forEach(m=>{
+    const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
+    const bg=isCur?'#1a1a1a':isPast?'#37474F':'#455A64';
+    const total=(isPast||isCur)?bens.reduce((s,b)=>{const v=getBensSaldoMes(b,dashYear,m);return s+(v||0);},0):null;
+    h+='<td colspan="'+colsPerMonth(m)+'" style="'+colStyle+'background:'+bg+';color:#B0BEC5;font-weight:700;">'+(total!==null?fmtI(total):'')+'</td>';
+  });
+  h+='<td style="width:8px;background:#D0D0D0;border-left:3px solid #999;padding:0;"></td>';
+  if(showTotals){const tb=bens.reduce((s,b)=>{const v=b.log&&b.log.length?b.log[b.log.length-1].value:0;return s+(v||0);},0);h+='<td colspan="6" style="'+colStyle+'background:#37474F;color:#B0BEC5;font-weight:700;border-left:3px solid #888;">'+fmtI(tb)+'</td>';}
+  h+='</tr>';
+  // patrimônio = investimentos + bens
+  const bensTotal=bens.reduce((s,b)=>{const v=b.log&&b.log.length?b.log[b.log.length-1].value:0;return s+(v||0);},0);
+  const invTotal=typeof getTotalGeral==='function'?getTotalGeral():0;
+  const patriTotal=bensTotal+invTotal;
+  h+='<tr><td colspan="999" style="padding:0;height:6px;background:transparent;border:none;"></td></tr>';
+  h+='<tr style="border-top:2px solid #263238;">';
+  h+='<td style="position:sticky;left:0;z-index:3;background:#1C313A;color:#A5D6A7;font-size:8px;font-weight:700;padding:5px 8px;box-shadow:2px 0 4px rgba(0,0,0,.15);">Patrimônio Total</td>';
+  visMonths.forEach(m=>{
+    const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
+    const invM=(isPast||isCur)?['all'].reduce(()=>{ return (window._lastInvTotal&&window._lastInvTotal[m])||0; },0):null;
+    h+='<td colspan="'+colsPerMonth(m)+'" style="'+colStyle+'background:#1C313A;color:#A5D6A7;font-weight:700;"></td>';
+  });
+  h+='<td style="width:8px;background:#D0D0D0;border-left:3px solid #999;padding:0;"></td>';
+  if(showTotals)h+='<td colspan="6" style="'+colStyle+'background:#0D1F26;color:#A5D6A7;font-weight:700;border-left:3px solid #888;">'+fmtI(patriTotal)+'</td>';
+  h+='</tr>';
+  h+='</tbody>';
+  return h;
+}
+
+// Bens modal functions
+function waBemCreate(){
+  const today=new Date();
+  const iso=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  const html='<div style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9000;display:flex;align-items:center;justify-content:center;" id="bem-modal-overlay" onclick="if(event.target===this)closeBemModal();">'
+    +'<div style="background:var(--bg);border-radius:12px;padding:20px;width:320px;box-shadow:0 8px 32px rgba(0,0,0,.3);">'
+    +'<div style="font-size:.8rem;font-weight:700;color:var(--font);margin-bottom:12px;">Novo Bem</div>'
+    +'<div style="margin-bottom:8px;"><div style="font-size:.65rem;color:var(--muted);margin-bottom:3px;">Nome do bem</div>'
+    +'<input id="bem-nome-input" type="text" placeholder="Ex: Apartamento, Carro..." style="width:100%;padding:7px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--font);font-size:.8rem;font-family:var(--font-body);"></div>'
+    +'<div style="margin-bottom:8px;"><div style="font-size:.65rem;color:var(--muted);margin-bottom:3px;">Data inicial</div>'
+    +'<input id="bem-date-input" type="date" value="'+iso+'" style="width:100%;padding:7px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--font);font-size:.8rem;font-family:var(--font-body);"></div>'
+    +'<div style="margin-bottom:16px;"><div style="font-size:.65rem;color:var(--muted);margin-bottom:3px;">Valor inicial (opcional)</div>'
+    +'<input id="bem-val-input" type="text" placeholder="Ex: 30000" style="width:100%;padding:7px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--font);font-size:.8rem;font-family:var(--font-body);"></div>'
+    +'<div style="display:flex;gap:8px;">'
+    +'<button onclick="closeBemModal()" style="flex:1;padding:8px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--font);font-size:.75rem;cursor:pointer;">Cancelar</button>'
+    +'<button onclick="waBemSaveNew()" style="flex:1;padding:8px;border-radius:7px;border:none;background:var(--font);color:var(--bg);font-size:.75rem;font-weight:700;cursor:pointer;">Criar</button>'
+    +'</div>'
+    +'</div></div>';
+  document.body.insertAdjacentHTML('beforeend',html);
+  setTimeout(()=>document.getElementById('bem-nome-input')?.focus(),50);
+}
+function closeBemModal(){document.getElementById('bem-modal-overlay')?.remove();}
+function waBemSaveNew(){
+  const nome=(document.getElementById('bem-nome-input')?.value||'').trim();
+  if(!nome){alert('Digite o nome do bem');return;}
+  const dateISO=document.getElementById('bem-date-input')?.value||'';
+  const toDate=iso=>{if(!iso)return'';const[y,m,d]=iso.split('-');return d+'/'+m+'/'+y;};
+  const dateStr=toDate(dateISO)||new Date().toLocaleDateString('pt-BR');
+  const valStr=(document.getElementById('bem-val-input')?.value||'').trim().replace(',','.');
+  const val=parseFloat(valStr);
+  const u=currentUser||'ALE';
+  if(!bensData[u])bensData[u]=[];
+  const log=(!isNaN(val)&&val>0)?[{date:dateStr,value:val,note:'Valor inicial'}]:[];
+  bensData[u].push({id:'bem_'+Date.now(),nome,log});
+  saveBens();
+  closeBemModal();
+  renderDash();
+}
+function waBemEdit(bi){
+  const u=currentUser||'ALE';
+  const bem=bensData[u][bi];if(!bem)return;
+  const html='<div style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9000;display:flex;align-items:center;justify-content:center;" id="bem-modal-overlay" onclick="if(event.target===this)closeBemModal();">'
+    +'<div style="background:var(--bg);border-radius:12px;padding:20px;width:340px;box-shadow:0 8px 32px rgba(0,0,0,.3);">'
+    +'<div style="font-size:.8rem;font-weight:700;color:var(--font);margin-bottom:12px;">'+bem.nome+'</div>'
+    +'<div style="font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Histórico de valores</div>'
+    +'<div style="max-height:180px;overflow-y:auto;margin-bottom:12px;">'
+    +(bem.log&&bem.log.length?[...bem.log].reverse().map((l,ri)=>{
+      const realI=bem.log.length-1-ri;
+      return '<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border);font-size:.72rem;">'
+        +'<span style="color:var(--muted);flex-shrink:0;width:70px;">'+l.date+'</span>'
+        +'<span style="font-weight:700;color:var(--font);flex:1;">R$ '+Number(l.value).toLocaleString('pt-BR')+'</span>'
+        +'<span style="color:var(--muted);flex:1;font-size:.65rem;">'+l.note+'</span>'
+        +'<button onclick="waBemDelLog('+bi+','+realI+')" style="border:none;background:transparent;cursor:pointer;color:var(--red);font-size:11px;padding:0;">✕</button>'
+        +'</div>';
+    }).join(''):'<div style="color:var(--muted);font-size:.7rem;padding:8px 0;">Sem registros</div>')
+    +'</div>'
+    +'<div style="font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Nova reavaliação</div>'
+    +'<div style="display:grid;grid-template-columns:130px 1fr;gap:8px;margin-bottom:12px;">'
+    +'<div><div style="font-size:.6rem;color:var(--muted);margin-bottom:2px;">Data</div>'
+    +'<input id="bem-reav-date" type="date" style="width:100%;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--font);font-size:.75rem;font-family:var(--font-body);"></div>'
+    +'<div><div style="font-size:.6rem;color:var(--muted);margin-bottom:2px;">Valor (R$)</div>'
+    +'<input id="bem-reav-val" type="text" placeholder="Ex: 28000" style="width:100%;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--font);font-size:.75rem;font-family:var(--font-body);"></div>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px;">'
+    +'<button onclick="waBemDelete('+bi+')" style="padding:8px 12px;border-radius:7px;border:1px solid var(--red);background:transparent;color:var(--red);font-size:.7rem;cursor:pointer;">Apagar bem</button>'
+    +'<div style="flex:1;"></div>'
+    +'<button onclick="closeBemModal()" style="padding:8px 12px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--font);font-size:.75rem;cursor:pointer;">Fechar</button>'
+    +'<button onclick="waBemSaveReav('+bi+')" style="padding:8px 16px;border-radius:7px;border:none;background:var(--font);color:var(--bg);font-size:.75rem;font-weight:700;cursor:pointer;">Salvar</button>'
+    +'</div>'
+    +'</div></div>';
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+function waBemSaveReav(bi){
+  const u=currentUser||'ALE';
+  const bem=bensData[u][bi];if(!bem)return;
+  const dateISO=document.getElementById('bem-reav-date')?.value||'';
+  const toDate=iso=>{if(!iso)return'';const[y,m,d]=iso.split('-');return d+'/'+m+'/'+y;};
+  const dateStr=toDate(dateISO)||new Date().toLocaleDateString('pt-BR');
+  const valStr=(document.getElementById('bem-reav-val')?.value||'').trim().replace(',','.');
+  const val=parseFloat(valStr);
+  if(isNaN(val)||val<0){alert('Digite um valor válido');return;}
+  bem.log.push({date:dateStr,value:val,note:'Reavaliação'});
+  bem.log.sort((a,b)=>(parseDate(a.date)||0)-(parseDate(b.date)||0));
+  saveBens();
+  closeBemModal();
+  renderDash();
+}
+function waBemDelLog(bi,li){
+  const u=currentUser||'ALE';
+  const bem=bensData[u][bi];if(!bem)return;
+  if(!confirm('Apagar este registro?'))return;
+  bem.log.splice(li,1);
+  saveBens();
+  closeBemModal();
+  waBemEdit(bi);
+  renderDash();
+}
+function waBemDelete(bi){
+  const u=currentUser||'ALE';
+  if(!confirm('Apagar este bem definitivamente?'))return;
+  bensData[u].splice(bi,1);
+  saveBens();
+  closeBemModal();
+  renderDash();
+}
+function waBemCellClick(bi,year,m){
+  const u=currentUser||'ALE';
+  const bem=bensData[u][bi];if(!bem)return;
+  const curVal=getBensSaldoMes(bem,year,m);
+  const MESES2=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const html='<div style="position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9000;display:flex;align-items:center;justify-content:center;" id="bem-modal-overlay" onclick="if(event.target===this)closeBemModal();">'
+    +'<div style="background:var(--bg);border-radius:10px;padding:16px;width:260px;box-shadow:0 8px 24px rgba(0,0,0,.3);">'
+    +'<div style="font-size:.75rem;font-weight:700;color:var(--font);margin-bottom:4px;">'+bem.nome+'</div>'
+    +'<div style="font-size:.65rem;color:var(--muted);margin-bottom:10px;">'+MESES2[m]+' '+year+(curVal!==null?' · atual: R$'+Math.round(curVal).toLocaleString('pt-BR'):'')+'</div>'
+    +'<div style="font-size:.6rem;color:var(--muted);margin-bottom:3px;">Novo valor a partir de '+MESES2[m]+'/'+year+'</div>'
+    +'<input id="bem-cell-val" type="text" placeholder="Ex: 28000" value="'+(curVal!==null?curVal:'')+'" style="width:100%;padding:7px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--font);font-size:.8rem;font-family:var(--font-body);margin-bottom:10px;">'
+    +'<div style="display:flex;gap:8px;">'
+    +'<button onclick="closeBemModal()" style="flex:1;padding:7px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--font);font-size:.72rem;cursor:pointer;">Cancelar</button>'
+    +'<button onclick="waBemCellSave('+bi+','+year+','+m+')" style="flex:1;padding:7px;border-radius:7px;border:none;background:var(--font);color:var(--bg);font-size:.72rem;font-weight:700;cursor:pointer;">Salvar</button>'
+    +'</div></div></div>';
+  document.body.insertAdjacentHTML('beforeend',html);
+  setTimeout(()=>{const el=document.getElementById('bem-cell-val');if(el){el.focus();el.select();}},50);
+}
+function waBemCellSave(bi,year,m){
+  const u=currentUser||'ALE';
+  const bem=bensData[u][bi];if(!bem)return;
+  const valStr=(document.getElementById('bem-cell-val')?.value||'').trim().replace(',','.');
+  const val=parseFloat(valStr);
+  if(isNaN(val)||val<0){alert('Valor inválido');return;}
+  const dateStr='01/'+(m+1<10?'0'+(m+1):(m+1))+'/'+year;
+  // remove existing entry for same month if any
+  const idx=bem.log.findIndex(l=>{const d=parseDate(l.date);return d&&d.getFullYear()===year&&d.getMonth()===m;});
+  if(idx>=0)bem.log[idx]={date:dateStr,value:val,note:'Ajuste manual'};
+  else{bem.log.push({date:dateStr,value:val,note:'Ajuste manual'});bem.log.sort((a,b)=>(parseDate(a.date)||0)-(parseDate(b.date)||0));}
+  saveBens();
+  closeBemModal();
+  renderDash();
 }
 
 function waDashTogHideZero(){
