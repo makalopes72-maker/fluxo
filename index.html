@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0E7490,#1C1917);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#ECFEFF !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
-  #splash .splash-sub{color:rgba(236,254,255,.65) !important;}
-  #splash .splash-version{color:rgba(236,254,255,.35) !important;}
-  #splash .splash-btn{background:#ECFEFF !important;color:#0E7490 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.4);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECFEFF !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#14532D,#B45309);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F0FDF4 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(240,253,244,.65) !important;}
+  #splash .splash-version{color:rgba(240,253,244,.35) !important;}
+  #splash .splash-btn{background:#F0FDF4 !important;color:#14532D !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F0FDF4 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2056,7 +2056,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='16.08';
+const APP_VERSION='16.09';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3173,7 +3173,11 @@ function login(u){
     }
     waSyncIndicator('Carregando '+new Date().getFullYear()+'…','var(--muted)',true);
   }
-  loadData().then(()=>{
+  // Carrega transações e CC em paralelo
+  Promise.all([
+    loadData().catch(()=>{}),
+    loadCcMensalFromSheets().catch(()=>{})
+  ]).then(()=>{
     if(window.innerWidth>window.innerHeight) waOnLogin();
   }).catch(()=>{
     if(window.innerWidth>window.innerHeight) waOnLogin();
@@ -4386,6 +4390,10 @@ async function loadCcMensalFromSheets(){
       ccMensalData[u][r.inst][r.year][r.month]={saldo:Number(r.saldo)||0, dataAjuste:r.dataAjuste||''};
     });
     saveCcMensalLocal();
+    // Atualiza Quadro se estiver visível
+    if(typeof waDashRender==='function'){
+      try{waDashRender();}catch(e){}
+    }
     return true;
   }catch(e){console.warn('ccRead failed:',e);return false;}
 }
