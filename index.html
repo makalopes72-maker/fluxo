@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#6D28D9,#EA580C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#EDE9FE !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(237,233,254,.65) !important;}
-  #splash .splash-version{color:rgba(237,233,254,.35) !important;}
-  #splash .splash-btn{background:#EDE9FE !important;color:#6D28D9 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EDE9FE !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0E7490,#1C1917);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECFEFF !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
+  #splash .splash-sub{color:rgba(236,254,255,.65) !important;}
+  #splash .splash-version{color:rgba(236,254,255,.35) !important;}
+  #splash .splash-btn{background:#ECFEFF !important;color:#0E7490 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECFEFF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2039,20 +2039,7 @@
   </div>
 </div>
 <!-- CC AJUSTE MODAL -->
-<div id="cc-ajuste-modal" style="position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);padding:24px;">
-  <div style="background:var(--card);border-radius:20px;padding:24px;width:100%;max-width:320px;">
-    <div style="font-family:var(--font-display);font-size:1.2rem;color:var(--font);margin-bottom:6px;">Ajustar saldo</div>
-    <div style="font-size:.82rem;color:var(--muted);margin-bottom:16px;" id="cc-ajuste-atual">--</div>
-    <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px;">Novo saldo desejado (R$)</div>
-    <input id="cc-ajuste-input" type="text" inputmode="decimal"
-      style="width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-display);font-size:1.4rem;font-weight:700;text-align:center;outline:none;margin-bottom:8px;">
-    <div style="font-size:.75rem;color:var(--muted);margin-bottom:16px;line-height:1.4;">A diferença será lançada automaticamente no extrato como entrada ou saída de ajuste.</div>
-    <div style="display:flex;gap:8px;">
-      <button onclick="closeCcAjuste()" style="flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.9rem;cursor:pointer;">Cancelar</button>
-      <button onclick="confirmCcAjuste()" style="flex:2;padding:12px;border-radius:12px;border:none;background:var(--font);color:var(--bg);font-family:var(--font-body);font-size:.9rem;font-weight:700;cursor:pointer;">Confirmar ajuste</button>
-    </div>
-  </div>
-</div>
+<!-- cc-ajuste-modal removido v16.08 -->
 
 <!-- KEYWORD SUGGESTION MODAL -->
 <div id="kw-toast-modal">
@@ -2069,7 +2056,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='16.07';
+const APP_VERSION='16.08';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3195,7 +3182,7 @@ function login(u){
 function logout(){
   currentUser=null;allData=[];
   // close all modals
-  ['cc-ajuste-modal','kw-toast-modal','edit-modal','upd-modal','inst-modal','ativo-modal'].forEach(id=>{
+  ['kw-toast-modal','edit-modal','upd-modal','inst-modal','ativo-modal'].forEach(id=>{
     const m=document.getElementById(id);
     if(!m)return;
     m.style.display='none';
@@ -4478,7 +4465,7 @@ function renderCcCard(){
       ${linked.length?`<div class="cc-contas">${linked.map(a=>`<span class="cc-conta-tag">${a.name}</span>`).join('')}</div>`:'<div style="font-size:.75rem;color:var(--muted);margin-bottom:8px;">Nenhuma conta vinculada a ${user} em Configurações -> Contas</div>'}
       <div class="cc-btns">
         <button class="cc-btn" onclick="filterExtratoCc('${inst.name}')">📊 Extrato</button>
-        <button class="cc-btn ajuste" onclick="openCcAjuste()">⚙ Ajustar saldo</button>
+
       </div>
       <div class="cc-last">${lastAdj}</div>
     </div>
@@ -4497,42 +4484,11 @@ function filterExtratoCc(instName){
   },200);
 }
 
-function closeAjustePopup(){
-  const p=document.getElementById('ajuste-popup');
-  if(p)p.remove();
-  renderCcCard();renderDash();
-}
-function openCcAjuste(){
-  const inst=instituicoes[currentInstIdx];if(!inst)return;
-  const saldoAtual=calcCcSaldo(inst.name);
-  const modal=document.getElementById('cc-ajuste-modal');if(!modal)return;
-  const lbl=document.getElementById('cc-ajuste-atual');
-  if(lbl)lbl.textContent='Saldo atual: '+fmtInvFull(saldoAtual);
-  const inp=document.getElementById('cc-ajuste-input');
-  if(inp){inp.value='';setTimeout(()=>inp.focus(),150);}
-  modal.style.display='flex';
-}
-
-function closeCcAjuste(){
-  const m=document.getElementById('cc-ajuste-modal');if(m)m.style.display='none';
-}
-
-function confirmCcAjuste(){
-  // v16.07: grava direto na estrutura mensal, sem lançar no extrato
-  const inst=instituicoes[currentInstIdx];if(!inst)return;
-  const inp=document.getElementById('cc-ajuste-input');if(!inp)return;
-  const raw=inp.value.replace(/[^0-9,.]/g,'').replace(',','.');
-  const novoValor=parseFloat(raw);
-  if(isNaN(novoValor)||novoValor<0){toast('Valor inválido','error');return;}
-  const now=new Date();
-  // Grava no mês atual
-  setCcSaldoMes(inst.name, now.getFullYear(), now.getMonth(), novoValor);
-  closeCcAjuste();
-  renderCcCard();
-  renderDash();
-  if(typeof waDashRender==='function')waDashRender();
-  toast('Saldo de '+inst.name+' atualizado','success');
-}
+// v16.08: ajuste de CC removido — edição apenas pelo Quadro na versão web
+function closeAjustePopup(){}
+function openCcAjuste(){}
+function closeCcAjuste(){}
+function confirmCcAjuste(){}
 
 
 function seedInstituicoes(){
