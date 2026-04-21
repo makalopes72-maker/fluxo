@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4E342E,#1A237E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#EFEBE9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(239,235,233,.65) !important;}
-  #splash .splash-version{color:rgba(239,235,233,.35) !important;}
-  #splash .splash-btn{background:#EFEBE9 !important;color:#4E342E !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EFEBE9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#006064,#BF360C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
+  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
+  #splash .splash-btn{background:#E0F7FA !important;color:#006064 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.73';
+const APP_VERSION='15.74';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -7854,7 +7854,7 @@ function _waDashRender(){
       .wad-farol{display:inline-block;width:6px;height:6px;border-radius:50%;margin-left:3px;vertical-align:middle;}
       .f-v{background:#43A047;}.f-a{background:#F9A825;}.f-r{background:#E53935;}
       .wad-cell{display:flex;align-items:center;justify-content:flex-end;gap:2px;}
-      thead.wad-head{position:sticky;top:0;z-index:4;}
+      thead.wad-head{position:static;}
       .wad-lbl-h{position:sticky;left:0;z-index:6;background:#F1EFE8;padding:4px 10px;font-size:9px;font-weight:700;color:#5F5E5A;border-right:2px solid #B4B2A9;min-width:140px;max-width:170px;box-shadow:2px 0 3px rgba(0,0,0,.07);}
       .wad-tog{font-size:9px;color:#aaa;cursor:pointer;padding:0 4px;user-select:none;}
       .wad-total-col .wad-real{background:#E8EAF6;color:#283593;font-weight:700;}
@@ -8264,7 +8264,7 @@ function waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,sho
       visMonths.forEach(m=>{
         const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
         const bg=isCur?'#FFF9C4':isPast?(isEnc?'#ECEFF1':'#fff'):'#FAFAFA';
-        const v=getAtivoSaldoMes(ativo,m);
+        const v=getAtivoSaldoMes(ativo,m,dashYear);
         if(v!==null)lastKnown=v;
         const display=(isPast||isCur)?(v!==null?v:lastKnown):null;
         h+='<td colspan="'+colsPerMonth(m)+'" style="'+colStyle+'background:'+bg+';color:'+(isEnc?'#78909C':'#37474F')+';'+(isEnc?'font-style:italic;':'')+'">'+( display!==null?fmtI(display):'')+'</td>';
