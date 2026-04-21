@@ -8171,10 +8171,12 @@ function _waDashRender(){
   html+='</tbody>';
 
   // ── INVESTIMENTOS — continuação da mesma tabela ──
-  html+=waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,showTotals);
+  const _colsPerM=m=>{const ip=isPastYear||(m<effectiveCurM),ic=!isPastYear&&m===effectiveCurM;const so=!isPastYear&&(ic||!ip||(window.waDashShowOrc&&window.waDashShowOrc[m]));return so?2:1;};
+  const _totalCols=1+visMonths.reduce((s,m)=>s+_colsPerM(m),0)+1+(showTotals?6:0);
+  html+=waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,showTotals,_totalCols);
 
   // ── BENS ──
-  html+=waDashBensRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTotals);
+  html+=waDashBensRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTotals,_totalCols);
 
   html+='</table></div>';
 
@@ -8190,7 +8192,7 @@ function getAtivoSaldoMes(ativo,m,year){
   return last;
 }
 
-function waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,showTotals){
+function waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,showTotals,totalCols){
   if(!instituicoes||!instituicoes.length)return'';
   const fmtI=n=>{if(!n&&n!==0)return'';const a=Math.abs(n);return a.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});};
   // getAtivoSaldoMes now global
@@ -8201,7 +8203,6 @@ function waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,sho
     const showOrc=!isPastYear&&(isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]));
     return showOrc?2:1;
   };
-  const totalExtraCols=showTotals?6:0;
 
   let h='<tbody>';
 
@@ -8306,7 +8307,7 @@ function waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,sho
   return h;
 }
 
-function waDashBensRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTotals){
+function waDashBensRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTotals,totalCols){
   const bens=getUserBens();
   const fmtI=n=>{if(!n&&n!==0)return'';return Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});};
   const colStyle='text-align:right;padding:3px 8px;font-size:9px;border-left:1px solid rgba(0,0,0,.06);';
