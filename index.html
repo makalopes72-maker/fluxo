@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1E293B,#EAB308);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FEF9C3 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(254,249,195,.65) !important;}
-  #splash .splash-version{color:rgba(254,249,195,.35) !important;}
-  #splash .splash-btn{background:#FEF9C3 !important;color:#1E293B !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FEF9C3 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#BE185D,#1E40AF);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FCE7F3 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(252,231,243,.65) !important;}
+  #splash .splash-version{color:rgba(252,231,243,.35) !important;}
+  #splash .splash-btn{background:#FCE7F3 !important;color:#BE185D !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FCE7F3 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='16.05';
+const APP_VERSION='16.06';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4374,24 +4374,21 @@ function loadCcMensalLocal(){
 
 async function syncCcMensalToSheets(user, inst, year, month, saldo, dataAjuste){
   try{
-    await fetch(APPS_SCRIPT_URL,{
-      method:'POST',
-      mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'ccUpsert', user:user, inst:inst, year:year, month:month, saldo:saldo, dataAjuste:dataAjuste})
-    });
+    // Usa GET com ?data= — mesmo padrão do sheetsPost, evita problemas de CORS
+    const payload={action:'ccUpsert', user:user, inst:inst, year:year, month:month, saldo:saldo, dataAjuste:dataAjuste};
+    const url=APPS_SCRIPT_URL+'?data='+encodeURIComponent(JSON.stringify(payload));
+    await fetch(url,{cache:'no-store'});
   }catch(e){console.warn('ccUpsert failed:',e);}
 }
 
 async function loadCcMensalFromSheets(){
   try{
-    const res=await fetch(APPS_SCRIPT_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'ccRead'})
-    });
-    const json=await res.json();
-    if(!json.ok||!Array.isArray(json.data))return;
+    const payload={action:'ccRead'};
+    const url=APPS_SCRIPT_URL+'?data='+encodeURIComponent(JSON.stringify(payload));
+    const res=await fetch(url,{cache:'no-store'});
+    const txt=await res.text();
+    const json=JSON.parse(txt);
+    if(!json.ok||!Array.isArray(json.data))return false;
     // Zera e reconstrói a partir dos dados do Sheets (Sheets é a fonte da verdade)
     ccMensalData={ALE:{},SI:{}};
     json.data.forEach(r=>{
