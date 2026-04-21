@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#006064,#BF360C);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F7FA !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(224,247,250,.65) !important;}
-  #splash .splash-version{color:rgba(224,247,250,.35) !important;}
-  #splash .splash-btn{background:#E0F7FA !important;color:#006064 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F7FA !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#33691E,#880E4F);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F1F8E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(241,248,233,.65) !important;}
+  #splash .splash-version{color:rgba(241,248,233,.35) !important;}
+  #splash .splash-btn{background:#F1F8E9 !important;color:#33691E !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F1F8E9 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='15.74';
+const APP_VERSION='15.75';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8208,9 +8208,9 @@ function waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,sho
   // separator + header row for investments section
   h+='<tr><td colspan="999" style="padding:0;height:14px;background:#ECEFF1;border:none;border-top:3px solid #78909C;"></td></tr>';
   const _invC=waDashSecCol('inv');
-  h+='<tr><td colspan="999" style="padding:0;height:10px;background:#F0F0F0;border:none;border-top:3px solid #2E7D32;border-bottom:3px solid #1565C0;"></td></tr>';
+  h+='<tr><td colspan="'+totalCols+'" style="padding:0;height:10px;background:#F0F0F0;border:none;border-top:3px solid #2E7D32;border-bottom:3px solid #1565C0;"></td></tr>';
   h+='<tr onclick="waDashTogSection(&quot;inv&quot;)" style="cursor:pointer;">';
-  h+='<td colspan="999" style="position:sticky;left:0;z-index:3;background:#0D2744;color:#90CAF9;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:6px 10px;border-left:4px solid #1565C0;">'+(_invC?'▸':'▾')+' Investimentos'
+  h+='<td colspan="'+totalCols+'" style="position:sticky;left:0;z-index:3;background:#0D2744;color:#90CAF9;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:6px 10px;border-left:4px solid #1565C0;">'+(_invC?'▸':'▾')+' Investimentos'
     +' <span onclick="event.stopPropagation();window.waDashShowEncerrados=!window.waDashShowEncerrados;waDashRender();" style="font-size:7px;background:rgba(255,255,255,.15);padding:1px 6px;border-radius:3px;margin-left:6px;">'+(showEnc?'▲ enc.':'▼ enc.')+'</span>'
     +'</td>';
   visMonths.forEach(m=>{
@@ -8279,10 +8279,10 @@ function waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,sho
     const encInsts=[];
     instituicoes.forEach(inst=>{const enc=getInstAtivos(inst).filter(a=>a.encerrado);if(enc.length)encInsts.push({inst,enc});});
     if(encInsts.length){
-      h+='<tr><td colspan="999" style="background:#455A64;color:#CFD8DC;font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:4px 10px;">▾ Superados (encerrados)</td></tr>';
+      h+='<tr><td colspan="'+totalCols+'" style="background:#455A64;color:#CFD8DC;font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:4px 10px;">▾ Superados (encerrados)</td></tr>';
       if(!_invC)encInsts.forEach(({inst,enc})=>renderInst(inst,enc,true));
       h+='<tr><td colspan="999" style="padding:4px 0;background:transparent;border:none;"></td></tr>';
-      h+='<tr><td colspan="999" style="background:#37474F;color:#CFD8DC;font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:4px 10px;">▾ Investimentos ativos</td></tr>';
+      h+='<tr><td colspan="'+totalCols+'" style="background:#37474F;color:#CFD8DC;font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:4px 10px;">▾ Investimentos ativos</td></tr>';
     }
   }
   if(!_invC)instituicoes.forEach(inst=>renderInst(inst,getInstAtivos(inst).filter(a=>!a.encerrado),false));
@@ -8312,12 +8312,16 @@ function waDashBensRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTo
     const showOrc=!isPastYear&&(isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]));
     return showOrc?2:1;
   };
+  const totalCols=1+visMonths.reduce((s,m)=>s+colsPerMonth(m),0)+1+(showTotals?6:0);
   let h='<tbody>';
   // separator + header
   const _bensC=waDashSecCol('bens');
   h+='<tr><td colspan="999" style="padding:0;height:10px;background:#F0F0F0;border:none;border-top:3px solid #1565C0;border-bottom:3px solid #6A1B9A;"></td></tr>';
   h+='<tr onclick="waDashTogSection(&quot;bens&quot;)" style="cursor:pointer;">';
-  h+='<td colspan="999" style="position:sticky;left:0;z-index:3;background:#2D1B4E;color:#CE93D8;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:6px 10px;border-left:4px solid #6A1B9A;">'+(_bensC?'▸':'▾')+' Bens</td>';
+  h+='<td style="position:sticky;left:0;z-index:3;background:#2D1B4E;color:#CE93D8;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:6px 10px;border-left:4px solid #6A1B9A;white-space:nowrap;">'+(_bensC?'▸':'▾')+' Bens</td>';
+  visMonths.forEach(m2=>{h+='<td colspan="'+colsPerMonth(m2)+'" style="background:#2D1B4E;border:none;padding:0;"></td>';});
+  h+='<td style="width:8px;background:#2D1B4E;border:none;padding:0;"></td>';
+  if(showTotals)h+='<td colspan="6" style="background:#2D1B4E;border:none;padding:0;"></td>';
   visMonths.forEach(m=>{
     const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
     const cols=colsPerMonth(m);
@@ -8329,7 +8333,7 @@ function waDashBensRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTo
   h+='</tr>';
   if(!_bensC){
   // add bem button row
-  h+='<tr><td colspan="999" style="padding:2px 8px;">'
+  h+='<tr><td colspan="'+totalCols+'" style="padding:2px 8px;">'
     +'<button onclick="waBemCreate()" style="font-size:8px;padding:2px 8px;border-radius:4px;border:1px dashed #90A4AE;background:transparent;color:#607D8B;cursor:pointer;">+ Adicionar bem</button>'
     +'</td></tr>';
   // bem rows
