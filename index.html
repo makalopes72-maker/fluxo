@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#3730A3,#E11D48);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F5F3FF !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(245,243,255,.65) !important;}
-  #splash .splash-version{color:rgba(245,243,255,.35) !important;}
-  #splash .splash-btn{background:#F5F3FF !important;color:#3730A3 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F5F3FF !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0F766E,#F97316);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F0FDFA !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(240,253,250,.65) !important;}
+  #splash .splash-version{color:rgba(240,253,250,.35) !important;}
+  #splash .splash-btn{background:#F0FDFA !important;color:#0F766E !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F0FDFA !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2069,7 +2069,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='16.03';
+const APP_VERSION='16.04';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3169,7 +3169,7 @@ function login(u){
   const sv=document.getElementById('splash-version');if(sv)sv.textContent='v'+APP_VERSION;
   const _mu=document.getElementById('menu-user');if(_mu)_mu.textContent=u;
   const cfu=document.getElementById('cfg-user');if(cfu)cfu.textContent=u;const cu2=document.getElementById('cfg-user2');if(cu2)cu2.textContent=u;
-  loadAccounts();seedInstLinks();loadDefaultAccounts();initTiposData();loadKeywords();loadOrc();loadInvestimentos();loadBens();
+  loadAccounts();seedInstLinks();loadDefaultAccounts();initTiposData();loadKeywords();loadOrc();loadInvestimentos();loadBens();loadCcMensalLocal();
   loadPrefs(); // load prefs for this user
   setTodayDate();buildSettings();buildStartScreenUI();
   extMonth=new Date().getMonth();extYear=new Date().getFullYear();
@@ -4330,6 +4330,82 @@ function setUserCc(instName,data){
   if(!ccPorUser[u])ccPorUser[u]={};
   ccPorUser[u][instName]=data;
 }
+
+// ─── NEW (v16.04): Conta Corrente com valor por mês ─────────────────────
+// Estrutura: ccMensalData[user][instName][year][month] = { saldo, dataAjuste }
+// Sincronizada com aba ContaCorrente do Sheets (ação ccUpsert / ccRead).
+let ccMensalData = { ALE:{}, SI:{} };
+
+function getCcSaldoMes(instName, year, month){
+  const u=currentUser||'ALE';
+  const y=Number(year), m=Number(month);
+  if(!ccMensalData[u]||!ccMensalData[u][instName]||!ccMensalData[u][instName][y])return null;
+  const entry=ccMensalData[u][instName][y][m];
+  return (entry&&typeof entry.saldo==='number')?entry.saldo:null;
+}
+
+function setCcSaldoMes(instName, year, month, saldo){
+  const u=currentUser||'ALE';
+  const y=Number(year), m=Number(month);
+  if(!ccMensalData[u])ccMensalData[u]={};
+  if(!ccMensalData[u][instName])ccMensalData[u][instName]={};
+  if(!ccMensalData[u][instName][y])ccMensalData[u][instName][y]={};
+  const now=new Date();
+  const pad=n=>n<10?'0'+n:n;
+  const dataAjuste=pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear()+' '+pad(now.getHours())+':'+pad(now.getMinutes());
+  ccMensalData[u][instName][y][m]={saldo:Number(saldo)||0, dataAjuste:dataAjuste};
+  saveCcMensalLocal();
+  // Sincroniza com Sheets em background
+  syncCcMensalToSheets(u, instName, y, m, saldo, dataAjuste);
+}
+
+function saveCcMensalLocal(){
+  try{localStorage.setItem('fluxo_cc_mensal', JSON.stringify(ccMensalData));}catch(e){}
+}
+
+function loadCcMensalLocal(){
+  try{
+    const s=localStorage.getItem('fluxo_cc_mensal');
+    if(s)ccMensalData=JSON.parse(s);
+    if(!ccMensalData.ALE)ccMensalData.ALE={};
+    if(!ccMensalData.SI)ccMensalData.SI={};
+  }catch(e){ccMensalData={ALE:{},SI:{}};}
+}
+
+async function syncCcMensalToSheets(user, inst, year, month, saldo, dataAjuste){
+  try{
+    await fetch(APPS_SCRIPT_URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'ccUpsert', user:user, inst:inst, year:year, month:month, saldo:saldo, dataAjuste:dataAjuste})
+    });
+  }catch(e){console.warn('ccUpsert failed:',e);}
+}
+
+async function loadCcMensalFromSheets(){
+  try{
+    const res=await fetch(APPS_SCRIPT_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'ccRead'})
+    });
+    const json=await res.json();
+    if(!json.ok||!Array.isArray(json.data))return;
+    // Zera e reconstrói a partir dos dados do Sheets (Sheets é a fonte da verdade)
+    ccMensalData={ALE:{},SI:{}};
+    json.data.forEach(r=>{
+      const u=r.user||'ALE';
+      if(!ccMensalData[u])ccMensalData[u]={};
+      if(!ccMensalData[u][r.inst])ccMensalData[u][r.inst]={};
+      if(!ccMensalData[u][r.inst][r.year])ccMensalData[u][r.inst][r.year]={};
+      ccMensalData[u][r.inst][r.year][r.month]={saldo:Number(r.saldo)||0, dataAjuste:r.dataAjuste||''};
+    });
+    saveCcMensalLocal();
+    return true;
+  }catch(e){console.warn('ccRead failed:',e);return false;}
+}
+// ────────────────────────────────────────────────────────────────────────
 
 function normVenc(v){
   // converts yyyy-mm-dd to dd/mm/yyyy if needed
@@ -5874,6 +5950,9 @@ async function syncAll(manual=false){
 
     // 3. Investimentos
     try{await loadInvFromSheets();}catch(e){console.warn('inv read fail',e);}
+
+    // 3b. Conta Corrente mensal (v16.04+)
+    try{await loadCcMensalFromSheets();}catch(e){console.warn('cc read fail',e);}
 
     // 4. Contas
     try{
