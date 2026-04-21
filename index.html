@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1B5E20,#1A237E);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E8F5E9 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(232,245,233,.65) !important;}
-  #splash .splash-version{color:rgba(232,245,233,.35) !important;}
-  #splash .splash-btn{background:#E8F5E9 !important;color:#1B5E20 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E8F5E9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#B71C1C,#006064);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFEBEE !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(255,235,238,.65) !important;}
+  #splash .splash-version{color:rgba(255,235,238,.35) !important;}
+  #splash .splash-btn{background:#FFEBEE !important;color:#B71C1C !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFEBEE !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -7739,6 +7739,13 @@ function waDashSetMeta(user,tipo,cat,mIdx,val){
 }
 
 function waDashRender(){
+  try{_waDashRender();}catch(e){
+    const el=document.getElementById('wa-center-body');
+    if(el)el.innerHTML='<div style="padding:20px;color:red;font-size:12px;font-family:monospace;white-space:pre-wrap;">ERRO waDashRender: '+e.message+'\n'+e.stack+'</div>';
+    console.error('[waDashRender]',e);
+  }
+}
+function _waDashRender(){
   const user=currentUser||'ALE';
   const now=new Date();
   const curM=now.getMonth();
@@ -8173,7 +8180,7 @@ function waDashRender(){
 
   document.getElementById('wa-center-body').innerHTML=html;
   setTimeout(waApplyAppearance,0);
-}
+} // end _waDashRender
 
 function waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,showTotals){
   if(!instituicoes||!instituicoes.length)return'';
