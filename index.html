@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1a4731,#c8a96e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#f0ede6 !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(240,237,230,.65) !important;}
-  #splash .splash-version{color:rgba(240,237,230,.35) !important;}
-  #splash .splash-btn{background:#f0ede6 !important;color:#1a4731 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#f0ede6 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#7c3aed,#0ea5e9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ede9fe !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(237,233,254,.65) !important;}
+  #splash .splash-version{color:rgba(237,233,254,.35) !important;}
+  #splash .splash-btn{background:#ede9fe !important;color:#7c3aed !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ede9fe !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.00';
+const APP_VERSION='17.01';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8759,7 +8759,7 @@ function waDashEditMeta(td,tipo,cat,mIdx,curVal){
 // ══════════════════════════════════════════════════════════════════════
 // ANÁLISES — v17.00
 // ══════════════════════════════════════════════════════════════════════
-function waShowAnalytics(){
+function waShowAnalytics(period){
   document.getElementById('wa-center-title').textContent='Análises';
   document.getElementById('wa-right-title').textContent='--';
   document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">--</div>';
@@ -8768,8 +8768,29 @@ function waShowAnalytics(){
   const fb=document.getElementById('wa-filter-bar');if(fb)fb.remove();
   document.getElementById('wa-center-actions').innerHTML='';
 
-  const year=new Date().getFullYear();
+  const _period=period||window._anPeriod||'year';
+  window._anPeriod=_period;
+  const now=new Date();
+  const curYear=now.getFullYear();
+  const curM=now.getMonth();
+
+  // Build list of {year,month} for the period
+  let periodMonths=[];
+  if(_period==='year'){
+    for(let m=0;m<12;m++) periodMonths.push({year:curYear,month:m});
+  } else {
+    const nM=_period==='6m'?6:12;
+    for(let i=nM-1;i>=0;i--){
+      const d=new Date(curYear,curM-i,1);
+      periodMonths.push({year:d.getFullYear(),month:d.getMonth()});
+    }
+  }
+
+  const year=curYear;
   const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const MESES_LABELS=periodMonths.map(({year:y,month:m})=>
+    _period==='year'?MESES[m]:MESES[m]+(_period==='12m'?'/'+(y%100):'')
+  );
   const user=currentUser||'ALE';
 
   // ── CSS ──
@@ -8826,7 +8847,7 @@ function waShowAnalytics(){
   const fmtFull=n=>'R$ '+Math.round(Math.abs(n)).toLocaleString('pt-BR');
   const lerp=(a,b,t)=>a+(b-a)*t;
 
-  // Transactions filtered to period months (no future months in 'year' mode)
+  // Transactions filtered to period (no future months in 'year' mode)
   const receitaTipos=['Receita','Investimentos'];
   const n=periodMonths.length;
   const recM=Array(n).fill(0), despM=Array(n).fill(0);
@@ -8855,12 +8876,10 @@ function waShowAnalytics(){
   const catOrdenado=Object.entries(catTotais).sort((a,b)=>b[1]-a[1]);
   const totalDesp=Object.values(catTotais).reduce((s,v)=>s+v,0)||1;
 
-  // Acumulado
   const acumM=Array(n).fill(0);
   let acum=0;
   for(let i=0;i<n;i++){acum+=recM[i]-despM[i];acumM[i]=acum;}
 
-  // Invest por mês (null para futuros)
   const invM=Array(n).fill(null);
   periodMonths.forEach(({year:y,month:m},i)=>{
     if(!isPast({year:y,month:m}))return;
@@ -8874,7 +8893,6 @@ function waShowAnalytics(){
     if(has)invM[i]=tot;
   });
 
-  // CC por mês (null para futuros)
   const ccM=Array(n).fill(null);
   periodMonths.forEach(({year:y,month:m},i)=>{
     if(!isPast({year:y,month:m}))return;
@@ -8886,7 +8904,6 @@ function waShowAnalytics(){
     if(has)ccM[i]=tot;
   });
 
-  // Bens por mês (null para futuros)
   const bensArr=getUserBens?getUserBens():[];
   const bensM=Array(n).fill(null);
   periodMonths.forEach(({year:y,month:m},i)=>{
@@ -8896,7 +8913,6 @@ function waShowAnalytics(){
     if(has)bensM[i]=tot;
   });
 
-  // Patrimônio por mês (null para futuros)
   const patriM=Array(n).fill(null);
   periodMonths.forEach(({year:y,month:m},i)=>{
     if(!isPast({year:y,month:m}))return;
@@ -8905,10 +8921,10 @@ function waShowAnalytics(){
   });
 
   // KPI helpers
-  const lastNonNull=arr=>{for(let i=11;i>=0;i--)if(arr[i]!==null)return arr[i];return 0;};
-  const firstNonNull=arr=>{for(let i=0;i<12;i++)if(arr[i]!==null)return arr[i];return 0;};
+  const lastNonNull=arr=>{for(let i=arr.length-1;i>=0;i--)if(arr[i]!==null)return arr[i];return 0;};
+  const firstNonNull=arr=>{for(let i=0;i<arr.length;i++)if(arr[i]!==null)return arr[i];return 0;};
   const sumArr=arr=>arr.reduce((s,v)=>s+(v||0),0);
-  const curM=new Date().getMonth();
+  // curM already declared above
   const patriAtual=lastNonNull(patriM);
   const patriInicio=firstNonNull(patriM);
   const patriDelta=patriInicio?((patriAtual-patriInicio)/patriInicio*100):0;
@@ -9223,7 +9239,7 @@ function waShowAnalytics(){
   html+='<div style="display:flex;gap:4px;margin-bottom:14px;">';
   _pills.forEach(p=>{
     const active=_period===p.id;
-    html+=`<button onclick="waShowAnalytics('${p.id}')" style="padding:5px 13px;border-radius:8px;border:1px solid var(--border);background:${active?'var(--font)':'transparent'};color:${active?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;font-weight:600;cursor:pointer;transition:all .15s;">${p.label}</button>`;
+    html+=`<button onclick="waShowAnalytics('${p.id}')" style="padding:5px 13px;border-radius:8px;border:1px solid var(--border);background:${active?'var(--font)':'transparent'};color:${active?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;font-weight:600;cursor:pointer;">${p.label}</button>`;
   });
   html+='</div>';
   html+='<div class="an-tabs">';
