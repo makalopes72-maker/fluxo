@@ -8826,77 +8826,83 @@ function waShowAnalytics(){
   const fmtFull=n=>'R$ '+Math.round(Math.abs(n)).toLocaleString('pt-BR');
   const lerp=(a,b,t)=>a+(b-a)*t;
 
-  // Transactions for this user/year
-  const txYear=allData.filter(t=>{
-    const d=parseDate(t.date);
-    return d&&d.getFullYear()===year;
-  });
-
-  // Receita e Despesa por mês
+  // Transactions filtered to period months (no future months in 'year' mode)
   const receitaTipos=['Receita','Investimentos'];
-  const recM=Array(12).fill(0),despM=Array(12).fill(0);
-  txYear.forEach(t=>{
-    const d=parseDate(t.date);if(!d)return;
-    const m=d.getMonth();
-    const isRec=receitaTipos.includes(t.tipo||t.cat||'');
-    if(t.type==='entrada'&&isRec) recM[m]+=t.value;
-    else if(t.type==='saída') despM[m]+=t.value;
+  const n=periodMonths.length;
+  const recM=Array(n).fill(0), despM=Array(n).fill(0);
+  const catTotais={};
+
+  const isPast=({year:y,month:m})=>{
+    if(_period!=='year')return true;
+    return y<curYear||(y===curYear&&m<=curM);
+  };
+
+  periodMonths.forEach(({year:y,month:m},i)=>{
+    if(!isPast({year:y,month:m}))return;
+    allData.forEach(t=>{
+      const d=parseDate(t.date);if(!d)return;
+      if(d.getFullYear()!==y||d.getMonth()!==m)return;
+      const isRec=receitaTipos.includes(t.tipo||t.cat||'');
+      if(t.type==='entrada'&&isRec) recM[i]+=t.value;
+      else if(t.type==='saída'){
+        despM[i]+=t.value;
+        const cat=t.cat||'Outros';
+        catTotais[cat]=(catTotais[cat]||0)+t.value;
+      }
+    });
   });
 
-  // Gastos por categoria (despesas)
-  const catTotais={};
-  txYear.forEach(t=>{
-    if(t.type!=='saída')return;
-    const cat=t.cat||'Outros';
-    catTotais[cat]=(catTotais[cat]||0)+t.value;
-  });
   const catOrdenado=Object.entries(catTotais).sort((a,b)=>b[1]-a[1]);
   const totalDesp=Object.values(catTotais).reduce((s,v)=>s+v,0)||1;
 
   // Acumulado
-  const acumM=Array(12).fill(0);
+  const acumM=Array(n).fill(0);
   let acum=0;
-  for(let m=0;m<12;m++){acum+=recM[m]-despM[m];acumM[m]=acum;}
+  for(let i=0;i<n;i++){acum+=recM[i]-despM[i];acumM[i]=acum;}
 
-  // Invest por mês
-  const invM=Array(12).fill(null);
-  for(let m=0;m<12;m++){
+  // Invest por mês (null para futuros)
+  const invM=Array(n).fill(null);
+  periodMonths.forEach(({year:y,month:m},i)=>{
+    if(!isPast({year:y,month:m}))return;
     let tot=0,has=false;
     instituicoes.forEach(inst=>{
       getInstAtivos(inst).filter(a=>!a.encerrado).forEach(a=>{
-        const v=getAtivoSaldoMes(a,m,year);
+        const v=getAtivoSaldoMes(a,m,y);
         if(v!==null){tot+=v;has=true;}
       });
     });
-    if(has)invM[m]=tot;
-  }
+    if(has)invM[i]=tot;
+  });
 
-  // CC por mês
-  const ccM=Array(12).fill(null);
-  for(let m=0;m<12;m++){
+  // CC por mês (null para futuros)
+  const ccM=Array(n).fill(null);
+  periodMonths.forEach(({year:y,month:m},i)=>{
+    if(!isPast({year:y,month:m}))return;
     let tot=0,has=false;
     instituicoes.forEach(inst=>{
-      const v=getCcSaldoMes(inst.name,year,m);
+      const v=getCcSaldoMes(inst.name,y,m);
       if(v!==null){tot+=v;has=true;}
     });
-    if(has)ccM[m]=tot;
-  }
+    if(has)ccM[i]=tot;
+  });
 
-  // Bens por mês
+  // Bens por mês (null para futuros)
   const bensArr=getUserBens?getUserBens():[];
-  const bensM=Array(12).fill(null);
-  for(let m=0;m<12;m++){
+  const bensM=Array(n).fill(null);
+  periodMonths.forEach(({year:y,month:m},i)=>{
+    if(!isPast({year:y,month:m}))return;
     let tot=0,has=false;
-    bensArr.forEach(b=>{const v=getBensSaldoMes(b,year,m);if(v!==null){tot+=v;has=true;}});
-    if(has)bensM[m]=tot;
-  }
+    bensArr.forEach(b=>{const v=getBensSaldoMes(b,y,m);if(v!==null){tot+=v;has=true;}});
+    if(has)bensM[i]=tot;
+  });
 
-  // Patrimônio por mês
-  const patriM=Array(12).fill(null);
-  for(let m=0;m<12;m++){
-    if(invM[m]!==null||ccM[m]!==null||bensM[m]!==null)
-      patriM[m]=(invM[m]||0)+(ccM[m]||0)+(bensM[m]||0);
-  }
+  // Patrimônio por mês (null para futuros)
+  const patriM=Array(n).fill(null);
+  periodMonths.forEach(({year:y,month:m},i)=>{
+    if(!isPast({year:y,month:m}))return;
+    if(invM[i]!==null||ccM[i]!==null||bensM[i]!==null)
+      patriM[i]=(invM[i]||0)+(ccM[i]||0)+(bensM[i]||0);
+  });
 
   // KPI helpers
   const lastNonNull=arr=>{for(let i=11;i>=0;i--)if(arr[i]!==null)return arr[i];return 0;};
@@ -8906,10 +8912,11 @@ function waShowAnalytics(){
   const patriAtual=lastNonNull(patriM);
   const patriInicio=firstNonNull(patriM);
   const patriDelta=patriInicio?((patriAtual-patriInicio)/patriInicio*100):0;
-  const recTotal=sumArr(recM.slice(0,curM+1));
-  const despTotal=sumArr(despM.slice(0,curM+1));
-  const recMedia=recTotal/(curM+1);
-  const despMedia=despTotal/(curM+1);
+  const recTotal=sumArr(recM);
+  const despTotal=sumArr(despM);
+  const _mesesComDados=periodMonths.filter(p=>isPast(p)).length||1;
+  const recMedia=recTotal/_mesesComDados;
+  const despMedia=despTotal/_mesesComDados;
   const invAtual=lastNonNull(invM);
   const ccAtual=lastNonNull(ccM);
 
@@ -9025,13 +9032,13 @@ function waShowAnalytics(){
         ${kpi('#22c55e','Patrimônio atual',fmtK(patriAtual),patriDelta>=0?`▲ +${patriDelta.toFixed(1)}% no ano`:`▼ ${patriDelta.toFixed(1)}% no ano`,patriDelta>=0?'up':'dn')}
         ${kpi('#3b82f6','Investimentos',fmtK(invAtual),'Posição atual')}
         ${kpi('#14b8a6','Conta corrente',fmtK(ccAtual),'Todas instituições')}
-        ${kpi('#22c55e','Acumulado '+year,fmtK(acumM[curM]),(acumM[curM]>=0?'▲ positivo':'▼ negativo'),acumM[curM]>=0?'up':'dn')}
+        ${kpi('#22c55e','Acumulado '+year,fmtK(acumM[n-1]),(acumM[n-1]>=0?'▲ positivo':'▼ negativo'),acumM[n-1]>=0?'up':'dn')}
       </div>`;
       h+=`<div class="an-grid c1"><div class="an-card">
         <div class="an-card-title">Evolução do patrimônio</div>
         <div class="an-card-sub">Investimentos + CC + Bens · mês a mês · ${year}</div>
         <svg width="100%" height="200" viewBox="0 0 860 200" preserveAspectRatio="none">
-          ${svgLine([{v:patriM,c:'#22c55e'},{v:invM,c:'#3b82f6'},{v:ccM,c:'#14b8a6'},{v:bensM,c:'#8b5cf6'}],MESES,200,860,34,true)}
+          ${svgLine([{v:patriM,c:'#22c55e'},{v:invM,c:'#3b82f6'},{v:ccM,c:'#14b8a6'},{v:bensM,c:'#8b5cf6'}],MESES_LABELS,200,860,34,true)}
         </svg>
         <div class="an-legend">
           <div class="an-leg"><div class="an-leg-dot" style="background:#22c55e"></div>Total</div>
@@ -9055,7 +9062,7 @@ function waShowAnalytics(){
           <div class="an-card-title">Receita vs Despesa</div>
           <div class="an-card-sub">Por mês · ${year}</div>
           <svg width="100%" height="200" viewBox="0 0 520 200" preserveAspectRatio="none">
-            ${svgBars(recM,despM,MESES,200,520,34)}
+            ${svgBars(recM,despM,MESES_LABELS,200,520,34)}
           </svg>
           <div class="an-legend">
             <div class="an-leg"><div class="an-leg-dot" style="background:#22c55e"></div>Receita</div>
@@ -9066,7 +9073,7 @@ function waShowAnalytics(){
           <div class="an-card-title">Saldo acumulado</div>
           <div class="an-card-sub">Evolução mês a mês · ${year}</div>
           <svg width="100%" height="200" viewBox="0 0 420 200" preserveAspectRatio="none">
-            ${svgLine([{v:acumM,c:'#22c55e'}],MESES,200,420,34,true)}
+            ${svgLine([{v:acumM,c:'#22c55e'}],MESES_LABELS,200,420,34,true)}
           </svg>
         </div>
       </div>`;
@@ -9155,7 +9162,7 @@ function waShowAnalytics(){
           <div class="an-card-title">Evolução dos investimentos</div>
           <div class="an-card-sub">Total investido mês a mês · ${year}</div>
           <svg width="100%" height="200" viewBox="0 0 520 200" preserveAspectRatio="none">
-            ${svgLine([{v:invM,c:'#3b82f6'}],MESES,200,520,34,true)}
+            ${svgLine([{v:invM,c:'#3b82f6'}],MESES_LABELS,200,520,34,true)}
           </svg>
         </div>
         <div class="an-card">
@@ -9192,7 +9199,7 @@ function waShowAnalytics(){
           <div class="an-card-title">Evolução do total CC</div>
           <div class="an-card-sub">Agregado mês a mês · ${year}</div>
           <svg width="100%" height="200" viewBox="0 0 420 200" preserveAspectRatio="none">
-            ${svgLine([{v:ccM,c:'#14b8a6'}],MESES,200,420,34,true)}
+            ${svgLine([{v:ccM,c:'#14b8a6'}],MESES_LABELS,200,420,34,true)}
           </svg>
         </div>
       </div>`;
@@ -9212,6 +9219,13 @@ function waShowAnalytics(){
   ];
 
   let html='<div class="an-wrap">';
+  const _pills=[{id:'year',label:'Este ano'},{id:'6m',label:'Últimos 6M'},{id:'12m',label:'Últimos 12M'}];
+  html+='<div style="display:flex;gap:4px;margin-bottom:14px;">';
+  _pills.forEach(p=>{
+    const active=_period===p.id;
+    html+=`<button onclick="waShowAnalytics('${p.id}')" style="padding:5px 13px;border-radius:8px;border:1px solid var(--border);background:${active?'var(--font)':'transparent'};color:${active?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.72rem;font-weight:600;cursor:pointer;transition:all .15s;">${p.label}</button>`;
+  });
+  html+='</div>';
   html+='<div class="an-tabs">';
   tabs.forEach((t,i)=>{
     html+=`<button class="an-tab${i===0?' active':''}" onclick="anShowTab('${t.id}',this)">${t.label}</button>`;
