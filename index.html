@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#7c3aed,#0ea5e9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#ede9fe !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(237,233,254,.65) !important;}
-  #splash .splash-version{color:rgba(237,233,254,.35) !important;}
-  #splash .splash-btn{background:#ede9fe !important;color:#7c3aed !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ede9fe !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#92400E,#064E3B);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FEF3C7 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(254,243,199,.65) !important;}
+  #splash .splash-version{color:rgba(254,243,199,.35) !important;}
+  #splash .splash-btn{background:#FEF3C7 !important;color:#92400E !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FEF3C7 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.01';
+const APP_VERSION='17.02';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8774,10 +8774,42 @@ function waShowAnalytics(period){
   const curYear=now.getFullYear();
   const curM=now.getMonth();
 
+  // ── Background preload: load previous year silently on first open ──
+  const prevYear=curYear-1;
+  if(!window._anPrevYearLoaded){
+    window._anPrevYearLoaded=true;
+    setTimeout(async()=>{
+      try{
+        if(!syncYears.includes(prevYear)){
+          const origYears=syncYears.slice();
+          syncYears=[...origYears,prevYear];
+          await loadData();
+          syncYears=origYears.includes(prevYear)?origYears:[...origYears.filter(y=>y!==prevYear)];
+          // If user is still on analytics, refresh to show updated data
+          if(window._anPeriod){
+            // silently re-render current section if open
+            const activeTab=document.querySelector('.an-tab.active');
+            if(activeTab){
+              const activeSec=document.querySelector('.an-section.active');
+              if(activeSec&&window._anBuildSection){
+                const id=activeSec.id.replace('an-sec-','');
+                activeSec.innerHTML='';
+                window._anBuildSection(id);
+              }
+            }
+          }
+        }
+      }catch(e){console.warn('analytics prev year preload failed',e);}
+    }, 1500); // wait 1.5s so current year renders first
+  }
+
+
   // Build list of {year,month} for the period
   let periodMonths=[];
   if(_period==='year'){
     for(let m=0;m<12;m++) periodMonths.push({year:curYear,month:m});
+  } else if(_period==='prev'){
+    for(let m=0;m<12;m++) periodMonths.push({year:prevYear,month:m});
   } else {
     const nM=_period==='6m'?6:12;
     for(let i=nM-1;i>=0;i--){
@@ -8789,7 +8821,7 @@ function waShowAnalytics(period){
   const year=curYear;
   const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const MESES_LABELS=periodMonths.map(({year:y,month:m})=>
-    _period==='year'?MESES[m]:MESES[m]+(_period==='12m'?'/'+(y%100):'')
+    (_period==='year'||_period==='prev')?MESES[m]:MESES[m]+(_period==='12m'?'/'+(y%100):'')
   );
   const user=currentUser||'ALE';
 
@@ -8804,39 +8836,39 @@ function waShowAnalytics(period){
       .an-tab{padding:9px 16px;border:none;background:transparent;color:var(--muted);
         font-family:var(--font-body);font-size:.76rem;font-weight:600;cursor:pointer;
         white-space:nowrap;border-bottom:2px solid transparent;transition:all .15s;}
-      .an-tab.active{color:var(--font);border-bottom-color:var(--font);}
+      .an-tab.active{color:var(--font);border-bottom-color:var(--font);font-weight:700;}
       .an-tab:hover:not(.active){color:rgba(26,26,26,.7);}
       .an-section{display:none;} .an-section.active{display:block;}
       .an-kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px;}
       .an-kpi{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;position:relative;overflow:hidden;}
       .an-kpi-accent{position:absolute;top:0;left:0;right:0;height:3px;border-radius:14px 14px 0 0;}
-      .an-kpi-lbl{font-size:.63rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px;margin-top:3px;}
-      .an-kpi-val{font-family:var(--font-display);font-size:1.35rem;line-height:1;color:var(--font);margin-bottom:5px;}
-      .an-kpi-delta{font-size:.68rem;font-weight:500;color:var(--muted);}
-      .an-kpi-delta.up{color:#22c55e;} .an-kpi-delta.dn{color:#ef4444;}
+      .an-kpi-lbl{font-size:.62rem;font-weight:700;color:rgba(26,26,26,.55);text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px;margin-top:3px;}
+      .an-kpi-val{font-family:var(--font-display);font-size:1.45rem;line-height:1;color:var(--font);margin-bottom:5px;letter-spacing:-.5px;}
+      .an-kpi-delta{font-size:.7rem;font-weight:600;color:rgba(26,26,26,.55);}
+      .an-kpi-delta.up{color:#16a34a;font-weight:700;} .an-kpi-delta.dn{color:#dc2626;font-weight:700;}
       .an-grid{display:grid;gap:12px;margin-bottom:12px;}
       .an-grid.c1{grid-template-columns:1fr;}
       .an-grid.c2{grid-template-columns:1fr 1fr;}
       .an-grid.c21{grid-template-columns:2fr 1fr;}
       .an-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 18px;}
-      .an-card-title{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;}
-      .an-card-sub{font-size:.65rem;color:var(--muted);margin-bottom:14px;opacity:.7;}
+      .an-card-title{font-size:.68rem;font-weight:700;color:rgba(26,26,26,.65);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;}
+      .an-card-sub{font-size:.65rem;font-weight:500;color:rgba(26,26,26,.45);margin-bottom:14px;}
       .an-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:11px;}
-      .an-leg{display:flex;align-items:center;gap:5px;font-size:.68rem;color:rgba(26,26,26,.6);}
+      .an-leg{display:flex;align-items:center;gap:5px;font-size:.7rem;font-weight:600;color:rgba(26,26,26,.7);}
       .an-leg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
       .an-prog-list{display:flex;flex-direction:column;gap:10px;}
       .an-prog-hdr{display:flex;justify-content:space-between;margin-bottom:4px;font-size:.72rem;}
-      .an-prog-lbl{color:rgba(26,26,26,.6);font-weight:500;}
-      .an-prog-val{color:var(--font);font-weight:600;}
-      .an-prog-pct{color:var(--muted);font-weight:400;font-size:.65rem;margin-left:4px;}
+      .an-prog-lbl{color:rgba(26,26,26,.75);font-weight:600;}
+      .an-prog-val{color:var(--font);font-weight:700;}
+      .an-prog-pct{color:rgba(26,26,26,.55);font-weight:600;font-size:.66rem;margin-left:4px;}
       .an-prog-bar{height:4px;background:var(--kp);border-radius:100px;overflow:hidden;}
       .an-prog-fill{height:100%;border-radius:100px;}
       .an-cc-list{display:flex;flex-direction:column;gap:10px;}
       .an-cc-row{display:flex;align-items:center;gap:10px;}
-      .an-cc-inst{font-size:.72rem;color:rgba(26,26,26,.6);width:100px;flex-shrink:0;font-weight:500;}
+      .an-cc-inst{font-size:.72rem;color:rgba(26,26,26,.75);width:100px;flex-shrink:0;font-weight:600;}
       .an-cc-bar{flex:1;height:5px;background:var(--kp);border-radius:100px;overflow:hidden;}
       .an-cc-fill{height:100%;border-radius:100px;}
-      .an-cc-val{font-size:.72rem;color:var(--font);font-weight:600;width:70px;text-align:right;flex-shrink:0;}
+      .an-cc-val{font-size:.74rem;color:var(--font);font-weight:700;width:70px;text-align:right;flex-shrink:0;}
       @media(max-width:900px){.an-grid.c2,.an-grid.c21{grid-template-columns:1fr;}}
     `;
     document.head.appendChild(st);
@@ -8854,7 +8886,8 @@ function waShowAnalytics(period){
   const catTotais={};
 
   const isPast=({year:y,month:m})=>{
-    if(_period!=='year')return true;
+    if(_period==='prev') return true; // ano anterior: todos os meses são passados
+    if(_period!=='year') return true; // rolling: sempre passado
     return y<curYear||(y===curYear&&m<=curM);
   };
 
@@ -8960,10 +8993,10 @@ function waShowAnalytics(period){
     for(let i=0;i<4;i++){
       const y=pad+i/3*(h-pad*2);
       s+=`<line x1="${pad}" y1="${y.toFixed(0)}" x2="${w-8}" y2="${y.toFixed(0)}" stroke="rgba(26,26,26,.05)" stroke-width="1"/>`;
-      s+=`<text x="${(pad-4).toFixed(0)}" y="${(y+4).toFixed(0)}" fill="rgba(26,26,26,.3)" font-size="8" text-anchor="end" font-family="Syne,sans-serif">${fmtK(lerp(mx,mn,i/3))}</text>`;
+      s+=`<text x="${(pad-4).toFixed(0)}" y="${(y+4).toFixed(0)}" fill="rgba(26,26,26,.55)" font-size="8" font-weight="600" text-anchor="end" font-family="Syne,sans-serif">${fmtK(lerp(mx,mn,i/3))}</text>`;
     }
     labels.forEach((l,i)=>{
-      s+=`<text x="${sx(i,n,w,pad).toFixed(0)}" y="${h-3}" fill="rgba(26,26,26,.3)" font-size="9" text-anchor="middle" font-family="Syne,sans-serif">${l}</text>`;
+      s+=`<text x="${sx(i,n,w,pad).toFixed(0)}" y="${h-3}" fill="rgba(26,26,26,.6)" font-size="9" font-weight="700" text-anchor="middle" font-family="Syne,sans-serif">${l}</text>`;
     });
     datasets.forEach(d=>{
       const pts=d.v.map((v,i)=>v!==null?[sx(i,n,w,pad),sy(v,mn,mx,h,pad)]:null);
@@ -8993,14 +9026,14 @@ function waShowAnalytics(period){
     for(let i=0;i<4;i++){
       const y=pad+i/3*(h-pad*2-14);
       s+=`<line x1="${pad}" y1="${y.toFixed(0)}" x2="${w-8}" y2="${y.toFixed(0)}" stroke="rgba(26,26,26,.05)" stroke-width="1"/>`;
-      s+=`<text x="${(pad-4).toFixed(0)}" y="${(y+4).toFixed(0)}" fill="rgba(26,26,26,.3)" font-size="8" text-anchor="end" font-family="Syne,sans-serif">${fmtK(lerp(max,0,i/3))}</text>`;
+      s+=`<text x="${(pad-4).toFixed(0)}" y="${(y+4).toFixed(0)}" fill="rgba(26,26,26,.55)" font-size="8" font-weight="600" text-anchor="end" font-family="Syne,sans-serif">${fmtK(lerp(max,0,i/3))}</text>`;
     }
     labels.forEach((l,i)=>{
       const cx=pad+(i+0.5)/n*(w-pad*2-8);
       const rh=rec[i]/max*(h-pad*2-14), dh=desp[i]/max*(h-pad*2-14);
       if(rec[i]>0)s+=`<rect x="${(cx-bw-1.5).toFixed(1)}" y="${(h-pad-14-rh).toFixed(1)}" width="${bw.toFixed(1)}" height="${rh.toFixed(1)}" fill="#22c55e" rx="2" opacity=".75"/>`;
       if(desp[i]>0)s+=`<rect x="${(cx+1.5).toFixed(1)}" y="${(h-pad-14-dh).toFixed(1)}" width="${bw.toFixed(1)}" height="${dh.toFixed(1)}" fill="#ef4444" rx="2" opacity=".75"/>`;
-      s+=`<text x="${cx.toFixed(0)}" y="${h-2}" fill="rgba(26,26,26,.3)" font-size="9" text-anchor="middle" font-family="Syne,sans-serif">${l}</text>`;
+      s+=`<text x="${cx.toFixed(0)}" y="${h-2}" fill="rgba(26,26,26,.6)" font-size="9" font-weight="700" text-anchor="middle" font-family="Syne,sans-serif">${l}</text>`;
     });
     return s;
   }
@@ -9018,13 +9051,13 @@ function waShowAnalytics(period){
       s+=`<path d="M${x1.toFixed(1)},${y1.toFixed(1)} A${r},${r} 0 ${lg},1 ${x2.toFixed(1)},${y2.toFixed(1)} L${x3.toFixed(1)},${y3.toFixed(1)} A${r2},${r2} 0 ${lg},0 ${x4.toFixed(1)},${y4.toFixed(1)} Z" fill="${it.c}" opacity=".85"/>`;
       angle+=sl;
     });
-    s+=`<text x="${cx}" y="${cy-5}" fill="#1a1a1a" font-size="12" text-anchor="middle" font-weight="700" font-family="DM Serif Display,serif">${fmtK(total)}</text>`;
-    s+=`<text x="${cx}" y="${cy+9}" fill="rgba(26,26,26,.4)" font-size="8" text-anchor="middle" font-family="Syne,sans-serif">total</text>`;
+    s+=`<text x="${cx}" y="${cy-5}" fill="#1a1a1a" font-size="14" text-anchor="middle" font-weight="700" font-family="DM Serif Display,serif">${fmtK(total)}</text>`;
+    s+=`<text x="${cx}" y="${cy+9}" fill="rgba(26,26,26,.55)" font-size="8" font-weight="600" text-anchor="middle" font-family="Syne,sans-serif">total</text>`;
     items.forEach((it,i)=>{
       const ly=cy*2+18+i*17;
       s+=`<rect x="8" y="${ly-7}" width="7" height="7" rx="2" fill="${it.c}"/>`;
-      s+=`<text x="20" y="${ly}" fill="rgba(26,26,26,.6)" font-size="8" font-family="Syne,sans-serif">${it.n}</text>`;
-      s+=`<text x="${cx*2-8}" y="${ly}" fill="#1a1a1a" font-size="8" text-anchor="end" font-weight="600" font-family="Syne,sans-serif">${Math.round(it.v/total*100)}%</text>`;
+      s+=`<text x="20" y="${ly}" fill="rgba(26,26,26,.75)" font-size="8" font-weight="600" font-family="Syne,sans-serif">${it.n}</text>`;
+      s+=`<text x="${cx*2-8}" y="${ly}" fill="#1a1a1a" font-size="9" text-anchor="end" font-weight="700" font-family="Syne,sans-serif">${Math.round(it.v/total*100)}%</text>`;
     });
     return s;
   }
@@ -9235,7 +9268,12 @@ function waShowAnalytics(period){
   ];
 
   let html='<div class="an-wrap">';
-  const _pills=[{id:'year',label:'Este ano'},{id:'6m',label:'Últimos 6M'},{id:'12m',label:'Últimos 12M'}];
+  const _pills=[
+    {id:'year',label:'Este ano'},
+    {id:'prev',label:String(prevYear)},
+    {id:'6m',label:'Últimos 6M'},
+    {id:'12m',label:'Últimos 12M'},
+  ];
   html+='<div style="display:flex;gap:4px;margin-bottom:14px;">';
   _pills.forEach(p=>{
     const active=_period===p.id;
