@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#14532D,#B45309);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F0FDF4 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(240,253,244,.65) !important;}
-  #splash .splash-version{color:rgba(240,253,244,.35) !important;}
-  #splash .splash-btn{background:#F0FDF4 !important;color:#14532D !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F0FDF4 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1E3A8A,#65A30D);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#EFF6FF !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(239,246,255,.65) !important;}
+  #splash .splash-version{color:rgba(239,246,255,.35) !important;}
+  #splash .splash-btn{background:#EFF6FF !important;color:#1E3A8A !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EFF6FF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2056,7 +2056,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='16.09';
+const APP_VERSION='16.10';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8524,10 +8524,16 @@ function waDashBensRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTo
   h+='<td style="width:8px;background:#D0D0D0;border-left:3px solid #999;padding:0;"></td>';
   if(showTotals){const tb=bens.reduce((s,b)=>{const v=b.log&&b.log.length?b.log[b.log.length-1].value:0;return s+(v||0);},0);h+='<td colspan="6" style="width:330px;min-width:330px;max-width:330px;'+colStyle+'background:#F3E5F5;color:#4A148C;font-weight:700;border-left:3px solid #6A1B9A;">'+fmtI(tb)+'</td>';}
   h+='</tr>';
-  // patrimônio = investimentos + bens
+  // patrimônio = CC + investimentos + bens (v16.10)
   const bensTotal=bens.reduce((s,b)=>{const v=b.log&&b.log.length?b.log[b.log.length-1].value:0;return s+(v||0);},0);
   const invTotal=typeof getTotalGeral==='function'?getTotalGeral():0;
-  const patriTotal=bensTotal+invTotal;
+  // CC total: último saldo registrado de cada instituição
+  const ccTotal=instituicoes.reduce((s,inst)=>{
+    let last=null;
+    for(let m=11;m>=0;m--){const v=getCcSaldoMes(inst.name,dashYear,m);if(v!==null){last=v;break;}}
+    return s+(last||0);
+  },0);
+  const patriTotal=ccTotal+bensTotal+invTotal;
   h+='<tr><td colspan="'+totalCols+'" style="padding:0;height:6px;background:transparent;border:none;"></td></tr>';
   h+='<tr style="border-top:2px solid #263238;">';
   h+='<td style="position:sticky;left:0;z-index:3;background:#1C313A;color:#A5D6A7;font-size:8px;font-weight:700;padding:5px 8px;box-shadow:2px 0 4px rgba(0,0,0,.15);">Patrimônio Total</td>';
@@ -8535,7 +8541,8 @@ function waDashBensRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTo
     const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
     const invM=(isPast||isCur)?instituicoes.reduce((s,inst)=>s+getInstAtivos(inst).filter(a=>!a.encerrado).reduce((ss,a)=>{const v=getAtivoSaldoMes(a,m,dashYear);return ss+(v||0);},0),0):0;
     const bensM=(isPast||isCur)?bens.reduce((s,b)=>{const v=getBensSaldoMes(b,dashYear,m);return s+(v||0);},0):0;
-    const pM=(isPast||isCur)?invM+bensM:null;
+    const ccM=(isPast||isCur)?instituicoes.reduce((s,inst)=>{const v=getCcSaldoMes(inst.name,dashYear,m);return s+(v||0);},0):0;
+    const pM=(isPast||isCur)?ccM+invM+bensM:null;
     h+='<td colspan="'+colsPerMonth(m)+'" style="'+colStyle+'background:#1C313A;color:#A5D6A7;font-weight:700;">'+(pM!==null?fmtI(pM):'')+'</td>';
   });
   h+='<td style="width:8px;background:#D0D0D0;border-left:3px solid #999;padding:0;"></td>';
