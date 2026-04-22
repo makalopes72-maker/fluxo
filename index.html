@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1e3a5f,#e85d4a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#EFF6FF !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(239,246,255,.65) !important;}
-  #splash .splash-version{color:rgba(239,246,255,.35) !important;}
-  #splash .splash-btn{background:#EFF6FF !important;color:#1e3a5f !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EFF6FF !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1e293b,#d97706);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FEF9C3 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(254,249,195,.65) !important;}
+  #splash .splash-version{color:rgba(254,249,195,.35) !important;}
+  #splash .splash-btn{background:#FEF9C3 !important;color:#1e293b !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FEF9C3 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.03';
+const APP_VERSION='17.04';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8780,55 +8780,59 @@ function waShowGraficos(months){
   window._gfMonths=_months;
 
   const now=new Date();
-  const curYear=now.getFullYear();
-  const curM=now.getMonth();
   const receitaTipos=['Receita','Investimentos'];
 
-  // Build list of past months
-  const periodMonths=[];
-  for(let i=_months-1;i>=0;i--){
-    const d=new Date(curYear,curM-i,1);
-    periodMonths.push({year:d.getFullYear(),month:d.getMonth()});
+  // ── Build daily cumulative saldo ──
+  // Start date: _months months ago from today
+  const startDate=new Date(now.getFullYear(),now.getMonth()-_months,1);
+  const endDate=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+
+  // Collect all transactions in range, keyed by date string YYYY-MM-DD
+  const byDay={};
+  allData.forEach(t=>{
+    const d=parseDate(t.date);
+    if(!d||d<startDate||d>endDate)return;
+    const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    if(!byDay[key])byDay[key]=0;
+    const isRec=receitaTipos.includes(t.tipo||t.cat||'');
+    if(t.type==='entrada'&&isRec) byDay[key]+=t.value;
+    else if(t.type==='saída') byDay[key]-=t.value;
+  });
+
+  // Generate all days in range
+  const days=[],saldos=[],labels=[];
+  const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  let acum=0;
+  const cur=new Date(startDate);
+  while(cur<=endDate){
+    const key=cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'-'+String(cur.getDate()).padStart(2,'0');
+    acum+=(byDay[key]||0);
+    days.push(new Date(cur));
+    saldos.push(acum);
+    // Label: show on 1st of each month
+    if(cur.getDate()===1){
+      const lbl=MESES[cur.getMonth()]+(_months>12?"'"+(cur.getFullYear()%100):'');
+      labels.push({idx:days.length-1,lbl});
+    }
+    cur.setDate(cur.getDate()+1);
   }
 
-  // Compute saldo (receita - despesa) per month
-  const saldoM=periodMonths.map(({year:y,month:m})=>{
-    let rec=0,desp=0;
-    allData.forEach(t=>{
-      const d=parseDate(t.date);if(!d)return;
-      if(d.getFullYear()!==y||d.getMonth()!==m)return;
-      const isRec=receitaTipos.includes(t.tipo||t.cat||'');
-      if(t.type==='entrada'&&isRec) rec+=t.value;
-      else if(t.type==='saída') desp+=t.value;
-    });
-    return rec-desp;
-  });
+  const n=days.length;
 
-  const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  const labels=periodMonths.map(({year:y,month:m})=>{
-    const lbl=MESES[m];
-    // show year suffix when crossing year boundary
-    const prevIdx=periodMonths.indexOf({year:y,month:m});
-    return (m===0||periodMonths.findIndex(p=>p.year===y&&p.month===m)===0)?lbl+"'"+(y%100):lbl;
-  });
-
-  // ── CSS (inject once) ──
+  // ── CSS ──
   if(!document.getElementById('gf-style')){
-    const st=document.createElement('style');
-    st.id='gf-style';
+    const st=document.createElement('style');st.id='gf-style';
     st.textContent=`
       .gf-wrap{padding:16px 20px;overflow-y:auto;height:100%;}
-      .gf-period-row{display:flex;gap:4px;margin-bottom:20px;flex-wrap:wrap;}
+      .gf-period-row{display:flex;gap:4px;margin-bottom:18px;flex-wrap:wrap;}
       .gf-pill{padding:5px 13px;border-radius:8px;border:1px solid var(--border);
-        background:transparent;color:var(--muted);
-        font-family:var(--font-body);font-size:.72rem;font-weight:600;
-        cursor:pointer;transition:all .15s;}
+        background:transparent;color:var(--muted);font-family:var(--font-body);
+        font-size:.72rem;font-weight:600;cursor:pointer;transition:all .15s;}
       .gf-pill.active{background:var(--font);color:var(--bg);}
       .gf-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 22px;margin-bottom:16px;}
-      .gf-card-title{font-size:.78rem;font-weight:700;color:rgba(26,26,26,.7);
-        text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;}
-      .gf-card-sub{font-size:.7rem;color:rgba(26,26,26,.45);font-weight:500;margin-bottom:18px;}
-      .gf-legend{display:flex;gap:14px;margin-top:14px;flex-wrap:wrap;}
+      .gf-card-title{font-size:.78rem;font-weight:700;color:rgba(26,26,26,.7);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;}
+      .gf-card-sub{font-size:.7rem;color:rgba(26,26,26,.45);font-weight:500;margin-bottom:16px;}
+      .gf-legend{display:flex;gap:14px;margin-top:12px;flex-wrap:wrap;}
       .gf-leg{display:flex;align-items:center;gap:6px;font-size:.72rem;font-weight:600;color:rgba(26,26,26,.7);}
       .gf-leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
       .gf-stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px;}
@@ -8840,153 +8844,117 @@ function waShowGraficos(months){
     document.head.appendChild(st);
   }
 
-  // ── SVG chart builder ──
-  function buildBalancoSVG(saldos,lbls){
-    const W=900,H=260,padL=58,padR=16,padT=24,padB=32;
-    const n=saldos.length;
-    if(n<2)return'<text x="50%" y="50%" text-anchor="middle" fill="rgba(26,26,26,.3)" font-size="13" font-family="Syne,sans-serif">Sem dados suficientes</text>';
-
-    const maxV=Math.max(...saldos.map(Math.abs),1)*1.18;
+  // ── SVG builder ──
+  function buildSVG(){
+    const W=900,H=280,padL=62,padR=16,padT=24,padB=36;
     const chartW=W-padL-padR, chartH=H-padT-padB;
-    const zeroY=padT+chartH/2; // zero line always at center
+    if(n<2)return'<text x="50%" y="50%" text-anchor="middle" fill="rgba(26,26,26,.3)" font-size="13" font-family="Syne,sans-serif">Sem dados</text>';
 
-    // scale: +maxV → padT, -maxV → padT+chartH
-    const sy=v=>padT+chartH/2 - (v/maxV)*(chartH/2);
+    const maxV=Math.max(...saldos.map(Math.abs),1)*1.15;
+    const zeroY=padT+chartH/2;
+    const sy=v=>padT+chartH/2-(v/maxV)*(chartH/2);
     const sx=i=>padL+i/(n-1)*chartW;
+
+    const fmtV=v=>{const a=Math.abs(v);const s=v<0?'-':'';return s+'R$'+(a>=1000?(a/1000).toFixed(a<10000?1:0)+'k':Math.round(a));};
 
     let s='';
 
-    // ── grid lines ──
+    // grid
     [0.5,1].forEach(f=>{
-      const yP=sy(maxV*f), yN=sy(-maxV*f);
-      const val=maxV*f;
-      const fmtV=v=>{const a=Math.abs(v);return a>=1000?'R$'+(v/1000).toFixed(0)+'k':'R$'+Math.round(v);}
-      s+=`<line x1="${padL}" y1="${yP.toFixed(1)}" x2="${W-padR}" y2="${yP.toFixed(1)}" stroke="rgba(26,26,26,.06)" stroke-width="1" stroke-dasharray="4,3"/>`;
-      s+=`<line x1="${padL}" y1="${yN.toFixed(1)}" x2="${W-padR}" y2="${yN.toFixed(1)}" stroke="rgba(26,26,26,.06)" stroke-width="1" stroke-dasharray="4,3"/>`;
-      s+=`<text x="${padL-6}" y="${(yP+4).toFixed(1)}" fill="rgba(26,26,26,.5)" font-size="9" font-weight="600" text-anchor="end" font-family="Syne,sans-serif">${fmtV(val)}</text>`;
-      s+=`<text x="${padL-6}" y="${(yN+4).toFixed(1)}" fill="rgba(26,26,26,.5)" font-size="9" font-weight="600" text-anchor="end" font-family="Syne,sans-serif">${fmtV(-val)}</text>`;
+      const yP=sy(maxV*f),yN=sy(-maxV*f);
+      s+=`<line x1="${padL}" y1="${yP.toFixed(1)}" x2="${W-padR}" y2="${yP.toFixed(1)}" stroke="rgba(26,26,26,.05)" stroke-width="1" stroke-dasharray="3,4"/>`;
+      s+=`<line x1="${padL}" y1="${yN.toFixed(1)}" x2="${W-padR}" y2="${yN.toFixed(1)}" stroke="rgba(26,26,26,.05)" stroke-width="1" stroke-dasharray="3,4"/>`;
+      s+=`<text x="${padL-5}" y="${(yP+4).toFixed(1)}" fill="rgba(26,26,26,.5)" font-size="9" font-weight="600" text-anchor="end" font-family="Syne,sans-serif">${fmtV(maxV*f)}</text>`;
+      s+=`<text x="${padL-5}" y="${(yN+4).toFixed(1)}" fill="rgba(26,26,26,.5)" font-size="9" font-weight="600" text-anchor="end" font-family="Syne,sans-serif">${fmtV(-maxV*f)}</text>`;
     });
 
-    // ── zero line ──
-    s+=`<line x1="${padL}" y1="${zeroY.toFixed(1)}" x2="${W-padR}" y2="${zeroY.toFixed(1)}" stroke="rgba(26,26,26,.25)" stroke-width="1.5"/>`;
-    s+=`<text x="${padL-6}" y="${(zeroY+4).toFixed(1)}" fill="rgba(26,26,26,.55)" font-size="9" font-weight="700" text-anchor="end" font-family="Syne,sans-serif">R$0</text>`;
+    // zero line
+    s+=`<line x1="${padL}" y1="${zeroY.toFixed(1)}" x2="${W-padR}" y2="${zeroY.toFixed(1)}" stroke="rgba(26,26,26,.3)" stroke-width="1.5"/>`;
+    s+=`<text x="${padL-5}" y="${(zeroY+4).toFixed(1)}" fill="rgba(26,26,26,.6)" font-size="9" font-weight="700" text-anchor="end" font-family="Syne,sans-serif">R$0</text>`;
 
-    // ── build path points ──
+    // line path
     const pts=saldos.map((v,i)=>[sx(i),sy(v)]);
-    const linePath=pts.map((p,i)=>(i===0?`M`:`L`)+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+    const linePath=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
 
-    // ── filled area: split into positive (green) and negative (red) segments ──
-    // Use clipPath trick: one green area clipped above zero, one red below
+    // area path (closed at zero baseline)
     const areaPath=`M${pts[0][0].toFixed(1)},${zeroY.toFixed(1)} `
       +pts.map(p=>`L${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ')
-      +` L${pts[pts.length-1][0].toFixed(1)},${zeroY.toFixed(1)} Z`;
+      +` L${pts[n-1][0].toFixed(1)},${zeroY.toFixed(1)} Z`;
 
-    const uid=Math.random().toString(36).slice(2,6);
-    // clip above zero (green)
+    const uid='g'+Date.now().toString(36);
     s+=`<defs>
-      <clipPath id="clip-pos-${uid}"><rect x="${padL}" y="${padT}" width="${chartW}" height="${(zeroY-padT).toFixed(1)}"/></clipPath>
-      <clipPath id="clip-neg-${uid}"><rect x="${padL}" y="${zeroY.toFixed(1)}" width="${chartW}" height="${(padT+chartH-zeroY).toFixed(1)}"/></clipPath>
-      <linearGradient id="grad-pos-${uid}" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#16a34a" stop-opacity=".25"/>
-        <stop offset="100%" stop-color="#16a34a" stop-opacity=".02"/>
+      <clipPath id="cp-pos-${uid}"><rect x="${padL}" y="${padT}" width="${chartW}" height="${(zeroY-padT).toFixed(1)}"/></clipPath>
+      <clipPath id="cp-neg-${uid}"><rect x="${padL}" y="${zeroY.toFixed(1)}" width="${chartW}" height="${(padT+chartH-zeroY).toFixed(1)}"/></clipPath>
+      <linearGradient id="gp-${uid}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#16a34a" stop-opacity=".2"/>
+        <stop offset="100%" stop-color="#16a34a" stop-opacity=".01"/>
       </linearGradient>
-      <linearGradient id="grad-neg-${uid}" x1="0" y1="1" x2="0" y2="0">
-        <stop offset="0%" stop-color="#dc2626" stop-opacity=".22"/>
-        <stop offset="100%" stop-color="#dc2626" stop-opacity=".02"/>
+      <linearGradient id="gn-${uid}" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0%" stop-color="#dc2626" stop-opacity=".18"/>
+        <stop offset="100%" stop-color="#dc2626" stop-opacity=".01"/>
       </linearGradient>
     </defs>`;
 
-    // green fill above zero
-    s+=`<path d="${areaPath}" fill="url(#grad-pos-${uid})" clip-path="url(#clip-pos-${uid})"/>`;
-    // red fill below zero
-    s+=`<path d="${areaPath}" fill="url(#grad-neg-${uid})" clip-path="url(#clip-neg-${uid})"/>`;
+    s+=`<path d="${areaPath}" fill="url(#gp-${uid})" clip-path="url(#cp-pos-${uid})"/>`;
+    s+=`<path d="${areaPath}" fill="url(#gn-${uid})" clip-path="url(#cp-neg-${uid})"/>`;
+    s+=`<path d="${linePath}" fill="none" stroke="#16a34a" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" clip-path="url(#cp-pos-${uid})"/>`;
+    s+=`<path d="${linePath}" fill="none" stroke="#dc2626" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" clip-path="url(#cp-neg-${uid})"/>`;
 
-    // ── line: green above zero, red below — use same clip trick ──
-    s+=`<path d="${linePath}" fill="none" stroke="#16a34a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" clip-path="url(#clip-pos-${uid})"/>`;
-    s+=`<path d="${linePath}" fill="none" stroke="#dc2626" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" clip-path="url(#clip-neg-${uid})"/>`;
-
-    // ── dots ──
-    pts.forEach(([x,y],i)=>{
-      const v=saldos[i];
-      const c=v>=0?'#16a34a':'#dc2626';
-      s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${n<=12?3.5:2.5}" fill="${c}" stroke="${c}" stroke-width="1"/>`;
+    // month labels on x-axis
+    labels.forEach(({idx,lbl})=>{
+      const x=sx(idx);
+      s+=`<line x1="${x.toFixed(1)}" y1="${(padT+chartH).toFixed(1)}" x2="${x.toFixed(1)}" y2="${(padT+chartH+4).toFixed(1)}" stroke="rgba(26,26,26,.2)" stroke-width="1"/>`;
+      s+=`<text x="${x.toFixed(1)}" y="${H-4}" fill="rgba(26,26,26,.65)" font-size="9" font-weight="700" text-anchor="middle" font-family="Syne,sans-serif">${lbl}</text>`;
     });
 
-    // ── x labels (show every Nth to avoid crowding) ──
-    const step=n<=6?1:n<=12?1:n<=18?2:n<=24?2:3;
-    lbls.forEach((l,i)=>{
-      if(i%step!==0&&i!==n-1)return;
-      s+=`<text x="${sx(i).toFixed(1)}" y="${H-4}" fill="rgba(26,26,26,.6)" font-size="${n>24?8:9}" font-weight="700" text-anchor="middle" font-family="Syne,sans-serif">${l}</text>`;
-    });
+    // last value callout
+    const lastX=sx(n-1),lastY=sy(saldos[n-1]);
+    const lastC=saldos[n-1]>=0?'#16a34a':'#dc2626';
+    s+=`<circle cx="${lastX.toFixed(1)}" cy="${lastY.toFixed(1)}" r="4" fill="${lastC}" stroke="white" stroke-width="1.5"/>`;
 
     return s;
   }
 
   // ── Stats ──
-  const positivos=saldoM.filter(v=>v>0);
-  const negativos=saldoM.filter(v=>v<0);
-  const totalSaldo=saldoM.reduce((s,v)=>s+v,0);
-  const melhor=Math.max(...saldoM);
-  const pior=Math.min(...saldoM);
-  const fmtK=n=>{const v=Math.abs(n);const s=n<0?'-':'';return s+'R$ '+(v>=1000?(v/1000).toFixed(v%1000<100?0:1)+'k':Math.round(v).toLocaleString('pt-BR'));};
+  const fmtK=n=>{const v=Math.abs(n);const sg=n<0?'-':'';return sg+'R$ '+(v>=1000?(v/1000).toFixed(1)+'k':Math.round(v).toLocaleString('pt-BR'));};
+  const atualSaldo=saldos[saldos.length-1]||0;
+  const maxSaldo=Math.max(...saldos);
+  const minSaldo=Math.min(...saldos);
+  const diasPos=saldos.filter(v=>v>0).length;
+  const diasNeg=saldos.filter(v=>v<0).length;
 
-  // ── Period pills ──
-  const PILLS=[
-    {v:3,l:'3M'},{v:6,l:'6M'},{v:12,l:'12M'},
-    {v:18,l:'18M'},{v:24,l:'24M'},{v:36,l:'36M'},
-  ];
+  const PILLS=[{v:3,l:'3M'},{v:6,l:'6M'},{v:12,l:'12M'},{v:18,l:'18M'},{v:24,l:'24M'},{v:36,l:'36M'}];
 
   let html='<div class="gf-wrap">';
-
-  // Period selector
   html+='<div class="gf-period-row">';
   PILLS.forEach(p=>{
-    const active=_months===p.v;
-    html+=`<button class="gf-pill${active?' active':''}" onclick="waShowGraficos(${p.v})">${p.l}</button>`;
+    html+=`<button class="gf-pill${_months===p.v?' active':''}" onclick="waShowGraficos(${p.v})">${p.l}</button>`;
   });
   html+='</div>';
 
-  // Stats row
   html+=`<div class="gf-stat-row">
-    <div class="gf-stat">
-      <div class="gf-stat-lbl">Saldo total</div>
-      <div class="gf-stat-val ${totalSaldo>=0?'pos':'neg'}">${fmtK(totalSaldo)}</div>
-    </div>
-    <div class="gf-stat">
-      <div class="gf-stat-lbl">Meses positivos</div>
-      <div class="gf-stat-val pos">${positivos.length}</div>
-    </div>
-    <div class="gf-stat">
-      <div class="gf-stat-lbl">Meses negativos</div>
-      <div class="gf-stat-val ${negativos.length>0?'neg':''}">${negativos.length}</div>
-    </div>
-    <div class="gf-stat">
-      <div class="gf-stat-lbl">Melhor mês</div>
-      <div class="gf-stat-val pos">${fmtK(melhor)}</div>
-    </div>
-    <div class="gf-stat">
-      <div class="gf-stat-lbl">Pior mês</div>
-      <div class="gf-stat-val ${pior<0?'neg':''}">${fmtK(pior)}</div>
-    </div>
+    <div class="gf-stat"><div class="gf-stat-lbl">Saldo atual</div><div class="gf-stat-val ${atualSaldo>=0?'pos':'neg'}">${fmtK(atualSaldo)}</div></div>
+    <div class="gf-stat"><div class="gf-stat-lbl">Pico positivo</div><div class="gf-stat-val pos">${fmtK(maxSaldo)}</div></div>
+    <div class="gf-stat"><div class="gf-stat-lbl">Pico negativo</div><div class="gf-stat-val ${minSaldo<0?'neg':''}">${fmtK(minSaldo)}</div></div>
+    <div class="gf-stat"><div class="gf-stat-lbl">Dias positivos</div><div class="gf-stat-val pos">${diasPos}</div></div>
+    <div class="gf-stat"><div class="gf-stat-lbl">Dias negativos</div><div class="gf-stat-val ${diasNeg>0?'neg':''}">${diasNeg}</div></div>
   </div>`;
 
-  // Chart card
   html+=`<div class="gf-card">
-    <div class="gf-card-title">Balanço mensal</div>
-    <div class="gf-card-sub">Receitas menos despesas · últimos ${_months} meses · linha cruza zero como referência</div>
-    <svg width="100%" height="260" viewBox="0 0 900 260" preserveAspectRatio="none">
-      ${buildBalancoSVG(saldoM,labels)}
+    <div class="gf-card-title">Balanço acumulado diário</div>
+    <div class="gf-card-sub">Receitas menos despesas acumuladas dia a dia · últimos ${_months} meses · zero = equilíbrio</div>
+    <svg width="100%" height="280" viewBox="0 0 900 280" preserveAspectRatio="none">
+      ${buildSVG()}
     </svg>
     <div class="gf-legend">
-      <div class="gf-leg"><div class="gf-leg-dot" style="background:#16a34a"></div>Saldo positivo</div>
-      <div class="gf-leg"><div class="gf-leg-dot" style="background:#dc2626"></div>Saldo negativo</div>
+      <div class="gf-leg"><div class="gf-leg-dot" style="background:#16a34a"></div>Acima do zero (positivo)</div>
+      <div class="gf-leg"><div class="gf-leg-dot" style="background:#dc2626"></div>Abaixo do zero (negativo)</div>
     </div>
   </div>`;
 
   html+='</div>';
   document.getElementById('wa-center-body').innerHTML=html;
 }
-
 
 function waShowAnalytics(period){
   document.getElementById('wa-center-title').textContent='Análises';
