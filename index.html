@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0f172a,#059669);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#D1FAE5 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(209,250,229,.65) !important;}
-  #splash .splash-version{color:rgba(209,250,229,.35) !important;}
-  #splash .splash-btn{background:#D1FAE5 !important;color:#0f172a !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#D1FAE5 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#7e22ce,#ea580c);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F3E8FF !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(243,232,255,.65) !important;}
+  #splash .splash-version{color:rgba(243,232,255,.35) !important;}
+  #splash .splash-btn{background:#F3E8FF !important;color:#7e22ce !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F3E8FF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.09';
+const APP_VERSION='17.10';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8825,7 +8825,8 @@ function waShowGraficos(months){
     const d=parseDate(t.date);
     if(!d||d<startDate||d>today)return;
     const tipo=t.tipo||t.cat||'';
-    if(tipo==='Investimentos'||t._isAdjust)return;
+    if(t._isAdjust)return; // skip CC adjustment entries only
+    // Investimentos: incluir como movimentação normal (transferência para/de investimentos afeta saldo)
     const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
     if(!byDay[key])byDay[key]=0;
     // For rebuilding past saldo: entradas INCREASE going forward → DECREASE going back
