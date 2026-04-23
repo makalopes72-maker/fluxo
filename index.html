@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#134e4a,#f97316);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#CCFBF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(204,251,241,.65) !important;}
-  #splash .splash-version{color:rgba(204,251,241,.35) !important;}
-  #splash .splash-btn{background:#CCFBF1 !important;color:#134e4a !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#CCFBF1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4c1d95,#0891b2);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#EDE9FE !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(237,233,254,.65) !important;}
+  #splash .splash-version{color:rgba(237,233,254,.35) !important;}
+  #splash .splash-btn{background:#EDE9FE !important;color:#4c1d95 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EDE9FE !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.05';
+const APP_VERSION='17.06';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8776,15 +8776,17 @@ function waShowGraficos(months){
   const fb=document.getElementById('wa-filter-bar');if(fb)fb.remove();
   document.getElementById('wa-center-actions').innerHTML='';
 
-  const _months=months||window._gfMonths||6;
+  const _months=months||window._gfMonths||'30d';
   window._gfMonths=_months;
 
   const now=new Date();
   const receitaTipos=['Receita','Investimentos'];
 
   // ── Build daily cumulative saldo ──
-  // Start date: _months months ago from today
-  const startDate=new Date(now.getFullYear(),now.getMonth()-(_months-1),1);
+  // '30d' = exactly 30 days back; otherwise N months back from 1st of that month
+  const startDate=_months==='30d'
+    ? new Date(now.getFullYear(),now.getMonth(),now.getDate()-29)
+    : new Date(now.getFullYear(),now.getMonth()-(_months-1),1);
   const endDate=new Date(now.getFullYear(),now.getMonth(),now.getDate());
 
   // Collect all transactions in range, keyed by date string YYYY-MM-DD
@@ -8923,7 +8925,7 @@ function waShowGraficos(months){
   const diasPos=saldos.filter(v=>v>0).length;
   const diasNeg=saldos.filter(v=>v<0).length;
 
-  const PILLS=[{v:3,l:'3M'},{v:6,l:'6M'},{v:12,l:'12M'},{v:18,l:'18M'},{v:24,l:'24M'},{v:36,l:'36M'}];
+  const PILLS=[{v:'30d',l:'30 dias'},{v:3,l:'3M'},{v:6,l:'6M'},{v:12,l:'12M'},{v:18,l:'18M'},{v:24,l:'24M'},{v:36,l:'36M'}];
 
   let html='<div class="gf-wrap">';
   html+='<div class="gf-period-row">';
@@ -8942,7 +8944,7 @@ function waShowGraficos(months){
 
   html+=`<div class="gf-card">
     <div class="gf-card-title">Balanço acumulado diário</div>
-    <div class="gf-card-sub">Receitas menos despesas acumuladas dia a dia · últimos ${_months} meses · zero = equilíbrio</div>
+    <div class="gf-card-sub">Receitas menos despesas acumuladas dia a dia · ${_months==='30d'?'últimos 30 dias':_months+' meses'} · zero = equilíbrio</div>
     <svg width="100%" height="280" viewBox="0 0 900 280" preserveAspectRatio="none">
       ${buildSVG()}
     </svg>
