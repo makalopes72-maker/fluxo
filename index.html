@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#365314,#a16207);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#ECFCCB !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(236,252,203,.65) !important;}
-  #splash .splash-version{color:rgba(236,252,203,.35) !important;}
-  #splash .splash-btn{background:#ECFCCB !important;color:#365314 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECFCCB !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1d4ed8,#db2777);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#EFF6FF !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(239,246,255,.65) !important;}
+  #splash .splash-version{color:rgba(239,246,255,.35) !important;}
+  #splash .splash-btn{background:#EFF6FF !important;color:#1d4ed8 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EFF6FF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.07';
+const APP_VERSION='17.08';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8789,30 +8789,35 @@ function waShowGraficos(months){
     : new Date(now.getFullYear(),now.getMonth()-(_months-1),1);
   const endDate=new Date(now.getFullYear(),now.getMonth(),now.getDate());
 
-  // Collect all transactions in range, keyed by date string YYYY-MM-DD
+  // Collect daily net (receitas - despesas), excluding Investimentos
+  // Only: entradas de Receita sobem, saídas descem
   const byDay={};
   allData.forEach(t=>{
     const d=parseDate(t.date);
     if(!d||d<startDate||d>endDate)return;
+    // Skip investment transactions and transfer adjustments
+    const tipo=t.tipo||t.cat||'';
+    if(tipo==='Investimentos'||t._isAdjust)return;
     const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
     if(!byDay[key])byDay[key]=0;
-    const isRec=receitaTipos.includes(t.tipo||t.cat||'');
-    if(t.type==='entrada'&&isRec) byDay[key]+=t.value;
-    else if(t.type==='saída') byDay[key]-=t.value;
+    if(t.type==='entrada') byDay[key]+=t.value;   // receita: sobe
+    else if(t.type==='saída') byDay[key]-=t.value; // despesa: desce
   });
 
-  // Generate all days in range
-  const days=[],saldos=[],labels=[];
+  // Generate all days — days array holds Date objects, deltas holds per-day values
+  const days=[],saldos=[],deltas=[],labels=[];
   const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   let acum=0;
   const cur=new Date(startDate);
   while(cur<=endDate){
     const key=cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'-'+String(cur.getDate()).padStart(2,'0');
-    acum+=(byDay[key]||0);
+    const delta=byDay[key]||0;
+    acum+=delta;
     days.push(new Date(cur));
     saldos.push(acum);
-    // Label: show on 1st of each month
-    if(cur.getDate()===1){
+    deltas.push(delta); // per-day change
+    // Label: show on 1st of each month (or first day if period starts mid-month)
+    if(cur.getDate()===1||(days.length===1&&cur.getDate()!==1)){
       const lbl=MESES[cur.getMonth()]+(_months>12?"'"+(cur.getFullYear()%100):'');
       labels.push({idx:days.length-1,lbl});
     }
@@ -8914,10 +8919,10 @@ function waShowGraficos(months){
     pts.forEach(([x,y],i)=>{
       if(i%dc.step!==0&&i!==n-1)return;
       const v=saldos[i];
-      const dv=days[i]||0; // delta for that day
+      const dv=deltas[i]||0; // per-day delta (from deltas array)
       const c=v>=0?'#16a34a':'#dc2626';
       s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${dc.r}" fill="${c}" stroke="white" stroke-width="${dc.r>2.5?1.5:1}"/>`;
-      // vertical label always above dot
+      // vertical label always above dot — only show if there was movement that day
       if(dc.showVal&&dv!==0){
         const lx=parseFloat(x.toFixed(1));
         const ly=parseFloat((y-dc.r-4).toFixed(1));
@@ -8951,7 +8956,7 @@ function waShowGraficos(months){
     s+=`<line id="gf-crosshair" x1="0" y1="${padT}" x2="0" y2="${padT+chartH}" stroke="rgba(26,26,26,.15)" stroke-width="1" stroke-dasharray="3,3" opacity="0"/>`;
 
     // store sx for crosshair positioning
-    window._gfSx=sx; window._gfPts=pts; window._gfSaldos=saldos; window._gfDays=days;
+    window._gfSx=sx; window._gfPts=pts; window._gfSaldos=saldos; window._gfDays=days; window._gfDeltas=deltas;
 
     return s;
   }
@@ -9033,7 +9038,8 @@ window.gfShowTip=function(e,i){
   tv.textContent=fmtK(v);tv.className='tv '+(v>=0?'pos':'neg');
   // delta: difference from previous day
   const prev=i>0?saldos[i-1]:0;
-  const delta=v-prev;
+  const deltas=window._gfDeltas||[];
+  const delta=deltas[i]!==undefined?deltas[i]:v-prev;
   document.getElementById('gf-tdl').textContent=delta!==0?(delta>0?'+':'')+fmtK(delta)+' no dia':'sem movimento';
   tip.style.opacity='1';
   tip.style.left=(e.clientX+14)+'px';
