@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4c1d95,#0891b2);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#EDE9FE !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(237,233,254,.65) !important;}
-  #splash .splash-version{color:rgba(237,233,254,.35) !important;}
-  #splash .splash-btn{background:#EDE9FE !important;color:#4c1d95 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EDE9FE !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#365314,#a16207);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECFCCB !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
+  #splash .splash-sub{color:rgba(236,252,203,.65) !important;}
+  #splash .splash-version{color:rgba(236,252,203,.35) !important;}
+  #splash .splash-btn{background:#ECFCCB !important;color:#365314 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECFCCB !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.06';
+const APP_VERSION='17.07';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8846,9 +8846,19 @@ function waShowGraficos(months){
     document.head.appendChild(st);
   }
 
+  // ── Density config ──
+  function getDotConfig(n){
+    if(n<=30)  return {r:4,   showVal:true,  step:1};
+    if(n<=60)  return {r:3,   showVal:false, step:2};
+    if(n<=90)  return {r:2.5, showVal:false, step:3};
+    if(n<=180) return {r:2,   showVal:false, step:7};
+    if(n<=365) return {r:1.8, showVal:false, step:14};
+    return              {r:1.5, showVal:false, step:30};
+  }
+
   // ── SVG builder ──
   function buildSVG(){
-    const W=900,H=280,padL=62,padR=16,padT=24,padB=36;
+    const W=900,H=300,padL=62,padR=16,padT=50,padB=36;
     const chartW=W-padL-padR, chartH=H-padT-padB;
     if(n<2)return'<text x="50%" y="50%" text-anchor="middle" fill="rgba(26,26,26,.3)" font-size="13" font-family="Syne,sans-serif">Sem dados</text>';
 
@@ -8856,8 +8866,7 @@ function waShowGraficos(months){
     const zeroY=padT+chartH/2;
     const sy=v=>padT+chartH/2-(v/maxV)*(chartH/2);
     const sx=i=>padL+i/(n-1)*chartW;
-
-    const fmtV=v=>{const a=Math.abs(v);const s=v<0?'-':'';return s+'R$'+(a>=1000?(a/1000).toFixed(a<10000?1:0)+'k':Math.round(a));};
+    const fmtV=v=>{const a=Math.abs(v);const sg=v<0?'-':'';return sg+'R$'+(a>=1000?(a/1000).toFixed(1)+'k':Math.round(a));};
 
     let s='';
 
@@ -8874,11 +8883,9 @@ function waShowGraficos(months){
     s+=`<line x1="${padL}" y1="${zeroY.toFixed(1)}" x2="${W-padR}" y2="${zeroY.toFixed(1)}" stroke="rgba(26,26,26,.3)" stroke-width="1.5"/>`;
     s+=`<text x="${padL-5}" y="${(zeroY+4).toFixed(1)}" fill="rgba(26,26,26,.6)" font-size="9" font-weight="700" text-anchor="end" font-family="Syne,sans-serif">R$0</text>`;
 
-    // line path
+    // paths
     const pts=saldos.map((v,i)=>[sx(i),sy(v)]);
     const linePath=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
-
-    // area path (closed at zero baseline)
     const areaPath=`M${pts[0][0].toFixed(1)},${zeroY.toFixed(1)} `
       +pts.map(p=>`L${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ')
       +` L${pts[n-1][0].toFixed(1)},${zeroY.toFixed(1)} Z`;
@@ -8888,11 +8895,11 @@ function waShowGraficos(months){
       <clipPath id="cp-pos-${uid}"><rect x="${padL}" y="${padT}" width="${chartW}" height="${(zeroY-padT).toFixed(1)}"/></clipPath>
       <clipPath id="cp-neg-${uid}"><rect x="${padL}" y="${zeroY.toFixed(1)}" width="${chartW}" height="${(padT+chartH-zeroY).toFixed(1)}"/></clipPath>
       <linearGradient id="gp-${uid}" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#16a34a" stop-opacity=".2"/>
+        <stop offset="0%" stop-color="#16a34a" stop-opacity=".18"/>
         <stop offset="100%" stop-color="#16a34a" stop-opacity=".01"/>
       </linearGradient>
       <linearGradient id="gn-${uid}" x1="0" y1="1" x2="0" y2="0">
-        <stop offset="0%" stop-color="#dc2626" stop-opacity=".18"/>
+        <stop offset="0%" stop-color="#dc2626" stop-opacity=".16"/>
         <stop offset="100%" stop-color="#dc2626" stop-opacity=".01"/>
       </linearGradient>
     </defs>`;
@@ -8902,23 +8909,55 @@ function waShowGraficos(months){
     s+=`<path d="${linePath}" fill="none" stroke="#16a34a" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" clip-path="url(#cp-pos-${uid})"/>`;
     s+=`<path d="${linePath}" fill="none" stroke="#dc2626" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" clip-path="url(#cp-neg-${uid})"/>`;
 
-    // month labels on x-axis
+    // ── Adaptive dots + vertical value labels ──
+    const dc=getDotConfig(n);
+    pts.forEach(([x,y],i)=>{
+      if(i%dc.step!==0&&i!==n-1)return;
+      const v=saldos[i];
+      const dv=days[i]||0; // delta for that day
+      const c=v>=0?'#16a34a':'#dc2626';
+      s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${dc.r}" fill="${c}" stroke="white" stroke-width="${dc.r>2.5?1.5:1}"/>`;
+      // vertical label always above dot
+      if(dc.showVal&&dv!==0){
+        const lx=parseFloat(x.toFixed(1));
+        const ly=parseFloat((y-dc.r-4).toFixed(1));
+        const col=dv>=0?'#16a34a':'#dc2626';
+        s+=`<text transform="rotate(-90,${lx},${ly})" x="${lx}" y="${ly}"
+            fill="${col}" font-size="8" font-weight="700"
+            text-anchor="start" font-family="Syne,sans-serif"
+            dominant-baseline="middle">${fmtV(dv)}</text>`;
+      }
+    });
+
+    // month labels
     labels.forEach(({idx,lbl})=>{
       const x=sx(idx);
       s+=`<line x1="${x.toFixed(1)}" y1="${(padT+chartH).toFixed(1)}" x2="${x.toFixed(1)}" y2="${(padT+chartH+4).toFixed(1)}" stroke="rgba(26,26,26,.2)" stroke-width="1"/>`;
       s+=`<text x="${x.toFixed(1)}" y="${H-4}" fill="rgba(26,26,26,.65)" font-size="9" font-weight="700" text-anchor="middle" font-family="Syne,sans-serif">${lbl}</text>`;
     });
 
-    // last value callout
-    const lastX=sx(n-1),lastY=sy(saldos[n-1]);
-    const lastC=saldos[n-1]>=0?'#16a34a':'#dc2626';
-    s+=`<circle cx="${lastX.toFixed(1)}" cy="${lastY.toFixed(1)}" r="4" fill="${lastC}" stroke="white" stroke-width="1.5"/>`;
+    // last point highlight
+    const [lx,ly]=pts[n-1];
+    const lc=saldos[n-1]>=0?'#16a34a':'#dc2626';
+    s+=`<circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="5" fill="${lc}" stroke="white" stroke-width="2"/>`;
+
+    // ── Invisible hover zones + crosshair ──
+    const bw=Math.max(chartW/n,4);
+    pts.forEach(([x,y],i)=>{
+      s+=`<rect data-i="${i}" x="${(x-bw/2).toFixed(1)}" y="${padT}" width="${bw.toFixed(1)}" height="${chartH}"
+          fill="transparent" style="cursor:crosshair"
+          onmouseenter="gfShowTip(event,${i})" onmouseleave="gfHideTip()"/>`;
+    });
+    s+=`<line id="gf-crosshair" x1="0" y1="${padT}" x2="0" y2="${padT+chartH}" stroke="rgba(26,26,26,.15)" stroke-width="1" stroke-dasharray="3,3" opacity="0"/>`;
+
+    // store sx for crosshair positioning
+    window._gfSx=sx; window._gfPts=pts; window._gfSaldos=saldos; window._gfDays=days;
 
     return s;
   }
 
   // ── Stats ──
-  const fmtK=n=>{const v=Math.abs(n);const sg=n<0?'-':'';return sg+'R$ '+(v>=1000?(v/1000).toFixed(1)+'k':Math.round(v).toLocaleString('pt-BR'));};
+  const fmtK=v=>{const a=Math.abs(v);const sg=v<0?'-':'';return sg+'R$ '+(a>=1000?(a/1000).toFixed(1)+'k':Math.round(a).toLocaleString('pt-BR'));};
   const atualSaldo=saldos[saldos.length-1]||0;
   const maxSaldo=Math.max(...saldos);
   const minSaldo=Math.min(...saldos);
@@ -8927,10 +8966,30 @@ function waShowGraficos(months){
 
   const PILLS=[{v:'30d',l:'30 dias'},{v:3,l:'3M'},{v:6,l:'6M'},{v:12,l:'12M'},{v:18,l:'18M'},{v:24,l:'24M'},{v:36,l:'36M'}];
 
+  // ── Tooltip CSS (inject once) ──
+  if(!document.getElementById('gf-tip-style')){
+    const ts=document.createElement('style');ts.id='gf-tip-style';
+    ts.textContent=`
+      #gf-tip{position:fixed;pointer-events:none;opacity:0;transition:opacity .1s;
+        background:#1a1a1a;color:#fff;border-radius:8px;padding:7px 10px;
+        font-family:var(--font-body);font-size:.72rem;font-weight:600;
+        white-space:nowrap;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.25);}
+      #gf-tip .td{font-size:.62rem;font-weight:400;color:rgba(255,255,255,.5);margin-bottom:2px;}
+      #gf-tip .tv{font-size:.82rem;}
+      #gf-tip .tv.pos{color:#4ade80;} #gf-tip .tv.neg{color:#f87171;}
+      #gf-tip .tdl{font-size:.65rem;color:rgba(255,255,255,.45);margin-top:1px;}
+    `;
+    document.head.appendChild(ts);
+    // Create tooltip element
+    const tip=document.createElement('div');tip.id='gf-tip';
+    tip.innerHTML='<div class="td" id="gf-td"></div><div class="tv" id="gf-tv"></div><div class="tdl" id="gf-tdl"></div>';
+    document.body.appendChild(tip);
+  }
+
   let html='<div class="gf-wrap">';
   html+='<div class="gf-period-row">';
   PILLS.forEach(p=>{
-    html+=`<button class="gf-pill${_months===p.v?' active':''}" onclick="waShowGraficos(${p.v})">${p.l}</button>`;
+    html+=`<button class="gf-pill${_months===p.v?' active':''}" onclick="waShowGraficos(${typeof p.v==='string'?'\''+p.v+'\'':p.v})">${p.l}</button>`;
   });
   html+='</div>';
 
@@ -8945,7 +9004,7 @@ function waShowGraficos(months){
   html+=`<div class="gf-card">
     <div class="gf-card-title">Balanço acumulado diário</div>
     <div class="gf-card-sub">Receitas menos despesas acumuladas dia a dia · ${_months==='30d'?'últimos 30 dias':_months+' meses'} · zero = equilíbrio</div>
-    <svg width="100%" height="280" viewBox="0 0 900 280" preserveAspectRatio="none">
+    <svg width="100%" height="300" viewBox="0 0 900 300" preserveAspectRatio="none">
       ${buildSVG()}
     </svg>
     <div class="gf-legend">
@@ -8957,6 +9016,41 @@ function waShowGraficos(months){
   html+='</div>';
   document.getElementById('wa-center-body').innerHTML=html;
 }
+
+// ── Tooltip handlers (global) ──────────────────────────────────────────
+window.gfShowTip=function(e,i){
+  const tip=document.getElementById('gf-tip');if(!tip)return;
+  const saldos=window._gfSaldos||[];
+  const days=window._gfDays||[];
+  const v=saldos[i];
+  const d=days[i];
+  if(v===undefined)return;
+  const fmtK=n=>{const a=Math.abs(n);const sg=n<0?'-':'';return sg+'R$ '+(a>=1000?(a/1000).toFixed(1)+'k':Math.round(a).toLocaleString('pt-BR'));};
+  const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const dateStr=d?d.getDate()+' '+MESES[d.getMonth()]+' '+d.getFullYear():'';
+  document.getElementById('gf-td').textContent=dateStr;
+  const tv=document.getElementById('gf-tv');
+  tv.textContent=fmtK(v);tv.className='tv '+(v>=0?'pos':'neg');
+  // delta: difference from previous day
+  const prev=i>0?saldos[i-1]:0;
+  const delta=v-prev;
+  document.getElementById('gf-tdl').textContent=delta!==0?(delta>0?'+':'')+fmtK(delta)+' no dia':'sem movimento';
+  tip.style.opacity='1';
+  tip.style.left=(e.clientX+14)+'px';
+  tip.style.top=(e.clientY-40)+'px';
+  // crosshair
+  const ch=document.getElementById('gf-crosshair');
+  if(ch&&window._gfSx){ch.setAttribute('x1',window._gfSx(i).toFixed(1));ch.setAttribute('x2',window._gfSx(i).toFixed(1));ch.setAttribute('opacity','1');}
+};
+window.gfHideTip=function(){
+  const tip=document.getElementById('gf-tip');if(tip)tip.style.opacity='0';
+  const ch=document.getElementById('gf-crosshair');if(ch)ch.setAttribute('opacity','0');
+};
+document.addEventListener('mousemove',e=>{
+  const tip=document.getElementById('gf-tip');
+  if(tip&&tip.style.opacity==='1'){tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-40)+'px';}
+});
+
 
 function waShowAnalytics(period){
   document.getElementById('wa-center-title').textContent='Análises';
