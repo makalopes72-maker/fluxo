@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#78350f,#1d4ed8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FEF3C7 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(254,243,199,.65) !important;}
-  #splash .splash-version{color:rgba(254,243,199,.35) !important;}
-  #splash .splash-btn{background:#FEF3C7 !important;color:#78350f !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FEF3C7 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#064e3b,#c2410c);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#D1FAE5 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(209,250,229,.65) !important;}
+  #splash .splash-version{color:rgba(209,250,229,.35) !important;}
+  #splash .splash-btn{background:#D1FAE5 !important;color:#064e3b !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#D1FAE5 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.24';
+const APP_VERSION='17.25';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8418,11 +8418,14 @@ function waDashAtivoEditCell(instIdx, ativoIdx, year, month){
     ativo.log.push({date:dateStr,value:val,note:'Atualização via Quadro'});
 
     saveInvestimentos();
-    syncInvLogToSheets(inst.name,ativo.nome,dateStr,val,'Atualização via Quadro');
 
+    // Close and refresh FIRST — before any async operations
     overlay.remove();
     waDashRender();
     toast('Saldo de '+ativo.nome+' atualizado','success');
+
+    // Sync to Sheets in background
+    try{syncInvLogToSheets(inst.name,ativo.nome,dateStr,val,'Atualização via Quadro');}catch(e){console.warn('sync fail',e);}
   };
 
   btnRow.appendChild(btnCancel);
