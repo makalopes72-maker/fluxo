@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#312e81,#b45309);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#EEF2FF !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(238,242,255,.65) !important;}
-  #splash .splash-version{color:rgba(238,242,255,.35) !important;}
-  #splash .splash-btn{background:#EEF2FF !important;color:#312e81 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EEF2FF !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#134e4a,#7c2d12);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#CCFBF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(204,251,241,.65) !important;}
+  #splash .splash-version{color:rgba(204,251,241,.35) !important;}
+  #splash .splash-btn{background:#CCFBF1 !important;color:#134e4a !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#CCFBF1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.15';
+const APP_VERSION='17.16';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8790,18 +8790,31 @@ function waShowGraficos(months, inclInvest){
     ? new Date(today.getFullYear(),today.getMonth(),today.getDate()-29)
     : new Date(today.getFullYear(),today.getMonth()-(_months-1),1);
 
+  // ── Filter helpers ──
+  const user=currentUser||'ALE';
+  const userAccts=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).map(a=>normalizeAcct(a.name));
+
   // ── Daily net flow: receitas sobem, despesas descem ──
-  // Para Investimentos: só saídas contam (transferência para investir = sai do caixa)
-  // A entrada espelhada é ignorada (não é receita real, é só registro contábil)
   const byDay={};
   allData.forEach(t=>{
     const d=parseDate(t.date);
     if(!d||d<startDate||d>today)return;
+
+    // 1. Excluir transações deletadas/marcadas como excluídas
+    if(t.deleted||t._deleted)return;
     if(t._isAdjust)return;
+
+    // 2. Filtrar apenas contas do usuário atual
+    if(userAccts.length&&!userAccts.includes(normalizeAcct(t.account)))return;
+
+    // 3. Filtro de investimentos baseado no toggle
     const tipo=t.tipo||t.cat||'';
     const isInvestimento=tipo==='Investimentos';
-    // Investimentos: só saída (dinheiro indo para investir). Entrada espelhada ignorada.
-    if(isInvestimento&&t.type==='entrada')return;
+    if(isInvestimento){
+      if(!_inclInvest)return; // excluir tudo de investimentos
+      // se incluir: conta tanto entrada quanto saída (impacto real no caixa)
+    }
+
     const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
     if(!byDay[key])byDay[key]=0;
     if(t.type==='entrada') byDay[key]+=t.value;
@@ -9037,12 +9050,16 @@ window.gfShowDayDetail=function(i){
   const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   const fmtK=n=>{const a=Math.abs(n);const sg=n<0?'-':'';return sg+'R$ '+(a>=1000?(a/1000).toFixed(1)+'k':Math.round(a).toLocaleString('pt-BR'));};
 
-  // Find transactions for this day
+  // Find transactions for this day — same filters as main chart
+  const user2=currentUser||'ALE';
+  const userAccts2=accounts.filter(a=>a.active&&(a.owner===user2||a.owner==='AMBOS')).map(a=>normalizeAcct(a.name));
   const txs=allData.filter(t=>{
     const td=parseDate(t.date);
     if(!td)return false;
+    if(t.deleted||t._deleted||t._isAdjust)return false;
+    if(userAccts2.length&&!userAccts2.includes(normalizeAcct(t.account)))return false;
     const tk=td.getFullYear()+'-'+String(td.getMonth()+1).padStart(2,'0')+'-'+String(td.getDate()).padStart(2,'0');
-    return tk===key&&!t._isAdjust;
+    return tk===key;
   }).sort((a,b)=>(b.type==='entrada'?1:-1));
 
   const delta=deltas[i]||0;
