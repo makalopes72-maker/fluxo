@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0369a1,#15803d);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F2FE !important;text-shadow:0 2px 24px rgba(0,0,0,.4);}
-  #splash .splash-sub{color:rgba(224,242,254,.65) !important;}
-  #splash .splash-version{color:rgba(224,242,254,.35) !important;}
-  #splash .splash-btn{background:#E0F2FE !important;color:#0369a1 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F2FE !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4a044e,#0891b2);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FAE8FF !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(250,232,255,.65) !important;}
+  #splash .splash-version{color:rgba(250,232,255,.35) !important;}
+  #splash .splash-btn{background:#FAE8FF !important;color:#4a044e !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FAE8FF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.22';
+const APP_VERSION='17.23';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8355,68 +8355,86 @@ function waCcCellSave(instName, year, month){
 }
 
 
-function waDashAtivoEditCell(instName, ativoNome, year, month){
-  // Find the inst and ativo
-  const inst=instituicoes.find(i=>i.name===instName);
-  if(!inst)return;
-  const ativos=getInstAtivos(inst);
-  const ativoIdx=ativos.findIndex(a=>a.nome===ativoNome);
-  if(ativoIdx<0)return;
-  const ativo=ativos[ativoIdx];
+function waDashAtivoEditCell(instIdx, ativoIdx, year, month){
+  const inst=instituicoes[instIdx];if(!inst)return;
+  const ativo=getInstAtivos(inst)[ativoIdx];if(!ativo)return;
   const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  const monthStr=MESES[month]+'/'+year;
   const curVal=getAtivoAtual(ativo);
 
-  // Small modal
+  // Remove any existing overlay
   const existing=document.getElementById('wad-inv-edit-overlay');
   if(existing)existing.remove();
 
-  const html='<div id="wad-inv-edit-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9000;display:flex;align-items:center;justify-content:center;" onclick="if(event.target===this)document.getElementById(\'wad-inv-edit-overlay\').remove();">'
-    +'<div style="background:var(--bg);border-radius:12px;padding:18px;width:280px;box-shadow:0 8px 24px rgba(0,0,0,.25);">'
-    +'<div style="font-size:.75rem;font-weight:700;color:var(--font);margin-bottom:2px;">'+ativoNome+'</div>'
-    +'<div style="font-size:.65rem;color:var(--muted);margin-bottom:12px;">'+instName+' · Saldo em '+monthStr+(curVal?' · atual: '+Math.round(curVal).toLocaleString("pt-BR"):'')+'</div>'
-    +'<div style="font-size:.6rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.08em;font-weight:600;">Novo saldo (R$)</div>'
-    +'<input id="wad-inv-edit-val" type="text" inputmode="decimal" placeholder="Ex: 32.000" value="'+(curVal?Math.round(curVal):'')
-    +'" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-size:.85rem;font-family:var(--font-display);font-weight:700;text-align:center;margin-bottom:10px;outline:none;">'
-    +'<div style="display:flex;gap:8px;">'
-    +'<button onclick="document.getElementById(\'wad-inv-edit-overlay\').remove()" style="flex:1;padding:7px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.72rem;cursor:pointer;">Cancelar</button>'
-    +'<button onclick="waDashAtivoEditSave(\''+instName.replace(/'/g,"\\'")+'\',\''+ativoNome.replace(/'/g,"\\'")+'\','+year+','+month+')" style="flex:2;padding:7px;border-radius:8px;border:none;background:var(--font);color:var(--bg);font-size:.72rem;font-weight:700;cursor:pointer;">Salvar</button>'
-    +'</div>'
-    +'</div></div>';
-  document.body.insertAdjacentHTML('beforeend',html);
-  setTimeout(()=>{const el=document.getElementById('wad-inv-edit-val');if(el){el.focus();el.select();}},50);
-}
+  // Build modal with createElement — no innerHTML escaping issues
+  const overlay=document.createElement('div');
+  overlay.id='wad-inv-edit-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9000;display:flex;align-items:center;justify-content:center;';
 
-function waDashAtivoEditSave(instName, ativoNome, year, month){
-  const valStr=(document.getElementById('wad-inv-edit-val')?.value||'').replace(/\./g,'').replace(',','.');
-  const val=parseFloat(valStr);
-  if(isNaN(val)||val<0){toast('Valor inválido','error');return;}
+  const box=document.createElement('div');
+  box.style.cssText='background:var(--bg);border-radius:12px;padding:18px;width:280px;box-shadow:0 8px 24px rgba(0,0,0,.25);';
 
-  const inst=instituicoes.find(i=>i.name===instName);
-  if(!inst){toast('Instituição não encontrada','error');return;}
-  const ativos=getInstAtivos(inst);
-  const ativoIdx=ativos.findIndex(a=>a.nome===ativoNome);
-  if(ativoIdx<0){toast('Ativo não encontrado','error');return;}
-  const ativo=ativos[ativoIdx];
+  const title=document.createElement('div');
+  title.style.cssText='font-size:.75rem;font-weight:700;color:var(--font);margin-bottom:2px;';
+  title.textContent=ativo.nome;
 
-  // Build today's date string dd/mm/yyyy
-  const now=new Date();
-  const dd=String(now.getDate()).padStart(2,'0');
-  const mm=String(now.getMonth()+1).padStart(2,'0');
-  const yyyy=now.getFullYear();
-  const dateStr=dd+'/'+mm+'/'+yyyy;
+  const sub=document.createElement('div');
+  sub.style.cssText='font-size:.65rem;color:var(--muted);margin-bottom:12px;';
+  sub.textContent=inst.name+' · '+MESES[month]+'/'+year+(curVal?' · atual: R$'+Math.round(curVal).toLocaleString('pt-BR'):'');
 
-  // Always add a new log entry (never overwrite)
-  if(!ativo.log)ativo.log=[];
-  ativo.log.push({date:dateStr,value:val,note:'Atualização via Quadro'});
+  const lbl=document.createElement('div');
+  lbl.style.cssText='font-size:.6rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.08em;font-weight:600;';
+  lbl.textContent='Novo saldo (R$)';
 
-  // Save and sync
-  saveInvestimentos();
-  syncInvLogToSheets(instName, ativoNome, dateStr, val, 'Atualização via Quadro');
+  const inp=document.createElement('input');
+  inp.id='wad-inv-edit-val';
+  inp.type='text';
+  inp.inputMode='decimal';
+  inp.placeholder='Ex: 32.000';
+  inp.value=curVal?Math.round(curVal):'';
+  inp.style.cssText='width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-size:.85rem;font-family:var(--font-display);font-weight:700;text-align:center;margin-bottom:10px;outline:none;';
 
-  document.getElementById('wad-inv-edit-overlay')?.remove();
-  waDashRender();
-  toast('Saldo de '+ativoNome+' atualizado','success');
+  const btnRow=document.createElement('div');
+  btnRow.style.cssText='display:flex;gap:8px;';
+
+  const btnCancel=document.createElement('button');
+  btnCancel.textContent='Cancelar';
+  btnCancel.style.cssText='flex:1;padding:7px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.72rem;cursor:pointer;font-family:var(--font-body);';
+
+  const btnSave=document.createElement('button');
+  btnSave.textContent='Salvar';
+  btnSave.style.cssText='flex:2;padding:7px;border-radius:8px;border:none;background:var(--font);color:var(--bg);font-size:.72rem;font-weight:700;cursor:pointer;font-family:var(--font-body);';
+
+  // Event listeners — direct references, no string eval
+  overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+  btnCancel.onclick=()=>overlay.remove();
+  btnSave.onclick=()=>{
+    const raw=(inp.value||'').replace(/\./g,'').replace(',','.');
+    const val=parseFloat(raw);
+    if(isNaN(val)||val<0){toast('Valor inválido','error');return;}
+
+    if(!ativo.log)ativo.log=[];
+    const now=new Date();
+    const dateStr=String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear();
+    ativo.log.push({date:dateStr,value:val,note:'Atualização via Quadro'});
+
+    saveInvestimentos();
+    syncInvLogToSheets(inst.name,ativo.nome,dateStr,val,'Atualização via Quadro');
+
+    overlay.remove();
+    waDashRender();
+    toast('Saldo de '+ativo.nome+' atualizado','success');
+  };
+
+  btnRow.appendChild(btnCancel);
+  btnRow.appendChild(btnSave);
+  box.appendChild(title);
+  box.appendChild(sub);
+  box.appendChild(lbl);
+  box.appendChild(inp);
+  box.appendChild(btnRow);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  setTimeout(()=>{inp.focus();inp.select();},50);
 }
 
 function waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,showTotals,totalCols){
