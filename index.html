@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1c1917,#16a34a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F5F5F4 !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
-  #splash .splash-sub{color:rgba(245,245,244,.65) !important;}
-  #splash .splash-version{color:rgba(245,245,244,.35) !important;}
-  #splash .splash-btn{background:#F5F5F4 !important;color:#1c1917 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F5F5F4 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0c0a09,#7c3aed);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F5F3FF !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
+  #splash .splash-sub{color:rgba(245,243,255,.65) !important;}
+  #splash .splash-version{color:rgba(245,243,255,.35) !important;}
+  #splash .splash-btn{background:#F5F3FF !important;color:#0c0a09 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F5F3FF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.20';
+const APP_VERSION='17.21';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -9965,16 +9965,16 @@ function waInvOpenChartModal(idx){
 
   const modal=document.createElement('div');
   modal.id='inv-chart-modal';
-  modal.style.cssText='position:fixed;inset:0;z-index:8000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);padding:5%;';
+  modal.style.cssText='position:fixed;inset:0;z-index:8000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);padding:2%;';
   modal.onclick=e=>{if(e.target===modal)modal.remove();};
 
   modal.innerHTML=`
-    <div style="background:var(--bg);border-radius:16px;width:100%;max-width:900px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.3);">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);">
+    <div style="background:var(--bg);border-radius:16px;width:100%;max-width:1200px;max-height:96vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.3);">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--border);">
         <div style="font-family:var(--font-display);font-size:1rem;color:var(--font);">${nome}</div>
         <button onclick="document.getElementById('inv-chart-modal').remove()" style="width:28px;height:28px;border:none;background:var(--kp);border-radius:50%;font-size:1rem;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;">✕</button>
       </div>
-      <div style="padding:18px 20px;overflow-y:auto;flex:1;">
+      <div style="padding:24px 28px;overflow-y:auto;flex:1;">
         ${svgLarge}
       </div>
     </div>`;
@@ -9994,7 +9994,7 @@ function waInvBuildAtivoSvgLarge(a){
   const rendSign=rend>=0?'+':'';
   const lc=rend>=0?'#059669':'#E53935';
   const fc=rend>=0?'rgba(5,150,105,.12)':'rgba(229,57,53,.12)';
-  const W=860,H=260,padL=60,padR=60,padT=20,padB=32;
+  const W=860,H=400,padL=60,padR=80,padT=24,padB=36;
   const mn=Math.min(...vals),mx=Math.max(...vals),range=mx-mn||1;
   const tMin=times[0],tMax=times[times.length-1],tRange=tMax-tMin||1;
   const xOf=t=>padL+((t-tMin)/tRange)*(W-padL-padR);
@@ -10073,7 +10073,7 @@ function waInvBuildAtivoSvgLarge(a){
   }).join('');
 
   const svgW=projV!=null?W+80:W;
-  return `<svg viewBox="0 0 ${svgW} ${H}" style="width:100%;height:260px;" preserveAspectRatio="none">
+  return `<svg viewBox="0 0 ${svgW} ${H}" style="width:100%;height:400px;" preserveAspectRatio="none">
     ${ylabels}
     <polygon points="${padL},${H-padB} ${pts2} ${(W-padR)},${H-padB}" fill="${fc}"/>
     ${vlines}
