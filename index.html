@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#064e3b,#c2410c);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#D1FAE5 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(209,250,229,.65) !important;}
-  #splash .splash-version{color:rgba(209,250,229,.35) !important;}
-  #splash .splash-btn{background:#D1FAE5 !important;color:#064e3b !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#D1FAE5 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1a2e05,#7f1d1d);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECFCCB !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
+  #splash .splash-sub{color:rgba(236,252,203,.65) !important;}
+  #splash .splash-version{color:rgba(236,252,203,.35) !important;}
+  #splash .splash-btn{background:#ECFCCB !important;color:#1a2e05 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECFCCB !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.25';
+const APP_VERSION='17.26';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3176,7 +3176,8 @@ function login(u){
   Promise.all([
     loadData().catch(()=>{}),
     loadCcMensalFromSheets().catch(()=>{}),
-    loadInvFromSheets().catch(()=>{})
+    loadInvFromSheets().catch(()=>{}),
+    loadBensFromSheets().catch(()=>{})
   ]).then(()=>{
     if(window.innerWidth>window.innerHeight) waOnLogin();
     // Atualiza o dashboard mobile após carregar tudo
@@ -5600,6 +5601,34 @@ function loadBens(){
   try{const s=localStorage.getItem('fluxo_bens_'+u);if(s)bensData[u]=JSON.parse(s)||[];}catch(e){}
   if(!bensData[u])bensData[u]=[];
 }
+async function loadBensFromSheets(){
+  try{
+    const res=await fetch(APPS_SCRIPT_URL+'?sheet='+encodeURIComponent('Bens')+'&_='+Date.now(),{cache:'no-store'});
+    const json=await res.json();
+    if(!json.ok||!json.data||json.data.length<2)return false;
+    const u=currentUser||'ALE';
+    // Reset and rebuild from Sheets
+    const newBens={};
+    json.data.slice(1).forEach(r=>{
+      const user=String(r[0]||'').trim();
+      const nome=String(r[1]||'').trim();
+      const date=String(r[2]||'').trim();
+      const value=Number(r[3])||0;
+      const note=String(r[4]||'');
+      if(!user||!nome||!date)return;
+      if(!newBens[user])newBens[user]=[];
+      let bem=newBens[user].find(b=>b.nome===nome);
+      if(!bem){bem={id:'bem_'+Date.now()+'_'+nome,nome,log:[]};newBens[user].push(bem);}
+      bem.log.push({date,value,note});
+    });
+    // Only update if we got data
+    Object.keys(newBens).forEach(user=>{
+      bensData[user]=newBens[user];
+      try{localStorage.setItem('fluxo_bens_'+user,JSON.stringify(bensData[user]));}catch(e){}
+    });
+    return true;
+  }catch(e){console.warn('loadBensFromSheets failed',e);return false;}
+}
 function saveBens(){
   const u=currentUser||'ALE';
   try{localStorage.setItem('fluxo_bens_'+u,JSON.stringify(bensData[u]||[]));}catch(e){}
@@ -6023,7 +6052,7 @@ async function pushToSheets(dataset){
       const bens=bensData[u]||[];
       const rows=[['Usuário','Nome','Data','Valor','Nota']];
       bens.forEach(b=>(b.log||[]).forEach(l=>rows.push([u,b.nome,l.date,l.value,l.note||''])));
-      await sheetsWrite(SHEETS.bens,rows);
+      await sheetsPost({action:'write',sheet:SHEETS.bens,rows});
     }
   }catch(e){console.warn('push failed silently',dataset,e);}
 }
