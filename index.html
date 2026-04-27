@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1a2e05,#7f1d1d);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#ECFCCB !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
-  #splash .splash-sub{color:rgba(236,252,203,.65) !important;}
-  #splash .splash-version{color:rgba(236,252,203,.35) !important;}
-  #splash .splash-btn{background:#ECFCCB !important;color:#1a2e05 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#ECFCCB !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0c4a6e,#6d28d9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0F2FE !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(224,242,254,.65) !important;}
+  #splash .splash-version{color:rgba(224,242,254,.35) !important;}
+  #splash .splash-btn{background:#E0F2FE !important;color:#0c4a6e !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F2FE !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.26';
+const APP_VERSION='17.27';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8928,7 +8928,10 @@ function waShowGraficos(months, inclInvest){
     // 2. Filtrar apenas contas do usuário atual
     if(userAccts.length&&!userAccts.includes(normalizeAcct(t.account)))return;
 
-    // 3. Filtro de investimentos baseado no toggle
+    // 3. Filtro de consolidação
+    if(_soloConsol&&!t.consolidated)return;
+
+    // 4. Filtro de investimentos baseado no toggle
     const tipo=t.tipo||t.cat||'';
     const isInvestimento=tipo==='Investimentos';
     if(isInvestimento){
@@ -9133,6 +9136,14 @@ function waShowGraficos(months, inclInvest){
   html+=`<button onclick="waShowGraficos(window._gfMonths,true)" style="padding:4px 12px;border-radius:7px;border:1px solid var(--border);background:${_inclInvest?'var(--font)':'transparent'};color:${_inclInvest?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.7rem;font-weight:600;cursor:pointer;">Incluir</button>`;
   html+=`<button onclick="waShowGraficos(window._gfMonths,false)" style="padding:4px 12px;border-radius:7px;border:1px solid var(--border);background:${!_inclInvest?'var(--font)':'transparent'};color:${!_inclInvest?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.7rem;font-weight:600;cursor:pointer;">Excluir</button>`;
   html+=`<span style="font-size:.66rem;color:rgba(26,26,26,.4);">${_inclInvest?'entradas e saídas incluídas':'excluídas do fluxo'}</span>`;
+  html+='</div>';
+
+  // Consol toggle
+  html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">';
+  html+='<span style="font-size:.72rem;font-weight:600;color:rgba(26,26,26,.55);">Transações:</span>';
+  html+=`<button onclick="waShowGraficos(window._gfMonths,window._gfInvest,true)" style="padding:4px 12px;border-radius:7px;border:1px solid var(--border);background:${_soloConsol?'var(--font)':'transparent'};color:${_soloConsol?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.7rem;font-weight:600;cursor:pointer;">Só consolidadas</button>`;
+  html+=`<button onclick="waShowGraficos(window._gfMonths,window._gfInvest,false)" style="padding:4px 12px;border-radius:7px;border:1px solid var(--border);background:${!_soloConsol?'var(--font)':'transparent'};color:${!_soloConsol?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.7rem;font-weight:600;cursor:pointer;">Todas</button>`;
+  html+=`<span style="font-size:.66rem;color:rgba(26,26,26,.4);">${_soloConsol?'não consolidadas excluídas':'todas incluídas'}</span>`;
   html+='</div>';
 
   html+=`<div class="gf-stat-row">
