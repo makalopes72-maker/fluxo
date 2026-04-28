@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1c1917,#dc2626);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F5F5F4 !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
-  #splash .splash-sub{color:rgba(245,245,244,.65) !important;}
-  #splash .splash-version{color:rgba(245,245,244,.35) !important;}
-  #splash .splash-btn{background:#F5F5F4 !important;color:#1c1917 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.4);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F5F5F4 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#052e16,#1e3a5f);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#DCFCE7 !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
+  #splash .splash-sub{color:rgba(220,252,231,.65) !important;}
+  #splash .splash-version{color:rgba(220,252,231,.35) !important;}
+  #splash .splash-btn{background:#DCFCE7 !important;color:#052e16 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#DCFCE7 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.28';
+const APP_VERSION='17.29';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6344,7 +6344,7 @@ function waShowCfg(){
   // tab bar
   const tabBar=document.createElement('div');
   tabBar.style.cssText='display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;';
-  const tabs=[['aparencia','🎨 Aparência'],['pastas','🗂 Pastas & Categorias']];
+  const tabs=[['aparencia','🎨 Aparência'],['pastas','🗂 Pastas & Categorias'],['contas','💳 Contas']];
   if(!window.waCfgTab)window.waCfgTab='aparencia';
   tabs.forEach(([id,lbl])=>{
     const b=document.createElement('button');
@@ -6368,10 +6368,98 @@ function waShowCfg(){
 
   if(window.waCfgTab==='aparencia'){
     content.appendChild(wrap);
+  } else if(window.waCfgTab==='contas'){
+    waCfgRenderContas(content);
   } else {
     waCfgRenderPastas(content);
   }
   body.appendChild(content);
+}
+
+function waCfgRenderContas(container){
+  container.innerHTML='';
+  const user=currentUser||'ALE';
+  const ownerGroups=[
+    {label:user, key:user},
+    {label:'Compartilhadas', key:'AMBOS'},
+    {label:'Todas', key:'ALL'},
+  ];
+
+  // Header
+  const hdr=document.createElement('div');
+  hdr.style.cssText='font-size:.72rem;color:var(--muted);margin-bottom:16px;';
+  hdr.textContent='Configure o tipo e dia de pagamento de cada conta. Usado para cálculo de saldo disponível real no gráfico.';
+  container.appendChild(hdr);
+
+  // Sections per owner
+  const sections=[{label:user,key:user},{label:'Compartilhadas',key:'AMBOS'}];
+  sections.forEach(sec=>{
+    const items=accounts.map((a,i)=>({...a,i})).filter(a=>a.owner===sec.key&&a.active);
+    if(!items.length)return;
+
+    const secDiv=document.createElement('div');
+    secDiv.style.cssText='margin-bottom:20px;';
+    const secLbl=document.createElement('div');
+    secLbl.style.cssText='font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;';
+    secLbl.textContent=sec.label;
+    secDiv.appendChild(secLbl);
+
+    items.forEach(a=>{
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;flex-wrap:wrap;';
+
+      const name=document.createElement('div');
+      name.style.cssText='font-size:.78rem;font-weight:600;color:var(--font);flex:1;min-width:120px;';
+      name.textContent=a.name;
+
+      // Kind select
+      const kindSel=document.createElement('select');
+      kindSel.style.cssText='padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.72rem;';
+      [['','Tipo...'],['cc','Conta Corrente'],['credito','Cartão Crédito'],['outro','Outro']].forEach(([val,lbl])=>{
+        const o=document.createElement('option');
+        o.value=val;o.textContent=lbl;
+        if((a.kind||'')=== val)o.selected=true;
+        kindSel.appendChild(o);
+      });
+      kindSel.onchange=()=>{setAcctKind(a.i,kindSel.value);waCfgRenderContas(container);};
+
+      row.appendChild(name);
+      row.appendChild(kindSel);
+
+      // Dia vencimento (só para cartão)
+      if((a.kind||'')==='credito'){
+        const diaLbl=document.createElement('span');
+        diaLbl.style.cssText='font-size:.68rem;color:var(--muted);';
+        diaLbl.textContent='Dia pag.:';
+        const diaInp=document.createElement('input');
+        diaInp.type='number';diaInp.min=1;diaInp.max=31;
+        diaInp.value=a.diaVencimento||9;
+        diaInp.style.cssText='width:56px;padding:4px 6px;border-radius:6px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.72rem;text-align:center;';
+        diaInp.onchange=()=>setAcctDiaVenc(a.i,diaInp.value);
+        row.appendChild(diaLbl);
+        row.appendChild(diaInp);
+        // CC vinculada
+        const ccLbl=document.createElement('span');
+        ccLbl.style.cssText='font-size:.68rem;color:var(--muted);';
+        ccLbl.textContent='CC vinculada:';
+        const ccSel=document.createElement('select');
+        ccSel.style.cssText='padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.72rem;';
+        const ccAccts=accounts.filter(x=>x.active&&(x.owner===user||x.owner==='AMBOS')&&(x.kind||'')==='cc');
+        const noneOpt=document.createElement('option');noneOpt.value='';noneOpt.textContent='-- nenhuma';ccSel.appendChild(noneOpt);
+        ccAccts.forEach(cc=>{
+          const o=document.createElement('option');o.value=cc.name;o.textContent=cc.name;
+          if((a.ccVinculada||'')===cc.name)o.selected=true;
+          ccSel.appendChild(o);
+        });
+        ccSel.onchange=()=>{accounts[a.i].ccVinculada=ccSel.value;saveAccounts();};
+        row.appendChild(ccLbl);
+        row.appendChild(ccSel);
+      }
+
+      secDiv.appendChild(row);
+    });
+    container.appendChild(secDiv);
+  });
 }
 
 function waCfgRenderPastas(container){
@@ -8904,7 +8992,7 @@ function waDashEditMeta(td,tipo,cat,mIdx,curVal){
 // ══════════════════════════════════════════════════════════════════════
 // GRÁFICOS — v17.03
 // ══════════════════════════════════════════════════════════════════════
-function waShowGraficos(months, inclInvest){
+function waShowGraficos(months, inclInvest, soloConsol){
   document.getElementById('wa-center-title').textContent='Gráficos';
   document.getElementById('wa-right-title').textContent='--';
   document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">--</div>';
@@ -8918,6 +9006,9 @@ function waShowGraficos(months, inclInvest){
   if(typeof inclInvest==='boolean') window._gfInvest=inclInvest;
   if(window._gfInvest===undefined) window._gfInvest=false;
   const _inclInvest=window._gfInvest;
+  if(typeof soloConsol==='boolean') window._gfConsol=soloConsol;
+  if(window._gfConsol===undefined) window._gfConsol=true;
+  const _soloConsol=window._gfConsol;
 
   const now=new Date();
   const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
