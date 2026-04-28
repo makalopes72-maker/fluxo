@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#292524,#0891b2);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F5F5F4 !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
-  #splash .splash-sub{color:rgba(245,245,244,.65) !important;}
-  #splash .splash-version{color:rgba(245,245,244,.35) !important;}
-  #splash .splash-btn{background:#F5F5F4 !important;color:#292524 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.4);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F5F5F4 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#713f12,#0f766e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FEF9C3 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(254,249,195,.65) !important;}
+  #splash .splash-version{color:rgba(254,249,195,.35) !important;}
+  #splash .splash-btn{background:#FEF9C3 !important;color:#713f12 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FEF9C3 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.30';
+const APP_VERSION='17.31';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8992,7 +8992,7 @@ function waDashEditMeta(td,tipo,cat,mIdx,curVal){
 // ══════════════════════════════════════════════════════════════════════
 // GRÁFICOS — v17.03
 // ══════════════════════════════════════════════════════════════════════
-function waShowGraficos(months, inclInvest, soloConsol){
+function waShowGraficos(months, inclInvest, soloConsol, saldoReal){
   document.getElementById('wa-center-title').textContent='Gráficos';
   document.getElementById('wa-right-title').textContent='--';
   document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">--</div>';
@@ -9009,6 +9009,9 @@ function waShowGraficos(months, inclInvest, soloConsol){
   if(typeof soloConsol==='boolean') window._gfConsol=soloConsol;
   if(window._gfConsol===undefined) window._gfConsol=true;
   const _soloConsol=window._gfConsol;
+  if(typeof saldoReal==='boolean') window._gfSaldoReal=saldoReal;
+  if(window._gfSaldoReal===undefined) window._gfSaldoReal=false;
+  const _saldoReal=window._gfSaldoReal;
 
   const now=new Date();
   const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
@@ -9021,6 +9024,41 @@ function waShowGraficos(months, inclInvest, soloConsol){
   // ── Filter helpers ──
   const user=currentUser||'ALE';
   const userAccts=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).map(a=>normalizeAcct(a.name));
+
+  // ── Saldo real: âncora no ponto de hoje ──
+  let anchorHoje=0;
+  let ccTotal=0, creditoDesp=0, cycleStartStr='';
+  if(_saldoReal){
+    // 1. Soma de todas as CCs do usuário (tipo 'cc')
+    const ccAccts=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')&&(a.kind||'')==='cc');
+    ccAccts.forEach(a=>{
+      // Pega último saldo registrado do mês atual ou anterior
+      for(let m=today.getMonth();m>=0;m--){
+        const v=getCcSaldoMes(a.name,today.getFullYear(),m);
+        if(v!==null){ccTotal+=v;break;}
+      }
+    });
+
+    // 2. Ciclo do cartão: se hoje >= dia 9, ciclo começa dia 9 deste mês; senão dia 9 do mês anterior
+    const diaCorte=9; // padrão — poderia ser configurável por cartão
+    const cycleStart=today.getDate()>=diaCorte
+      ? new Date(today.getFullYear(),today.getMonth(),diaCorte)
+      : new Date(today.getFullYear(),today.getMonth()-1,diaCorte);
+    cycleStartStr=cycleStart.getDate()+'/'+(cycleStart.getMonth()+1)+'/'+cycleStart.getFullYear();
+
+    // 3. Despesas em contas tipo 'credito' desde o início do ciclo
+    const creditoAccts=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')&&(a.kind||'')==='credito').map(a=>normalizeAcct(a.name));
+    allData.forEach(t=>{
+      if(t.type!=='saída')return;
+      if(t.deleted||t._deleted||t._isAdjust)return;
+      if(!creditoAccts.includes(normalizeAcct(t.account)))return;
+      const d=parseDate(t.date);
+      if(!d||d<cycleStart||d>today)return;
+      creditoDesp+=t.value;
+    });
+
+    anchorHoje=ccTotal-creditoDesp;
+  }
 
   // ── Daily net flow: receitas sobem, despesas descem ──
   const byDay={};
@@ -9052,23 +9090,53 @@ function waShowGraficos(months, inclInvest, soloConsol){
     else if(t.type==='saída') byDay[key]-=t.value;
   });
 
-  // ── Build series from startDate to today, starting at 0 ──
+  // ── Build series ──
   const days=[],saldos=[],deltas=[],labels=[];
   const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  let acum=0;
-  const cur=new Date(startDate);
-  while(cur<=today){
-    const key=cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'-'+String(cur.getDate()).padStart(2,'0');
-    const delta=byDay[key]||0;
-    acum+=delta;
-    days.push(new Date(cur));
-    saldos.push(acum);
-    deltas.push(delta);
-    if(cur.getDate()===1||(days.length===1&&cur.getDate()!==1)){
-      const lbl=MESES[cur.getMonth()]+(_months>12?"'"+(cur.getFullYear()%100):'');
-      labels.push({idx:days.length-1,lbl});
+
+  if(_saldoReal){
+    // Modo saldo real: âncora hoje, reconstrói para trás
+    // Primeiro calcula o fluxo total do período para ajustar o ponto inicial
+    let totalFlow=0;
+    const cur2=new Date(startDate);
+    while(cur2<=today){
+      const key=cur2.getFullYear()+'-'+String(cur2.getMonth()+1).padStart(2,'0')+'-'+String(cur2.getDate()).padStart(2,'0');
+      totalFlow+=(byDay[key]||0);
+      cur2.setDate(cur2.getDate()+1);
     }
-    cur.setDate(cur.getDate()+1);
+    // Saldo no início do período = anchorHoje - totalFlow
+    let running=anchorHoje-totalFlow;
+    const cur=new Date(startDate);
+    while(cur<=today){
+      const key=cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'-'+String(cur.getDate()).padStart(2,'0');
+      const delta=byDay[key]||0;
+      running+=delta;
+      days.push(new Date(cur));
+      saldos.push(running);
+      deltas.push(delta);
+      if(cur.getDate()===1||(days.length===1&&cur.getDate()!==1)){
+        const lbl=MESES[cur.getMonth()]+(_months>12?"'"+(cur.getFullYear()%100):'');
+        labels.push({idx:days.length-1,lbl});
+      }
+      cur.setDate(cur.getDate()+1);
+    }
+  } else {
+    // Modo fluxo puro: começa do zero
+    let acum=0;
+    const cur=new Date(startDate);
+    while(cur<=today){
+      const key=cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'-'+String(cur.getDate()).padStart(2,'0');
+      const delta=byDay[key]||0;
+      acum+=delta;
+      days.push(new Date(cur));
+      saldos.push(acum);
+      deltas.push(delta);
+      if(cur.getDate()===1||(days.length===1&&cur.getDate()!==1)){
+        const lbl=MESES[cur.getMonth()]+(_months>12?"'"+(cur.getFullYear()%100):'');
+        labels.push({idx:days.length-1,lbl});
+      }
+      cur.setDate(cur.getDate()+1);
+    }
   }
 
   const n=days.length;
@@ -9240,21 +9308,31 @@ function waShowGraficos(months, inclInvest, soloConsol){
   // ── Invest toggle ──
   html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">';
   html+='<span style="font-size:.72rem;font-weight:600;color:rgba(26,26,26,.55);">Transferências para investimentos:</span>';
-  html+=`<button onclick="waShowGraficos(window._gfMonths,true)" style="padding:4px 12px;border-radius:7px;border:1px solid var(--border);background:${_inclInvest?'var(--font)':'transparent'};color:${_inclInvest?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.7rem;font-weight:600;cursor:pointer;">Incluir</button>`;
-  html+=`<button onclick="waShowGraficos(window._gfMonths,false)" style="padding:4px 12px;border-radius:7px;border:1px solid var(--border);background:${!_inclInvest?'var(--font)':'transparent'};color:${!_inclInvest?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.7rem;font-weight:600;cursor:pointer;">Excluir</button>`;
+  html+=`<button onclick="waShowGraficos(window._gfMonths,true,window._gfConsol,window._gfSaldoReal)" style="padding:4px 12px;border-radius:7px;border:1px solid var(--border);background:${_inclInvest?'var(--font)':'transparent'};color:${_inclInvest?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.7rem;font-weight:600;cursor:pointer;">Incluir</button>`;
+  html+=`<button onclick="waShowGraficos(window._gfMonths,false,window._gfConsol,window._gfSaldoReal)" style="padding:4px 12px;border-radius:7px;border:1px solid var(--border);background:${!_inclInvest?'var(--font)':'transparent'};color:${!_inclInvest?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.7rem;font-weight:600;cursor:pointer;">Excluir</button>`;
   html+=`<span style="font-size:.66rem;color:rgba(26,26,26,.4);">${_inclInvest?'entradas e saídas incluídas':'excluídas do fluxo'}</span>`;
   html+='</div>';
 
   // Consol toggle
   html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">';
   html+='<span style="font-size:.72rem;font-weight:600;color:rgba(26,26,26,.55);">Transações:</span>';
-  html+=`<button onclick="waShowGraficos(window._gfMonths,window._gfInvest,true)" style="padding:4px 12px;border-radius:7px;border:1px solid var(--border);background:${_soloConsol?'var(--font)':'transparent'};color:${_soloConsol?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.7rem;font-weight:600;cursor:pointer;">Só consolidadas</button>`;
-  html+=`<button onclick="waShowGraficos(window._gfMonths,window._gfInvest,false)" style="padding:4px 12px;border-radius:7px;border:1px solid var(--border);background:${!_soloConsol?'var(--font)':'transparent'};color:${!_soloConsol?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.7rem;font-weight:600;cursor:pointer;">Todas</button>`;
+  html+=`<button onclick="waShowGraficos(window._gfMonths,window._gfInvest,true,window._gfSaldoReal)" style="padding:4px 12px;border-radius:7px;border:1px solid var(--border);background:${_soloConsol?'var(--font)':'transparent'};color:${_soloConsol?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.7rem;font-weight:600;cursor:pointer;">Só consolidadas</button>`;
+  html+=`<button onclick="waShowGraficos(window._gfMonths,window._gfInvest,false,window._gfSaldoReal)" style="padding:4px 12px;border-radius:7px;border:1px solid var(--border);background:${!_soloConsol?'var(--font)':'transparent'};color:${!_soloConsol?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.7rem;font-weight:600;cursor:pointer;">Todas</button>`;
   html+=`<span style="font-size:.66rem;color:rgba(26,26,26,.4);">${_soloConsol?'não consolidadas excluídas':'todas incluídas'}</span>`;
   html+='</div>';
 
+  // Saldo real toggle
+  html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">';
+  html+='<span style="font-size:.72rem;font-weight:600;color:rgba(26,26,26,.55);">Modo:</span>';
+  html+=`<button onclick="waShowGraficos(window._gfMonths,window._gfInvest,window._gfConsol,false)" style="padding:4px 12px;border-radius:7px;border:1px solid var(--border);background:${!_saldoReal?'var(--font)':'transparent'};color:${!_saldoReal?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.7rem;font-weight:600;cursor:pointer;">Fluxo puro</button>`;
+  html+=`<button onclick="waShowGraficos(window._gfMonths,window._gfInvest,window._gfConsol,true)" style="padding:4px 12px;border-radius:7px;border:1px solid var(--border);background:${_saldoReal?'var(--font)':'transparent'};color:${_saldoReal?'var(--bg)':'var(--muted)'};font-family:var(--font-body);font-size:.7rem;font-weight:600;cursor:pointer;">Saldo real</button>`;
+  html+=`<span style="font-size:.66rem;color:rgba(26,26,26,.4);">${_saldoReal?'âncora: CC − crédito desde '+cycleStartStr:'parte do zero'}</span>`;
+  html+='</div>';
+
   html+=`<div class="gf-stat-row">
-    <div class="gf-stat"><div class="gf-stat-lbl">Saldo do período</div><div class="gf-stat-val ${saldoFinal>=0?'pos':'neg'}">${fmtK(saldoFinal)}</div></div>
+    <div class="gf-stat"><div class="gf-stat-lbl">${_saldoReal?'Saldo disponível hoje':'Saldo do período'}</div><div class="gf-stat-val ${saldoFinal>=0?'pos':'neg'}">${fmtK(saldoFinal)}</div></div>
+    ${_saldoReal?`<div class="gf-stat"><div class="gf-stat-lbl">Total nas CCs</div><div class="gf-stat-val">${fmtK(ccTotal)}</div></div>`:''}
+    ${_saldoReal?`<div class="gf-stat"><div class="gf-stat-lbl">Comprometido crédito</div><div class="gf-stat-val neg">−${fmtK(creditoDesp)}</div><div style="font-size:.6rem;color:var(--muted);">desde ${cycleStartStr}</div></div>`:''}
     <div class="gf-stat"><div class="gf-stat-lbl">Total receitas</div><div class="gf-stat-val pos">${fmtK(totalRec)}</div></div>
     <div class="gf-stat"><div class="gf-stat-lbl">Total despesas</div><div class="gf-stat-val neg">${fmtK(Math.abs(totalDesp))}</div></div>
     <div class="gf-stat"><div class="gf-stat-lbl">Pico positivo</div><div class="gf-stat-val pos">${fmtK(Math.max(...saldos))}</div></div>
