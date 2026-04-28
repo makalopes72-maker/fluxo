@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#052e16,#1e3a5f);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#DCFCE7 !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
-  #splash .splash-sub{color:rgba(220,252,231,.65) !important;}
-  #splash .splash-version{color:rgba(220,252,231,.35) !important;}
-  #splash .splash-btn{background:#DCFCE7 !important;color:#052e16 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.35);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#DCFCE7 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#292524,#0891b2);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F5F5F4 !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
+  #splash .splash-sub{color:rgba(245,245,244,.65) !important;}
+  #splash .splash-version{color:rgba(245,245,244,.35) !important;}
+  #splash .splash-btn{background:#F5F5F4 !important;color:#292524 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F5F5F4 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.29';
+const APP_VERSION='17.30';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6018,11 +6018,11 @@ async function syncAll(manual=false){
 async function pushToSheets(dataset){
   try{
     if(dataset==='orc'){
-      await sheetsWrite(SHEETS.orcamento, serializeKV(orcData));
+      await sheetsPost({action:'write',sheet:SHEETS.orcamento,rows:serializeKV(orcData)});
     } else if(dataset==='insts'){
       // write global institutions list — use GET-encoded for iOS compatibility
       const rows=[['ID','Nome','Icone'],...instituicoes.map(i=>[i.id||i.name,i.name,i.icon||'🏦'])];
-      await sheetsWrite('Instituições', rows);
+      await sheetsPost({action:'write',sheet:'Instituições',rows});
     } else if(dataset==='inv'){
       // write ativos as table rows
       const user=currentUser||'ALE';
@@ -6047,22 +6047,22 @@ async function pushToSheets(dataset){
           });
         });
       });
-      await sheetsWrite(SHEETS.investimentos, ativoRows);
+      await sheetsPost({action:'write',sheet:SHEETS.investimentos,rows:ativoRows});
       // Log: append each entry individually (more reliable than bulk write)
       // First clear the log sheet, then append all entries
-      await sheetsWrite(SHEETS.invlog, logRows);
+      await sheetsPost({action:'write',sheet:SHEETS.invlog,rows:logRows});
       // write CC saldos
       const ccData=ccPorUser[user]||{};
       const ccRows=[['Usuário','Instituição','Saldo','Último Ajuste'],...Object.entries(ccData).map(([inst,v])=>[user,inst,v.saldo||0,v.lastAdj||''])];
-      await sheetsWrite('ContasCorrente', ccRows);
+      await sheetsPost({action:'write',sheet:'ContasCorrente',rows:ccRows});
     } else if(dataset==='accounts'){
-      await sheetsWrite(SHEETS.contas, serializeKV({accounts}));
+      await sheetsPost({action:'write',sheet:SHEETS.contas,rows:serializeKV({accounts})});
     } else if(dataset==='pastas'){
-      await sheetsWrite(SHEETS.pastas, serializeKV({tiposData}));
+      await sheetsPost({action:'write',sheet:SHEETS.pastas,rows:serializeKV({tiposData})});
     } else if(dataset==='prefs'){
-      await sheetsWrite(SHEETS.preferencias, serializeKV(prefsData));
+      await sheetsPost({action:'write',sheet:SHEETS.preferencias,rows:serializeKV(prefsData)});
     } else if(dataset==='kw'){
-      await sheetsWrite(SHEETS.keywords, serializeKV({keywords:keywordsData}));
+      await sheetsPost({action:'write',sheet:SHEETS.keywords,rows:serializeKV({keywords:keywordsData})});
     } else if(dataset==='bens'){
       const u=currentUser||'ALE';
       const bens=bensData[u]||[];
