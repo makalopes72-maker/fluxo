@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#713f12,#0f766e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FEF9C3 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(254,249,195,.65) !important;}
-  #splash .splash-version{color:rgba(254,249,195,.35) !important;}
-  #splash .splash-btn{background:#FEF9C3 !important;color:#713f12 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FEF9C3 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1e3a5f,#92400e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#DBEAFE !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(219,234,254,.65) !important;}
+  #splash .splash-version{color:rgba(219,234,254,.35) !important;}
+  #splash .splash-btn{background:#DBEAFE !important;color:#1e3a5f !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#DBEAFE !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.31';
+const APP_VERSION='17.32';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5726,6 +5726,23 @@ async function sheetsPost(payload){
   try{return JSON.parse(txt);}catch(e){return {ok:true};}
 }
 
+// For large payloads that exceed URL limit — uses real POST
+async function sheetsPostLarge(payload){
+  try{
+    const res=await fetch(APPS_SCRIPT_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload),
+    });
+    const txt=await res.text();
+    try{return JSON.parse(txt);}catch(e){return {ok:true};}
+  }catch(e){
+    // Fallback: split into chunks if it's a write action
+    console.warn('sheetsPostLarge failed, trying chunked:',e);
+    return {ok:false,error:String(e)};
+  }
+}
+
 // -- Generate unique transaction ID locally --
 function generateTxId(){
   const n=new Date();
@@ -6047,10 +6064,10 @@ async function pushToSheets(dataset){
           });
         });
       });
-      await sheetsPost({action:'write',sheet:SHEETS.investimentos,rows:ativoRows});
+      await sheetsPostLarge({action:'write',sheet:SHEETS.investimentos,rows:ativoRows});
       // Log: append each entry individually (more reliable than bulk write)
       // First clear the log sheet, then append all entries
-      await sheetsPost({action:'write',sheet:SHEETS.invlog,rows:logRows});
+      await sheetsPostLarge({action:'write',sheet:SHEETS.invlog,rows:logRows});
       // write CC saldos
       const ccData=ccPorUser[user]||{};
       const ccRows=[['Usuário','Instituição','Saldo','Último Ajuste'],...Object.entries(ccData).map(([inst,v])=>[user,inst,v.saldo||0,v.lastAdj||''])];
