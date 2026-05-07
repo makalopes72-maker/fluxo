@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#312e81,#065f46);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0E7FF !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(224,231,255,.65) !important;}
-  #splash .splash-version{color:rgba(224,231,255,.35) !important;}
-  #splash .splash-btn{background:#E0E7FF !important;color:#312e81 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0E7FF !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#7c2d12,#1e3a5f);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFEDD5 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(255,237,213,.65) !important;}
+  #splash .splash-version{color:rgba(255,237,213,.35) !important;}
+  #splash .splash-btn{background:#FFEDD5 !important;color:#7c2d12 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FFEDD5 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.35';
+const APP_VERSION='17.36';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2237,6 +2237,7 @@ const DEFAULT_ACCOUNTS=[
   {name:'SI Avenue',         owner:'SI',    active:true},
   {name:'SI Conta Itaú',     owner:'SI',    active:true},
   {name:'SI Crédito Itaú',   owner:'SI',    active:true},
+  {name:'SI Dinheiro',       owner:'SI',    active:true},
   {name:'SI Itaú PJ UNO',    owner:'SI',    active:true},
   {name:'SI Wise',           owner:'SI',    active:true},
   {name:'XXX Carteira',      owner:'ALE',   active:true},
@@ -2251,7 +2252,10 @@ const DEFAULT_ACCOUNTS=[
 let accounts=[...DEFAULT_ACCOUNTS];
 
 function loadAccounts(){
-  try{const s=localStorage.getItem('fluxo_accounts2');if(s){accounts=JSON.parse(s);accounts.forEach(a=>{if(!a.instituicao)a.instituicao='';});return;}}catch(e){}
+  try{const s=localStorage.getItem('fluxo_accounts2');if(s){accounts=JSON.parse(s);accounts.forEach(a=>{if(!a.instituicao)a.instituicao='';});
+    // Merge any new DEFAULT_ACCOUNTS not yet in saved list
+    DEFAULT_ACCOUNTS.forEach(def=>{if(!accounts.find(a=>a.name===def.name))accounts.push({...def,instituicao:''});});
+    return;}}catch(e){}
   accounts=DEFAULT_ACCOUNTS.map(a=>({...a,instituicao:''}));
 }
 function saveAccounts(){try{localStorage.setItem('fluxo_accounts2',JSON.stringify(accounts));}catch(e){}pushToSheets('accounts');}
@@ -6418,7 +6422,7 @@ function waCfgRenderContas(container){
   container.appendChild(hdr);
 
   // Sections per owner
-  const sections=[{label:user,key:user},{label:'Compartilhadas',key:'AMBOS'}];
+  const sections=[{label:'ALE',key:'ALE'},{label:'SI',key:'SI'},{label:'Compartilhadas',key:'AMBOS'}];
   sections.forEach(sec=>{
     const items=accounts.map((a,i)=>({...a,i})).filter(a=>a.owner===sec.key&&a.active);
     if(!items.length)return;
