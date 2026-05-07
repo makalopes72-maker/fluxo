@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#14532d,#4c1d95);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#DCFCE7 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(220,252,231,.65) !important;}
-  #splash .splash-version{color:rgba(220,252,231,.35) !important;}
-  #splash .splash-btn{background:#DCFCE7 !important;color:#14532d !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#DCFCE7 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1a1a2e,#e94560);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E2E8F0 !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
+  #splash .splash-sub{color:rgba(226,232,240,.65) !important;}
+  #splash .splash-version{color:rgba(226,232,240,.35) !important;}
+  #splash .splash-btn{background:#E2E8F0 !important;color:#1a1a2e !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E2E8F0 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.37';
+const APP_VERSION='17.38';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5419,7 +5419,7 @@ const ORC_YEAR=new Date().getFullYear();
 
 function fmtOrc(v){
   if(!v||v===0)return'';
-  if(v>=1000)return(v/1000).toFixed(1).replace('.0','')+'k';
+  return v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});
   return v.toLocaleString('pt-BR',{maximumFractionDigits:0});
 }
 
@@ -7965,7 +7965,7 @@ function _waDashRender(){
   const dashYear=window.waDashYear||yr;
   const isPastYear=dashYear<yr;
   const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  const fmt=n=>{if(!n)return'';const a=Math.abs(n);if(a>=1000)return(a/1000).toFixed(1).replace('.0','')+'k';return Math.round(a).toLocaleString('pt-BR');};
+  const fmt=n=>{if(!n)return'';return Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});};
 
   // DEBUG
   console.log('[waDashRender] user=',user,'allData=',allData.length,'accounts=',accounts.length,'orcData keys=',Object.keys(orcData[user]||{}).length);
@@ -8423,7 +8423,7 @@ function getAtivoSaldoMes(ativo,m,year){
 function waDashCcRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTotals,totalCols){
   if(!instituicoes||!instituicoes.length)return'';
   const user=currentUser||'ALE';
-  const fmtI=n=>{if(!n&&n!==0)return'';return Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});};
+  const fmtI=n=>{if(!n&&n!==0)return'';return Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});};
   const colStyle='text-align:right;padding:3px 8px;font-size:9px;border-left:1px solid rgba(0,0,0,.06);';
   const colsPerMonth=m=>{
     const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
@@ -8752,7 +8752,7 @@ function waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,sho
 
 function waDashBensRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTotals,totalCols){
   const bens=getUserBens();
-  const fmtI=n=>{if(!n&&n!==0)return'';return Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});};
+  const fmtI=n=>{if(!n&&n!==0)return'';return Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});};
   const colStyle='text-align:right;padding:3px 8px;font-size:9px;border-left:1px solid rgba(0,0,0,.06);';
   const colsPerMonth=m=>{
     const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
@@ -9196,7 +9196,7 @@ function waShowGraficos(months, inclInvest, soloConsol, saldoReal){
   }
 
   const n=days.length;
-  const fmtK=v=>{const a=Math.abs(v);const sg=v<0?'-':'';return sg+'R$ '+(a>=1000?(a/1000).toFixed(1)+'k':Math.round(a).toLocaleString('pt-BR'));};
+  const fmtK=v=>{const a=Math.abs(v);const sg=v<0?'-':'';return sg+'R$ '+a.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});};
 
   // ── CSS ──
   if(!document.getElementById('gf-style')){
@@ -9246,7 +9246,7 @@ function waShowGraficos(months, inclInvest, soloConsol, saldoReal){
     const sy=v=>padT+(hi-v)/(hi-lo)*chartH;
     const sx=i=>padL+i/(n-1)*chartW;
     const baseY=sy(0);
-    const fmtV=v=>{const a=Math.abs(v);const sg=v<0?'-':'';return sg+'R$'+(a>=1000?(a/1000).toFixed(1)+'k':Math.round(a));};
+    const fmtV=v=>{const a=Math.abs(v);const sg=v<0?'-':'';return sg+'R$ '+a.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});};
 
     let s='';
 
@@ -9421,7 +9421,7 @@ window.gfShowDayDetail=function(i){
   const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const dateStr=d.getDate()+' '+MESES[d.getMonth()]+' '+d.getFullYear();
   const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  const fmtK=n=>{const a=Math.abs(n);const sg=n<0?'-':'';return sg+'R$ '+(a>=1000?(a/1000).toFixed(1)+'k':Math.round(a).toLocaleString('pt-BR'));};
+  const fmtK=n=>{const a=Math.abs(n);const sg=n<0?'-':'';return sg+'R$ '+a.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});};
 
   // Find transactions for this day — same filters as main chart
   const user2=currentUser||'ALE';
@@ -9479,7 +9479,7 @@ window.gfShowTip=function(e,i){
   const deltas=window._gfDeltas||[];
   const v=saldos[i];
   if(v===undefined)return;
-  const fmtK=n=>{const a=Math.abs(n);const sg=n<0?'-':'';return sg+'R$ '+(a>=1000?(a/1000).toFixed(1)+'k':Math.round(a).toLocaleString('pt-BR'));};
+  const fmtK=n=>{const a=Math.abs(n);const sg=n<0?'-':'';return sg+'R$ '+a.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});};
   const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const d=days[i];
   document.getElementById('gf-td').textContent=d?d.getDate()+' '+MESES[d.getMonth()]+' '+d.getFullYear():'';
@@ -9619,7 +9619,7 @@ function waShowAnalytics(period){
   }
 
   // ── DATA HELPERS ──
-  const fmtK=n=>{const v=Math.abs(n);if(v>=1000000)return'R$ '+(n/1000000).toFixed(1)+'M';if(v>=1000)return'R$ '+(n/1000).toFixed(v%1000<100?0:1)+'k';return'R$ '+Math.round(n).toLocaleString('pt-BR');};
+  const fmtK=n=>{const v=Math.abs(n);return'R$ '+Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});};
   const fmtFull=n=>'R$ '+Math.round(Math.abs(n)).toLocaleString('pt-BR');
   const lerp=(a,b,t)=>a+(b-a)*t;
 
