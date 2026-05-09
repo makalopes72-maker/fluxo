@@ -8067,10 +8067,10 @@ function _waDashRender(){
     st.id='wa-dash-style';
     st.textContent=`
       .wad-wrap{min-width:0;width:100%;overflow-x:auto;}
-      .wad-tbl{border-collapse:collapse;font-size:10px;table-layout:fixed;width:100%;}
-      .wad-tbl th,.wad-inv-col{min-width:70px;width:70px;}
+      .wad-tbl{border-collapse:collapse;font-size:10px;width:100%;}
+      .wad-tbl th,.wad-inv-col{min-width:50px;}
       .wad-tbl th,.wad-tbl td{border:0.5px solid #D3D1C7;padding:0;}
-      .wad-lbl{position:sticky;left:0;z-index:3;background:#fff;white-space:nowrap;padding:3px 8px 3px 10px;font-size:10px;color:#2C2C2A;min-width:140px;max-width:170px;overflow:hidden;text-overflow:ellipsis;box-shadow:2px 0 4px rgba(0,0,0,.08);}
+      .wad-lbl{position:sticky;left:0;z-index:3;background:#fff;white-space:nowrap;padding:3px 8px 3px 10px;font-size:10px;color:#2C2C2A;min-width:140px;max-width:200px;overflow:hidden;text-overflow:ellipsis;box-shadow:2px 0 4px rgba(0,0,0,.08);}
       .wad-lbl.grupo{background:#1a1a1a;color:#fff;font-weight:700;font-size:8px;text-align:left;letter-spacing:.05em;cursor:pointer;}
       .wad-lbl.sub{background:#F1EFE8;font-weight:700;text-align:right;border-right:2px solid #B4B2A9;}
       .wad-lbl.cat{padding-left:22px;color:#5F5E5A;background:#fff;border-right:2px solid #B4B2A9;}
@@ -8129,16 +8129,16 @@ function _waDashRender(){
   let html='<div class="wad-wrap"><table class="wad-tbl" id="wa-dash-table">';
   // colgroup for fixed col alignment — ensures all tbody sections use the same column widths
   html+='<colgroup>';
-  html+='<col style="width:150px;">';  // label column
+  html+='<col>';  // label column
   visMonths.forEach(m=>{
     const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
     const showOrc=!isPastYear&&(isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]));
-    html+='<col style="width:55px;">';
-    if(showOrc)html+='<col style="width:55px;">';
+    html+='<col>';
+    if(showOrc)html+='<col>';
   });
-  html+='<col style="width:8px;">';  // spacer
+  html+='<col style="width:6px;">';  // spacer
   if(showTotals){
-    for(let i=0;i<6;i++)html+='<col style="width:55px;">';
+    for(let i=0;i<6;i++)html+='<col>';
   }
   html+='</colgroup>';
 
