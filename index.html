@@ -8380,8 +8380,9 @@ function _waDashRender(){
 
   // ROW 1: Receita
   mkSumRow('Receita','#C8E6C9','#1B5E20','#E8F5E9',sumReceita,sumMetaReceita,false,false);
-  // ROW 2: Investimentos
-  mkSumRow('Invest.','#BBDEFB','#1565C0','#E3F2FD',sumInvest,sumMetaInvest,false,false);
+  // ROW 2: Investimentos — com toggle para desconsiderar no saldo
+  const invToggleBtn='<span onclick="window._dashHideInvSaldo=!window._dashHideInvSaldo;waDashRender();" style="cursor:pointer;font-size:.55rem;padding:1px 5px;border-radius:3px;border:1px solid #90CAF9;background:'+(hideInvSaldo?'#1565C0':'transparent')+';color:'+(hideInvSaldo?'#fff':'#90CAF9')+';margin-left:4px;vertical-align:middle;">ignorar</span>';
+  mkSumRow('Invest.'+invToggleBtn,'#BBDEFB','#1565C0','#E3F2FD',hideInvSaldo?Array(13).fill(0):sumInvest,hideInvSaldo?Array(13).fill(0):sumMetaInvest,false,false);
   // ROW 3: Desp. Fixas
   mkSumRow('Desp. Fixas','#FFE0B2','#E65100','#FFF3E0',sumDF,sumMetaDF,false,false);
   // ROW 4: Desp. Variáveis
