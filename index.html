@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0f4c75,#1b262c);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#BBE1FA !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
-  #splash .splash-sub{color:rgba(187,225,250,.65) !important;}
-  #splash .splash-version{color:rgba(187,225,250,.35) !important;}
-  #splash .splash-btn{background:#BBE1FA !important;color:#0f4c75 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.4);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#BBE1FA !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#065f46,#1e1b4b);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#D1FAE5 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(209,250,229,.65) !important;}
+  #splash .splash-version{color:rgba(209,250,229,.35) !important;}
+  #splash .splash-btn{background:#D1FAE5 !important;color:#065f46 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#D1FAE5 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.39';
+const APP_VERSION='17.40';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -7982,14 +7982,48 @@ function _waDashRender(){
 
   // sum real per tipo+cat per month — respect entrada/saída sign
   const real={};
+  // Mapeamento cat→pasta para transações importadas com tipo=cat
+  const _catToPasta={
+    'Alimentação':'Alimentação','Café da Manhã / Padaria':'Alimentação','Feira':'Alimentação',
+    'Lanches & Snacks':'Alimentação','Refeições em restaurante':'Alimentação','Supermercado':'Alimentação',
+    'Suplemento Alimentar':'Saúde','Medicamentos Farmácia':'Saúde','Saúde':'Saúde',
+    'Exames':'Saúde','Consultas Fora do Plano':'Saúde','Terapia.Massagem.Tratamentos':'Saúde','Higiene / Estética Produtos':'Saúde',
+    'Casa':'Casa','Celular Telefone':'Casa','Condomínio':'Casa','Energia Elétrica':'Casa',
+    'Gás':'Casa','IPTU':'Casa','Limpeza / Faxina':'Casa','Móveis e decoração':'Casa',
+    'Reforma / Manutenção':'Casa','Utensílios e Eletrodomésticos':'Casa',
+    'Combustível (sem reembolso)':'Transporte','Estacionamento':'Transporte','IPVA (+ licenciamento)':'Transporte',
+    'Multas':'Transporte','Ônibus Metrô (sem reembolso)':'Transporte','Revisão Anual / Manut/ Conserto':'Transporte',
+    'Seguro do Carro':'Transporte','Sem Parar':'Transporte','Transporte':'Transporte',
+    'Estacionamento/Taxi / Empresa':'Empresa / Atividade Autônoma',
+    'Alimentação / Empresa':'Empresa / Atividade Autônoma',
+    'AngelUs':'Empresa / Atividade Autônoma','Contabilidade':'Empresa / Atividade Autônoma',
+    'Cursos e Eventos / Empresa':'Empresa / Atividade Autônoma',
+    'Empresa / Atividade Autônoma':'Empresa / Atividade Autônoma',
+    'INSS':'Empresa / Atividade Autônoma','IR':'Empresa / Atividade Autônoma',
+    'Infraestrutura':'Empresa / Atividade Autônoma','Material de Escritório':'Empresa / Atividade Autônoma',
+    'Nexus/Vistage':'Empresa / Atividade Autônoma',
+    'Receita':'Receita','Receita Bruta (Cliente/ Salário)':'Receita',
+    'Juros Investimentos . Dividendos':'Receita','X Outras Receitas':'Receita',
+    'Doações':'Gastos Pessoais','Clube':'Gastos Pessoais','Eletrônicos Pessoais':'Gastos Pessoais',
+    'Gastos Pessoais':'Gastos Pessoais','Presentes':'Gastos Pessoais',
+    'Salão Beleza / Manicure':'Gastos Pessoais','Vestuário Calçados Acessórios':'Gastos Pessoais',
+    'X Outros Pessoais':'Gastos Pessoais',
+    'Lazer':'Lazer','Lazer e Informação':'Lazer',
+    'Educação':'Dependentes',
+    'Tarifas bancárias':'Serv. Financeiros',
+    'Transferências':'Transferências',
+  };
+
   allData.forEach(t=>{
     if(!t.consolidated)return; // only consolidated transactions
     if(filterByAcct&&!userAccts.includes(normalizeAcct(t.account)))return;
     const d=parseDate(t.date);if(!d)return;
     if(d.getFullYear()!==dashYear)return;
     const m=d.getMonth();
-    const tipo=t.tipo||t.cat||'Outros';
     const cat=t.cat||t.tipo||'Outros';
+    // Se tipo=cat (importação incorreta), usa mapeamento visual
+    const rawTipo=t.tipo||t.cat||'Outros';
+    const tipo=(rawTipo===cat&&_catToPasta[cat])?_catToPasta[cat]:rawTipo;
     if(!real[tipo])real[tipo]={};
     if(!real[tipo][cat])real[tipo][cat]=Array(12).fill(0);
     // sign: entrada=positive, saída=negative, transferência follows account role
