@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1e3a5f,#134e4a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#BFDBFE !important;}
-  #splash .splash-sub{color:rgba(191,219,254,.65) !important;}
-  #splash .splash-version{color:rgba(191,219,254,.35) !important;}
-  #splash .splash-btn{background:#BFDBFE !important;color:#1e3a5f !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#BFDBFE !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4a044e,#0c4a6e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FAE8FF !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(250,232,255,.65) !important;}
+  #splash .splash-version{color:rgba(250,232,255,.35) !important;}
+  #splash .splash-btn{background:#FAE8FF !important;color:#4a044e !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FAE8FF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1184,6 +1184,8 @@
   }
 
 </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link id="gf-preload" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Barlow:wght@400;600;700&family=Bebas+Neue&family=Cabinet+Grotesk:wght@400;600;700&family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;600;700&family=DM+Serif+Display:wght@400;600;700&family=EB+Garamond:wght@400;600;700&family=Familjen+Grotesk:wght@400;600;700&family=Figtree:wght@400;600;700&family=Fira+Code:wght@400;600;700&family=Fraunces:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&family=Karla:wght@400;600;700&family=Lato:wght@400;600;700&family=Lexend:wght@400;600;700&family=Lora:wght@400;600;700&family=Manrope:wght@400;600;700&family=Merriweather:wght@400;600;700&family=Montserrat:wght@400;600;700&family=Nunito:wght@400;600;700&family=Oswald:wght@400;600;700&family=Outfit:wght@400;600;700&family=Playfair+Display:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700&family=Poppins:wght@400;600;700&family=Raleway:wght@400;600;700&family=Roboto:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&family=Space+Grotesk:wght@400;600;700&family=Space+Mono:wght@400;600;700&family=Syne:wght@400;600;700&family=Work+Sans:wght@400;600;700&display=swap">
 </head>
 <body>
 
@@ -2066,7 +2068,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.56';
+const APP_VERSION='17.57';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3210,7 +3212,7 @@ function loadPrefs(){
   applyAppearance();
 }
 
-const WA_FONTS=['Outfit','Inter','Syne','DM Serif Display','Roboto','Lato'];
+const WA_FONTS=['Archivo','Barlow','Bebas Neue','Cabinet Grotesk','Cormorant Garamond','DM Sans','DM Serif Display','EB Garamond','Familjen Grotesk','Figtree','Fira Code','Fraunces','IBM Plex Sans','Inter','JetBrains Mono','Karla','Lato','Lexend','Lora','Manrope','Merriweather','Montserrat','Nunito','Oswald','Outfit','Playfair Display','Plus Jakarta Sans','Poppins','Raleway','Roboto','Source Sans 3','Space Grotesk','Space Mono','Syne','Work Sans'];
 const WA_APPEARANCE_DEFAULTS={
   wadFontTitle:'Outfit',wadSizeTitle:10,wadWeightTitle:700,
   wadFontPasta:'Outfit',wadSizePasta:9,wadWeightPasta:700,
@@ -3264,19 +3266,7 @@ function applyAppearance(){
   r.style.setProperty('--form-font',gf(app.formFont||'Outfit'));
   r.style.setProperty('--form-size',app.formSize||'.95rem');
   r.style.setProperty('--form-weight',app.formWeight||600);
-  // Load Google Fonts if needed
-  const fonts=[app.wadFontTitle,app.wadFontPasta,app.wadFontGeral,app.extFontTabela,app.kpFontDisplay,app.kpFontBtn,app.formFont].filter(Boolean);
-  fonts.forEach(f=>{
-    if(['Outfit','Inter','Syne','Roboto','Lato','DM Serif Display'].includes(f)){
-      const id='gf-'+f.replace(/\s/g,'-');
-      if(!document.getElementById(id)){
-        const l=document.createElement('link');
-        l.id=id;l.rel='stylesheet';
-        l.href='https://fonts.googleapis.com/css2?family='+encodeURIComponent(f)+':wght@400;600;700&display=swap';
-        document.head.appendChild(l);
-      }
-    }
-  });
+  // Fonts preloaded via <link> in head
 }
 
 // -- MENU --
@@ -6550,7 +6540,7 @@ function waCfgRenderTipografia(container){
 
     const fontSel=document.createElement('select');
     fontSel.style.cssText='padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.75rem;';
-    ['Outfit','Inter','Syne','DM Serif Display','Roboto','Lato'].forEach(f=>{
+    WA_FONTS.forEach(f=>{
       const o=document.createElement('option');
       o.value=f;o.textContent=f;
       if((preview[fontKey]||defaultFont)===f)o.selected=true;
@@ -6628,7 +6618,7 @@ function waCfgRenderTipografia(container){
     lbl.textContent=label;
     const fontSel=document.createElement('select');
     fontSel.style.cssText='padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.75rem;';
-    ['Outfit','Inter','Syne','DM Serif Display','Roboto','Lato'].forEach(f=>{
+    WA_FONTS.forEach(f=>{
       const o=document.createElement('option');o.value=f;o.textContent=f;
       if((preview[fontKey]||defaultFont)===f)o.selected=true;
       fontSel.appendChild(o);
