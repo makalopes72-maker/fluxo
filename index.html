@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1e3a5f,#7c2d12);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#DBEAFE !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(219,234,254,.65) !important;}
-  #splash .splash-version{color:rgba(219,234,254,.35) !important;}
-  #splash .splash-btn{background:#DBEAFE !important;color:#1e3a5f !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#DBEAFE !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#134e4a,#7c2d12);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#CCFBF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(204,251,241,.65) !important;}
+  #splash .splash-version{color:rgba(204,251,241,.35) !important;}
+  #splash .splash-btn{background:#CCFBF1 !important;color:#134e4a !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#CCFBF1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2066,7 +2066,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.52';
+const APP_VERSION='17.53';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6597,6 +6597,55 @@ function waCfgRenderTipografia(container){
   mkRow('Títulos de seção','wadFontTitle','wadSizeTitle','wadWeightTitle','Outfit',10,700);
   mkRow('Total das pastas','wadFontPasta','wadSizePasta','wadWeightPasta','Outfit',9,700);
   mkRow('Texto geral da tabela','wadFontGeral','wadSizeGeral','wadWeightGeral','Outfit',10,400);
+
+  // ── Lançar / Extrato ──
+  const s2=document.createElement('div');
+  s2.style.cssText='font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;margin-top:20px;';
+  s2.textContent='Lançar / Extrato';
+  container.appendChild(s2);
+
+  function mkRowRem(label,fontKey,sizeKey,weightKey,defaultFont,defaultSize,defaultWeight){
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;flex-wrap:wrap;';
+    const lbl=document.createElement('div');
+    lbl.style.cssText='font-size:.75rem;font-weight:600;color:var(--font);min-width:160px;';
+    lbl.textContent=label;
+    const fontSel=document.createElement('select');
+    fontSel.style.cssText='padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.75rem;';
+    ['Outfit','Inter','Syne','DM Serif Display','Roboto','Lato'].forEach(f=>{
+      const o=document.createElement('option');o.value=f;o.textContent=f;
+      if((preview[fontKey]||defaultFont)===f)o.selected=true;
+      fontSel.appendChild(o);
+    });
+    const sizeLbl=document.createElement('span');
+    sizeLbl.style.cssText='font-size:.68rem;color:var(--muted);';sizeLbl.textContent='Tamanho:';
+    const sizeInp=document.createElement('input');
+    sizeInp.type='number';sizeInp.min=8;sizeInp.max=48;sizeInp.step=1;
+    const remToNum=s=>Math.round(parseFloat(s||defaultSize)*16);
+    sizeInp.value=remToNum(preview[sizeKey]);
+    sizeInp.style.cssText='width:56px;padding:5px 8px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.75rem;text-align:center;';
+    const sizePx=document.createElement('span');sizePx.style.cssText='font-size:.68rem;color:var(--muted);';sizePx.textContent='px';
+    const weightLbl=document.createElement('span');weightLbl.style.cssText='font-size:.68rem;color:var(--muted);';weightLbl.textContent='Peso:';
+    const weightSel=document.createElement('select');
+    weightSel.style.cssText='padding:5px 8px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.75rem;';
+    [['300','Light'],['400','Regular'],['500','Medium'],['600','Semi-bold'],['700','Bold'],['800','Extra-bold']].forEach(([v,l])=>{
+      const o=document.createElement('option');o.value=v;o.textContent=l;
+      if(String(preview[weightKey]||defaultWeight)===v)o.selected=true;
+      weightSel.appendChild(o);
+    });
+    fontSel.onchange=()=>{preview[fontKey]=fontSel.value;applyAppearancePreview(preview);};
+    sizeInp.oninput=()=>{preview[sizeKey]=(parseInt(sizeInp.value)||16)/16+'rem';applyAppearancePreview(preview);};
+    weightSel.onchange=()=>{preview[weightKey]=parseInt(weightSel.value);applyAppearancePreview(preview);};
+    row.appendChild(lbl);row.appendChild(fontSel);
+    row.appendChild(sizeLbl);row.appendChild(sizeInp);row.appendChild(sizePx);
+    row.appendChild(weightLbl);row.appendChild(weightSel);
+    container.appendChild(row);
+  }
+
+  mkRowRem('Extrato — texto da tabela','extFontTabela','extSizeTabela','extWeightTabela','Outfit','.82rem',400);
+  mkRowRem('Teclado — display do valor','kpFontDisplay','kpSizeDisplay','kpWeightDisplay','Outfit','2rem',700);
+  mkRowRem('Teclado — botões numéricos','kpFontBtn','kpSizeBtnNum','kpWeightBtn','Outfit','2.8rem',700);
+  mkRowRem('Formulário — campos de texto','formFont','formSize','formWeight','Outfit','.95rem',600);
 
   // Save + Reset buttons
   const btnRow=document.createElement('div');
