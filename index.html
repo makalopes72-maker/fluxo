@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#134e4a,#7c2d12);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#CCFBF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(204,251,241,.65) !important;}
-  #splash .splash-version{color:rgba(204,251,241,.35) !important;}
-  #splash .splash-btn{background:#CCFBF1 !important;color:#134e4a !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#CCFBF1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#312e81,#065f46);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0E7FF !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(224,231,255,.65) !important;}
+  #splash .splash-version{color:rgba(224,231,255,.35) !important;}
+  #splash .splash-btn{background:#E0E7FF !important;color:#312e81 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0E7FF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2066,7 +2066,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.53';
+const APP_VERSION='17.54';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3252,8 +3252,20 @@ function applyAppearance(){
   r.style.setProperty('--wad-font-geral',gf(app.wadFontGeral||'Outfit'));
   r.style.setProperty('--wad-size-geral',(app.wadSizeGeral||10)+'px');
   r.style.setProperty('--wad-weight-geral',(app.wadWeightGeral||400));
+  r.style.setProperty('--ext-font-tabela',gf(app.extFontTabela||'Outfit'));
+  r.style.setProperty('--ext-size-tabela',app.extSizeTabela||'.82rem');
+  r.style.setProperty('--ext-weight-tabela',app.extWeightTabela||400);
+  r.style.setProperty('--kp-font-display',gf(app.kpFontDisplay||'Outfit'));
+  r.style.setProperty('--kp-size-display',app.kpSizeDisplay||'2rem');
+  r.style.setProperty('--kp-weight-display',app.kpWeightDisplay||700);
+  r.style.setProperty('--kp-font-btn',gf(app.kpFontBtn||'Outfit'));
+  r.style.setProperty('--kp-size-btn',app.kpSizeBtnNum||'2.8rem');
+  r.style.setProperty('--kp-weight-btn',app.kpWeightBtn||700);
+  r.style.setProperty('--form-font',gf(app.formFont||'Outfit'));
+  r.style.setProperty('--form-size',app.formSize||'.95rem');
+  r.style.setProperty('--form-weight',app.formWeight||600);
   // Load Google Fonts if needed
-  const fonts=[app.wadFontTitle,app.wadFontPasta,app.wadFontGeral].filter(Boolean);
+  const fonts=[app.wadFontTitle,app.wadFontPasta,app.wadFontGeral,app.extFontTabela,app.kpFontDisplay,app.kpFontBtn,app.formFont].filter(Boolean);
   fonts.forEach(f=>{
     if(['Outfit','Inter','Syne','Roboto','Lato','DM Serif Display'].includes(f)){
       const id='gf-'+f.replace(/\s/g,'-');
@@ -6569,22 +6581,26 @@ function waCfgRenderTipografia(container){
       weightSel.appendChild(o);
     });
 
-    fontSel.onchange=()=>{
-      preview[fontKey]=fontSel.value;
-      applyAppearancePreview(preview);
-    };
-    sizeInp.oninput=()=>{
-      preview[sizeKey]=parseInt(sizeInp.value)||defaultSize;
-      applyAppearancePreview(preview);
-    };
-    weightSel.onchange=()=>{
-      preview[weightKey]=parseInt(weightSel.value);
-      applyAppearancePreview(preview);
-    };
+    const pvw=document.createElement('div');
+    pvw.id='pvw-'+fontKey;
+    pvw.style.cssText='width:100%;margin-top:6px;padding:6px 10px;background:var(--bg);border:1px dashed var(--border);border-radius:6px;color:var(--font);';
+    pvw.style.fontSize=defaultSize+'px';
+    pvw.style.fontFamily="'"+defaultFont+"',sans-serif";
+    pvw.style.fontWeight=String(defaultWeight);
+    pvw.textContent='Prévia: Receitas e Despesas — Alimentação — 1.234,5';
+    function updPvw(){
+      pvw.style.fontFamily="'"+fontSel.value+"',sans-serif";
+      pvw.style.fontSize=(sizeInp.value||defaultSize)+'px';
+      pvw.style.fontWeight=weightSel.value||defaultWeight;
+    }
+    fontSel.onchange=()=>{ preview[fontKey]=fontSel.value; applyAppearancePreview(preview); updPvw(); };
+    sizeInp.oninput=()=>{ preview[sizeKey]=parseInt(sizeInp.value)||defaultSize; applyAppearancePreview(preview); updPvw(); };
+    weightSel.onchange=()=>{ preview[weightKey]=parseInt(weightSel.value); applyAppearancePreview(preview); updPvw(); };
 
     row.appendChild(lbl);row.appendChild(fontSel);
     row.appendChild(sizeLbl);row.appendChild(sizeInp);row.appendChild(sizePx);
     row.appendChild(weightLbl);row.appendChild(weightSel);
+    row.appendChild(pvw);
     container.appendChild(row);
   }
 
@@ -6633,12 +6649,24 @@ function waCfgRenderTipografia(container){
       if(String(preview[weightKey]||defaultWeight)===v)o.selected=true;
       weightSel.appendChild(o);
     });
-    fontSel.onchange=()=>{preview[fontKey]=fontSel.value;applyAppearancePreview(preview);};
-    sizeInp.oninput=()=>{preview[sizeKey]=(parseInt(sizeInp.value)||16)/16+'rem';applyAppearancePreview(preview);};
-    weightSel.onchange=()=>{preview[weightKey]=parseInt(weightSel.value);applyAppearancePreview(preview);};
+    const pvwR=document.createElement('div');
+    pvwR.style.cssText='width:100%;margin-top:6px;padding:6px 10px;background:var(--bg);border:1px dashed var(--border);border-radius:6px;color:var(--font);';
+    pvwR.style.fontSize=Math.round(parseFloat(defaultSize)*16)+'px';
+    pvwR.style.fontFamily="'"+defaultFont+"',sans-serif";
+    pvwR.style.fontWeight=String(defaultWeight);
+    pvwR.textContent='Prévia: R$ 1.234,56 — Supermercado — 28/04/2026';
+    function updPvwR(){
+      pvwR.style.fontFamily="'"+fontSel.value+"',sans-serif";
+      pvwR.style.fontSize=(sizeInp.value||16)+'px';
+      pvwR.style.fontWeight=weightSel.value||defaultWeight;
+    }
+    fontSel.onchange=()=>{preview[fontKey]=fontSel.value;applyAppearancePreview(preview);updPvwR();};
+    sizeInp.oninput=()=>{preview[sizeKey]=(parseInt(sizeInp.value)||16)/16+'rem';applyAppearancePreview(preview);updPvwR();};
+    weightSel.onchange=()=>{preview[weightKey]=parseInt(weightSel.value);applyAppearancePreview(preview);updPvwR();};
     row.appendChild(lbl);row.appendChild(fontSel);
     row.appendChild(sizeLbl);row.appendChild(sizeInp);row.appendChild(sizePx);
     row.appendChild(weightLbl);row.appendChild(weightSel);
+    row.appendChild(pvwR);
     container.appendChild(row);
   }
 
