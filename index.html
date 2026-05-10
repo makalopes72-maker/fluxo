@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#7f1d1d,#312e81);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FEE2E2 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(254,226,226,.65) !important;}
-  #splash .splash-version{color:rgba(254,226,226,.35) !important;}
-  #splash .splash-btn{background:#FEE2E2 !important;color:#7f1d1d !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FEE2E2 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0c4a6e,#14532d);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0F2FE !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(224,242,254,.65) !important;}
+  #splash .splash-version{color:rgba(224,242,254,.35) !important;}
+  #splash .splash-btn{background:#E0F2FE !important;color:#0c4a6e !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F2FE !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2066,7 +2066,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.50';
+const APP_VERSION='17.51';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6634,6 +6634,18 @@ function applyAppearancePreview(app){
   r.style.setProperty('--wad-font-geral',gf(app.wadFontGeral||'Outfit'));
   r.style.setProperty('--wad-size-geral',(app.wadSizeGeral||10)+'px');
   r.style.setProperty('--wad-weight-geral',(app.wadWeightGeral||400));
+  r.style.setProperty('--ext-font-tabela',gf(app.extFontTabela||'Outfit'));
+  r.style.setProperty('--ext-size-tabela',app.extSizeTabela||'.82rem');
+  r.style.setProperty('--ext-weight-tabela',app.extWeightTabela||400);
+  r.style.setProperty('--kp-font-display',gf(app.kpFontDisplay||'Outfit'));
+  r.style.setProperty('--kp-size-display',app.kpSizeDisplay||'2rem');
+  r.style.setProperty('--kp-weight-display',app.kpWeightDisplay||700);
+  r.style.setProperty('--kp-font-btn',gf(app.kpFontBtn||'Outfit'));
+  r.style.setProperty('--kp-size-btn',app.kpSizeBtnNum||'2.8rem');
+  r.style.setProperty('--kp-weight-btn',app.kpWeightBtn||700);
+  r.style.setProperty('--form-font',gf(app.formFont||'Outfit'));
+  r.style.setProperty('--form-size',app.formSize||'.95rem');
+  r.style.setProperty('--form-weight',app.formWeight||600);
 }
 
 function waCfgRenderContas(container){
