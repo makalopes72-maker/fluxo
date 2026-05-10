@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1a1a2e,#e94560);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E2E8F0 !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
-  #splash .splash-sub{color:rgba(226,232,240,.65) !important;}
-  #splash .splash-version{color:rgba(226,232,240,.35) !important;}
-  #splash .splash-btn{background:#E2E8F0 !important;color:#1a1a2e !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.4);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E2E8F0 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4f7f8c,#1a1a2e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#D6EAF0 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(214,234,240,.65) !important;}
+  #splash .splash-version{color:rgba(214,234,240,.35) !important;}
+  #splash .splash-btn{background:#D6EAF0 !important;color:#4f7f8c !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#D6EAF0 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.44';
+const APP_VERSION='17.45';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8244,7 +8244,9 @@ function _waDashRender(){
     // grupo header
     // grupo header with totals per visible month
     html+='<tr onclick="waDashTogglePasta(\''+tipo.replace(/'/g,"\\'")+'\')" style="cursor:pointer;">';
-    html+='<td class="wad-lbl grupo" style="position:sticky;left:0;z-index:3;background:#aeabab;border-right:2px solid #7f7f7f;border-bottom:3px solid #7f7f7f;padding-left:10px;text-align:left;font-size:9px;font-weight:700;box-shadow:2px 0 4px rgba(0,0,0,.1);">'
+    const _grpBg=receitaTipos.includes(tipo)?'#76A5AF':'#aeabab';
+    const _grpBorder=receitaTipos.includes(tipo)?'#4f7f8c':'#7f7f7f';
+    html+='<td class="wad-lbl grupo" style="position:sticky;left:0;z-index:3;background:'+_grpBg+';border-right:2px solid '+_grpBorder+';border-bottom:3px solid '+_grpBorder+';padding-left:10px;text-align:left;font-size:9px;font-weight:700;box-shadow:2px 0 4px rgba(0,0,0,.1);">'
       +'<span style="font-size:9px;margin-right:5px;opacity:.7;">'+(collapsed?'▸':'▾')+'</span>'
       +tipo.toUpperCase()+'</td>';
     visMonths.forEach(m=>{
@@ -8252,8 +8254,8 @@ function _waDashRender(){
       const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
       const rv=totReal[m],mv=totMeta[m];
       const gfc=farolClass(rv,mv,'A',isPos);
-      html+='<td style="text-align:right;padding:3px 8px 3px 5px;font-size:9px;font-weight:700;color:'+(rv?'#2C2C2A':'rgba(44,44,42,.25)')+';background:#aeabab;border-left:1px solid #CCC;border-bottom:3px solid #7f7f7f;white-space:nowrap;'+farolShadow(gfc)+'">'+(rv?fmt(rv):'')+'</td>';
-      if(showOrc)html+='<td style="text-align:right;padding:3px 8px 3px 5px;font-size:9px;color:rgba(44,44,42,.5);background:#aeabab;font-style:italic;border-bottom:3px solid #7f7f7f;border-left:none;white-space:nowrap;">'+(mv?fmt(mv):'')+'</td>';
+      html+='<td style="text-align:right;padding:3px 8px 3px 5px;font-size:9px;font-weight:700;color:'+(rv?'#2C2C2A':'rgba(44,44,42,.25)')+';background:'+_grpBg+';border-left:1px solid #CCC;border-bottom:3px solid '+_grpBorder+';white-space:nowrap;'+farolShadow(gfc)+'">'+(rv?fmt(rv):'')+'</td>';
+      if(showOrc)html+='<td style="text-align:right;padding:3px 8px 3px 5px;font-size:9px;color:rgba(44,44,42,.5);background:'+_grpBg+';font-style:italic;border-bottom:3px solid '+_grpBorder+';border-left:none;white-space:nowrap;">'+(mv?fmt(mv):'')+'</td>';
     });
     // total col
     const subRv=totReal.reduce((s,v)=>s+v,0),subMv=totMeta.reduce((s,v)=>s+v,0);
@@ -8264,14 +8266,14 @@ function _waDashRender(){
     const gMA=totMeta.reduce((s,v)=>s+v,0);
     const gAA=Math.round(gMA/12)||0;
     const gtfc=farolClass(gRV,gMV,'A',isPos);
-    html+='<td style="width:8px;background:#888;border-left:3px solid #7f7f7f;border-bottom:3px solid #7f7f7f;padding:0;"></td>';
+    html+='<td style="width:8px;background:'+_grpBorder+';border-left:3px solid '+_grpBorder+';border-bottom:3px solid '+_grpBorder+';padding:0;"></td>';
     if(showTotals){
-      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:700;color:#2C2C2A;background:#aeabab;border-left:3px solid #7f7f7f;border-bottom:3px solid #7f7f7f;'+farolShadow(gtfc)+'">'+(gRV?fmt(gRV):'')+'</td>';
-      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:400;color:rgba(44,44,42,.5);background:#aeabab;border-bottom:3px solid #7f7f7f;border-left:none;">'+(gAR?fmt(gAR):'')+'</td>';
-      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:700;color:#2C2C2A;background:#aeabab;border-left:2px solid #7f7f7f;border-bottom:3px solid #7f7f7f;">'+(gMV?fmt(gMV):'')+'</td>';
-      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:400;color:rgba(44,44,42,.5);background:#aeabab;border-bottom:3px solid #7f7f7f;border-left:none;">'+(gAM?fmt(gAM):'')+'</td>';
-      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:400;color:rgba(44,44,42,.4);background:#aeabab;border-left:2px solid #7f7f7f;border-bottom:3px solid #7f7f7f;">'+(gMA?fmt(gMA):'')+'</td>';
-      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:400;color:rgba(44,44,42,.35);background:#aeabab;border-bottom:3px solid #7f7f7f;border-left:none;">'+(gAA?fmt(gAA):'')+'</td>';
+      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:700;color:#2C2C2A;background:'+_grpBg+';border-left:3px solid '+_grpBorder+';border-bottom:3px solid '+_grpBorder+';'+farolShadow(gtfc)+'">'+(gRV?fmt(gRV):'')+'</td>';
+      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:400;color:rgba(44,44,42,.5);background:'+_grpBg+';border-bottom:3px solid '+_grpBorder+';border-left:none;">'+(gAR?fmt(gAR):'')+'</td>';
+      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:700;color:#2C2C2A;background:'+_grpBg+';border-left:2px solid '+_grpBorder+';border-bottom:3px solid '+_grpBorder+';">'+(gMV?fmt(gMV):'')+'</td>';
+      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:400;color:rgba(44,44,42,.5);background:'+_grpBg+';border-bottom:3px solid '+_grpBorder+';border-left:none;">'+(gAM?fmt(gAM):'')+'</td>';
+      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:400;color:rgba(44,44,42,.4);background:'+_grpBg+';border-left:2px solid '+_grpBorder+';border-bottom:3px solid '+_grpBorder+';">'+(gMA?fmt(gMA):'')+'</td>';
+      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:400;color:rgba(44,44,42,.35);background:'+_grpBg+';border-bottom:3px solid '+_grpBorder+';border-left:none;">'+(gAA?fmt(gAA):'')+'</td>';
     }
     html+='</tr>';
 
