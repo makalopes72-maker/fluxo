@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#312e81,#1e3a5f);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0E7FF !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(224,231,255,.65) !important;}
-  #splash .splash-version{color:rgba(224,231,255,.35) !important;}
-  #splash .splash-btn{background:#E0E7FF !important;color:#312e81 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0E7FF !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#7c3aed,#0f4c75);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#EDE9FE !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(237,233,254,.65) !important;}
+  #splash .splash-version{color:rgba(237,233,254,.35) !important;}
+  #splash .splash-btn{background:#EDE9FE !important;color:#7c3aed !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EDE9FE !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2063,7 +2063,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.47';
+const APP_VERSION='17.48';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8254,7 +8254,7 @@ function _waDashRender(){
       .wad-h-mes.past{background:#fff;color:#2C2C2A;}
       .wad-h-mes.cur{background:#FFF9C4;color:#5D4037;font-weight:700;}
       .wad-h-mes.fut{background:#F5F5F5;color:#9E9E9E;}
-      .wad-h-sub{font-size:9px;text-align:center;padding:3px 4px;font-weight:500;color:#888780;}
+      .wad-h-sub{font-size:var(--wad-size-geral);text-align:center;padding:3px 4px;font-weight:500;color:#888780;}
       .wad-h-sub.real{background:#fff;color:#888;}
       .wad-h-sub.prev{background:#F5EFE6;color:#A1887F;font-style:italic;border-left:none!important;}
       .wad-h-sub.real.cur{background:#FFF9C4;color:#5D4037;}
@@ -8278,8 +8278,8 @@ function _waDashRender(){
       .f-v{background:#43A047;}.f-a{background:#F9A825;}.f-r{background:#E53935;}
       .wad-cell{display:flex;align-items:center;justify-content:flex-end;gap:2px;}
       thead.wad-head{position:static;}
-      .wad-lbl-h{position:sticky;left:0;z-index:6;background:#F1EFE8;padding:4px 10px;font-size:9px;font-weight:700;color:#5F5E5A;border-right:2px solid #B4B2A9;min-width:140px;max-width:170px;box-shadow:2px 0 3px rgba(0,0,0,.07);}
-      .wad-tog{font-size:9px;color:#aaa;cursor:pointer;padding:0 4px;user-select:none;}
+      .wad-lbl-h{position:sticky;left:0;z-index:6;background:#F1EFE8;padding:4px 10px;font-size:var(--wad-size-geral);font-weight:700;color:#5F5E5A;border-right:2px solid #B4B2A9;min-width:140px;max-width:170px;box-shadow:2px 0 3px rgba(0,0,0,.07);}
+      .wad-tog{font-size:var(--wad-size-geral);color:#aaa;cursor:pointer;padding:0 4px;user-select:none;}
       .wad-total-col .wad-real{background:#E8EAF6;color:#283593;font-weight:700;}
       .wad-total-col .wad-prev{background:#DDD5C0;color:#6D4C41;font-weight:700;}
       .wad-total-col .wad-real.sub{background:#C5CAE9;}
@@ -8335,9 +8335,9 @@ function _waDashRender(){
   // spacer between months and totals
   html+='<th rowspan="2" style="width:8px;min-width:8px;background:#E8E8E8;border-left:3px solid #999;padding:0;"></th>';
   if(showTotals){
-    html+='<th colspan="2" style="text-align:center;padding:4px 6px;font-size:9px;font-weight:600;background:#E8EAF6;color:#283593;border-left:3px solid #888;">Realizado</th>';
-    html+='<th colspan="2" style="text-align:center;padding:4px 6px;font-size:9px;font-weight:600;background:#EDE4D8;color:#6D4C41;border-left:2px solid #999;">Meta válida</th>';
-    html+='<th colspan="2" style="text-align:center;padding:4px 6px;font-size:9px;font-weight:600;background:#F0EDE8;color:#999;border-left:2px solid #bbb;">Meta anual</th>';
+    html+='<th colspan="2" style="text-align:center;padding:4px 6px;font-size:var(--wad-size-geral);font-weight:600;background:#E8EAF6;color:#283593;border-left:3px solid #888;">Realizado</th>';
+    html+='<th colspan="2" style="text-align:center;padding:4px 6px;font-size:var(--wad-size-geral);font-weight:600;background:#EDE4D8;color:#6D4C41;border-left:2px solid #999;">Meta válida</th>';
+    html+='<th colspan="2" style="text-align:center;padding:4px 6px;font-size:var(--wad-size-geral);font-weight:600;background:#F0EDE8;color:#999;border-left:2px solid #bbb;">Meta anual</th>';
   }
   html+='</tr><tr>';
   visMonths.forEach(m=>{
@@ -8350,12 +8350,12 @@ function _waDashRender(){
     if(showOrc)html+='<th class="wad-h-sub prev '+tc+'"><em>prev.</em></th>';
   });
   if(showTotals){
-    html+='<th style="width:55px;min-width:55px;max-width:55px;padding:3px 4px;font-size:9px;color:#283593;background:#C5CAE9;border-left:3px solid #888;text-align:right;font-weight:600;">total</th>';
-    html+='<th style="width:55px;min-width:55px;max-width:55px;padding:3px 4px;font-size:9px;color:#5C6BC0;background:#C5CAE9;text-align:right;font-weight:400;font-style:italic;">média</th>';
-    html+='<th style="width:55px;min-width:55px;max-width:55px;padding:3px 4px;font-size:9px;color:#6D4C41;background:#DDD5C0;border-left:2px solid #999;text-align:right;font-weight:600;">total</th>';
-    html+='<th style="width:55px;min-width:55px;max-width:55px;padding:3px 4px;font-size:9px;color:#8D6E63;background:#DDD5C0;text-align:right;font-weight:400;font-style:italic;">média</th>';
-    html+='<th style="width:55px;min-width:55px;max-width:55px;padding:3px 4px;font-size:9px;color:#888;background:#E8E2D9;border-left:2px solid #bbb;text-align:right;font-weight:400;">total</th>';
-    html+='<th style="width:55px;min-width:55px;max-width:55px;padding:3px 4px;font-size:9px;color:#aaa;background:#E8E2D9;text-align:right;font-weight:400;font-style:italic;">média</th>';
+    html+='<th style="width:55px;min-width:55px;max-width:55px;padding:3px 4px;font-size:var(--wad-size-geral);color:#283593;background:#C5CAE9;border-left:3px solid #888;text-align:right;font-weight:600;">total</th>';
+    html+='<th style="width:55px;min-width:55px;max-width:55px;padding:3px 4px;font-size:var(--wad-size-geral);color:#5C6BC0;background:#C5CAE9;text-align:right;font-weight:400;font-style:italic;">média</th>';
+    html+='<th style="width:55px;min-width:55px;max-width:55px;padding:3px 4px;font-size:var(--wad-size-geral);color:#6D4C41;background:#DDD5C0;border-left:2px solid #999;text-align:right;font-weight:600;">total</th>';
+    html+='<th style="width:55px;min-width:55px;max-width:55px;padding:3px 4px;font-size:var(--wad-size-geral);color:#8D6E63;background:#DDD5C0;text-align:right;font-weight:400;font-style:italic;">média</th>';
+    html+='<th style="width:55px;min-width:55px;max-width:55px;padding:3px 4px;font-size:var(--wad-size-geral);color:#888;background:#E8E2D9;border-left:2px solid #bbb;text-align:right;font-weight:400;">total</th>';
+    html+='<th style="width:55px;min-width:55px;max-width:55px;padding:3px 4px;font-size:var(--wad-size-geral);color:#aaa;background:#E8E2D9;text-align:right;font-weight:400;font-style:italic;">média</th>';
   }
   html+='</tr></thead><tbody>';
 
@@ -8414,7 +8414,7 @@ function _waDashRender(){
     const _grpBg=receitaTipos.includes(tipo)?'#76A5AF':'#aeabab';
     const _grpBorder=receitaTipos.includes(tipo)?'#4f7f8c':'#7f7f7f';
     html+='<td class="wad-lbl grupo" style="position:sticky;left:0;z-index:3;background:'+_grpBg+';border-right:2px solid '+_grpBorder+';border-bottom:3px solid '+_grpBorder+';padding-left:10px;text-align:left;font-size:var(--wad-size-pasta);font-family:var(--wad-font-pasta);font-weight:700;box-shadow:2px 0 4px rgba(0,0,0,.1);">'
-      +'<span style="font-size:9px;margin-right:5px;opacity:.7;">'+(collapsed?'▸':'▾')+'</span>'
+      +'<span style="font-size:var(--wad-size-geral);margin-right:5px;opacity:.7;">'+(collapsed?'▸':'▾')+'</span>'
       +tipo.toUpperCase()+'</td>';
     visMonths.forEach(m=>{
       const isPast=m<effectiveCurM,isCur=m===effectiveCurM,isFut=m>effectiveCurM;
@@ -8422,7 +8422,7 @@ function _waDashRender(){
       const rv=totReal[m],mv=totMeta[m];
       const gfc=farolClass(rv,mv,'A',isPos);
       html+='<td style="text-align:right;padding:3px 8px 3px 5px;font-size:var(--wad-size-pasta);font-family:var(--wad-font-pasta);font-weight:700;color:'+(rv?'#2C2C2A':'rgba(44,44,42,.25)')+';background:'+_grpBg+';border-left:1px solid #CCC;border-bottom:3px solid '+_grpBorder+';white-space:nowrap;'+farolShadow(gfc)+'">'+(rv?fmt(rv):'')+'</td>';
-      if(showOrc)html+='<td style="text-align:right;padding:3px 8px 3px 5px;font-size:9px;color:rgba(44,44,42,.5);background:'+_grpBg+';font-style:italic;border-bottom:3px solid '+_grpBorder+';border-left:none;white-space:nowrap;">'+(mv?fmt(mv):'')+'</td>';
+      if(showOrc)html+='<td style="text-align:right;padding:3px 8px 3px 5px;font-size:var(--wad-size-geral);color:rgba(44,44,42,.5);background:'+_grpBg+';font-style:italic;border-bottom:3px solid '+_grpBorder+';border-left:none;white-space:nowrap;">'+(mv?fmt(mv):'')+'</td>';
     });
     // total col
     const subRv=totReal.reduce((s,v)=>s+v,0),subMv=totMeta.reduce((s,v)=>s+v,0);
@@ -8435,12 +8435,12 @@ function _waDashRender(){
     const gtfc=farolClass(gRV,gMV,'A',isPos);
     html+='<td style="width:8px;background:'+_grpBorder+';border-left:3px solid '+_grpBorder+';border-bottom:3px solid '+_grpBorder+';padding:0;"></td>';
     if(showTotals){
-      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:700;color:#2C2C2A;background:'+_grpBg+';border-left:3px solid '+_grpBorder+';border-bottom:3px solid '+_grpBorder+';'+farolShadow(gtfc)+'">'+(gRV?fmt(gRV):'')+'</td>';
-      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:400;color:rgba(44,44,42,.5);background:'+_grpBg+';border-bottom:3px solid '+_grpBorder+';border-left:none;">'+(gAR?fmt(gAR):'')+'</td>';
-      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:700;color:#2C2C2A;background:'+_grpBg+';border-left:2px solid '+_grpBorder+';border-bottom:3px solid '+_grpBorder+';">'+(gMV?fmt(gMV):'')+'</td>';
-      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:400;color:rgba(44,44,42,.5);background:'+_grpBg+';border-bottom:3px solid '+_grpBorder+';border-left:none;">'+(gAM?fmt(gAM):'')+'</td>';
-      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:400;color:rgba(44,44,42,.4);background:'+_grpBg+';border-left:2px solid '+_grpBorder+';border-bottom:3px solid '+_grpBorder+';">'+(gMA?fmt(gMA):'')+'</td>';
-      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:9px;font-weight:400;color:rgba(44,44,42,.35);background:'+_grpBg+';border-bottom:3px solid '+_grpBorder+';border-left:none;">'+(gAA?fmt(gAA):'')+'</td>';
+      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:var(--wad-size-geral);font-weight:700;color:#2C2C2A;background:'+_grpBg+';border-left:3px solid '+_grpBorder+';border-bottom:3px solid '+_grpBorder+';'+farolShadow(gtfc)+'">'+(gRV?fmt(gRV):'')+'</td>';
+      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:var(--wad-size-geral);font-weight:400;color:rgba(44,44,42,.5);background:'+_grpBg+';border-bottom:3px solid '+_grpBorder+';border-left:none;">'+(gAR?fmt(gAR):'')+'</td>';
+      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:var(--wad-size-geral);font-weight:700;color:#2C2C2A;background:'+_grpBg+';border-left:2px solid '+_grpBorder+';border-bottom:3px solid '+_grpBorder+';">'+(gMV?fmt(gMV):'')+'</td>';
+      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:var(--wad-size-geral);font-weight:400;color:rgba(44,44,42,.5);background:'+_grpBg+';border-bottom:3px solid '+_grpBorder+';border-left:none;">'+(gAM?fmt(gAM):'')+'</td>';
+      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:var(--wad-size-geral);font-weight:400;color:rgba(44,44,42,.4);background:'+_grpBg+';border-left:2px solid '+_grpBorder+';border-bottom:3px solid '+_grpBorder+';">'+(gMA?fmt(gMA):'')+'</td>';
+      html+='<td style="text-align:right;width:55px;min-width:55px;max-width:55px;overflow:hidden;padding:3px 4px;font-size:var(--wad-size-geral);font-weight:400;color:rgba(44,44,42,.35);background:'+_grpBg+';border-bottom:3px solid '+_grpBorder+';border-left:none;">'+(gAA?fmt(gAA):'')+'</td>';
     }
     html+='</tr>';
 
@@ -8524,7 +8524,7 @@ function _waDashRender(){
   const mkSumRow=(label,bgLabel,colorLabel,bgRow,arrR,arrM,isSaldo,isAcum)=>{
     const borderTop=isSaldo?'border-top:2px solid #7f7f7f;border-bottom:3px solid #7f7f7f;':isAcum?'border-top:2px solid #7f7f7f;border-bottom:3px solid #7f7f7f;':'border-top:1px solid #D0D0D0;';
     html+='<tr style="'+borderTop+'">';
-    html+='<td class="wad-lbl sub" style="position:sticky;left:0;z-index:3;background:'+bgLabel+';color:'+colorLabel+';font-size:9px;font-weight:700;text-align:left;padding-left:8px;box-shadow:2px 0 4px rgba(0,0,0,.1);">'+label+'</td>';
+    html+='<td class="wad-lbl sub" style="position:sticky;left:0;z-index:3;background:'+bgLabel+';color:'+colorLabel+';font-size:var(--wad-size-geral);font-weight:700;text-align:left;padding-left:8px;box-shadow:2px 0 4px rgba(0,0,0,.1);">'+label+'</td>';
     visMonths.forEach(m=>{
       const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM,isFut=!isPastYear&&m>effectiveCurM;
       const showOrc=!isPastYear&&(isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]));
@@ -8540,8 +8540,8 @@ function _waDashRender(){
       }
       const rColor=isSaldo||isAcum?(rv>=0?'#A5D6A7':'#EF9A9A'):colorLabel;
       const mColor=isSaldo||isAcum?(mv>=0?'#A5D6A7':'#EF9A9A'):'#8D6E63';
-      html+='<td style="text-align:right;padding:3px 8px;font-size:9px;font-weight:700;color:'+rColor+';border-left:1px solid rgba(0,0,0,.08);background:'+bg+';">'+rTxt+'</td>';
-      if(showOrc)html+='<td style="text-align:right;padding:3px 8px;font-size:9px;color:'+mColor+';background:'+bg+';">'+mTxt+'</td>';
+      html+='<td style="text-align:right;padding:3px 8px;font-size:var(--wad-size-geral);font-weight:700;color:'+rColor+';border-left:1px solid rgba(0,0,0,.08);background:'+bg+';">'+rTxt+'</td>';
+      if(showOrc)html+='<td style="text-align:right;padding:3px 8px;font-size:var(--wad-size-geral);color:'+mColor+';background:'+bg+';">'+mTxt+'</td>';
     });
     const tRV=validMs.reduce((s,m)=>s+(arrR[m]||0),0);
     const tMV=validMs.reduce((s,m)=>s+(arrM[m]||0),0);
@@ -8555,12 +8555,12 @@ function _waDashRender(){
       const totBg1=isSaldo||isAcum?bgRow:'#E8EAF6';
       const totBg2=isSaldo||isAcum?bgRow:'#DDD5C0';
       const totBg3=isSaldo||isAcum?bgRow:'#E8E2D9';
-      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:9px;font-weight:700;color:'+c1+';background:'+totBg1+';border-left:3px solid #888;">'+s1+'</td>';
-      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:9px;color:'+c1+';background:'+totBg1+';">'+fmt(Math.round(Math.abs(tRV)/validCount))+'</td>';
-      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:9px;font-weight:700;color:'+c2+';background:'+totBg2+';border-left:2px solid #999;">'+s2+'</td>';
-      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:9px;color:'+c2+';background:'+totBg2+';">'+fmt(Math.round(Math.abs(tMV)/validCount))+'</td>';
-      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:9px;color:'+(isSaldo||isAcum?c1:'#888')+';background:'+totBg3+';border-left:2px solid #bbb;">'+fmtS(tMA)+'</td>';
-      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:9px;color:'+(isSaldo||isAcum?c1:'#aaa')+';background:'+totBg3+';">'+fmt(Math.round(Math.abs(tMA)/12))+'</td>';
+      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:var(--wad-size-geral);font-weight:700;color:'+c1+';background:'+totBg1+';border-left:3px solid #888;">'+s1+'</td>';
+      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:var(--wad-size-geral);color:'+c1+';background:'+totBg1+';">'+fmt(Math.round(Math.abs(tRV)/validCount))+'</td>';
+      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:var(--wad-size-geral);font-weight:700;color:'+c2+';background:'+totBg2+';border-left:2px solid #999;">'+s2+'</td>';
+      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:var(--wad-size-geral);color:'+c2+';background:'+totBg2+';">'+fmt(Math.round(Math.abs(tMV)/validCount))+'</td>';
+      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:var(--wad-size-geral);color:'+(isSaldo||isAcum?c1:'#888')+';background:'+totBg3+';border-left:2px solid #bbb;">'+fmtS(tMA)+'</td>';
+      html+='<td style="text-align:right;width:55px;padding:3px 4px;font-size:var(--wad-size-geral);color:'+(isSaldo||isAcum?c1:'#aaa')+';background:'+totBg3+';">'+fmt(Math.round(Math.abs(tMA)/12))+'</td>';
     }
     html+='</tr>';
   };
@@ -8638,7 +8638,7 @@ function waDashCcRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTota
   if(!instituicoes||!instituicoes.length)return'';
   const user=currentUser||'ALE';
   const fmtI=n=>{if(!n&&n!==0)return'';return Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});};
-  const colStyle='text-align:right;padding:3px 8px;font-size:9px;border-left:1px solid rgba(0,0,0,.06);';
+  const colStyle='text-align:right;padding:3px 8px;font-size:var(--wad-size-geral);border-left:1px solid rgba(0,0,0,.06);';
   const colsPerMonth=m=>{
     const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
     const showOrc=!isPastYear&&(isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]));
@@ -8680,7 +8680,7 @@ function waDashCcRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTota
     // one row per institution
     instituicoes.forEach(inst=>{
       h+='<tr>';
-      h+='<td style="position:sticky;left:0;z-index:3;background:#fff;color:var(--font);font-size:9px;font-weight:600;padding:4px 8px;box-shadow:2px 0 4px rgba(0,0,0,.06);white-space:nowrap;overflow:hidden;">'
+      h+='<td style="position:sticky;left:0;z-index:3;background:#fff;color:var(--font);font-size:var(--wad-size-geral);font-weight:600;padding:4px 8px;box-shadow:2px 0 4px rgba(0,0,0,.06);white-space:nowrap;overflow:hidden;">'
         +(inst.icon||'🏦')+' '+inst.name
         +'</td>';
       visMonths.forEach(m=>{
@@ -8847,7 +8847,7 @@ function waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,sho
   if(!instituicoes||!instituicoes.length)return'';
   const fmtI=n=>{if(!n&&n!==0)return'';const a=Math.abs(n);return a.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});};
   // getAtivoSaldoMes now global
-  const colStyle='text-align:right;padding:3px 8px;font-size:9px;border-left:1px solid rgba(0,0,0,.06);';
+  const colStyle='text-align:right;padding:3px 8px;font-size:var(--wad-size-geral);border-left:1px solid rgba(0,0,0,.06);';
   const showEnc=!!window.waDashShowEncerrados;
   const colsPerMonth=m=>{
     const isPast=isPastYear||(m<effectiveCurM),isCur=!isPastYear&&m===effectiveCurM;
