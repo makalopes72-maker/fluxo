@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4f7f8c,#1a1a2e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#D6EAF0 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(214,234,240,.65) !important;}
-  #splash .splash-version{color:rgba(214,234,240,.35) !important;}
-  #splash .splash-btn{background:#D6EAF0 !important;color:#4f7f8c !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#D6EAF0 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#312e81,#1e3a5f);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0E7FF !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(224,231,255,.65) !important;}
+  #splash .splash-version{color:rgba(224,231,255,.35) !important;}
+  #splash .splash-btn{background:#E0E7FF !important;color:#312e81 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0E7FF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -694,6 +694,14 @@
   .ativo-updated{font-size:.68rem;color:var(--muted);margin-top:6px;}
 
   /* DETALHE ATIVO */
+  :root{
+    --wad-font-title:'Outfit',sans-serif;
+    --wad-size-title:10px;
+    --wad-font-pasta:'Outfit',sans-serif;
+    --wad-size-pasta:9px;
+    --wad-font-geral:'Outfit',sans-serif;
+    --wad-size-geral:10px;
+  }
   .detail-header{flex-shrink:0;background:#1a1a1a;padding:12px 16px 14px;}
   .detail-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
   .detail-back{font-size:1rem;font-weight:600;color:rgba(255,255,255,.65);cursor:pointer;display:flex;align-items:center;gap:3px;padding-top:2px;}
@@ -2055,7 +2063,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.45';
+const APP_VERSION='17.46';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3196,6 +3204,57 @@ function loadPrefs(){
   const f=FONTS.find(x=>x.id===prefs.font)||FONTS[0];
   document.documentElement.style.setProperty('--font-body',f.body);
   document.documentElement.style.setProperty('--font-display',f.display);
+  applyAppearance();
+}
+
+const WA_FONTS=['Outfit','Inter','Syne','DM Serif Display','Roboto','Lato'];
+const WA_APPEARANCE_DEFAULTS={
+  wadFontTitle:'Outfit',wadSizeTitle:10,
+  wadFontPasta:'Outfit',wadSizePasta:9,
+  wadFontGeral:'Outfit',wadSizeGeral:10,
+};
+
+function getAppearance(){
+  const u=currentUser||'ALE';
+  const p=prefsData[u]||{};
+  return Object.assign({},WA_APPEARANCE_DEFAULTS,p.appearance||{});
+}
+
+function saveAppearance(app){
+  const u=currentUser||'ALE';
+  if(!prefsData[u])prefsData[u]={};
+  prefsData[u].appearance=app;
+  try{
+    const stored=JSON.parse(localStorage.getItem('fluxo_p8_'+u)||'{}');
+    stored.appearance=app;
+    localStorage.setItem('fluxo_p8_'+u,JSON.stringify(stored));
+  }catch(e){}
+  pushToSheets('prefs');
+}
+
+function applyAppearance(){
+  const app=getAppearance();
+  const r=document.documentElement;
+  const gf=n=>"'"+n+"',sans-serif";
+  r.style.setProperty('--wad-font-title',gf(app.wadFontTitle||'Outfit'));
+  r.style.setProperty('--wad-size-title',(app.wadSizeTitle||10)+'px');
+  r.style.setProperty('--wad-font-pasta',gf(app.wadFontPasta||'Outfit'));
+  r.style.setProperty('--wad-size-pasta',(app.wadSizePasta||9)+'px');
+  r.style.setProperty('--wad-font-geral',gf(app.wadFontGeral||'Outfit'));
+  r.style.setProperty('--wad-size-geral',(app.wadSizeGeral||10)+'px');
+  // Load Google Fonts if needed
+  const fonts=[app.wadFontTitle,app.wadFontPasta,app.wadFontGeral].filter(Boolean);
+  fonts.forEach(f=>{
+    if(['Outfit','Inter','Syne','Roboto','Lato','DM Serif Display'].includes(f)){
+      const id='gf-'+f.replace(/\s/g,'-');
+      if(!document.getElementById(id)){
+        const l=document.createElement('link');
+        l.id=id;l.rel='stylesheet';
+        l.href='https://fonts.googleapis.com/css2?family='+encodeURIComponent(f)+':wght@400;600;700&display=swap';
+        document.head.appendChild(l);
+      }
+    }
+  });
 }
 
 // -- MENU --
@@ -6412,7 +6471,7 @@ function waShowCfg(){
   // tab bar
   const tabBar=document.createElement('div');
   tabBar.style.cssText='display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;';
-  const tabs=[['aparencia','🎨 Aparência'],['pastas','🗂 Pastas & Categorias'],['contas','💳 Contas']];
+  const tabs=[['aparencia','🎨 Aparência'],['tipografia','🔤 Tipografia Web'],['pastas','🗂 Pastas & Categorias'],['contas','💳 Contas']];
   if(!window.waCfgTab)window.waCfgTab='aparencia';
   tabs.forEach(([id,lbl])=>{
     const b=document.createElement('button');
@@ -6436,12 +6495,120 @@ function waShowCfg(){
 
   if(window.waCfgTab==='aparencia'){
     content.appendChild(wrap);
+  } else if(window.waCfgTab==='tipografia'){
+    content.style.maxWidth='720px';
+    waCfgRenderTipografia(content);
   } else if(window.waCfgTab==='contas'){
     waCfgRenderContas(content);
   } else {
     waCfgRenderPastas(content);
   }
   body.appendChild(content);
+}
+
+function waCfgRenderTipografia(container){
+  container.innerHTML='';
+  const app=getAppearance();
+  let preview={...app};
+
+  const user=currentUser||'ALE';
+  const hdr=document.createElement('div');
+  hdr.style.cssText='font-size:.72rem;color:var(--muted);margin-bottom:20px;';
+  hdr.textContent='Configurações de tipografia para '+user+' — afetam apenas a versão web. Prévia ao vivo antes de salvar.';
+  container.appendChild(hdr);
+
+  // Helper: create a font config row
+  function mkRow(label,fontKey,sizeKey,defaultFont,defaultSize){
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;flex-wrap:wrap;';
+
+    const lbl=document.createElement('div');
+    lbl.style.cssText='font-size:.75rem;font-weight:600;color:var(--font);min-width:160px;';
+    lbl.textContent=label;
+
+    const fontSel=document.createElement('select');
+    fontSel.style.cssText='padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.75rem;';
+    ['Outfit','Inter','Syne','DM Serif Display','Roboto','Lato'].forEach(f=>{
+      const o=document.createElement('option');
+      o.value=f;o.textContent=f;
+      if((preview[fontKey]||defaultFont)===f)o.selected=true;
+      fontSel.appendChild(o);
+    });
+
+    const sizeLbl=document.createElement('span');
+    sizeLbl.style.cssText='font-size:.68rem;color:var(--muted);';
+    sizeLbl.textContent='Tamanho:';
+
+    const sizeInp=document.createElement('input');
+    sizeInp.type='number';sizeInp.min=7;sizeInp.max=18;
+    sizeInp.value=preview[sizeKey]||defaultSize;
+    sizeInp.style.cssText='width:56px;padding:5px 8px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.75rem;text-align:center;';
+
+    const sizePx=document.createElement('span');
+    sizePx.style.cssText='font-size:.68rem;color:var(--muted);';
+    sizePx.textContent='px';
+
+    fontSel.onchange=()=>{
+      preview[fontKey]=fontSel.value;
+      applyAppearancePreview(preview);
+    };
+    sizeInp.oninput=()=>{
+      preview[sizeKey]=parseInt(sizeInp.value)||defaultSize;
+      applyAppearancePreview(preview);
+    };
+
+    row.appendChild(lbl);row.appendChild(fontSel);
+    row.appendChild(sizeLbl);row.appendChild(sizeInp);row.appendChild(sizePx);
+    container.appendChild(row);
+  }
+
+  // Section: Quadro
+  const s1=document.createElement('div');
+  s1.style.cssText='font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;margin-top:4px;';
+  s1.textContent='Quadro — Início';
+  container.appendChild(s1);
+
+  mkRow('Títulos de seção','wadFontTitle','wadSizeTitle','Outfit',10);
+  mkRow('Total das pastas','wadFontPasta','wadSizePasta','Outfit',9);
+  mkRow('Texto geral da tabela','wadFontGeral','wadSizeGeral','Outfit',10);
+
+  // Save + Reset buttons
+  const btnRow=document.createElement('div');
+  btnRow.style.cssText='display:flex;gap:10px;margin-top:20px;';
+
+  const btnSave=document.createElement('button');
+  btnSave.textContent='💾 Salvar configurações';
+  btnSave.style.cssText='flex:1;padding:10px;border-radius:10px;border:none;background:var(--font);color:var(--bg);font-family:var(--font-body);font-size:.78rem;font-weight:700;cursor:pointer;';
+  btnSave.onclick=()=>{
+    saveAppearance(preview);
+    applyAppearance();
+    toast('Tipografia salva!','success');
+  };
+
+  const btnReset=document.createElement('button');
+  btnReset.textContent='↺ Restaurar padrões';
+  btnReset.style.cssText='padding:10px 16px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.75rem;cursor:pointer;';
+  btnReset.onclick=()=>{
+    preview={...WA_APPEARANCE_DEFAULTS};
+    saveAppearance(preview);
+    applyAppearance();
+    waCfgRenderTipografia(container);
+    toast('Padrões restaurados','success');
+  };
+
+  btnRow.appendChild(btnSave);btnRow.appendChild(btnReset);
+  container.appendChild(btnRow);
+}
+
+function applyAppearancePreview(app){
+  const r=document.documentElement;
+  const gf=n=>"'"+n+"',sans-serif";
+  r.style.setProperty('--wad-font-title',gf(app.wadFontTitle||'Outfit'));
+  r.style.setProperty('--wad-size-title',(app.wadSizeTitle||10)+'px');
+  r.style.setProperty('--wad-font-pasta',gf(app.wadFontPasta||'Outfit'));
+  r.style.setProperty('--wad-size-pasta',(app.wadSizePasta||9)+'px');
+  r.style.setProperty('--wad-font-geral',gf(app.wadFontGeral||'Outfit'));
+  r.style.setProperty('--wad-size-geral',(app.wadSizeGeral||10)+'px');
 }
 
 function waCfgRenderContas(container){
@@ -8075,7 +8242,7 @@ function _waDashRender(){
     st.id='wa-dash-style';
     st.textContent=`
       .wad-wrap{min-width:0;width:100%;overflow-x:auto;}
-      .wad-tbl{border-collapse:collapse;font-size:10px;width:100%;}
+      .wad-tbl{border-collapse:collapse;font-size:var(--wad-size-geral);font-family:var(--wad-font-geral);width:100%;}
       .wad-tbl th,.wad-inv-col{min-width:50px;}
       .wad-tbl th,.wad-tbl td{border:0.5px solid #D3D1C7;padding:0;}
       .wad-lbl{position:sticky;left:0;z-index:3;background:#fff;white-space:nowrap;padding:3px 8px 3px 10px;font-size:10px;color:#2C2C2A;min-width:140px;max-width:200px;overflow:hidden;text-overflow:ellipsis;box-shadow:2px 0 4px rgba(0,0,0,.08);}
@@ -8246,7 +8413,7 @@ function _waDashRender(){
     html+='<tr onclick="waDashTogglePasta(\''+tipo.replace(/'/g,"\\'")+'\')" style="cursor:pointer;">';
     const _grpBg=receitaTipos.includes(tipo)?'#76A5AF':'#aeabab';
     const _grpBorder=receitaTipos.includes(tipo)?'#4f7f8c':'#7f7f7f';
-    html+='<td class="wad-lbl grupo" style="position:sticky;left:0;z-index:3;background:'+_grpBg+';border-right:2px solid '+_grpBorder+';border-bottom:3px solid '+_grpBorder+';padding-left:10px;text-align:left;font-size:9px;font-weight:700;box-shadow:2px 0 4px rgba(0,0,0,.1);">'
+    html+='<td class="wad-lbl grupo" style="position:sticky;left:0;z-index:3;background:'+_grpBg+';border-right:2px solid '+_grpBorder+';border-bottom:3px solid '+_grpBorder+';padding-left:10px;text-align:left;font-size:var(--wad-size-pasta);font-family:var(--wad-font-pasta);font-weight:700;box-shadow:2px 0 4px rgba(0,0,0,.1);">'
       +'<span style="font-size:9px;margin-right:5px;opacity:.7;">'+(collapsed?'▸':'▾')+'</span>'
       +tipo.toUpperCase()+'</td>';
     visMonths.forEach(m=>{
