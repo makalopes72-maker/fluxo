@@ -2068,7 +2068,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.58';
+const APP_VERSION='17.59';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6612,9 +6612,11 @@ function waCfgRenderTipografia(container){
 
   function mkRowRem(label,fontKey,sizeKey,weightKey,defaultFont,defaultSize,defaultWeight){
     const row=document.createElement('div');
-    row.style.cssText='display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;flex-wrap:wrap;';
+    row.style.cssText='display:flex;align-items:stretch;gap:0;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;';
+    const rowLeft=document.createElement('div');
+    rowLeft.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 14px;flex-wrap:wrap;flex:1;';
     const lbl=document.createElement('div');
-    lbl.style.cssText='font-size:.75rem;font-weight:600;color:var(--font);min-width:160px;';
+    lbl.style.cssText='font-size:.75rem;font-weight:600;color:var(--font);min-width:130px;';
     lbl.textContent=label;
     const fontSel=document.createElement('select');
     fontSel.style.cssText='padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.75rem;';
