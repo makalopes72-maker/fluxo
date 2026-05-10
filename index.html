@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0f4c75,#7f1d1d);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#BAE6FD !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(186,230,253,.65) !important;}
-  #splash .splash-version{color:rgba(186,230,253,.35) !important;}
-  #splash .splash-btn{background:#BAE6FD !important;color:#0f4c75 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#BAE6FD !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1e3a5f,#134e4a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#BFDBFE !important;}
+  #splash .splash-sub{color:rgba(191,219,254,.65) !important;}
+  #splash .splash-version{color:rgba(191,219,254,.35) !important;}
+  #splash .splash-btn{background:#BFDBFE !important;color:#1e3a5f !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#BFDBFE !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2066,7 +2066,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.55';
+const APP_VERSION='17.56';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -7037,20 +7037,20 @@ function waRenderExtrato(){
     bar.id='wa-filter-bar';
     bar.style.cssText='flex-shrink:0;border-bottom:1px solid var(--border);background:var(--bg);';
     bar.innerHTML='<div style="display:flex;align-items:center;gap:6px;padding:8px 12px;flex-wrap:wrap;">'
-      +'<button id="wa-filter-btn" onclick="waToggleFilter()" style="padding:3px 8px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.72rem;cursor:pointer;transition:all .2s;">⊟</button>'
-      +'<button id="wa-chip-30d" onclick="waExtPeriod(\'30d\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">30d</button>'
-      +'<button id="wa-chip-mes" onclick="waExtPeriod(\'mes\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">--</button>'
-      +'<button id="wa-chip-ano" onclick="waExtYearModal()" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">--</button>'
-      +'<button id="wa-chip-tudo" onclick="waExtPeriod(\'tudo\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">Tudo</button>'
-      +'<button id="wa-chip-futuras" onclick="waExtPeriod(\'futuras\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">Futuras</button>'
-      +'<button id="wa-chip-consolid" onclick="waToggleConsolid()" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">Consolid.</button>'
-      +'<div style="margin-left:auto;display:flex;gap:14px;font-size:.72rem;" id="wa-totals"></div>'
+      +'<button id="wa-filter-btn" onclick="waToggleFilter()" style="padding:3px 8px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);cursor:pointer;transition:all .2s;">⊟</button>'
+      +'<button id="wa-chip-30d" onclick="waExtPeriod(\'30d\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);cursor:pointer;">30d</button>'
+      +'<button id="wa-chip-mes" onclick="waExtPeriod(\'mes\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);cursor:pointer;">--</button>'
+      +'<button id="wa-chip-ano" onclick="waExtYearModal()" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);cursor:pointer;">--</button>'
+      +'<button id="wa-chip-tudo" onclick="waExtPeriod(\'tudo\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);cursor:pointer;">Tudo</button>'
+      +'<button id="wa-chip-futuras" onclick="waExtPeriod(\'futuras\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);cursor:pointer;">Futuras</button>'
+      +'<button id="wa-chip-consolid" onclick="waToggleConsolid()" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);cursor:pointer;">Consolid.</button>'
+      +'<div style="margin-left:auto;display:flex;gap:14px;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);" id="wa-totals"></div>'
       +'</div>'
       +'<div id="wa-filter-panel" style="display:none;flex-direction:column;gap:10px;padding:8px 12px 12px;border-top:1px solid var(--border);">'
       +'<div><div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:5px;">Ordenar</div>'
       +'<div style="display:flex;gap:5px;">'
-      +'<button id="wa-sort-desc" onclick="waSetSort(\'desc\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.68rem;cursor:pointer;">↓ Mais recente</button>'
-      +'<button id="wa-sort-asc" onclick="waSetSort(\'asc\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:.68rem;cursor:pointer;">↑ Mais antigo</button>'
+      +'<button id="wa-sort-desc" onclick="waSetSort(\'desc\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);cursor:pointer;">↓ Mais recente</button>'
+      +'<button id="wa-sort-asc" onclick="waSetSort(\'asc\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-body);font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);cursor:pointer;">↑ Mais antigo</button>'
       +'</div></div>'
       +'<div><div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:5px;">Contas</div>'
       +'<div style="display:flex;flex-wrap:wrap;gap:4px;" id="wa-conta-chips"></div></div>'
@@ -7171,26 +7171,26 @@ function waRenderExtrato(){
     lastDay=dayKey;
     const dotStyle='display:inline-block;width:8px;height:8px;border-radius:50%;border:1.5px solid '+(t.consolidated?'var(--font)':'var(--muted)')+';background:'+(t.consolidated?'var(--font)':'transparent')+';margin-right:5px;flex-shrink:0;cursor:pointer;vertical-align:middle;';
     rows+='<tr onclick="waEditTx('+idx+')" style="cursor:pointer;'+(t.consolidated?'':'opacity:.6;')+'" onmouseover="this.style.background=\'var(--kp)\'" onmouseout="this.style.background=\'\'">'
-      +'<td style="padding:3px 8px;font-size:.68rem;color:var(--muted);white-space:nowrap;'+db2+'">'+t.date+'</td>'
-      +'<td style="padding:3px 8px;font-size:.72rem;font-weight:500;color:var(--font);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'+db2+'">'
+      +'<td style="padding:3px 8px;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);color:var(--muted);white-space:nowrap;'+db2+'">'+t.date+'</td>'
+      +'<td style="padding:3px 8px;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);font-weight:var(--ext-weight-tabela);color:var(--font);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'+db2+'">'
         +'<span onclick="waToggleExtConsol('+idx+',event)" style="'+dotStyle+'"></span>'+(t.desc||t.cat)+'</td>'
       +'<td style="padding:3px 8px;font-size:.66rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'+db2+'">'+(t.cat||'--')+'</td>'
       +'<td style="padding:3px 8px;font-size:.66rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'+db2+'">'+(t.account||'--')+'</td>'
-      +'<td style="padding:3px 8px;text-align:right;font-size:.72rem;font-weight:700;color:'+color+';white-space:nowrap;'+db2+'">'+(isIn?'+':'-')+fmt(t.value)+'</td>'
+      +'<td style="padding:3px 8px;text-align:right;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);font-weight:700;color:'+color+';white-space:nowrap;'+db2+'">'+(isIn?'+':'-')+fmt(t.value)+'</td>'
       +'<td style="'+db2+'"></td>'
       +'</tr>';
   });
-  if(!rows)rows='<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted);font-size:.8rem;">Nenhuma transação</td></tr>';
+  if(!rows)rows='<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted);font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);">Nenhuma transação</td></tr>';
 
   body.innerHTML='<div class="wa-scroll" style="overflow-y:scroll;flex:1;">'
     +'<table style="width:100%;border-collapse:collapse;table-layout:fixed;">'
     +'<colgroup><col style="width:78px;"><col><col style="width:110px;"><col style="width:100px;"><col style="width:90px;"><col style="width:10px;"></colgroup>'
     +'<thead><tr style="position:sticky;top:0;z-index:2;background:var(--bg);">'
-    +'<th style="padding:5px 8px;text-align:left;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Data</th>'
-    +'<th style="padding:5px 8px;text-align:left;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Descrição</th>'
-    +'<th style="padding:5px 8px;text-align:left;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Categoria</th>'
-    +'<th style="padding:5px 8px;text-align:left;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Conta</th>'
-    +'<th style="padding:5px 8px;text-align:right;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Valor</th>'
+    +'<th style="padding:5px 8px;text-align:left;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Data</th>'
+    +'<th style="padding:5px 8px;text-align:left;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Descrição</th>'
+    +'<th style="padding:5px 8px;text-align:left;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Categoria</th>'
+    +'<th style="padding:5px 8px;text-align:left;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Conta</th>'
+    +'<th style="padding:5px 8px;text-align:right;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);">Valor</th>'
     +'<th style="width:10px;"></th>'
     +'</tr></thead>'
     +'<tbody>'+rows+'</tbody></table></div>';
