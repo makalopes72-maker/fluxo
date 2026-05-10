@@ -2063,7 +2063,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.46';
+const APP_VERSION='17.47';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8245,7 +8245,7 @@ function _waDashRender(){
       .wad-tbl{border-collapse:collapse;font-size:var(--wad-size-geral);font-family:var(--wad-font-geral);width:100%;}
       .wad-tbl th,.wad-inv-col{min-width:50px;}
       .wad-tbl th,.wad-tbl td{border:0.5px solid #D3D1C7;padding:0;}
-      .wad-lbl{position:sticky;left:0;z-index:3;background:#fff;white-space:nowrap;padding:3px 8px 3px 10px;font-size:10px;color:#2C2C2A;min-width:140px;max-width:200px;overflow:hidden;text-overflow:ellipsis;box-shadow:2px 0 4px rgba(0,0,0,.08);}
+      .wad-lbl{position:sticky;left:0;z-index:3;background:#fff;white-space:nowrap;padding:3px 8px 3px 10px;font-size:var(--wad-size-geral);font-family:var(--wad-font-geral);color:#2C2C2A;min-width:140px;max-width:200px;overflow:hidden;text-overflow:ellipsis;box-shadow:2px 0 4px rgba(0,0,0,.08);}
       .wad-lbl.grupo{background:#1a1a1a;color:#fff;font-weight:700;font-size:8px;text-align:left;letter-spacing:.05em;cursor:pointer;}
       .wad-lbl.sub{background:#F1EFE8;font-weight:700;text-align:right;border-right:2px solid #B4B2A9;}
       .wad-lbl.cat{padding-left:22px;color:#5F5E5A;background:#fff;border-right:2px solid #B4B2A9;}
@@ -8319,7 +8319,7 @@ function _waDashRender(){
 
   const _rdC=waDashSecCol('rd');
   html+='<thead class="wad-head">';
-  html+='<tr onclick="waDashTogSection(&quot;rd&quot;)" style="cursor:pointer;"><td colspan="999" style="background:#1E3A2F;color:#A5D6A7;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:6px 10px;border-left:4px solid #2E7D32;">'+(_rdC?'▸':'▾')+' Receitas e Despesas</td></tr>';
+  html+='<tr onclick="waDashTogSection(&quot;rd&quot;)" style="cursor:pointer;"><td colspan="999" style="background:#1E3A2F;color:#A5D6A7;font-size:var(--wad-size-title);font-family:var(--wad-font-title);font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:6px 10px;border-left:4px solid #2E7D32;">'+(_rdC?'▸':'▾')+' Receitas e Despesas</td></tr>';
   html+='<tr>';
   html+='<th class="wad-lbl-h" rowspan="2">Pasta / Categoria</th>';
 
@@ -8421,7 +8421,7 @@ function _waDashRender(){
       const showOrc=isCur||!isPast||(window.waDashShowOrc&&window.waDashShowOrc[m]);
       const rv=totReal[m],mv=totMeta[m];
       const gfc=farolClass(rv,mv,'A',isPos);
-      html+='<td style="text-align:right;padding:3px 8px 3px 5px;font-size:9px;font-weight:700;color:'+(rv?'#2C2C2A':'rgba(44,44,42,.25)')+';background:'+_grpBg+';border-left:1px solid #CCC;border-bottom:3px solid '+_grpBorder+';white-space:nowrap;'+farolShadow(gfc)+'">'+(rv?fmt(rv):'')+'</td>';
+      html+='<td style="text-align:right;padding:3px 8px 3px 5px;font-size:var(--wad-size-pasta);font-family:var(--wad-font-pasta);font-weight:700;color:'+(rv?'#2C2C2A':'rgba(44,44,42,.25)')+';background:'+_grpBg+';border-left:1px solid #CCC;border-bottom:3px solid '+_grpBorder+';white-space:nowrap;'+farolShadow(gfc)+'">'+(rv?fmt(rv):'')+'</td>';
       if(showOrc)html+='<td style="text-align:right;padding:3px 8px 3px 5px;font-size:9px;color:rgba(44,44,42,.5);background:'+_grpBg+';font-style:italic;border-bottom:3px solid '+_grpBorder+';border-left:none;white-space:nowrap;">'+(mv?fmt(mv):'')+'</td>';
     });
     // total col
@@ -8662,7 +8662,7 @@ function waDashCcRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTota
 
   // section title row
   h+='<tr onclick="waDashTogSection(&quot;cc&quot;)" style="cursor:pointer;">'
-    +'<td colspan="'+totalCols+'" style="position:sticky;left:0;z-index:3;background:#134E4A;color:#5EEAD4;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:6px 10px;border-left:4px solid #0F766E;">'+(_ccC?'▸':'▾')+' Conta Corrente</td></tr>';
+    +'<td colspan="'+totalCols+'" style="position:sticky;left:0;z-index:3;background:#134E4A;color:#5EEAD4;font-size:var(--wad-size-title);font-family:var(--wad-font-title);font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:6px 10px;border-left:4px solid #0F766E;">'+(_ccC?'▸':'▾')+' Conta Corrente</td></tr>';
 
   if(!_ccC){
     // months header row
@@ -8862,7 +8862,7 @@ function waDashInvRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,fmt,sho
   const _invC=waDashSecCol('inv');
   h+='<tr><td colspan="'+totalCols+'" style="padding:0;height:10px;background:#F0F0F0;border:none;border-top:3px solid #2E7D32;border-bottom:3px solid #1565C0;"></td></tr>';
   h+='<tr onclick="waDashTogSection(&quot;inv&quot;)" style="cursor:pointer;">'
-    +'<td colspan="'+totalCols+'" style="position:sticky;left:0;z-index:3;background:#0D2744;color:#90CAF9;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:6px 10px;border-left:4px solid #1565C0;">'+(_invC?'▸':'▾')+' Investimentos'
+    +'<td colspan="'+totalCols+'" style="position:sticky;left:0;z-index:3;background:#0D2744;color:#90CAF9;font-size:var(--wad-size-title);font-family:var(--wad-font-title);font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:6px 10px;border-left:4px solid #1565C0;">'+(_invC?'▸':'▾')+' Investimentos'
     +' <span onclick="event.stopPropagation();window.waDashShowEncerrados=!window.waDashShowEncerrados;waDashRender();" style="font-size:7px;background:rgba(255,255,255,.15);padding:1px 6px;border-radius:3px;margin-left:6px;">'+(showEnc?'▲ enc.':'▼ enc.')+'</span>'
     +'</td></tr>';
   if(!_invC){
@@ -8978,7 +8978,7 @@ function waDashBensRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTo
   const _bensC=waDashSecCol('bens');
   h+='<tr><td colspan="'+totalCols+'" style="padding:0;height:10px;background:#F0F0F0;border:none;border-top:3px solid #1565C0;border-bottom:3px solid #6A1B9A;"></td></tr>';
   h+='<tr onclick="waDashTogSection(&quot;bens&quot;)" style="cursor:pointer;">';
-  h+='<td colspan="'+totalCols+'" style="position:sticky;left:0;z-index:3;background:#2D1B4E;color:#CE93D8;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:6px 10px;border-left:4px solid #6A1B9A;">'+(_bensC?'▸':'▾')+' Bens</td></tr>';
+  h+='<td colspan="'+totalCols+'" style="position:sticky;left:0;z-index:3;background:#2D1B4E;color:#CE93D8;font-size:var(--wad-size-title);font-family:var(--wad-font-title);font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:6px 10px;border-left:4px solid #6A1B9A;">'+(_bensC?'▸':'▾')+' Bens</td></tr>';
   // second row: months header (only if section is expanded)
   if(!_bensC){
   h+='<tr><td style="position:sticky;left:0;z-index:3;background:#455A64;color:#CFD8DC;font-size:8px;font-weight:700;padding:4px 8px;border-left:4px solid #6A1B9A;">Bem</td>';
