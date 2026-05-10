@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0f4c75,#14532d);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F2FE !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(224,242,254,.65) !important;}
-  #splash .splash-version{color:rgba(224,242,254,.35) !important;}
-  #splash .splash-btn{background:#E0F2FE !important;color:#0f4c75 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F2FE !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#7f1d1d,#14532d);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FEE2E2 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(254,226,226,.65) !important;}
+  #splash .splash-version{color:rgba(254,226,226,.35) !important;}
+  #splash .splash-btn{background:#FEE2E2 !important;color:#7f1d1d !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FEE2E2 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1111,7 +1111,7 @@
   }
   /* kp column */
   #wa-kp-col{
-    width:260px;
+    width:var(--wa-right-width,360px);
     flex-shrink:0;
     display:flex;
     flex-direction:column;
@@ -2068,7 +2068,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.64';
+const APP_VERSION='17.65';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -7840,7 +7840,8 @@ function waOpenPicker(field){
   pc.classList.add('open');
   // expand wa-right to fit
   const rp=document.getElementById('wa-right');
-  if(rp)rp.style.width=(260+180)+'px';
+  const _rw=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--wa-right-width'))||360;
+  if(rp)rp.style.width=(_rw+180)+'px';
 }
 
 function waPickFromCol(field,val){
@@ -7861,7 +7862,7 @@ function waClosePicker(){
   const pc=document.getElementById('wa-picker-col');
   if(pc)pc.classList.remove('open');
   const rp=document.getElementById('wa-right');
-  if(rp)rp.style.width='260px';
+  if(rp)rp.style.width='';
 }
 
 function waToggleConsol(){
