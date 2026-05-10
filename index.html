@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#7f1d1d,#1e3a5f);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FEE2E2 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(254,226,226,.65) !important;}
-  #splash .splash-version{color:rgba(254,226,226,.35) !important;}
-  #splash .splash-btn{background:#FEE2E2 !important;color:#7f1d1d !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FEE2E2 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#134e4a,#7c3aed);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#CCFBF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(204,251,241,.65) !important;}
+  #splash .splash-version{color:rgba(204,251,241,.35) !important;}
+  #splash .splash-btn{background:#CCFBF1 !important;color:#134e4a !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#CCFBF1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2055,7 +2055,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.41';
+const APP_VERSION='17.42';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2273,6 +2273,44 @@ function addAccount(){
   document.getElementById('acct-new-name').value='';
   saveAccounts();buildAccountsUI();buildSettings();
 }
+// Mapeamento visual cat→pasta (para transações importadas com tipo=cat)
+const CAT_TO_PASTA={
+  'Alimentação':'Alimentação','Café da Manhã / Padaria':'Alimentação','Feira':'Alimentação',
+  'Lanches & Snacks':'Alimentação','Refeições em restaurante':'Alimentação','Supermercado':'Alimentação',
+  'Suplemento Alimentar':'Saúde','Medicamentos Farmácia':'Saúde','Saúde':'Saúde',
+  'Exames':'Saúde','Consultas Fora do Plano':'Saúde','Terapia.Massagem.Tratamentos':'Saúde','Higiene / Estética Produtos':'Saúde',
+  'Casa':'Casa','Celular Telefone':'Casa','Condomínio':'Casa','Energia Elétrica':'Casa',
+  'Gás':'Casa','IPTU':'Casa','Limpeza / Faxina':'Casa','Móveis e decoração':'Casa',
+  'Reforma / Manutenção':'Casa','Utensílios e Eletrodomésticos':'Casa',
+  'Combustível (sem reembolso)':'Transporte','Estacionamento':'Transporte','IPVA (+ licenciamento)':'Transporte',
+  'Multas':'Transporte','Ônibus Metrô (sem reembolso)':'Transporte','Revisão Anual / Manut/ Conserto':'Transporte',
+  'Seguro do Carro':'Transporte','Sem Parar':'Transporte','Transporte':'Transporte',
+  'Estacionamento/Taxi / Empresa':'Empresa / Atividade Autônoma',
+  'Alimentação / Empresa':'Empresa / Atividade Autônoma',
+  'AngelUs':'Empresa / Atividade Autônoma','Contabilidade':'Empresa / Atividade Autônoma',
+  'Cursos e Eventos / Empresa':'Empresa / Atividade Autônoma',
+  'Empresa / Atividade Autônoma':'Empresa / Atividade Autônoma',
+  'INSS':'Empresa / Atividade Autônoma','IR':'Empresa / Atividade Autônoma',
+  'Infraestrutura':'Empresa / Atividade Autônoma','Material de Escritório':'Empresa / Atividade Autônoma',
+  'Nexus/Vistage':'Empresa / Atividade Autônoma',
+  'Receita':'Receita','Receita Bruta (Cliente/ Salário)':'Receita',
+  'Juros Investimentos . Dividendos':'Receita','X Outras Receitas':'Receita',
+  'Doações':'Gastos Pessoais','Clube':'Gastos Pessoais','Eletrônicos Pessoais':'Gastos Pessoais',
+  'Gastos Pessoais':'Gastos Pessoais','Presentes':'Gastos Pessoais',
+  'Salão Beleza / Manicure':'Gastos Pessoais','Vestuário Calçados Acessórios':'Gastos Pessoais',
+  'X Outros Pessoais':'Gastos Pessoais',
+  'Lazer':'Lazer','Lazer e Informação':'Lazer',
+  'Educação':'Dependentes',
+  'Tarifas bancárias':'Serv. Financeiros',
+  'Transferências':'Transferências',
+};
+function getTipoPasta(t){
+  var rawTipo=t.tipo||t.cat||'Outros';
+  var cat=t.cat||t.tipo||'Outros';
+  if(rawTipo===cat&&CAT_TO_PASTA[cat]) return CAT_TO_PASTA[cat];
+  return rawTipo;
+}
+
 function setAcctKind(idx,kind){
   accounts[idx].kind=kind;
   if(kind!=='credito')delete accounts[idx].diaVencimento;
@@ -7338,7 +7376,8 @@ function waDashDrill(el){
     const d=parseDate(t.date);
     if(!d)return false;
     if(d.getFullYear()!==year||d.getMonth()!==mIdx)return false;
-    if(t.tipo!==tipo||t.cat!==cat)return false;
+    const tPasta=getTipoPasta(t);
+    if(tPasta!==tipo||t.cat!==cat)return false;
     const accts=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).map(a=>normalizeAcct(a.name));
     return !accts.length||accts.includes(normalizeAcct(t.account));
   }).sort((a,b)=>{
@@ -7982,37 +8021,7 @@ function _waDashRender(){
 
   // sum real per tipo+cat per month — respect entrada/saída sign
   const real={};
-  // Mapeamento cat→pasta para transações importadas com tipo=cat
-  const _catToPasta={
-    'Alimentação':'Alimentação','Café da Manhã / Padaria':'Alimentação','Feira':'Alimentação',
-    'Lanches & Snacks':'Alimentação','Refeições em restaurante':'Alimentação','Supermercado':'Alimentação',
-    'Suplemento Alimentar':'Saúde','Medicamentos Farmácia':'Saúde','Saúde':'Saúde',
-    'Exames':'Saúde','Consultas Fora do Plano':'Saúde','Terapia.Massagem.Tratamentos':'Saúde','Higiene / Estética Produtos':'Saúde',
-    'Casa':'Casa','Celular Telefone':'Casa','Condomínio':'Casa','Energia Elétrica':'Casa',
-    'Gás':'Casa','IPTU':'Casa','Limpeza / Faxina':'Casa','Móveis e decoração':'Casa',
-    'Reforma / Manutenção':'Casa','Utensílios e Eletrodomésticos':'Casa',
-    'Combustível (sem reembolso)':'Transporte','Estacionamento':'Transporte','IPVA (+ licenciamento)':'Transporte',
-    'Multas':'Transporte','Ônibus Metrô (sem reembolso)':'Transporte','Revisão Anual / Manut/ Conserto':'Transporte',
-    'Seguro do Carro':'Transporte','Sem Parar':'Transporte','Transporte':'Transporte',
-    'Estacionamento/Taxi / Empresa':'Empresa / Atividade Autônoma',
-    'Alimentação / Empresa':'Empresa / Atividade Autônoma',
-    'AngelUs':'Empresa / Atividade Autônoma','Contabilidade':'Empresa / Atividade Autônoma',
-    'Cursos e Eventos / Empresa':'Empresa / Atividade Autônoma',
-    'Empresa / Atividade Autônoma':'Empresa / Atividade Autônoma',
-    'INSS':'Empresa / Atividade Autônoma','IR':'Empresa / Atividade Autônoma',
-    'Infraestrutura':'Empresa / Atividade Autônoma','Material de Escritório':'Empresa / Atividade Autônoma',
-    'Nexus/Vistage':'Empresa / Atividade Autônoma',
-    'Receita':'Receita','Receita Bruta (Cliente/ Salário)':'Receita',
-    'Juros Investimentos . Dividendos':'Receita','X Outras Receitas':'Receita',
-    'Doações':'Gastos Pessoais','Clube':'Gastos Pessoais','Eletrônicos Pessoais':'Gastos Pessoais',
-    'Gastos Pessoais':'Gastos Pessoais','Presentes':'Gastos Pessoais',
-    'Salão Beleza / Manicure':'Gastos Pessoais','Vestuário Calçados Acessórios':'Gastos Pessoais',
-    'X Outros Pessoais':'Gastos Pessoais',
-    'Lazer':'Lazer','Lazer e Informação':'Lazer',
-    'Educação':'Dependentes',
-    'Tarifas bancárias':'Serv. Financeiros',
-    'Transferências':'Transferências',
-  };
+  // Mapeamento via CAT_TO_PASTA global (getTipoPasta)
 
   allData.forEach(t=>{
     if(!t.consolidated)return; // only consolidated transactions
@@ -8022,8 +8031,7 @@ function _waDashRender(){
     const m=d.getMonth();
     const cat=t.cat||t.tipo||'Outros';
     // Se tipo=cat (importação incorreta), usa mapeamento visual
-    const rawTipo=t.tipo||t.cat||'Outros';
-    const tipo=(rawTipo===cat&&_catToPasta[cat])?_catToPasta[cat]:rawTipo;
+    const tipo=getTipoPasta(t);
     if(!real[tipo])real[tipo]={};
     if(!real[tipo][cat])real[tipo][cat]=Array(12).fill(0);
     // sign: entrada=positive, saída=negative, transferência follows account role
