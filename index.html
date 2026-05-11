@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0f4c75,#4c1d95);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F2FE !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(224,242,254,.65) !important;}
-  #splash .splash-version{color:rgba(224,242,254,.35) !important;}
-  #splash .splash-btn{background:#E0F2FE !important;color:#0f4c75 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F2FE !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#134e4a,#4c1d95);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#CCFBF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(204,251,241,.65) !important;}
+  #splash .splash-version{color:rgba(204,251,241,.35) !important;}
+  #splash .splash-btn{background:#CCFBF1 !important;color:#134e4a !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#CCFBF1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2071,7 +2071,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.77';
+const APP_VERSION='17.78';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -11413,11 +11413,17 @@ function waInvToggleEnc(idx){
   }
 
   const dateInp=document.createElement('input');
-  dateInp.type='text';dateInp.value=todayStr;dateInp.placeholder='DD/MM/AAAA';
+  dateInp.type='date';
+  const todayISO=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  dateInp.value=todayISO;
   dateInp.style.cssText='width:100%;padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.9rem;box-sizing:border-box;margin-bottom:14px;';
 
+  // Origem: nome do investimento (somente leitura)
+  const srcDisplay=document.createElement('div');
+  srcDisplay.style.cssText='width:100%;padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--muted);font-family:var(--font-body);font-size:.88rem;box-sizing:border-box;margin-bottom:14px;font-weight:600;';
+  srcDisplay.textContent=a.nome;
+
   const allUserAccts=accounts.filter(ac=>ac.active&&(ac.owner===user||ac.owner==='AMBOS'));
-  const srcSel=mkSel(allUserAccts,ac=>ac.instituicao&&inst&&ac.instituicao.toLowerCase()===inst.name.toLowerCase());
   const destSel=mkSel(allUserAccts.filter(ac=>ac.kind!=='credito'),null);
 
   const btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:10px;margin-top:6px;';
@@ -11430,16 +11436,16 @@ function waInvToggleEnc(idx){
   btnCancel.onclick=()=>overlay.remove();
 
   btnOk.onclick=async()=>{
-    const ds=dateInp.value.trim()||todayStr;
-    const contaOrig=srcSel.value;
+    const dateVal=dateInp.value; // YYYY-MM-DD
+    const ds=dateVal ? dateVal.split('-').reverse().join('/') : todayStr;
     const contaDest=destSel.value;
-    if(!contaOrig||!contaDest){toast('Selecione as contas','error');return;}
+    if(!contaDest){toast('Selecione a conta destino','error');return;}
     const desc='Resgate '+a.nome;
     const valStr=valorAtual.toFixed(2).replace('.',',');
     const txId=generateTxId();
 
-    // Saída da conta de origem
-    allData.push({_id:txId+'S',date:ds,desc,value:valorAtual,cat:'Investimentos',tipo:'Investimentos',account:contaOrig,type:'saída',consolidated:true,deleted:false});
+    // Saída do próprio investimento (sem conta CC — categoria Investimentos)
+    allData.push({_id:txId+'S',date:ds,desc,value:valorAtual,cat:'Investimentos',tipo:'Investimentos',account:a.nome,type:'saída',consolidated:true,deleted:false});
     // Entrada na conta destino
     allData.push({_id:txId+'E',date:ds,desc,value:valorAtual,cat:'Investimentos',tipo:'Investimentos',account:contaDest,type:'entrada',consolidated:true,deleted:false});
 
@@ -11453,7 +11459,7 @@ function waInvToggleEnc(idx){
     renderDash();
     toast('Encerrado! R$ '+valStr+' transferido para '+contaDest,'success');
 
-    await sheetsAppend([ds,desc,valStr,'Investimentos','Investimentos',contaOrig,'saída','1','','',txId+'S']);
+    await sheetsAppend([ds,desc,valStr,'Investimentos','Investimentos',a.nome,'saída','1','','',txId+'S']);
     await sheetsAppend([ds,desc,valStr,'Investimentos','Investimentos',contaDest,'entrada','1','','',txId+'E']);
     await sheetsAppendLog(user,inst.name,a.nome,ds,0,'Encerrado — transferido para '+contaDest);
   };
@@ -11461,11 +11467,11 @@ function waInvToggleEnc(idx){
   btnRow.appendChild(btnOk);btnRow.appendChild(btnCancel);
   modal.appendChild(title);modal.appendChild(sub);
   modal.appendChild(mkLbl('Data da transferência'));modal.appendChild(dateInp);
-  modal.appendChild(mkLbl('Conta de origem (investimento)'));modal.appendChild(srcSel);
+  modal.appendChild(mkLbl('Origem (investimento)'));modal.appendChild(srcDisplay);
   modal.appendChild(mkLbl('Conta destino (onde o dinheiro chega)'));modal.appendChild(destSel);
   modal.appendChild(btnRow);
   overlay.appendChild(modal);document.body.appendChild(overlay);
-  dateInp.focus();dateInp.select();
+  dateInp.focus();
 }
 
 function waInvEditAtivo(idx){
