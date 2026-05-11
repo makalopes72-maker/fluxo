@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#065f46,#7c3aed);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#D1FAE5 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(209,250,229,.65) !important;}
-  #splash .splash-version{color:rgba(209,250,229,.35) !important;}
-  #splash .splash-btn{background:#D1FAE5 !important;color:#065f46 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#D1FAE5 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1a1a2e,#16213e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E2E8F0 !important;text-shadow:0 2px 24px rgba(0,0,0,.5);}
+  #splash .splash-sub{color:rgba(226,232,240,.65) !important;}
+  #splash .splash-version{color:rgba(226,232,240,.35) !important;}
+  #splash .splash-btn{background:#E2E8F0 !important;color:#1a1a2e !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E2E8F0 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2071,7 +2071,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.71';
+const APP_VERSION='17.72';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6071,7 +6071,17 @@ async function loadInvFromSheets(){
       }
     }catch(e){console.warn('CC fetch fail',e);}
 
-    // 5. save and render
+    // 5. save and render — merge logs from localStorage to preserve history
+    const localAtivos=JSON.parse(localStorage.getItem('fluxo_ativos_'+user)||'{}');
+    Object.keys(userAtivos).forEach(inst=>{
+      (userAtivos[inst]||[]).forEach(a=>{
+        // If Sheets ativo has no log but localStorage has logs, restore them
+        if((!a.log||a.log.length===0)&&localAtivos[inst]){
+          const localA=localAtivos[inst].find(la=>la.nome===a.nome);
+          if(localA&&localA.log&&localA.log.length>0) a.log=localA.log;
+        }
+      });
+    });
     ativosPorUser[user]=userAtivos;
     localStorage.setItem('fluxo_ativos_'+user,JSON.stringify(userAtivos));
     renderInv();
