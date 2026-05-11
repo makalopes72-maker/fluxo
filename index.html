@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#134e4a,#4c1d95);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#CCFBF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(204,251,241,.65) !important;}
-  #splash .splash-version{color:rgba(204,251,241,.35) !important;}
-  #splash .splash-btn{background:#CCFBF1 !important;color:#134e4a !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#CCFBF1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#7f1d1d,#064e3b);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FEE2E2 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(254,226,226,.65) !important;}
+  #splash .splash-version{color:rgba(254,226,226,.35) !important;}
+  #splash .splash-btn{background:#FEE2E2 !important;color:#7f1d1d !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FEE2E2 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2071,7 +2071,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.78';
+const APP_VERSION='17.79';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4767,23 +4767,9 @@ function saveInvestimentos(){
 // Force-write all investment log entries after structural changes (delete, etc.)
 async function saveInvestimentosFull(){
   saveInvestimentos();
-  // Additionally, explicitly rewrite InvestimentosLog line by line via appendLog
-  // First clear the sheet (via write with just header), then re-append all entries
-  const user=currentUser||'ALE';
-  const logHeader=[['Usuário','Instituição','Ativo','Data','Valor','Nota']];
-  await fetch(APPS_SCRIPT_URL,{
-    method:'POST',mode:'no-cors',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({action:'write',sheet:'InvestimentosLog',rows:logHeader})
-  });
-  // Now append all log entries one by one
-  for(const inst of instituicoes){
-    for(const a of (getInstAtivos(inst)||[])){
-      for(const l of (a.log||[])){
-        await sheetsAppendLog(user,inst.name,a.nome,l.date,l.value,l.note||'');
-      }
-    }
-  }
+  // NOTE: We do NOT clear InvestimentosLog anymore — too risky.
+  // Just save to localStorage (already done in saveInvestimentos).
+  // Individual log entries are synced via sheetsAppendLog when created.
 }
 
 function seedInstLinks(){
