@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1e3a5f,#14532d);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#BFDBFE !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(191,219,254,.65) !important;}
-  #splash .splash-version{color:rgba(191,219,254,.35) !important;}
-  #splash .splash-btn{background:#BFDBFE !important;color:#1e3a5f !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#BFDBFE !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4c1d95,#065f46);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#EDE9FE !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(237,233,254,.65) !important;}
+  #splash .splash-version{color:rgba(237,233,254,.35) !important;}
+  #splash .splash-btn{background:#EDE9FE !important;color:#4c1d95 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#EDE9FE !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2071,7 +2071,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.74';
+const APP_VERSION='17.75';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5248,13 +5248,100 @@ function editAtivo(){
   document.getElementById('ativo-modal-sheet').style.transform='translateY(0)';
 }
 function encerrarAtivo(){
-  if(!confirm('Encerrar este investimento? O histórico será mantido.'))return;
   const a=getInstAtivos(instituicoes[currentInstIdx])[currentAtivoIdx];
-  const n=new Date();
-  const ds=String(n.getDate()).padStart(2,'0')+'/'+String(n.getMonth()+1).padStart(2,'0')+'/'+n.getFullYear();
-  a.encerrado=true;a.dataEncerramento=ds;
-  a.log.push({date:ds,value:getAtivoAtual(a),note:'Investimento encerrado'});
-  saveInvestimentos();renderAtivos();openAtivo(currentAtivoIdx);toast('Encerrado','success');
+  const valorAtual=getAtivoAtual(a);
+  const user=currentUser||'ALE';
+
+  // Build modal
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
+
+  const modal=document.createElement('div');
+  modal.style.cssText='background:var(--card);border-radius:16px;padding:24px;width:340px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.3);';
+
+  // Title
+  const title=document.createElement('div');
+  title.style.cssText='font-size:1rem;font-weight:700;color:var(--font);margin-bottom:6px;';
+  title.textContent='Encerrar investimento';
+
+  const sub=document.createElement('div');
+  sub.style.cssText='font-size:.78rem;color:var(--muted);margin-bottom:18px;';
+  sub.textContent=a.nome+' · Saldo: R$ '+valorAtual.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  // Date
+  const today=new Date();
+  const todayStr=String(today.getDate()).padStart(2,'0')+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+today.getFullYear();
+  const dateLbl=document.createElement('div');
+  dateLbl.style.cssText='font-size:.75rem;font-weight:600;color:var(--muted);margin-bottom:4px;';
+  dateLbl.textContent='Data do resgate';
+  const dateInp=document.createElement('input');
+  dateInp.type='text';dateInp.value=todayStr;dateInp.placeholder='DD/MM/AAAA';
+  dateInp.style.cssText='width:100%;padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.9rem;box-sizing:border-box;margin-bottom:14px;';
+
+  // Account
+  const acctLbl=document.createElement('div');
+  acctLbl.style.cssText='font-size:.75rem;font-weight:600;color:var(--muted);margin-bottom:4px;';
+  acctLbl.textContent='Transferir para conta';
+  const acctSel=document.createElement('select');
+  acctSel.style.cssText='width:100%;padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.88rem;box-sizing:border-box;margin-bottom:20px;';
+  const userAccts=accounts.filter(ac=>ac.active&&(ac.owner===user||ac.owner==='AMBOS')&&ac.kind!=='credito');
+  userAccts.forEach(ac=>{
+    const o=document.createElement('option');
+    o.value=ac.name;o.textContent=ac.name;
+    acctSel.appendChild(o);
+  });
+
+  // Buttons
+  const btnRow=document.createElement('div');
+  btnRow.style.cssText='display:flex;gap:10px;';
+
+  const btnOk=document.createElement('button');
+  btnOk.textContent='✓ Encerrar e transferir';
+  btnOk.style.cssText='flex:1;padding:10px;border-radius:10px;border:none;background:var(--font);color:var(--bg);font-family:var(--font-body);font-size:.82rem;font-weight:700;cursor:pointer;';
+
+  const btnCancel=document.createElement('button');
+  btnCancel.textContent='Cancelar';
+  btnCancel.style.cssText='padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.78rem;cursor:pointer;';
+  btnCancel.onclick=()=>overlay.remove();
+
+  btnOk.onclick=async()=>{
+    const ds=dateInp.value.trim()||todayStr;
+    const conta=acctSel.value;
+    if(!conta){toast('Selecione uma conta','error');return;}
+
+    // 1. Add final log with value 0
+    a.log.push({date:ds,value:0,note:'Encerrado — resgatado em '+ds});
+    a.encerrado=true;a.dataEncerramento=ds;
+
+    // 2. Create transfer transaction
+    const txId=Date.now()+''+Math.floor(Math.random()*900+100);
+    const txVal=valorAtual.toFixed(2).replace('.',',');
+    const txRow=[ds,'Resgate '+a.nome,txVal,'Transferências','Transferências',conta,'entrada','1','','',txId];
+    allData.push({_id:txId,date:ds,desc:'Resgate '+a.nome,value:valorAtual,
+      cat:'Transferências',tipo:'Transferências',account:conta,type:'entrada',
+      consolidated:true,deleted:false});
+
+    // 3. Save
+    saveInvestimentos();
+    overlay.remove();
+    renderAtivos();
+    openAtivo(currentAtivoIdx);
+    toast('Encerrado! Resgate lançado em '+conta,'success');
+
+    // 4. Sync to Sheets
+    await sheetsAppend(txRow);
+    await sheetsAppendLog(user,instituicoes[currentInstIdx].name,a.nome,ds,0,'Encerrado — resgatado em '+ds);
+    renderDash();
+  };
+
+  btnRow.appendChild(btnOk);btnRow.appendChild(btnCancel);
+  modal.appendChild(title);modal.appendChild(sub);
+  modal.appendChild(dateLbl);modal.appendChild(dateInp);
+  modal.appendChild(acctLbl);modal.appendChild(acctSel);
+  modal.appendChild(btnRow);
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  dateInp.focus();dateInp.select();
 }
 function reativarAtivo(){
   if(!confirm('Reativar este investimento?'))return;
