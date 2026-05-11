@@ -2071,7 +2071,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.75';
+const APP_VERSION='17.76';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5248,57 +5248,47 @@ function editAtivo(){
   document.getElementById('ativo-modal-sheet').style.transform='translateY(0)';
 }
 function encerrarAtivo(){
-  const a=getInstAtivos(instituicoes[currentInstIdx])[currentAtivoIdx];
+  const inst=instituicoes[currentInstIdx];
+  const a=getInstAtivos(inst)[currentAtivoIdx];
   const valorAtual=getAtivoAtual(a);
   const user=currentUser||'ALE';
 
-  // Build modal
   const overlay=document.createElement('div');
-  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
-
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;';
   const modal=document.createElement('div');
-  modal.style.cssText='background:var(--card);border-radius:16px;padding:24px;width:340px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.3);';
+  modal.style.cssText='background:var(--card);border-radius:16px;padding:24px;width:360px;max-width:92vw;box-shadow:0 8px 32px rgba(0,0,0,.35);';
 
-  // Title
   const title=document.createElement('div');
-  title.style.cssText='font-size:1rem;font-weight:700;color:var(--font);margin-bottom:6px;';
+  title.style.cssText='font-size:1rem;font-weight:700;color:var(--font);margin-bottom:4px;';
   title.textContent='Encerrar investimento';
-
   const sub=document.createElement('div');
-  sub.style.cssText='font-size:.78rem;color:var(--muted);margin-bottom:18px;';
+  sub.style.cssText='font-size:.78rem;color:var(--muted);margin-bottom:18px;line-height:1.4;';
   sub.textContent=a.nome+' · Saldo: R$ '+valorAtual.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 
-  // Date
   const today=new Date();
   const todayStr=String(today.getDate()).padStart(2,'0')+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+today.getFullYear();
-  const dateLbl=document.createElement('div');
-  dateLbl.style.cssText='font-size:.75rem;font-weight:600;color:var(--muted);margin-bottom:4px;';
-  dateLbl.textContent='Data do resgate';
+
+  function mkLbl(txt){const d=document.createElement('div');d.style.cssText='font-size:.73rem;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;';d.textContent=txt;return d;}
+
   const dateInp=document.createElement('input');
   dateInp.type='text';dateInp.value=todayStr;dateInp.placeholder='DD/MM/AAAA';
   dateInp.style.cssText='width:100%;padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.9rem;box-sizing:border-box;margin-bottom:14px;';
 
-  // Account
-  const acctLbl=document.createElement('div');
-  acctLbl.style.cssText='font-size:.75rem;font-weight:600;color:var(--muted);margin-bottom:4px;';
-  acctLbl.textContent='Transferir para conta';
-  const acctSel=document.createElement('select');
-  acctSel.style.cssText='width:100%;padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.88rem;box-sizing:border-box;margin-bottom:20px;';
-  const userAccts=accounts.filter(ac=>ac.active&&(ac.owner===user||ac.owner==='AMBOS')&&ac.kind!=='credito');
-  userAccts.forEach(ac=>{
-    const o=document.createElement('option');
-    o.value=ac.name;o.textContent=ac.name;
-    acctSel.appendChild(o);
-  });
+  function mkSel(opts,preselect){
+    const s=document.createElement('select');
+    s.style.cssText='width:100%;padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.88rem;box-sizing:border-box;margin-bottom:14px;';
+    opts.forEach(ac=>{const o=document.createElement('option');o.value=ac.name;o.textContent=ac.name;if(preselect&&preselect(ac))o.selected=true;s.appendChild(o);});
+    return s;
+  }
 
-  // Buttons
-  const btnRow=document.createElement('div');
-  btnRow.style.cssText='display:flex;gap:10px;';
+  const allUserAccts=accounts.filter(ac=>ac.active&&(ac.owner===user||ac.owner==='AMBOS'));
+  const srcSel=mkSel(allUserAccts,ac=>ac.instituicao&&inst&&ac.instituicao.toLowerCase()===inst.name.toLowerCase());
+  const destSel=mkSel(allUserAccts.filter(ac=>ac.kind!=='credito'),null);
 
+  const btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:10px;margin-top:6px;';
   const btnOk=document.createElement('button');
-  btnOk.textContent='✓ Encerrar e transferir';
+  btnOk.textContent='✓ Transferir e encerrar';
   btnOk.style.cssText='flex:1;padding:10px;border-radius:10px;border:none;background:var(--font);color:var(--bg);font-family:var(--font-body);font-size:.82rem;font-weight:700;cursor:pointer;';
-
   const btnCancel=document.createElement('button');
   btnCancel.textContent='Cancelar';
   btnCancel.style.cssText='padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.78rem;cursor:pointer;';
@@ -5306,41 +5296,42 @@ function encerrarAtivo(){
 
   btnOk.onclick=async()=>{
     const ds=dateInp.value.trim()||todayStr;
-    const conta=acctSel.value;
-    if(!conta){toast('Selecione uma conta','error');return;}
+    const contaOrig=srcSel.value;
+    const contaDest=destSel.value;
+    if(!contaOrig||!contaDest){toast('Selecione as contas','error');return;}
+    const desc='Resgate '+a.nome;
+    const valStr=valorAtual.toFixed(2).replace('.',',');
+    const txId=generateTxId();
 
-    // 1. Add final log with value 0
-    a.log.push({date:ds,value:0,note:'Encerrado — resgatado em '+ds});
+    // Saída da conta de origem
+    const rowS=[ds,desc,valStr,'Investimentos','Investimentos',contaOrig,'saída','1','','',txId+'S'];
+    allData.push({_id:txId+'S',date:ds,desc,value:valorAtual,cat:'Investimentos',tipo:'Investimentos',account:contaOrig,type:'saída',consolidated:true,deleted:false});
+
+    // Entrada na conta destino
+    const rowE=[ds,desc,valStr,'Investimentos','Investimentos',contaDest,'entrada','1','','',txId+'E'];
+    allData.push({_id:txId+'E',date:ds,desc,value:valorAtual,cat:'Investimentos',tipo:'Investimentos',account:contaDest,type:'entrada',consolidated:true,deleted:false});
+
+    // Log final zerado
+    a.log.push({date:ds,value:0,note:'Encerrado — transferido para '+contaDest});
     a.encerrado=true;a.dataEncerramento=ds;
 
-    // 2. Create transfer transaction
-    const txId=Date.now()+''+Math.floor(Math.random()*900+100);
-    const txVal=valorAtual.toFixed(2).replace('.',',');
-    const txRow=[ds,'Resgate '+a.nome,txVal,'Transferências','Transferências',conta,'entrada','1','','',txId];
-    allData.push({_id:txId,date:ds,desc:'Resgate '+a.nome,value:valorAtual,
-      cat:'Transferências',tipo:'Transferências',account:conta,type:'entrada',
-      consolidated:true,deleted:false});
-
-    // 3. Save
     saveInvestimentos();
     overlay.remove();
-    renderAtivos();
-    openAtivo(currentAtivoIdx);
-    toast('Encerrado! Resgate lançado em '+conta,'success');
+    renderAtivos();openAtivo(currentAtivoIdx);renderDash();
+    toast('Encerrado! R$ '+valStr+' transferido para '+contaDest,'success');
 
-    // 4. Sync to Sheets
-    await sheetsAppend(txRow);
-    await sheetsAppendLog(user,instituicoes[currentInstIdx].name,a.nome,ds,0,'Encerrado — resgatado em '+ds);
-    renderDash();
+    await sheetsAppend(rowS);
+    await sheetsAppend(rowE);
+    await sheetsAppendLog(user,inst.name,a.nome,ds,0,'Encerrado — transferido para '+contaDest);
   };
 
   btnRow.appendChild(btnOk);btnRow.appendChild(btnCancel);
   modal.appendChild(title);modal.appendChild(sub);
-  modal.appendChild(dateLbl);modal.appendChild(dateInp);
-  modal.appendChild(acctLbl);modal.appendChild(acctSel);
+  modal.appendChild(mkLbl('Data da transferência'));modal.appendChild(dateInp);
+  modal.appendChild(mkLbl('Conta de origem (investimento)'));modal.appendChild(srcSel);
+  modal.appendChild(mkLbl('Conta destino (onde o dinheiro chega)'));modal.appendChild(destSel);
   modal.appendChild(btnRow);
-  overlay.appendChild(modal);
-  document.body.appendChild(overlay);
+  overlay.appendChild(modal);document.body.appendChild(overlay);
   dateInp.focus();dateInp.select();
 }
 function reativarAtivo(){
