@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0f4c75,#7c2d12);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#BAE6FD !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(186,230,253,.65) !important;}
-  #splash .splash-version{color:rgba(186,230,253,.35) !important;}
-  #splash .splash-btn{background:#BAE6FD !important;color:#0f4c75 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#BAE6FD !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#064e3b,#1e1b4b);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#D1FAE5 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(209,250,229,.65) !important;}
+  #splash .splash-version{color:rgba(209,250,229,.35) !important;}
+  #splash .splash-btn{background:#D1FAE5 !important;color:#064e3b !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#D1FAE5 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2071,7 +2071,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.81';
+const APP_VERSION='17.82';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6302,7 +6302,7 @@ async function syncAll(manual=false){
 async function pushToSheets(dataset){
   try{
     if(dataset==='orc'){
-      await sheetsPost({action:'write',sheet:SHEETS.orcamento,rows:serializeKV(orcData)});
+      await sheetsPostLarge({action:'write',sheet:SHEETS.orcamento,rows:serializeKV(orcData)});
     } else if(dataset==='insts'){
       // write global institutions list — use GET-encoded for iOS compatibility
       const rows=[['ID','Nome','Icone'],...instituicoes.map(i=>[i.id||i.name,i.name,i.icon||'🏦'])];
