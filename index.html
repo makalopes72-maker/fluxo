@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#78350f,#1e3a5f);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FEF3C7 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(254,243,199,.65) !important;}
-  #splash .splash-version{color:rgba(254,243,199,.35) !important;}
-  #splash .splash-btn{background:#FEF3C7 !important;color:#78350f !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FEF3C7 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1a1a2e,#16213e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#e94560 !important;text-shadow:0 2px 24px rgba(233,69,96,.5);}
+  #splash .splash-sub{color:rgba(233,69,96,.7) !important;}
+  #splash .splash-version{color:rgba(233,69,96,.35) !important;}
+  #splash .splash-btn{background:#e94560 !important;color:#fff !important;font-weight:700;box-shadow:0 4px 20px rgba(233,69,96,.4);}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,69,96,.15) !important;color:#e94560 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2071,7 +2071,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.83';
+const APP_VERSION='17.84';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6302,12 +6302,14 @@ async function syncAll(manual=false){
 async function pushToSheets(dataset){
   try{
     if(dataset==='orc'){
-      // Save each user separately to stay within URL limit
-      // First clear the sheet, then append each user
-      await sheetsPost({action:'write',sheet:SHEETS.orcamento,rows:[['Usuário','Dados']]});
-      for(const u of Object.keys(orcData)){
-        await sheetsPost({action:'appendLog',sheet:SHEETS.orcamento,row:[u, JSON.stringify(orcData[u])]});
-      }
+      // Use real POST to avoid URL length limit
+      const rows = serializeKV(orcData);
+      await fetch(APPS_SCRIPT_URL,{
+        method:'POST',
+        redirect:'follow',
+        headers:{'Content-Type':'text/plain'},
+        body:JSON.stringify({action:'write',sheet:SHEETS.orcamento,rows:rows})
+      }).catch(e=>console.warn('orc POST failed:',e));
     } else if(dataset==='insts'){
       // write global institutions list — use GET-encoded for iOS compatibility
       const rows=[['ID','Nome','Icone'],...instituicoes.map(i=>[i.id||i.name,i.name,i.icon||'🏦'])];
