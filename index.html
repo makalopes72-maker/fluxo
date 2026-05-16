@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#7f1d1d,#064e3b);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FEE2E2 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(254,226,226,.65) !important;}
-  #splash .splash-version{color:rgba(254,226,226,.35) !important;}
-  #splash .splash-btn{background:#FEE2E2 !important;color:#7f1d1d !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FEE2E2 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#312e81,#14532d);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E0E7FF !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(224,231,255,.65) !important;}
+  #splash .splash-version{color:rgba(224,231,255,.35) !important;}
+  #splash .splash-btn{background:#E0E7FF !important;color:#312e81 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0E7FF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2071,7 +2071,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.79';
+const APP_VERSION='17.80';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2309,8 +2309,8 @@ const CAT_TO_PASTA={
   'INSS':'Empresa / Atividade Autônoma','IR':'Empresa / Atividade Autônoma',
   'Infraestrutura':'Empresa / Atividade Autônoma','Material de Escritório':'Empresa / Atividade Autônoma',
   'Nexus/Vistage':'Empresa / Atividade Autônoma',
-  'Receita':'Receita','Receita Bruta (Cliente/ Salário)':'Receita',
-  'Juros Investimentos . Dividendos':'Receita','X Outras Receitas':'Receita',
+  'Receita':'Receita','Receita Bruta (Cliente/ Salário)':'Receita','Receita Bruta (Cliente / Salário)':'Receita',
+  'Juros Investimentos . Dividendos':'Receita','Juros Investimentos / Dividendos':'Receita','X Outras Receitas':'Receita',
   'Doações':'Gastos Pessoais','Clube':'Gastos Pessoais','Eletrônicos Pessoais':'Gastos Pessoais',
   'Gastos Pessoais':'Gastos Pessoais','Presentes':'Gastos Pessoais',
   'Salão Beleza / Manicure':'Gastos Pessoais','Vestuário Calçados Acessórios':'Gastos Pessoais',
@@ -3735,6 +3735,12 @@ async function saveTransaction(syncAfter=false){
 }
 
 // -- DATA --
+const CAT_ALIASES={
+  'Juros Investimentos . Dividendos':'Juros Investimentos / Dividendos',
+  'Receita Bruta (Cliente/ Salário)':'Receita Bruta (Cliente / Salário)',
+};
+function normalizeCat(cat){return CAT_ALIASES[cat]||cat;}
+
 function normalizeDate(v){
   if(!v)return'';
   const s=String(v).trim();
