@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1e3a5f,#5b21b6);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0E7FF !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(224,231,255,.65) !important;}
-  #splash .splash-version{color:rgba(224,231,255,.35) !important;}
-  #splash .splash-btn{background:#E0E7FF !important;color:#1e3a5f !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0E7FF !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#92400e,#065f46);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FEF3C7 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(254,243,199,.65) !important;}
+  #splash .splash-version{color:rgba(254,243,199,.35) !important;}
+  #splash .splash-btn{background:#FEF3C7 !important;color:#92400e !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FEF3C7 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2071,7 +2071,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.86';
+const APP_VERSION='17.87';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3747,10 +3747,23 @@ const CAT_ALIASES={
   'Cursos e Eventos / Empresa':'Cursos e Eventos Empresa',
   'Aplicativos / armazenamento':'Aplicativos / Armazenamento',
   'Higiene / Estética Produtos':'Higiene / Estética / Produtos',
+  'Higiene / Estética':'Higiene / Estética / Produtos',
   'Salão Beleza / Manicure':'Salão de Beleza / Manicure',
+  'Celular filhos':'Celular Filhos',
   'Clube filhos':'Clube Filhos',
   'Plano saúde filhos':'Plano Saúde Filhos',
+  'Taxi filhos':'Táxi Filhos',
+  'Consultoria':'Consultorias',
+  'Livros e materiais':'Material Escolar',
+  'Seguro do Carro':'Seguro Automóvel',
+  'Estacionamento / Taxi / Empresa':'Estacionamento/Taxi / Empresa',
+  'Combo TV + Internet + Telefone':'Combo TV + Internet + Tel',
   'Transferência':'Transferências',
+  'Lazer e Informação':'Lazer',
+  'Terapia.Massagem.Tratamentos':'Terapia / Massagem / Tratamento',
+  'IMSS / IR (PF)':'INSS / IR (PF)',
+  'CRF / TRF Anuidade':'CREF / TEF anuidade',
+  'Contador':'Contabilidade',
 };
 function normalizeCat(cat){return CAT_ALIASES[cat]||cat;}
 
