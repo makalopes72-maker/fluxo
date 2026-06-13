@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#7c3aed,#0e7490);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E0F2FE !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(224,242,254,.65) !important;}
-  #splash .splash-version{color:rgba(224,242,254,.35) !important;}
-  #splash .splash-btn{background:#E0F2FE !important;color:#0e7490 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#E0F2FE !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0c4a6e,#713f12);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#BAE6FD !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(186,230,253,.65) !important;}
+  #splash .splash-version{color:rgba(186,230,253,.35) !important;}
+  #splash .splash-btn{background:#BAE6FD !important;color:#0c4a6e !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#BAE6FD !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2071,7 +2071,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.90';
+const APP_VERSION='17.91';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -7438,7 +7438,15 @@ function waRenderExtrato(){
 
   // render table
   const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const DIAS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
   let lastMonth='',lastDay='',rows='';
+  const dayTotals={};
+  filtered.forEach(t=>{
+    const k=t.date||'';
+    if(!dayTotals[k])dayTotals[k]={in:0,out:0};
+    if(t.type==='entrada')dayTotals[k].in+=t.value;
+    else dayTotals[k].out+=t.value;
+  });
   filtered.forEach(t=>{
     const idx=allData.indexOf(t);
     const isIn=t.type==='entrada',isTransf=t.type==='transferência';
@@ -7451,18 +7459,17 @@ function waRenderExtrato(){
       rows+='<tr><td colspan="6" style="padding:10px 8px 4px;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);border-top:'+(lastMonth?'1px solid var(--border)':'none')+';background:var(--bg);">'+monthLabel+'</td></tr>';
       lastMonth=monthKey;lastDay='';
     }
-    const db2=dayKey&&dayKey!==lastDay&&lastDay?'border-top:3px solid var(--kp);':'';
-    lastDay=dayKey;
+    if(dayKey&&dayKey!==lastDay){
+      const d=parseDate(dayKey);
+      const diaSem=d?DIAS[d.getDay()]:'';
+      const dt=dayTotals[dayKey]||{in:0,out:0};
+      const bal=dt.in-dt.out;
+      const balColor=bal>=0?'var(--accent2)':'var(--red)';
+      rows+='<tr style="background:var(--kp);"><td colspan="4" style="padding:4px 8px;font-size:.68rem;font-weight:700;color:var(--font);">'+dayKey+(diaSem?' \xb7 '+diaSem:'')+'</td><td style="padding:4px 8px;text-align:right;font-size:.68rem;font-weight:700;color:'+balColor+';">'+(bal>=0?'+':'')+fmt(bal)+'</td><td></td></tr>';
+      lastDay=dayKey;
+    }
     const dotStyle='display:inline-block;width:8px;height:8px;border-radius:50%;border:1.5px solid '+(t.consolidated?'var(--font)':'var(--muted)')+';background:'+(t.consolidated?'var(--font)':'transparent')+';margin-right:5px;flex-shrink:0;cursor:pointer;vertical-align:middle;';
-    rows+='<tr onclick="waEditTx('+idx+')" style="cursor:pointer;'+(t.consolidated?'':'opacity:.6;')+'" onmouseover="this.style.background=\'var(--kp)\'" onmouseout="this.style.background=\'\'">'
-      +'<td style="padding:3px 8px;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);color:var(--muted);white-space:nowrap;'+db2+'">'+t.date+'</td>'
-      +'<td style="padding:3px 8px;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);font-weight:var(--ext-weight-tabela);color:var(--font);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'+db2+'">'
-        +'<span onclick="waToggleExtConsol('+idx+',event)" style="'+dotStyle+'"></span>'+(t.desc||t.cat)+'</td>'
-      +'<td style="padding:3px 8px;font-size:.66rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'+db2+'">'+(t.cat||'--')+'</td>'
-      +'<td style="padding:3px 8px;font-size:.66rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'+db2+'">'+(t.account||'--')+'</td>'
-      +'<td style="padding:3px 8px;text-align:right;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);font-weight:700;color:'+color+';white-space:nowrap;'+db2+'">'+(isIn?'+':'-')+fmt(t.value)+'</td>'
-      +'<td style="'+db2+'"></td>'
-      +'</tr>';
+    rows+='<tr onclick="waEditTx('+idx+')" style="cursor:pointer;'+(t.consolidated?'':'opacity:.6;')+'" onmouseover="this.style.background=\'var(--kp)\'" onmouseout="this.style.background=\'\'"><td style="padding:3px 8px;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);color:var(--muted);white-space:nowrap;"></td><td style="padding:3px 8px;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);font-weight:var(--ext-weight-tabela);color:var(--font);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><span onclick="waToggleExtConsol('+idx+',event)" style="'+dotStyle+'"></span>'+(t.desc||t.cat)+'</td><td style="padding:3px 8px;font-size:.66rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(t.cat||'--')+'</td><td style="padding:3px 8px;font-size:.66rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(t.account||'--')+'</td><td style="padding:3px 8px;text-align:right;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);font-weight:700;color:'+color+';white-space:nowrap;">'+(isIn?'+':'-')+fmt(t.value)+'</td><td></td></tr>';
   });
   if(!rows)rows='<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted);font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);">Nenhuma transação</td></tr>';
 
