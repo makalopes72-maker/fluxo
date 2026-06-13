@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#7f1d1d,#1e3a5f);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FECACA !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(254,202,202,.65) !important;}
-  #splash .splash-version{color:rgba(254,202,202,.35) !important;}
-  #splash .splash-btn{background:#FECACA !important;color:#7f1d1d !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FECACA !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#134e4a,#92400e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#CCFBF1 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(204,251,241,.65) !important;}
+  #splash .splash-version{color:rgba(204,251,241,.35) !important;}
+  #splash .splash-btn{background:#CCFBF1 !important;color:#134e4a !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#CCFBF1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2071,7 +2071,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.94';
+const APP_VERSION='17.95';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3722,11 +3722,25 @@ async function saveTransaction(syncAfter=false){
 
   amountCents=0;opPending=null;prevCents=0;displayMode='reais';secondInt=0;updVal();
   document.getElementById('tx-desc').value='';
-  selTipo=null;selCat=null;selConta=null;setTodayDate();
+  // preserve last used date and conta
+  const _lastDate=window._selectedDate;
+  const _lastConta=selConta;
+  selTipo=null;selCat=null;selConta=_lastConta;
+  // keep last date instead of resetting to today
+  if(_lastDate){
+    window._selectedDate=_lastDate;
+    const _ad=document.getElementById('add-date');if(_ad)_ad.textContent=_lastDate;
+    const p=_lastDate.split('/');
+    if(p.length===3){const inp=document.getElementById('date-input');if(inp)inp.value=p[2]+'-'+p[1]+'-'+p[0];}
+  } else { setTodayDate(); }
   exitFieldsMode();resetConsolidado();resetParcel();launchMode='normal';
   const _ft=document.getElementById('fv-tipo');if(_ft){_ft.textContent='Pasta';_ft.classList.add('ph');}
   const _fc=document.getElementById('fv-cat');if(_fc){_fc.textContent='Categoria';_fc.classList.add('ph');}
-  const _fco=document.getElementById('fv-conta');if(_fco){_fco.textContent='Conta';_fco.classList.add('ph');}
+  const _fco=document.getElementById('fv-conta');
+  if(_fco){
+    if(_lastConta){_fco.textContent=_lastConta;_fco.classList.remove('ph');}
+    else{_fco.textContent='Conta';_fco.classList.add('ph');}
+  }
   closeDrop();
   btn.disabled=false;btn.textContent='SALVAR';btn.classList.remove('saving','saved');
   renderDash();setTimeout(()=>goScreen('dash'),600);
@@ -7613,7 +7627,7 @@ function waResetLaunch(){
   waTransfOrigem=null;waTransfDestino=null;waTransfOrigemLabel=null;waTransfDestinoLabel=null;
   // preserve last used date and account
   const lastDate=waLaunchState.date||new Date().toLocaleDateString('pt-BR');
-  const lastConta=waLaunchState.editingIdx===null?waLaunchState.conta:null; // only preserve if last was a new tx
+  const lastConta=waLaunchState.conta||null;
   waLaunchState={
     editingIdx:null,type:'saída',desc:'',tipo:null,cat:null,conta:lastConta,
     date:lastDate,valueCents:0,
