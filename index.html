@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#065f46,#4338ca);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#A7F3D0 !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(167,243,208,.65) !important;}
-  #splash .splash-version{color:rgba(167,243,208,.35) !important;}
-  #splash .splash-btn{background:#A7F3D0 !important;color:#065f46 !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#A7F3D0 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#7f1d1d,#1e3a5f);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FECACA !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(254,202,202,.65) !important;}
+  #splash .splash-version{color:rgba(254,202,202,.35) !important;}
+  #splash .splash-btn{background:#FECACA !important;color:#7f1d1d !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#FECACA !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2071,7 +2071,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.93';
+const APP_VERSION='17.94';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3450,7 +3450,7 @@ function buildTipoDrop(){
 }
 function buildCatDrop(){
   if(!selTipo){buildTipoDrop();return;}
-  const cats=TIPOS[selTipo]||[];
+  const cats=getCatsList(selTipo);
   const slot=document.getElementById('drop-main');slot.style.display='block';
   if(!cats.length){slot.innerHTML=`<div class="drop-panel"><div class="drop-item" style="color:var(--muted)">Sem subcategorias</div></div>`;return;}
   slot.innerHTML=`<div class="drop-panel"><div class="drop-item grp-header">${TIPO_ICONS[selTipo]||'📁'} ${selTipo}</div>${cats.map(c=>`<div class="drop-item${selCat===c?' selected':''}" onclick="pickCat('${c.replace(/'/g,"\\'")}')">${c}</div>`).join('')}</div>`;
