@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1e3a5f,#7f1d1d);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#BAE6FD !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
-  #splash .splash-sub{color:rgba(186,230,253,.65) !important;}
-  #splash .splash-version{color:rgba(186,230,253,.35) !important;}
-  #splash .splash-btn{background:#BAE6FD !important;color:#1e3a5f !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
-  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#BAE6FD !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4a044e,#0c4a6e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F5D0FE !important;text-shadow:0 2px 24px rgba(0,0,0,.45);}
+  #splash .splash-sub{color:rgba(245,208,254,.65) !important;}
+  #splash .splash-version{color:rgba(245,208,254,.35) !important;}
+  #splash .splash-btn{background:#F5D0FE !important;color:#4a044e !important;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.12) !important;color:#F5D0FE !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2071,7 +2071,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='17.98';
+const APP_VERSION='17.99';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2293,32 +2293,72 @@ function addAccount(){
 const CAT_TO_PASTA={
   'Alimentação':'Alimentação','Café da Manhã / Padaria':'Alimentação','Feira':'Alimentação',
   'Lanches & Snacks':'Alimentação','Refeições em restaurante':'Alimentação','Supermercado':'Alimentação',
+  'Desconto VR':'Alimentação','Alimentação Empresa':'Empresa / Atividade Autônoma','Alimentação Férias':'Viagens',
   'Suplemento Alimentar':'Saúde','Medicamentos Farmácia':'Saúde','Saúde':'Saúde',
-  'Exames':'Saúde','Consultas Fora do Plano':'Saúde','Terapia.Massagem.Tratamentos':'Saúde','Higiene / Estética Produtos':'Saúde',
-  'Casa':'Casa','Celular Telefone':'Casa','Condomínio':'Casa','Energia Elétrica':'Casa',
-  'Gás':'Casa','IPTU':'Casa','Limpeza / Faxina':'Casa','Móveis e decoração':'Casa',
-  'Reforma / Manutenção':'Casa','Utensílios e Eletrodomésticos':'Casa',
+  'Exames':'Saúde','Consultas Fora do Plano':'Saúde','Terapia.Massagem.Tratamentos':'Saúde',
+  'Terapia / Massagem / Tratamento':'Saúde','Higiene / Estética Produtos':'Saúde',
+  'Higiene / Estética / Produtos':'Gastos Pessoais','Higiene / Estética':'Gastos Pessoais',
+  'Dentista':'Saúde','Fisioterapia':'Saúde','Academia / Esporte':'Saúde',
+  'Plano de Saúde':'Saúde','Plano de Saúde Ale':'Saúde','Plano de Saúde Sílvia':'Saúde',
+  'Reembolso Médico':'Saúde','Seguro de Vida':'Saúde',
+  'Casa':'Casa','Celular Telefone':'Casa','Celular / Telefone':'Casa','Condomínio':'Casa','Energia Elétrica':'Casa',
+  'Gás':'Casa','IPTU':'Casa','Limpeza / Faxina':'Casa','Móveis e decoração':'Casa','Móveis e Decoração':'Casa',
+  'Reforma / Manutenção':'Casa','Utensílios e Eletrodomésticos':'Casa','Utensílios / Eletrodomésticos':'Casa',
+  'Combo TV + Internet + Tel':'Casa','Combo TV + Internet + Telefone':'Casa',
+  'Seguro Residencial':'Casa','Outros Moradia':'Casa','X Outros Casa':'Casa',
   'Combustível (sem reembolso)':'Transporte','Estacionamento':'Transporte','IPVA (+ licenciamento)':'Transporte',
   'Multas':'Transporte','Ônibus Metrô (sem reembolso)':'Transporte','Revisão Anual / Manut/ Conserto':'Transporte',
-  'Seguro do Carro':'Transporte','Sem Parar':'Transporte','Transporte':'Transporte',
+  'Revisão Anual / Manut / Cons':'Transporte','Seguro do Carro':'Transporte','Seguro Automóvel':'Transporte',
+  'Sem Parar':'Transporte','Transporte':'Transporte','Lavagem e Higienização':'Transporte',
+  'Compra carro':'Transporte','Táxi (sem reembolso) / Aplicativo':'Transporte',
+  'Táxi (sem reembolso). Aplicativo':'Transporte','Outros Transporte':'Transporte',
   'Estacionamento/Taxi / Empresa':'Empresa / Atividade Autônoma',
+  'Estacionamento / Taxi / Empresa':'Empresa / Atividade Autônoma',
+  'Estacionamento Empresa':'Empresa / Atividade Autônoma',
   'Alimentação / Empresa':'Empresa / Atividade Autônoma',
   'AngelUs':'Empresa / Atividade Autônoma','Contabilidade':'Empresa / Atividade Autônoma',
   'Cursos e Eventos / Empresa':'Empresa / Atividade Autônoma',
-  'Empresa / Atividade Autônoma':'Empresa / Atividade Autônoma',
-  'INSS':'Empresa / Atividade Autônoma','IR':'Empresa / Atividade Autônoma',
+  'Cursos e Eventos Empresa':'Empresa / Atividade Autônoma',
+  'Empresa / Atividade Autônoma':'Empresa / Atividade Autônoma','Empresa / Aut.':'Empresa / Atividade Autônoma',
+  'INSS':'Empresa / Atividade Autônoma','INSS Férias':'Empresa / Atividade Autônoma',
+  'IR':'Empresa / Atividade Autônoma','Férias':'Empresa / Atividade Autônoma',
   'Infraestrutura':'Empresa / Atividade Autônoma','Material de Escritório':'Empresa / Atividade Autônoma',
-  'Nexus/Vistage':'Empresa / Atividade Autônoma',
+  'Materiais de Escritório Empresa':'Empresa / Atividade Autônoma',
+  'Nexus/Vistage':'Empresa / Atividade Autônoma','Nexus / Vistage':'Empresa / Atividade Autônoma','NEXUS':'Empresa / Atividade Autônoma',
+  'CREF / TEF anuidade':'Empresa / Atividade Autônoma','CRF / TRF Anuidade':'Empresa / Atividade Autônoma',
+  'Marketing':'Empresa / Atividade Autônoma','Taxa (banco / PJ)':'Empresa / Atividade Autônoma',
+  'Outros Empresa':'Empresa / Atividade Autônoma','X Outros / Empresa':'Empresa / Atividade Autônoma',
   'Receita':'Receita','Receita Bruta (Cliente/ Salário)':'Receita','Receita Bruta (Cliente / Salário)':'Receita',
   'Juros Investimentos . Dividendos':'Receita','Juros Investimentos / Dividendos':'Receita','X Outras Receitas':'Receita',
-  'Doações':'Gastos Pessoais','Clube':'Gastos Pessoais','Eletrônicos Pessoais':'Gastos Pessoais',
+  'Receita Salário Bônus':'Receita','Receita Salário 13º':'Receita','Restituição':'Receita',
+  'Reembolso':'Receita','Outros Receita':'Receita','Férias Adiantamento':'Receita',
+  'Doações':'Gastos Pessoais','Clube':'Lazer','Eletrônicos Pessoais':'Gastos Pessoais',
   'Gastos Pessoais':'Gastos Pessoais','Presentes':'Gastos Pessoais',
-  'Salão Beleza / Manicure':'Gastos Pessoais','Vestuário Calçados Acessórios':'Gastos Pessoais',
-  'X Outros Pessoais':'Gastos Pessoais',
-  'Lazer':'Lazer','Lazer e Informação':'Lazer',
-  'Educação':'Dependentes',
-  'Tarifas bancárias':'Serv. Financeiros',
-  'Transferências':'Transferências',
+  'Salão Beleza / Manicure':'Gastos Pessoais','Salão de Beleza / Manicure':'Gastos Pessoais',
+  'Vestuário Calçados Acessórios':'Gastos Pessoais','X Outros Pessoais':'Gastos Pessoais',
+  'Aplicativos / Armazenamento':'Gastos Pessoais','Aplicativos / armazenamento':'Gastos Pessoais',
+  'Documentos':'Gastos Pessoais','Loterias':'Gastos Pessoais','Transferências':'Gastos Pessoais',
+  'Transferência':'Gastos Pessoais','INSS / IR (PF)':'Gastos Pessoais','XXX Escotismo':'Gastos Pessoais',
+  'Lazer':'Lazer','Lazer e Informação':'Lazer','APPs Netflix Spotify':'Lazer',
+  'Bares e Restaurantes':'Lazer','Cinema / Teatro / Show / Passeio':'Lazer',
+  'Outros Lazer':'Lazer','Bike / Artigos esportivos':'Lazer',
+  'Dependentes':'Dependentes','Celular Filhos':'Dependentes','Clube Filhos':'Dependentes',
+  'Escotismo':'Dependentes','Escotismo Coreia':'Dependentes','Escotismo Corrida':'Dependentes',
+  'Pensão Alimentícia':'Dependentes','Pensão Alimentícia Férias':'Dependentes',
+  'Plano Saúde Filhos':'Dependentes','Táxi Filhos':'Dependentes','Taxi filhos':'Dependentes',
+  'Outros Filhos':'Dependentes','X Outros Filhos':'Dependentes',
+  'Educação':'Educação','Consultorias':'Educação','Consultoria':'Educação',
+  'Cursos':'Educação','Material Escolar':'Educação','Livros e materiais':'Educação',
+  'Investimentos':'Investimentos','Avenue':'Investimentos','Itaú':'Investimentos',
+  'Safra':'Investimentos','Outros Investimentos':'Investimentos',
+  'Seguros':'Seguros','Seguro Automóvel':'Seguros','Seguro Residencial':'Seguros',
+  'Seguro de Vida':'Seguros','Outros Seguros':'Seguros',
+  'Serv. Financeiros':'Serv. Financeiros','Tarifas bancárias':'Serv. Financeiros',
+  'Anuidade Cartão Crédito':'Serv. Financeiros','X Outros Serviços Financeiros':'Serv. Financeiros',
+  'Contador':'Serv. Financeiros',
+  'Viagens':'Viagens','Hospedagem Férias':'Viagens','Combustível Férias':'Viagens',
+  'Compras':'Viagens','Passagens / Transporte férias':'Viagens','Passeios Férias':'Viagens',
+  'Sem Parar Férias':'Viagens','X Outros':'Viagens',
 };
 function getTipoPasta(t){
   var rawTipo=t.tipo||t.cat||'Outros';
