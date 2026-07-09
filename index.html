@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#134e4a,#312e81);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#99F6E4 !important;}
-  #splash .splash-sub{color:rgba(153,246,228,.65) !important;}
-  #splash .splash-version{color:rgba(153,246,228,.35) !important;}
-  #splash .splash-btn{background:#99F6E4 !important;color:#134e4a !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(153,246,228,.15) !important;color:#99F6E4 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#292524,#1c1917);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#D6D3D1 !important;}
+  #splash .splash-sub{color:rgba(214,211,209,.65) !important;}
+  #splash .splash-version{color:rgba(214,211,209,.35) !important;}
+  #splash .splash-btn{background:#D6D3D1 !important;color:#292524 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(214,211,209,.15) !important;color:#D6D3D1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2071,7 +2071,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.04';
+const APP_VERSION='18.05';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8645,11 +8645,13 @@ function waDashSetMeta(user,tipo,cat,mIdx,val){
 }
 
 function waDashRender(){
+  const _cb=document.getElementById('wa-center-body');
+  const _sy=_cb?_cb.scrollTop:0;
   try{_waDashRender();}catch(e){
-    const el=document.getElementById('wa-center-body');
-    if(el)el.innerHTML='<div style="padding:20px;color:red;font-size:12px;font-family:monospace;white-space:pre-wrap;">ERRO waDashRender: '+e.message+'\n'+e.stack+'</div>';
+    if(_cb)_cb.innerHTML='<div style="padding:20px;color:red;font-size:12px;font-family:monospace;white-space:pre-wrap;">ERRO waDashRender: '+e.message+'\n'+e.stack+'</div>';
     console.error('[waDashRender]',e);
   }
+  if(_cb&&_sy>0)requestAnimationFrame(()=>{_cb.scrollTop=_sy;});
 }
 function _waDashRender(){
   const user=currentUser||'ALE';
