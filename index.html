@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#581c87,#166534);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E9D5FF !important;}
-  #splash .splash-sub{color:rgba(233,213,255,.65) !important;}
-  #splash .splash-version{color:rgba(233,213,255,.35) !important;}
-  #splash .splash-btn{background:#E9D5FF !important;color:#581c87 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#E9D5FF !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0c4a6e,#134e4a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#A5F3FC !important;}
+  #splash .splash-sub{color:rgba(165,243,252,.65) !important;}
+  #splash .splash-version{color:rgba(165,243,252,.35) !important;}
+  #splash .splash-btn{background:#A5F3FC !important;color:#0c4a6e !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#A5F3FC !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2071,7 +2071,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.13';
+const APP_VERSION='18.14';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3300,9 +3300,9 @@ function saveAppearance(app){
     localStorage.setItem('fluxo_p8_'+u,JSON.stringify(stored));
   }catch(e){}
   // Sync directly to Sheets
-  sheetsPost({action:'write',sheet:'Preferencias',rows:serializeKV(prefsData)})
-    .then(r=>{ if(r&&r.ok) toast('✓ Tipografia salva no banco','success'); else console.warn('prefs sync fail',r); })
-    .catch(e=>console.warn('prefs sync error',e));
+  sheetsWriteSafe('Preferencias',serializeKV(prefsData))
+    .then(r=>{ if(r&&r.ok) toast('✓ Tipografia salva no banco','success'); else toast('✗ Falha ao salvar preferências','error'); })
+    .catch(e=>toast('✗ Erro ao salvar preferências: '+e.message,'error'));
 }
 
 function applyAppearance(){
@@ -3659,11 +3659,14 @@ async function saveTransaction(syncAfter=false){
     updInvSaldo(transfDestino.id,+val,date,'Entrada via transferência');
 
     try{
+      let okAll=true;
       for(const row of rowsToSave){
-        await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'append',row,sheet:SHEET_NAME})});
+        const r=await sheetsPost({action:'append',row,sheet:SHEET_NAME});
+        if(!(r&&r.ok!==false)){okAll=false;console.warn('transf append fail',r);}
       }
-      toast('Transferência realizada!','success');
-    }catch(e){toast('Salvo localmente','');}
+      if(okAll)toast('Transferência realizada!','success');
+      else toast('✗ Falha ao gravar transferência no Sheets — verifique','error');
+    }catch(e){toast('✗ Erro ao gravar transferência: '+e.message,'error');}
     const btnTR=document.getElementById('btn-save');
     if(btnTR){btnTR.disabled=false;btnTR.textContent='SALVAR';btnTR.classList.remove('saving');}
     const _transfDestinoId=transfDestino.id; // capture before reset
@@ -6056,16 +6059,8 @@ async function sheetsRead(sheetName){
   return j.data;
 }
 
-// -- WRITE to Sheets via POST --
-async function sheetsWrite(sheetName, rows){
-  // POST — Apps Script doPost handles action:'write'
-  await fetch(APPS_SCRIPT_URL,{
-    method:'POST',mode:'no-cors',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({action:'write',sheet:sheetName,rows})
-  });
-}
 // -- sheetsPost: encode payload as GET request (reliable with Apps Script) --
+// USO: apenas payloads pequenos (append, appendLog, update, delete, ccUpsert).
 async function sheetsPost(payload){
   const url=APPS_SCRIPT_URL+'?data='+encodeURIComponent(JSON.stringify(payload));
   const res=await fetch(url,{cache:'no-store'});
@@ -6073,21 +6068,37 @@ async function sheetsPost(payload){
   try{return JSON.parse(txt);}catch(e){return {ok:true};}
 }
 
-// For large payloads that exceed URL limit — uses real POST
+// For large payloads that exceed URL limit — POST real com text/plain (sem preflight CORS)
 async function sheetsPostLarge(payload){
   try{
     const res=await fetch(APPS_SCRIPT_URL,{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      redirect:'follow',
+      headers:{'Content-Type':'text/plain'},
       body:JSON.stringify(payload),
     });
     const txt=await res.text();
     try{return JSON.parse(txt);}catch(e){return {ok:true};}
   }catch(e){
-    // Fallback: split into chunks if it's a write action
-    console.warn('sheetsPostLarge failed, trying chunked:',e);
+    console.warn('sheetsPostLarge failed:',e);
     return {ok:false,error:String(e)};
   }
+}
+
+// -- sheetsWriteSafe: ÚNICO caminho permitido para action:'write' --
+// Sempre POST text/plain (atômico, sem limite de URL) e sempre retorna resultado verificável.
+// Recusa gravar aba de log/histórico e recusa payload vazio (proteção contra wipe acidental).
+const WRITE_FORBIDDEN_SHEETS=['InvestimentosLog','ContaCorrente','ContasCorrente','Transações'];
+async function sheetsWriteSafe(sheetName, rows){
+  if(WRITE_FORBIDDEN_SHEETS.includes(sheetName)){
+    console.error('[sheetsWriteSafe] BLOQUEADO: write em aba protegida',sheetName);
+    return {ok:false,error:'write bloqueado em '+sheetName};
+  }
+  if(!rows||!rows.length){
+    console.error('[sheetsWriteSafe] BLOQUEADO: payload vazio para',sheetName);
+    return {ok:false,error:'payload vazio'};
+  }
+  return sheetsPostLarge({action:'write',sheet:sheetName,rows});
 }
 
 // -- Generate unique transaction ID locally --
@@ -6243,21 +6254,9 @@ async function loadInvFromSheets(){
       }
     }catch(e){console.warn('log fetch fail',e);}
 
-    // 4. load CC
-    try{
-      const ccRes=await fetch(APPS_SCRIPT_URL+'?sheet='+encodeURIComponent('ContasCorrente'));
-      const ccJson=await ccRes.json();
-      if(ccJson.ok&&ccJson.data&&ccJson.data.length>1){
-        const userCc={};
-        ccJson.data.slice(1).forEach(r=>{
-          if(String(r[0]||'').trim()!==user)return;
-          const inst=String(r[1]||'').trim();if(!inst)return;
-          userCc[inst]={saldo:parseBRNumber(r[2])||0,lastAdj:String(r[3]||'')};
-        });
-        ccPorUser[user]=userCc;
-        localStorage.setItem('fluxo_cc_'+user,JSON.stringify(userCc));
-      }
-    }catch(e){console.warn('CC fetch fail',e);}
+    // 4. CC: modelo mensal via ccRead (aba ContaCorrente / ccMensalData).
+    // A leitura legada da aba fantasma "ContasCorrente" foi removida —
+    // ela só continha cabeçalho e podia sobrescrever ccPorUser com dado vazio.
 
     // 5. save and render — merge logs from localStorage to preserve history
     const localAtivos=JSON.parse(localStorage.getItem('fluxo_ativos_'+user)||'{}');
@@ -6411,31 +6410,23 @@ async function syncAll(manual=false){
 
 // -- PUSH single dataset to Sheets --
 async function pushToSheets(dataset){
+  let res=null;
   try{
     if(dataset==='orc'){
-      // Use real POST to avoid URL length limit
-      const rows = serializeKV(orcData);
-      await fetch(APPS_SCRIPT_URL,{
-        method:'POST',
-        redirect:'follow',
-        headers:{'Content-Type':'text/plain'},
-        body:JSON.stringify({action:'write',sheet:SHEETS.orcamento,rows:rows})
-      }).catch(e=>console.warn('orc POST failed:',e));
+      res=await sheetsWriteSafe(SHEETS.orcamento, serializeKV(orcData));
     } else if(dataset==='insts'){
-      // write global institutions list — use GET-encoded for iOS compatibility
       const rows=[['ID','Nome','Icone'],...instituicoes.map(i=>[i.id||i.name,i.name,i.icon||'🏦'])];
-      await sheetsPost({action:'write',sheet:'Instituições',rows});
+      res=await sheetsWriteSafe('Instituições', rows);
     } else if(dataset==='inv'){
-      // write ativos as table rows
+      // Reescreve APENAS o cadastro de ativos (aba Investimentos), em 1 POST atômico.
+      // InvestimentosLog NUNCA é tocado aqui — logs são gravados individualmente
+      // via sheetsAppendLog no momento da criação (regra permanente, ver doc §5.4).
       const user=currentUser||'ALE';
-      const header=['Usuário','Instituição','Nome','Classe','Tipo','Aplicado','Valor Atual','Indexador','Taxa','Data Aplic','Vencimento','Liquidez','Garantia','IR','Obs','Encerrado'];
-      const ativoRows=[header];
-      const logHeader=['Usuário','Instituição','Ativo','Data','Valor','Nota'];
-      const logRows=[logHeader];
+      const rows=[['Usuário','Instituição','Nome','Classe','Tipo','Aplicado','Atual','Indexador','Taxa','DataAplic','Vencimento','Liquidez','Garantia','IR','Obs','Encerrado']];
       instituicoes.forEach(inst=>{
         (getInstAtivos(inst)||[]).forEach(a=>{
           const cur=a.log&&a.log.length?a.log[a.log.length-1].value:a.aplicado;
-          ativoRows.push([
+          rows.push([
             user, inst.name, a.nome, a.classe||'', a.tipo||'',
             a.aplicado||0, cur,
             a.indexador||'', a.taxa||'',
@@ -6444,44 +6435,39 @@ async function pushToSheets(dataset){
             a.ir||'', a.obs||'',
             a.encerrado?'Sim':'Não'
           ]);
-          (a.log||[]).forEach(l=>{
-            logRows.push([user, inst.name, a.nome, l.date, l.value, l.note||'']);
-          });
         });
       });
-      // Write ativo structure in chunks (GET has URL size limit)
-      const CHUNK=50;
-      const invHeader=[['Usuário','Instituição','Nome','Classe','Tipo','Aplicado','Atual','Indexador','Taxa','DataAplic','Vencimento','Liquidez','Garantia','IR','Obs','Encerrado']];
-      await sheetsPost({action:'write',sheet:SHEETS.investimentos,rows:[...invHeader,...ativoRows.slice(0,CHUNK)]});
-      for(let ci=CHUNK;ci<ativoRows.length;ci+=CHUNK){
-        await sheetsPost({action:'appendRows',sheet:SHEETS.investimentos,rows:ativoRows.slice(ci,ci+CHUNK)});
-      }
-      // Log: write header + first chunk, then append rest one by one
-      const invLogHeader=[['Usuário','Instituição','Ativo','Data','Valor','Nota']];
-      await sheetsPost({action:'write',sheet:SHEETS.invlog,rows:[...invLogHeader,...logRows.slice(0,CHUNK)]});
-      for(let ci=CHUNK;ci<logRows.length;ci++){
-        await sheetsPost({action:'appendLog',sheet:SHEETS.invlog,row:logRows[ci]});
-      }
-      // write CC saldos
-      const ccData=ccPorUser[user]||{};
-      const ccRows=[['Usuário','Instituição','Saldo','Último Ajuste'],...Object.entries(ccData).map(([inst,v])=>[user,inst,v.saldo||0,v.lastAdj||''])];
-      await sheetsPost({action:'write',sheet:'ContasCorrente',rows:ccRows});
+      res=await sheetsWriteSafe(SHEETS.investimentos, rows);
+      // Saldos de conta corrente: modelo mensal via ccUpsert (aba ContaCorrente).
+      // A escrita legada na aba fantasma "ContasCorrente" foi removida.
     } else if(dataset==='accounts'){
-      await sheetsPost({action:'write',sheet:SHEETS.contas,rows:serializeKV({accounts})});
+      res=await sheetsWriteSafe(SHEETS.contas, serializeKV({accounts}));
     } else if(dataset==='pastas'){
-      await sheetsPost({action:'write',sheet:SHEETS.pastas,rows:serializeKV({tiposData})});
+      res=await sheetsWriteSafe(SHEETS.pastas, serializeKV({tiposData}));
     } else if(dataset==='prefs'){
-      await sheetsPost({action:'write',sheet:SHEETS.preferencias,rows:serializeKV(prefsData)});
+      res=await sheetsWriteSafe(SHEETS.preferencias, serializeKV(prefsData));
     } else if(dataset==='kw'){
-      await sheetsPost({action:'write',sheet:SHEETS.keywords,rows:serializeKV({keywords:keywordsData})});
+      res=await sheetsWriteSafe(SHEETS.keywords, serializeKV({keywords:keywordsData}));
     } else if(dataset==='bens'){
       const u=currentUser||'ALE';
       const bens=bensData[u]||[];
       const rows=[['Usuário','Nome','Data','Valor','Nota']];
       bens.forEach(b=>(b.log||[]).forEach(l=>rows.push([u,b.nome,l.date,l.value,l.note||''])));
-      await sheetsPost({action:'write',sheet:SHEETS.bens,rows});
+      res=await sheetsWriteSafe(SHEETS.bens, rows);
     }
-  }catch(e){console.warn('push failed silently',dataset,e);}
+    // Superfície de erro: falha de escrita nunca é silenciosa
+    if(res&&res.ok===false){
+      const msg='✗ Falha ao salvar "'+dataset+'" no Sheets';
+      if(typeof toast==='function')toast(msg,'error');
+      if(typeof syncError==='function')syncError(msg);
+      console.error('[pushToSheets]',dataset,res.error);
+    }
+  }catch(e){
+    const msg='✗ Erro ao salvar "'+dataset+'": '+(e&&e.message||e);
+    if(typeof toast==='function')toast(msg,'error');
+    if(typeof syncError==='function')syncError(msg);
+    console.error('[pushToSheets]',dataset,e);
+  }
 }
 
 // -- LANDSCAPE / DESKTOP --
@@ -7096,9 +7082,9 @@ function saveLayout(layout){
     localStorage.setItem('fluxo_p8_'+u,JSON.stringify(stored));
   }catch(e){}
   // Sync directly to Sheets
-  sheetsPost({action:'write',sheet:'Preferencias',rows:serializeKV(prefsData)})
-    .then(r=>{ if(r&&r.ok) toast('✓ Layout salvo no banco','success'); else console.warn('layout sync fail',r); })
-    .catch(e=>console.warn('layout sync error',e));
+  sheetsWriteSafe('Preferencias',serializeKV(prefsData))
+    .then(r=>{ if(r&&r.ok) toast('✓ Layout salvo no banco','success'); else toast('✗ Falha ao salvar layout','error'); })
+    .catch(e=>toast('✗ Erro ao salvar layout: '+e.message,'error'));
 }
 
 function getLayout(){
