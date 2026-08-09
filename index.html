@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#052e16,#155e75);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#A7F3D0 !important;}
-  #splash .splash-sub{color:rgba(167,243,208,.65) !important;}
-  #splash .splash-version{color:rgba(167,243,208,.35) !important;}
-  #splash .splash-btn{background:#A7F3D0 !important;color:#052e16 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(167,243,208,.15) !important;color:#A7F3D0 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4c0519,#0c4a6e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FECDD3 !important;}
+  #splash .splash-sub{color:rgba(254,205,211,.65) !important;}
+  #splash .splash-version{color:rgba(254,205,211,.35) !important;}
+  #splash .splash-btn{background:#FECDD3 !important;color:#4c0519 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(254,205,211,.15) !important;color:#FECDD3 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2071,7 +2071,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.10';
+const APP_VERSION='18.11';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4573,6 +4573,7 @@ function fmtVal(v){
   const sign=v<0?'−':'+';
   return '<span style="color:'+color+';font-weight:700;">'+sign+abs+'</span>';
 }
+function fmtS(n){return n?Math.round(Math.abs(n)).toLocaleString('pt-BR'):'';}
 function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='show'+(type?' '+type:'');setTimeout(()=>t.className='',2500);}
 // ----------------------------------------========
 // -- INVESTIMENTOS --
@@ -9338,7 +9339,6 @@ function _waDashRender(){
   html+='<tr style="height:14px;background:#E8E6E1;border-top:3px solid #B4B2A9;"><td colspan="'+nCols+'" style="border-bottom:2px solid #9E9C97;"></td></tr>';
 
   // helper: build a summary row
-  const fmtS=n=>n?Math.round(Math.abs(n)).toLocaleString('pt-BR'):'';
   const fmtPct=(s,r)=>r?((s/r)*100).toFixed(1)+'%':'';
   const mkSumRow=(label,bgLabel,colorLabel,bgRow,arrR,arrM,isSaldo,isAcum)=>{
     const borderTop=isSaldo?'border-top:2px solid #7f7f7f;border-bottom:3px solid #7f7f7f;':isAcum?'border-top:2px solid #7f7f7f;border-bottom:3px solid #7f7f7f;':'border-top:1px solid #D0D0D0;';
