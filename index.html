@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#7f1d1d,#78350f);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FDE68A !important;}
-  #splash .splash-sub{color:rgba(253,230,138,.65) !important;}
-  #splash .splash-version{color:rgba(253,230,138,.35) !important;}
-  #splash .splash-btn{background:#FDE68A !important;color:#7f1d1d !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FDE68A !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#14532d,#312e81);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#BBF7D0 !important;}
+  #splash .splash-sub{color:rgba(187,247,208,.65) !important;}
+  #splash .splash-version{color:rgba(187,247,208,.35) !important;}
+  #splash .splash-btn{background:#BBF7D0 !important;color:#14532d !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#BBF7D0 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -1189,6 +1189,28 @@
 </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link id="gf-preload" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Barlow:wght@400;600;700&family=Bebas+Neue&family=Cabinet+Grotesk:wght@400;600;700&family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;600;700&family=DM+Serif+Display:wght@400;600;700&family=EB+Garamond:wght@400;600;700&family=Familjen+Grotesk:wght@400;600;700&family=Figtree:wght@400;600;700&family=Fira+Code:wght@400;600;700&family=Fraunces:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&family=Karla:wght@400;600;700&family=Lato:wght@400;600;700&family=Lexend:wght@400;600;700&family=Lora:wght@400;600;700&family=Manrope:wght@400;600;700&family=Merriweather:wght@400;600;700&family=Montserrat:wght@400;600;700&family=Nunito:wght@400;600;700&family=Oswald:wght@400;600;700&family=Outfit:wght@400;600;700&family=Playfair+Display:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700&family=Poppins:wght@400;600;700&family=Raleway:wght@400;600;700&family=Roboto:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&family=Space+Grotesk:wght@400;600;700&family=Space+Mono:wght@400;600;700&family=Syne:wght@400;600;700&family=Work+Sans:wght@400;600;700&display=swap">
+<style id="fx-design-system">
+/* ===== Fluxo DS v18.16 — equalização visual =====
+   Regra: todo chip de filtro/seleção tem o mesmo formato, mesma fonte,
+   e o estado ativo é sempre escuro (fundo var(--font), texto var(--bg)). */
+.dcp,.filter-chip,.tcat-btn,.tipo-btn,.acct-btn,.ext-chip{
+  padding:5px 12px !important;border-radius:100px !important;
+  border:1px solid var(--border) !important;
+  font-family:var(--font-body) !important;font-size:.7rem !important;
+  font-weight:600 !important;line-height:1.2;
+}
+.dcp.active,.filter-chip.active,.ext-chip.active{
+  background:var(--font) !important;border-color:var(--font) !important;color:var(--bg) !important;
+}
+.tcat-btn.act,.tipo-btn.act,.acct-btn.restore{border-color:var(--font) !important;color:var(--font) !important;font-weight:700 !important;}
+.ext-chip.icon-chip{font-size:1rem !important;padding:5px 10px !important;}
+/* Marcador de consolidação: alvo de toque maior e estado "prevista" legível */
+.tx-check{width:28px;height:28px;}
+.tx-check-ic{font-size:.78rem;}
+.tx-check.off{opacity:.55 !important;border-style:dashed !important;}
+/* Quadro: colunas de PREVISÃO recebem hachura diagonal — real é liso, previsão é hachurado */
+.wad-prev{background-image:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(161,136,127,.10) 3px,rgba(161,136,127,.10) 6px);}
+</style>
 </head>
 <body>
 
@@ -1345,8 +1367,9 @@
       </div>
       <!-- Coluna lateral: consolidado em cima, backspace embaixo -->
       <div style="display:flex;flex-direction:column;width:64px;flex-shrink:0;border-left:1px solid var(--border);align-self:stretch;">
-        <div id="consol-check" class="tx-check on" onclick="toggleConsolidado()" style="flex:1;border-radius:0;border:none;border-bottom:1px solid var(--border);background:var(--kp-dark);display:flex;align-items:center;justify-content:center;cursor:pointer;min-height:40px;">
-          <span class="tx-check-ic" style="font-size:.75rem;">✓</span>
+        <div id="consol-check" class="tx-check on" onclick="toggleConsolidado()" style="flex:1;border-radius:0;border:none;border-bottom:1px solid var(--border);background:var(--kp-dark);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;min-height:44px;">
+          <span class="tx-check-ic" style="font-size:.85rem;">✓</span>
+          <span id="consol-lbl" style="font-size:.48rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--bg);">Efetivada</span>
         </div>
         <button class="add-del-btn" id="add-del-btn" onclick="kp('del')" style="flex:1;width:100%;min-height:40px;font-size:1.8rem;">⌫</button>
       </div>
@@ -1731,6 +1754,11 @@
         <div class="extrato-total-item"><div class="extrato-total-lbl">Saídas</div><div class="extrato-total-val out" id="ext-out">R$ 0</div></div>
         <div class="extrato-total-item"><div class="extrato-total-lbl">Saldo</div><div class="extrato-total-val bal" id="ext-bal">R$ 0</div></div>
       </div>
+      <!-- LEGENDA CONSOLIDAÇÃO -->
+      <div style="display:flex;align-items:center;gap:12px;padding:2px 14px 4px;font-size:.58rem;color:var(--muted);">
+        <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:50%;background:var(--font);display:inline-block;"></span>efetivada</span>
+        <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:50%;border:1.5px dashed var(--muted);display:inline-block;"></span>prevista · toque no círculo para alternar</span>
+      </div>
       <!-- FILTROS RÁPIDOS -->
       <div class="extrato-filters">
         <button class="ext-chip icon-chip" id="ext-filter-btn" onclick="toggleExtFilter()" title="Filtros" style="padding:5px 9px;font-size:1rem;">⊟</button>
@@ -2071,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.15';
+const APP_VERSION='18.16';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2809,15 +2837,21 @@ function deleteKw(tipo,cat,idx){
 
 // -- CONSOLIDADO --
 let isConsolidado = true;
+function _consolLbl(){
+  const lbl=document.getElementById('consol-lbl');
+  if(lbl){lbl.textContent=isConsolidado?'Efetivada':'Prevista';lbl.style.color=isConsolidado?'var(--bg)':'var(--muted)';}
+}
 function toggleConsolidado(){
   isConsolidado = !isConsolidado;
   const chk = document.getElementById('consol-check');
   if(chk){ chk.className = 'tx-check '+(isConsolidado?'on':'off'); }
+  _consolLbl();
 }
 function resetConsolidado(){
   isConsolidado = true;
   const chk = document.getElementById('consol-check');
   if(chk){ chk.className = 'tx-check on'; }
+  _consolLbl();
 }
 
 // -- MODO DE LANÇAMENTO --
@@ -7846,8 +7880,9 @@ function waRenderExtrato(){
       rows+='<tr style="background:var(--kp);"><td colspan="4" style="padding:4px 8px;font-size:.68rem;font-weight:700;color:var(--font);">'+dayKey+(diaSem?' \xb7 '+diaSem:'')+'</td><td style="padding:4px 8px;text-align:right;font-size:.68rem;font-weight:700;color:'+balColor+';">'+(bal>=0?'+':'')+fmt(bal)+'</td><td></td></tr>';
       lastDay=dayKey;
     }
-    const dotStyle='display:inline-block;width:8px;height:8px;border-radius:50%;border:1.5px solid '+(t.consolidated?'var(--font)':'var(--muted)')+';background:'+(t.consolidated?'var(--font)':'transparent')+';margin-right:5px;flex-shrink:0;cursor:pointer;vertical-align:middle;';
-    rows+='<tr onclick="waEditTx('+idx+')" style="cursor:pointer;'+(t.consolidated?'':'opacity:.6;')+'" onmouseover="this.style.background=\'var(--kp)\'" onmouseout="this.style.background=\'\'"><td style="padding:3px 8px;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);color:var(--muted);white-space:nowrap;"></td><td style="padding:3px 8px;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);font-weight:var(--ext-weight-tabela);color:var(--font);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><span onclick="waToggleExtConsol('+idx+',event)" style="'+dotStyle+'"></span>'+(t.desc||t.cat)+'</td><td style="padding:3px 8px;font-size:.66rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(t.cat||'--')+'</td><td style="padding:3px 8px;font-size:.66rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(t.account||'--')+'</td><td style="padding:3px 8px;text-align:right;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);font-weight:700;color:'+color+';white-space:nowrap;">'+(isIn?'+':'-')+fmt(t.value)+'</td><td></td></tr>';
+    const dotStyle='display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1.5px solid '+(t.consolidated?'var(--font)':'var(--muted)')+';background:'+(t.consolidated?'var(--font)':'transparent')+';color:'+(t.consolidated?'var(--bg)':'var(--muted)')+';font-size:8px;font-weight:900;line-height:1;margin-right:6px;flex-shrink:0;cursor:pointer;vertical-align:middle;';
+    const dotTitle=t.consolidated?'Efetivada — clique para marcar como prevista':'Prevista — clique para efetivar';
+    rows+='<tr onclick="waEditTx('+idx+')" style="cursor:pointer;'+(t.consolidated?'':'opacity:.6;')+'" onmouseover="this.style.background=\'var(--kp)\'" onmouseout="this.style.background=\'\'"><td style="padding:3px 8px;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);color:var(--muted);white-space:nowrap;"></td><td style="padding:3px 8px;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);font-weight:var(--ext-weight-tabela);color:var(--font);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><span onclick="waToggleExtConsol('+idx+',event)" title="'+dotTitle+'" style="'+dotStyle+'">'+(t.consolidated?'✓':'')+'</span>'+(t.desc||t.cat)+'</td><td style="padding:3px 8px;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(t.cat||'--')+'</td><td style="padding:3px 8px;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(t.account||'--')+'</td><td style="padding:3px 8px;text-align:right;font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);font-weight:700;color:'+color+';white-space:nowrap;">'+(isIn?'+':'-')+fmt(t.value)+'</td><td></td></tr>';
   });
   if(!rows)rows='<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted);font-size:var(--ext-size-tabela);font-family:var(--ext-font-tabela);">Nenhuma transação</td></tr>';
 
@@ -8184,8 +8219,9 @@ function waRenderLaunchForm(){
         <button onclick="waSetType('${t}')" style="flex:1;padding:8px 2px;border:none;cursor:pointer;font-family:var(--font-body);font-size:.6rem;font-weight:700;text-transform:uppercase;background:${s.type===t?typeColor:'var(--bg)'};color:${s.type===t?'#fff':'var(--muted)'};">
           ${t==='saída'?'↓ Saída':t==='entrada'?'↑ Entrada':'⇄ Transf.'}
         </button>`).join('')}
-      <div onclick="waToggleConsol()" style="width:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-left:1px solid var(--border);cursor:pointer;background:${s.consolidated?'var(--font)':'transparent'};">
-        <span style="font-size:.6rem;font-weight:900;color:${s.consolidated?'var(--bg)':'var(--muted)'};">✓</span>
+      <div onclick="waToggleConsol()" title="${s.consolidated?'Efetivada — clique para marcar como prevista':'Prevista — clique para efetivar'}" style="width:54px;flex-shrink:0;display:flex;flex-direction:column;gap:1px;align-items:center;justify-content:center;border-left:1px solid var(--border);cursor:pointer;background:${s.consolidated?'var(--font)':'transparent'};">
+        <span style="font-size:.72rem;font-weight:900;color:${s.consolidated?'var(--bg)':'var(--muted)'};">${s.consolidated?'✓':'○'}</span>
+        <span style="font-size:.44rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:${s.consolidated?'var(--bg)':'var(--muted)'};">${s.consolidated?'Efetivada':'Prevista'}</span>
       </div>
     </div>
     <div style="background:${typeColor};padding:7px 12px;flex-shrink:0;display:flex;align-items:center;gap:8px;">
@@ -8355,10 +8391,10 @@ function waDashDrill(el){
     txs.forEach(t=>{
       const isIn=t.type==='entrada';
       const color=isIn?'var(--accent2)':'var(--red)';
-      const dot='display:inline-block;width:7px;height:7px;border-radius:50%;border:1.5px solid '+(t.consolidated?'var(--font)':'var(--muted)')+';background:'+(t.consolidated?'var(--font)':'transparent')+';margin-right:5px;vertical-align:middle;';
+      const dot='display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;border:1.5px solid '+(t.consolidated?'var(--font)':'var(--muted)')+';background:'+(t.consolidated?'var(--font)':'transparent')+';color:'+(t.consolidated?'var(--bg)':'var(--muted)')+';font-size:7px;font-weight:900;line-height:1;margin-right:5px;vertical-align:middle;';
       html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);">'
         +'<div style="flex:1;min-width:0;">'
-        +'<span style="'+dot+'"></span>'
+        +'<span style="'+dot+'">'+(t.consolidated?'\u2713':'')+'</span>'
         +'<span style="font-size:.72rem;font-weight:500;color:var(--font);">'+(t.desc||t.cat)+'</span>'
         +'<div style="font-size:.62rem;color:var(--muted);margin-left:12px;">'+t.date+' · '+(t.account||'--')+'</div>'
         +'</div>'
@@ -8920,6 +8956,12 @@ function waDashRenderHeader(){
     +'<div style="width:1px;height:20px;background:#D0D0D0;"></div>'
     // month pills
     +'<div style="display:flex;align-items:center;gap:3px;">'+monthPills+'</div>'
+    +'<div style="width:1px;height:20px;background:#D0D0D0;"></div>'
+    // legenda real x previsão
+    +'<span style="font-size:9px;color:#555;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;">'
+    +'<span style="display:inline-block;width:14px;height:10px;background:#fff;border:1px solid #B0BEC5;"></span>real'
+    +'<span style="display:inline-block;width:14px;height:10px;background:#F5EFE6;border:1px solid #D3C7B4;background-image:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(161,136,127,.18) 3px,rgba(161,136,127,.18) 6px);margin-left:6px;"></span><em style="color:#A1887F;">prev. — clique p/ editar meta</em>'
+    +'</span>'
     +'</div>';
 }
 
