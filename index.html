@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4c0519,#0c4a6e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FECDD3 !important;}
-  #splash .splash-sub{color:rgba(254,205,211,.65) !important;}
-  #splash .splash-version{color:rgba(254,205,211,.35) !important;}
-  #splash .splash-btn{background:#FECDD3 !important;color:#4c0519 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(254,205,211,.15) !important;color:#FECDD3 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#164e63,#3f6212);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#CFFAFE !important;}
+  #splash .splash-sub{color:rgba(207,250,254,.65) !important;}
+  #splash .splash-version{color:rgba(207,250,254,.35) !important;}
+  #splash .splash-btn{background:#CFFAFE !important;color:#164e63 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(207,250,254,.15) !important;color:#CFFAFE !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2071,7 +2071,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.11';
+const APP_VERSION='18.12';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6820,70 +6820,95 @@ const BACKUP_SHEETS = [
 let _restoreData = null;   // JSON carregado aguardando restauro
 
 // ---------- EXPORTAR ----------
+// leitura com timeout — um fetch pendurado não pode travar o backup inteiro
+async function _bkpRead(sheetName, ms){
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), ms||45000);
+  try{
+    const url = APPS_SCRIPT_URL+'?sheet='+encodeURIComponent(sheetName)+'&_='+Date.now();
+    const r = await fetch(url,{cache:'no-store', signal:ctrl.signal});
+    const txt = await r.text();
+    let j;
+    try{ j = JSON.parse(txt); }
+    catch(e){ throw new Error('resposta não-JSON'); }
+    if(!j.ok) throw new Error(j.error||'erro de leitura');
+    return j.data||[];
+  } finally { clearTimeout(t); }
+}
+
 async function waBackupExport(){
   const btn = document.getElementById('wa-bkp-btn');
   const log = document.getElementById('wa-bkp-log');
-  if(btn){ btn.disabled=true; btn.textContent='Lendo dados…'; }
-  const say = (t,c) => { if(log) log.innerHTML = '<span style="color:'+(c||'var(--muted)')+';">'+t+'</span>'; };
+  if(btn){ btn.disabled=true; }
 
-  const backup = {
-    _meta: {
-      app: 'Fluxo',
-      versao_app: APP_VERSION,
-      versao_backup: 1,
-      criado_em: new Date().toISOString(),
-      criado_por: currentUser||'ALE',
-      spreadsheet: SPREADSHEET_ID
-    },
-    dados: {}
+  const linhas = [];
+  const push = (txt,color)=>{
+    linhas.push('<div style="color:'+(color||'var(--muted)')+';padding:1px 0;">'+txt+'</div>');
+    if(log) log.innerHTML = linhas.join('');
   };
 
-  let erros = 0;
+  const backup = {
+    _meta:{ app:'Fluxo', versao_app:APP_VERSION, versao_backup:1,
+            criado_em:new Date().toISOString(), criado_por:currentUser||'ALE',
+            spreadsheet:SPREADSHEET_ID },
+    dados:{}
+  };
+
+  let erros=0, totalLinhas=0;
+
   for(let i=0;i<BACKUP_SHEETS.length;i++){
     const s = BACKUP_SHEETS[i];
-    say('Lendo '+s.label+'…  ('+(i+1)+'/'+BACKUP_SHEETS.length+')');
-    if(btn) btn.textContent='Lendo… '+(i+1)+'/'+BACKUP_SHEETS.length;
+    if(btn) btn.textContent='Lendo…  '+(i+1)+'/'+BACKUP_SHEETS.length;
     try{
-      const rows = await sheetsRead(s.sheet);
-      backup.dados[s.key] = { sheet:s.sheet, rows: rows||[] };
+      const rows = await _bkpRead(s.sheet, 45000);
+      const n = Math.max(0,(rows.length||1)-1);
+      totalLinhas += n;
+      backup.dados[s.key] = { sheet:s.sheet, rows:rows };
+      push('✓  '+s.label+'  <span style="opacity:.6;">'+n.toLocaleString('pt-BR')+' reg.</span>','#059669');
     }catch(e){
-      console.warn('backup fail',s.sheet,e);
-      backup.dados[s.key] = { sheet:s.sheet, rows: [], erro:String(e) };
+      const msg = (e && e.name==='AbortError') ? 'tempo esgotado' : (e.message||'erro');
+      backup.dados[s.key] = { sheet:s.sheet, rows:[], erro:msg };
+      push('✕  '+s.label+'  <span style="opacity:.7;">'+msg+'</span>','#C62828');
       erros++;
     }
   }
 
-  // snapshot do localStorage relevante
+  // snapshot do localStorage
   backup.local = {};
   try{
     ['ALE','SI'].forEach(u=>{
-      backup.local['fluxo_ativos_'+u] = localStorage.getItem('fluxo_ativos_'+u);
-      backup.local['fluxo_cc_'+u]     = localStorage.getItem('fluxo_cc_'+u);
-      backup.local['fluxo_p8_'+u]     = localStorage.getItem('fluxo_p8_'+u);
+      backup.local['fluxo_ativos_'+u]=localStorage.getItem('fluxo_ativos_'+u);
+      backup.local['fluxo_cc_'+u]=localStorage.getItem('fluxo_cc_'+u);
+      backup.local['fluxo_p8_'+u]=localStorage.getItem('fluxo_p8_'+u);
     });
-    backup.local['fluxo_orc'] = localStorage.getItem('fluxo_orc');
-    backup.local['fluxo_kw']  = localStorage.getItem('fluxo_kw');
+    backup.local['fluxo_orc']=localStorage.getItem('fluxo_orc');
+    backup.local['fluxo_kw']=localStorage.getItem('fluxo_kw');
   }catch(e){}
 
-  // contagens para o resumo
-  const tot = {};
-  BACKUP_SHEETS.forEach(s=>{ tot[s.key] = Math.max(0,(backup.dados[s.key].rows.length||1)-1); });
-  backup._meta.resumo = tot;
+  const resumo={};
+  BACKUP_SHEETS.forEach(s=>{ resumo[s.key]=Math.max(0,((backup.dados[s.key]||{}).rows||[]).length-1); });
+  backup._meta.resumo=resumo;
+  backup._meta.abas_com_erro=erros;
 
-  // download
-  const stamp = new Date().toISOString().slice(0,16).replace('T','_').replace(':','h');
-  const blob = new Blob([JSON.stringify(backup,null,1)], {type:'application/json'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href=url; a.download='fluxo_backup_'+stamp+'.json';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  setTimeout(()=>URL.revokeObjectURL(url),2000);
+  // download — sempre acontece, mesmo com abas em erro
+  try{
+    const stamp=new Date().toISOString().slice(0,16).replace('T','_').replace(':','h');
+    const blob=new Blob([JSON.stringify(backup,null,1)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download='fluxo_backup_'+stamp+'.json';
+    a.style.display='none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ try{document.body.removeChild(a);}catch(e){} URL.revokeObjectURL(url); },3000);
+    push('','');
+    push('⬇  Arquivo baixado — '+totalLinhas.toLocaleString('pt-BR')+' registros no total'
+        +(erros?'  ·  '+erros+' aba(s) não lida(s)':''), erros?'#E65100':'#059669');
+  }catch(e){
+    push('✕  Falha ao gerar o arquivo: '+(e.message||e),'#C62828');
+  }
 
-  const totalLinhas = Object.values(tot).reduce((s,v)=>s+v,0);
-  say('✓ Backup baixado — '+totalLinhas.toLocaleString('pt-BR')+' registros'+(erros?'  ('+erros+' aba(s) com erro)':''),
-      erros?'#E65100':'#059669');
   if(btn){ btn.disabled=false; btn.textContent='⬇  Baixar backup completo'; }
-  waCfgRenderBackup(document.getElementById('wa-bkp-root')?.parentElement);
 }
 
 // ---------- CARREGAR ARQUIVO ----------
@@ -7047,7 +7072,7 @@ function waCfgRenderBackup(root){
     '<div style="font-size:.8rem;font-weight:700;color:var(--font);margin-bottom:3px;">Backup completo</div>'
   + '<div style="font-size:.68rem;color:var(--muted);line-height:1.55;margin-bottom:14px;">Lê todas as abas do Google Sheets e baixa um arquivo JSON único. Guarde-o fora do computador — é a sua rede de segurança contra perda de dados.</div>'
   + '<button id="wa-bkp-btn" onclick="waBackupExport()" style="padding:9px 20px;border-radius:8px;border:none;background:#1565C0;color:#fff;font-family:var(--font-body);font-size:.74rem;font-weight:700;cursor:pointer;">⬇  Baixar backup completo</button>'
-  + '<div id="wa-bkp-log" style="margin-top:8px;font-size:.68rem;min-height:16px;"></div>'
+  + '<div id="wa-bkp-log" style="margin-top:10px;font-size:.66rem;line-height:1.6;max-height:210px;overflow-y:auto;font-variant-numeric:tabular-nums;"></div>'
 
   + '<div style="height:1px;background:var(--border);margin:24px 0 18px;"></div>'
 
