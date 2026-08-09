@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#374151,#1f2937);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F9FAFB !important;}
-  #splash .splash-sub{color:rgba(249,250,251,.65) !important;}
-  #splash .splash-version{color:rgba(249,250,251,.35) !important;}
-  #splash .splash-btn{background:#F9FAFB !important;color:#374151 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(249,250,251,.12) !important;color:#F9FAFB !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#052e16,#155e75);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#A7F3D0 !important;}
+  #splash .splash-sub{color:rgba(167,243,208,.65) !important;}
+  #splash .splash-version{color:rgba(167,243,208,.35) !important;}
+  #splash .splash-btn{background:#A7F3D0 !important;color:#052e16 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(167,243,208,.15) !important;color:#A7F3D0 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2071,7 +2071,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.08';
+const APP_VERSION='18.10';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6762,7 +6762,7 @@ function waShowCfg(){
   // tab bar
   const tabBar=document.createElement('div');
   tabBar.style.cssText='display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;';
-  const tabs=[['tipografia','🔤 Tipografia Web'],['layout','📐 Layout'],['pastas','🗂 Pastas & Categorias'],['contas','💳 Contas']];
+  const tabs=[['tipografia','🔤 Tipografia Web'],['layout','📐 Layout'],['pastas','🗂 Pastas & Categorias'],['contas','💳 Contas'],['backup','💾 Backup']];
   if(!window.waCfgTab||window.waCfgTab==='aparencia')window.waCfgTab='tipografia';
   tabs.forEach(([id,lbl])=>{
     const b=document.createElement('button');
@@ -6790,10 +6790,274 @@ function waShowCfg(){
     waCfgRenderLayout(content);
   } else if(window.waCfgTab==='contas'){
     waCfgRenderContas(content);
+  } else if(window.waCfgTab==='backup'){
+    waCfgRenderBackup(content);
   } else {
     waCfgRenderPastas(content);
   }
   body.appendChild(content);
+}
+
+
+// ═══════════════════════════════════════════════════════════
+//  BACKUP & RESTAURO
+// ═══════════════════════════════════════════════════════════
+
+const BACKUP_SHEETS = [
+  { key:'transacoes',    sheet:'Transações',       label:'Transações',        icon:'📝' },
+  { key:'orcamento',     sheet:'Orçamento',        label:'Orçamento',         icon:'🎯' },
+  { key:'investimentos', sheet:'Investimentos',    label:'Investimentos',     icon:'📈' },
+  { key:'invlog',        sheet:'InvestimentosLog', label:'Histórico Invest.', icon:'📊' },
+  { key:'contas',        sheet:'Contas',           label:'Contas',            icon:'🏦' },
+  { key:'pastas',        sheet:'Pastas',           label:'Pastas & Categorias',icon:'🗂' },
+  { key:'keywords',      sheet:'PalavrasChave',    label:'Palavras-chave',    icon:'🔤' },
+  { key:'preferencias',  sheet:'Preferencias',     label:'Preferências',      icon:'⚙️' },
+  { key:'bens',          sheet:'Bens',             label:'Bens',              icon:'🏠' },
+  { key:'contacorrente', sheet:'ContaCorrente',    label:'Saldos CC',         icon:'💳' },
+];
+
+let _restoreData = null;   // JSON carregado aguardando restauro
+
+// ---------- EXPORTAR ----------
+async function waBackupExport(){
+  const btn = document.getElementById('wa-bkp-btn');
+  const log = document.getElementById('wa-bkp-log');
+  if(btn){ btn.disabled=true; btn.textContent='Lendo dados…'; }
+  const say = (t,c) => { if(log) log.innerHTML = '<span style="color:'+(c||'var(--muted)')+';">'+t+'</span>'; };
+
+  const backup = {
+    _meta: {
+      app: 'Fluxo',
+      versao_app: APP_VERSION,
+      versao_backup: 1,
+      criado_em: new Date().toISOString(),
+      criado_por: currentUser||'ALE',
+      spreadsheet: SPREADSHEET_ID
+    },
+    dados: {}
+  };
+
+  let erros = 0;
+  for(let i=0;i<BACKUP_SHEETS.length;i++){
+    const s = BACKUP_SHEETS[i];
+    say('Lendo '+s.label+'…  ('+(i+1)+'/'+BACKUP_SHEETS.length+')');
+    if(btn) btn.textContent='Lendo… '+(i+1)+'/'+BACKUP_SHEETS.length;
+    try{
+      const rows = await sheetsRead(s.sheet);
+      backup.dados[s.key] = { sheet:s.sheet, rows: rows||[] };
+    }catch(e){
+      console.warn('backup fail',s.sheet,e);
+      backup.dados[s.key] = { sheet:s.sheet, rows: [], erro:String(e) };
+      erros++;
+    }
+  }
+
+  // snapshot do localStorage relevante
+  backup.local = {};
+  try{
+    ['ALE','SI'].forEach(u=>{
+      backup.local['fluxo_ativos_'+u] = localStorage.getItem('fluxo_ativos_'+u);
+      backup.local['fluxo_cc_'+u]     = localStorage.getItem('fluxo_cc_'+u);
+      backup.local['fluxo_p8_'+u]     = localStorage.getItem('fluxo_p8_'+u);
+    });
+    backup.local['fluxo_orc'] = localStorage.getItem('fluxo_orc');
+    backup.local['fluxo_kw']  = localStorage.getItem('fluxo_kw');
+  }catch(e){}
+
+  // contagens para o resumo
+  const tot = {};
+  BACKUP_SHEETS.forEach(s=>{ tot[s.key] = Math.max(0,(backup.dados[s.key].rows.length||1)-1); });
+  backup._meta.resumo = tot;
+
+  // download
+  const stamp = new Date().toISOString().slice(0,16).replace('T','_').replace(':','h');
+  const blob = new Blob([JSON.stringify(backup,null,1)], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download='fluxo_backup_'+stamp+'.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+
+  const totalLinhas = Object.values(tot).reduce((s,v)=>s+v,0);
+  say('✓ Backup baixado — '+totalLinhas.toLocaleString('pt-BR')+' registros'+(erros?'  ('+erros+' aba(s) com erro)':''),
+      erros?'#E65100':'#059669');
+  if(btn){ btn.disabled=false; btn.textContent='⬇  Baixar backup completo'; }
+  waCfgRenderBackup(document.getElementById('wa-bkp-root')?.parentElement);
+}
+
+// ---------- CARREGAR ARQUIVO ----------
+function waBackupFile(input){
+  const f = input.files && input.files[0];
+  if(!f) return;
+  const rd = new FileReader();
+  rd.onload = e => {
+    try{
+      const j = JSON.parse(e.target.result);
+      if(!j._meta || !j.dados) throw new Error('formato');
+      _restoreData = j;
+      _restoreSel = {};
+      BACKUP_SHEETS.forEach(s=>{ if(j.dados[s.key]) _restoreSel[s.key]=false; });
+      waBackupRenderPreview();
+    }catch(err){
+      _restoreData = null;
+      const p = document.getElementById('wa-bkp-preview');
+      if(p) p.innerHTML='<div style="padding:12px;background:#FFEBEE;border-left:3px solid #C62828;border-radius:0 6px 6px 0;font-size:.72rem;color:#C62828;">Arquivo inválido. Selecione um JSON gerado pelo próprio Fluxo.</div>';
+    }
+  };
+  rd.readAsText(f);
+}
+
+let _restoreSel = {};
+
+function waBackupToggle(key){
+  _restoreSel[key] = !_restoreSel[key];
+  waBackupRenderPreview();
+}
+function waBackupSelAll(v){
+  Object.keys(_restoreSel).forEach(k=>_restoreSel[k]=v);
+  waBackupRenderPreview();
+}
+
+function waBackupRenderPreview(){
+  const p = document.getElementById('wa-bkp-preview');
+  if(!p || !_restoreData) return;
+  const m = _restoreData._meta;
+  const dt = m.criado_em ? new Date(m.criado_em).toLocaleString('pt-BR') : '—';
+  const nSel = Object.values(_restoreSel).filter(Boolean).length;
+
+  let h = '<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;">';
+  // header do arquivo
+  h += '<div style="padding:10px 14px;background:var(--kp);border-bottom:1px solid var(--border);">'
+     + '<div style="font-size:.74rem;font-weight:700;color:var(--font);">Backup de '+dt+'</div>'
+     + '<div style="font-size:.62rem;color:var(--muted);margin-top:2px;">app v'+(m.versao_app||'?')+' · gerado por '+(m.criado_por||'?')+'</div>'
+     + '</div>';
+
+  // seleção
+  h += '<div style="padding:8px 14px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;">'
+     + '<span style="font-size:.62rem;color:var(--muted);">Selecione o que restaurar:</span>'
+     + '<button onclick="waBackupSelAll(true)" style="font-size:.6rem;padding:2px 8px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--font);cursor:pointer;">todos</button>'
+     + '<button onclick="waBackupSelAll(false)" style="font-size:.6rem;padding:2px 8px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;">nenhum</button>'
+     + '</div>';
+
+  BACKUP_SHEETS.forEach(s=>{
+    const d = _restoreData.dados[s.key];
+    if(!d) return;
+    const n = Math.max(0,(d.rows.length||1)-1);
+    const on = _restoreSel[s.key];
+    h += '<div onclick="waBackupToggle(\''+s.key+'\')" style="padding:7px 14px;display:flex;align-items:center;gap:9px;cursor:pointer;border-bottom:1px solid var(--border);background:'+(on?'#EDF4FD':'transparent')+';">'
+      +  '<span style="width:15px;height:15px;border-radius:4px;border:1.5px solid '+(on?'#1565C0':'var(--border)')+';background:'+(on?'#1565C0':'transparent')+';color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">'+(on?'✓':'')+'</span>'
+      +  '<span style="font-size:.95rem;">'+s.icon+'</span>'
+      +  '<span style="flex:1;font-size:.72rem;color:var(--font);font-weight:'+(on?'600':'400')+';">'+s.label+'</span>'
+      +  '<span style="font-size:.65rem;color:var(--muted);font-variant-numeric:tabular-nums;">'+n.toLocaleString('pt-BR')+' reg.</span>'
+      +  '</div>';
+  });
+  h += '</div>';
+
+  // zona de confirmação
+  if(nSel>0){
+    h += '<div style="margin-top:12px;padding:12px 14px;background:#FFF4E5;border-left:3px solid #C62828;border-radius:0 8px 8px 0;">'
+      +  '<div style="font-size:.68rem;font-weight:700;color:#C62828;margin-bottom:4px;">ATENÇÃO — OPERAÇÃO IRREVERSÍVEL</div>'
+      +  '<div style="font-size:.68rem;color:var(--font);line-height:1.5;margin-bottom:9px;">As abas selecionadas serão <strong>apagadas e substituídas</strong> pelo conteúdo do backup. Baixe um backup do estado atual antes de continuar.</div>'
+      +  '<div style="display:flex;gap:8px;align-items:center;">'
+      +  '<input id="wa-bkp-confirm" oninput="waBackupCheckConfirm()" placeholder="digite RESTAURAR" style="flex:1;padding:6px 9px;border-radius:6px;border:1px solid var(--border);font-size:.7rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">'
+      +  '<button id="wa-bkp-go" disabled onclick="waBackupRestore()" style="padding:6px 16px;border-radius:6px;border:none;background:#ccc;color:#fff;font-size:.7rem;font-weight:700;cursor:not-allowed;white-space:nowrap;">Restaurar '+nSel+'</button>'
+      +  '</div></div>';
+  }
+  h += '<div id="wa-bkp-restlog" style="margin-top:10px;font-size:.68rem;"></div>';
+  p.innerHTML = h;
+}
+
+function waBackupCheckConfirm(){
+  const i = document.getElementById('wa-bkp-confirm');
+  const b = document.getElementById('wa-bkp-go');
+  if(!i||!b) return;
+  const ok = i.value.trim().toUpperCase()==='RESTAURAR';
+  b.disabled = !ok;
+  b.style.background = ok?'#C62828':'#ccc';
+  b.style.cursor     = ok?'pointer':'not-allowed';
+}
+
+// ---------- RESTAURAR ----------
+async function waBackupRestore(){
+  if(!_restoreData) return;
+  const sel = BACKUP_SHEETS.filter(s=>_restoreSel[s.key] && _restoreData.dados[s.key]);
+  if(!sel.length) return;
+
+  const b = document.getElementById('wa-bkp-go');
+  const L = document.getElementById('wa-bkp-restlog');
+  const say = (t,c)=>{ if(L) L.innerHTML='<span style="color:'+(c||'var(--muted)')+';">'+t+'</span>'; };
+  if(b){ b.disabled=true; b.style.background='#999'; b.textContent='Restaurando…'; }
+
+  let ok=0, fail=0;
+  for(let i=0;i<sel.length;i++){
+    const s = sel[i];
+    const rows = _restoreData.dados[s.key].rows || [];
+    say('Restaurando '+s.label+'…  ('+(i+1)+'/'+sel.length+')');
+    try{
+      if(!rows.length){ ok++; continue; }
+      // 1. limpa a aba escrevendo só o cabeçalho
+      await fetch(APPS_SCRIPT_URL,{
+        method:'POST', redirect:'follow',
+        headers:{'Content-Type':'text/plain'},
+        body:JSON.stringify({action:'write',sheet:s.sheet,rows:[rows[0]]})
+      });
+      // 2. grava o corpo em blocos
+      const body = rows.slice(1);
+      const CH = 400;
+      for(let k=0;k<body.length;k+=CH){
+        const chunk = body.slice(k,k+CH);
+        say('Restaurando '+s.label+'…  '+Math.min(k+CH,body.length)+'/'+body.length+' linhas');
+        await fetch(APPS_SCRIPT_URL,{
+          method:'POST', redirect:'follow',
+          headers:{'Content-Type':'text/plain'},
+          body:JSON.stringify({action:'appendRows',sheet:s.sheet,rows:chunk})
+        });
+      }
+      ok++;
+    }catch(e){
+      console.error('restore fail',s.sheet,e);
+      fail++;
+    }
+  }
+
+  // restaura localStorage se veio no backup
+  if(_restoreData.local){
+    try{
+      Object.keys(_restoreData.local).forEach(k=>{
+        const v=_restoreData.local[k];
+        if(v!=null) localStorage.setItem(k,v);
+      });
+    }catch(e){}
+  }
+
+  say('✓ '+ok+' conjunto(s) restaurado(s)'+(fail?' · '+fail+' com erro':'')+'. Recarregando…', fail?'#E65100':'#059669');
+  setTimeout(()=>location.reload(), 2200);
+}
+
+// ---------- UI ----------
+function waCfgRenderBackup(root){
+  if(!root) return;
+  root.innerHTML='';
+  const w=document.createElement('div');
+  w.id='wa-bkp-root';
+  w.style.cssText='max-width:640px;';
+
+  w.innerHTML =
+    '<div style="font-size:.8rem;font-weight:700;color:var(--font);margin-bottom:3px;">Backup completo</div>'
+  + '<div style="font-size:.68rem;color:var(--muted);line-height:1.55;margin-bottom:14px;">Lê todas as abas do Google Sheets e baixa um arquivo JSON único. Guarde-o fora do computador — é a sua rede de segurança contra perda de dados.</div>'
+  + '<button id="wa-bkp-btn" onclick="waBackupExport()" style="padding:9px 20px;border-radius:8px;border:none;background:#1565C0;color:#fff;font-family:var(--font-body);font-size:.74rem;font-weight:700;cursor:pointer;">⬇  Baixar backup completo</button>'
+  + '<div id="wa-bkp-log" style="margin-top:8px;font-size:.68rem;min-height:16px;"></div>'
+
+  + '<div style="height:1px;background:var(--border);margin:24px 0 18px;"></div>'
+
+  + '<div style="font-size:.8rem;font-weight:700;color:var(--font);margin-bottom:3px;">Restaurar backup</div>'
+  + '<div style="font-size:.68rem;color:var(--muted);line-height:1.55;margin-bottom:12px;">Selecione um arquivo de backup. Você escolhe quais conjuntos de dados recuperar — dá para restaurar só os investimentos e manter as transações de hoje, por exemplo.</div>'
+  + '<label for="wa-bkp-input" style="display:inline-block;padding:8px 18px;border-radius:8px;border:1px dashed var(--border);background:transparent;color:var(--font);font-family:var(--font-body);font-size:.72rem;cursor:pointer;">📂  Escolher arquivo…</label>'
+  + '<input id="wa-bkp-input" type="file" accept=".json,application/json" onchange="waBackupFile(this)" style="display:none;">'
+  + '<div id="wa-bkp-preview" style="margin-top:14px;"></div>';
+
+  root.appendChild(w);
+  if(_restoreData) waBackupRenderPreview();
 }
 
 function saveLayout(layout){
@@ -9039,7 +9303,7 @@ function _waDashRender(){
           if(showOrc){
             const te=tipo.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
             const ce=cat.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-            html+='<td class="wad-prev '+mt+'" style="padding-right:8px;" onclick="waDashEditMeta(this,\''+te+'\',\''+ce+'\','+m+','+waDashGetMeta(user,tipo,cat,m)+')">'+fmtVal(mv)+'</td>';
+            html+='<td class="wad-prev '+mt+'" style="padding-right:8px;" onclick="waDashEditMeta(this,\''+te+'\',\''+ce+'\','+m+','+waDashGetMeta(user,tipo,cat,m)+')"><span style="color:#999;">'+fmtS(mv)+'</span></td>';
           }
         });
         // total col
@@ -9089,9 +9353,9 @@ function _waDashRender(){
       let rTxt='',mTxt='';
       if(isSaldo||isAcum){
         const rColor2=rv<0?'#C62828':'#1565C0';
-        const mColor2=mv<0?'#C62828':'#1565C0';
+
         rTxt=rv?'<span style="color:'+rColor2+';font-weight:700;">'+(rv>=0?'+':'−')+fmtS(rv)+'</span>':'';
-        mTxt=mv?'<span style="color:'+mColor2+';font-weight:700;">'+(mv>=0?'+':'−')+fmtS(mv)+'</span>':'';
+        mTxt=mv?'<span style="color:#999;font-weight:700;">'+(mv>=0?'+':'−')+fmtS(mv)+'</span>':'';
       } else {
         const rColor2=rv<0?'#C62828':'#1565C0';
         rTxt=rv?'<span style="color:'+rColor2+';">'+fmtS(rv)+'</span>':'';
