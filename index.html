@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#292524,#1c1917);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#D6D3D1 !important;}
-  #splash .splash-sub{color:rgba(214,211,209,.65) !important;}
-  #splash .splash-version{color:rgba(214,211,209,.35) !important;}
-  #splash .splash-btn{background:#D6D3D1 !important;color:#292524 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(214,211,209,.15) !important;color:#D6D3D1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1565C0,#C62828);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#fff !important;}
+  #splash .splash-sub{color:rgba(255,255,255,.7) !important;}
+  #splash .splash-version{color:rgba(255,255,255,.4) !important;}
+  #splash .splash-btn{background:#fff !important;color:#1565C0 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(255,255,255,.15) !important;color:#fff !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2071,7 +2071,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.05';
+const APP_VERSION='18.07';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2638,15 +2638,7 @@ function loadKeywords(){
   keywordsData={};
   seedKeywords();
 }
-function saveKeywords(){
-  try{localStorage.setItem('fluxo_kw',JSON.stringify(keywordsData));}catch(e){}
-  // use direct POST to avoid URL length limit
-  fetch(APPS_SCRIPT_URL,{
-    method:'POST',redirect:'follow',
-    headers:{'Content-Type':'text/plain'},
-    body:JSON.stringify({action:'write',sheet:SHEETS.keywords,rows:serializeKV({keywords:keywordsData})})
-  }).catch(e=>console.warn('kw save fail',e));
-}
+function saveKeywords(){try{localStorage.setItem('fluxo_kw',JSON.stringify(keywordsData));}catch(e){}pushToSheets('kw');}
 
 function seedKeywords(){
   // merge with any existing data -- don't overwrite custom keywords
@@ -3359,7 +3351,7 @@ function login(u){
   const sv=document.getElementById('splash-version');if(sv)sv.textContent='v'+APP_VERSION;
   const _mu=document.getElementById('menu-user');if(_mu)_mu.textContent=u;
   const cfu=document.getElementById('cfg-user');if(cfu)cfu.textContent=u;const cu2=document.getElementById('cfg-user2');if(cu2)cu2.textContent=u;
-  loadAccounts();seedInstLinks();loadDefaultAccounts();initTiposData();loadKeywords();loadOrc();loadInvestimentos();loadBens();loadCcMensalLocal();
+  loadAccounts();seedInstLinks();loadDefaultAccounts();initTiposData();loadKeywords();loadOrc();loadInvestimentos();loadBens();loadCcMensalLocal();waLoadQuadroDates();
   loadPrefs(); // load prefs for this user
   setTodayDate();buildSettings();buildStartScreenUI();
   extMonth=new Date().getMonth();extYear=new Date().getFullYear();
@@ -4574,6 +4566,13 @@ async function deleteTx(idx){
   }
 }
 function fmt(v){return 'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtVal(v){
+  if(!v||v===0)return '';
+  const abs='R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const color=v<0?'#C62828':'#1565C0';
+  const sign=v<0?'−':'+';
+  return '<span style="color:'+color+';font-weight:700;">'+sign+abs+'</span>';
+}
 function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='show'+(type?' '+type:'');setTimeout(()=>t.className='',2500);}
 // ----------------------------------------========
 // -- INVESTIMENTOS --
@@ -6386,6 +6385,12 @@ async function syncAll(manual=false){
           applyAppearance();
           applyLayout();
         }
+        // Load quadro dates from raw rows
+        rows.forEach(r=>{
+          if(r[1]==='quadro_date'&&r[0]&&r[2]) _quadroDates[r[0]]=r[2];
+        });
+        localStorage.setItem('fluxo_quadro_dates',JSON.stringify(_quadroDates));
+        waRenderQuadroDate();
       }
     }catch(e){console.warn('prefs read fail',e);}
 
@@ -6584,6 +6589,11 @@ const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+A
     <div id="wa-toggle-btn" onclick="waToggleRight()" title="Mostrar/ocultar painel">›</div>
     <div id="wa-center-header">
       <span id="wa-center-title">--</span>
+      <div id="wa-quadro-date-wrap" style="display:none;align-items:center;gap:6px;font-size:.7rem;color:var(--muted);">
+        <span style="font-size:.65rem;">atualizado em</span>
+        <span id="wa-quadro-date-display" onclick="waEditQuadroDate()" style="cursor:pointer;font-weight:600;color:var(--font);border-bottom:1px dashed var(--muted);padding-bottom:1px;" title="Clique para editar">--</span>
+        <input id="wa-quadro-date-input" type="date" onchange="waSaveQuadroDate()" style="display:none;font-size:.7rem;padding:2px 4px;border-radius:4px;border:1px solid var(--border);font-family:var(--font-body);background:var(--bg);color:var(--font);">
+      </div>
       <div id="wa-center-actions"></div>
     </div>
     <div id="wa-center-body">
@@ -6642,6 +6652,9 @@ function waGo(screen){
   else if(screen==='cfg') waShowCfg();
   else {
     document.getElementById('wa-center-title').textContent=screen;
+    const qdw=document.getElementById('wa-quadro-date-wrap');
+    if(qdw)qdw.style.display=(screen==='Quadro')?'flex':'none';
+    if(screen==='Quadro')waRenderQuadroDate();
     document.getElementById('wa-center-body').innerHTML='<div class="wa-empty">Em breve</div>';
     document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">--</div>';
     document.getElementById('wa-right-title').textContent='--';
@@ -7690,7 +7703,7 @@ function waResetLaunch(){
   waTransfOrigem=null;waTransfDestino=null;waTransfOrigemLabel=null;waTransfDestinoLabel=null;
   // preserve last used date and account
   const lastDate=waLaunchState.date||new Date().toLocaleDateString('pt-BR');
-  const lastConta=waLaunchState.conta||getDefaultAccount()||null;
+  const lastConta=waLaunchState.conta||null;
   waLaunchState={
     editingIdx:null,type:'saída',desc:'',tipo:null,cat:null,conta:lastConta,
     date:lastDate,valueCents:0,
@@ -7698,6 +7711,8 @@ function waResetLaunch(){
     parcIni:1,parcFim:null,advQty:1,advInt:'mes',advPeriod:'parcelado',advParcIni:1,advParcFim:null
   };
   waKpState={cents:0,op:null,prev:0};
+  const def=getDefaultAccount();
+  if(def)waLaunchState.conta=def;
   document.getElementById('wa-right-title').textContent='Lançar';
   waClosePicker();
   waRenderLaunchForm();
@@ -8500,6 +8515,57 @@ function waShowDash(){
   waDashRender();
 }
 
+// --- Quadro last-update date ---
+let _quadroDates = {}; // {ALE: 'dd/mm/yyyy', SI: '...'}
+
+function waRenderQuadroDate(){
+  const u = currentUser||'ALE';
+  const el = document.getElementById('wa-quadro-date-display');
+  if(el) el.textContent = _quadroDates[u] || '--';
+}
+
+function waEditQuadroDate(){
+  const inp = document.getElementById('wa-quadro-date-input');
+  const disp = document.getElementById('wa-quadro-date-display');
+  if(!inp) return;
+  // convert dd/mm/yyyy to yyyy-mm-dd for input
+  const u = currentUser||'ALE';
+  const cur = _quadroDates[u]||'';
+  if(cur && cur!=='--'){
+    const p = cur.split('/');
+    if(p.length===3) inp.value = p[2]+'-'+p[1]+'-'+p[0];
+  }
+  inp.style.display='inline-block';
+  if(disp) disp.style.display='none';
+  inp.focus();
+}
+
+function waSaveQuadroDate(){
+  const inp = document.getElementById('wa-quadro-date-input');
+  const disp = document.getElementById('wa-quadro-date-display');
+  if(!inp) return;
+  const u = currentUser||'ALE';
+  const iso = inp.value;
+  if(iso){
+    const [y,m,d] = iso.split('-');
+    _quadroDates[u] = d+'/'+m+'/'+y;
+  }
+  inp.style.display='none';
+  if(disp){ disp.textContent=_quadroDates[u]||'--'; disp.style.display=''; }
+  // save to Sheets via Preferencias
+  sheetsPost({action:'appendLog',sheet:'Preferencias',row:[u,'quadro_date',_quadroDates[u]||'']})
+    .catch(e=>console.warn('quadro_date save fail',e));
+  localStorage.setItem('fluxo_quadro_dates',JSON.stringify(_quadroDates));
+}
+
+function waLoadQuadroDates(){
+  try{
+    const s=localStorage.getItem('fluxo_quadro_dates');
+    if(s) _quadroDates=JSON.parse(s);
+  }catch(e){}
+  // also read from Sheets Preferencias (loaded in loadData)
+}
+
 function waDashRenderHeader(){
   const actions=document.getElementById('wa-center-actions');
   if(!actions)return;
@@ -8645,13 +8711,11 @@ function waDashSetMeta(user,tipo,cat,mIdx,val){
 }
 
 function waDashRender(){
-  const _cb=document.getElementById('wa-center-body');
-  const _sy=_cb?_cb.scrollTop:0;
   try{_waDashRender();}catch(e){
-    if(_cb)_cb.innerHTML='<div style="padding:20px;color:red;font-size:12px;font-family:monospace;white-space:pre-wrap;">ERRO waDashRender: '+e.message+'\n'+e.stack+'</div>';
+    const el=document.getElementById('wa-center-body');
+    if(el)el.innerHTML='<div style="padding:20px;color:red;font-size:12px;font-family:monospace;white-space:pre-wrap;">ERRO waDashRender: '+e.message+'\n'+e.stack+'</div>';
     console.error('[waDashRender]',e);
   }
-  if(_cb&&_sy>0)requestAnimationFrame(()=>{_cb.scrollTop=_sy;});
 }
 function _waDashRender(){
   const user=currentUser||'ALE';
@@ -8968,14 +9032,14 @@ function _waDashRender(){
           const te2=tipo.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
           const ce2=cat.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
           if(rv){
-            html+='<td class="wad-real '+mt+'" data-tipo="'+te2+'" data-cat="'+ce2+'" data-m="'+m+'" data-yr="'+dashYear+'" onclick="waDashDrill(this)" title="Ver transações" style="border-left:1px solid #CCC;padding-right:8px;cursor:pointer;'+farolShadow(fc)+'">'+fmt(rv)+'</td>';
+            html+='<td class="wad-real '+mt+'" data-tipo="'+te2+'" data-cat="'+ce2+'" data-m="'+m+'" data-yr="'+dashYear+'" onclick="waDashDrill(this)" title="Ver transações" style="border-left:1px solid #CCC;padding-right:8px;cursor:pointer;'+farolShadow(fc)+'">'+fmtVal(rv)+'</td>';
           } else {
             html+='<td class="wad-real '+mt+'" style="border-left:1px solid #CCC;padding-right:8px;'+farolShadow(fc)+'"></td>';
           }
           if(showOrc){
             const te=tipo.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
             const ce=cat.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-            html+='<td class="wad-prev '+mt+'" style="padding-right:8px;" onclick="waDashEditMeta(this,\''+te+'\',\''+ce+'\','+m+','+waDashGetMeta(user,tipo,cat,m)+')">'+fmt(mv)+'</td>';
+            html+='<td class="wad-prev '+mt+'" style="padding-right:8px;" onclick="waDashEditMeta(this,\''+te+'\',\''+ce+'\','+m+','+waDashGetMeta(user,tipo,cat,m)+')">'+fmtVal(mv)+'</td>';
           }
         });
         // total col
@@ -8985,7 +9049,7 @@ function _waDashRender(){
         const tfc=farolClass(cRV,cMV,farolInd,isPos);
         html+='<td style="width:8px;background:#E0E0E0;border-left:3px solid #999;padding:0;"></td>';
         if(showTotals){
-          html+='<td style="text-align:right;width:85px;min-width:85px;max-width:85px;overflow:hidden;padding:3px 4px;font-size:var(--wad-size-geral);font-weight:700;background:#E8EAF6;color:#283593;border-left:3px solid #888;'+farolShadow(tfc)+'">'+fmt(cRV)+'</td>';
+          html+='<td style="text-align:right;width:85px;min-width:85px;max-width:85px;overflow:hidden;padding:3px 4px;font-size:var(--wad-size-geral);font-weight:700;background:#E8EAF6;border-left:3px solid #888;'+farolShadow(tfc)+'">'+fmtVal(cRV)+'</td>';
           html+='<td style="text-align:right;width:85px;min-width:85px;max-width:85px;overflow:hidden;padding:3px 4px;font-size:var(--wad-size-geral);background:#E8EAF6;color:#5C6BC0;">'+fmt(Math.round(cRV/validCount))+'</td>';
           html+='<td style="text-align:right;width:85px;min-width:85px;max-width:85px;overflow:hidden;padding:3px 4px;font-size:var(--wad-size-geral);font-weight:700;background:#DDD5C0;color:#6D4C41;border-left:2px solid #999;">'+fmt(cMV)+'</td>';
           html+='<td style="text-align:right;width:85px;min-width:85px;max-width:85px;overflow:hidden;padding:3px 4px;font-size:var(--wad-size-geral);background:#DDD5C0;color:#8D6E63;">'+fmt(Math.round(cMV/validCount))+'</td>';
@@ -9024,15 +9088,18 @@ function _waDashRender(){
       const bg=isSaldo||isAcum?bgRow:(isCur?'#FFF9C4':isFut?bgRow:bgRow);
       let rTxt='',mTxt='';
       if(isSaldo||isAcum){
-        rTxt=rv?(rv>=0?'+':'-')+fmtS(rv):'';
-        mTxt=mv?(mv>=0?'+':'-')+fmtS(mv):'';
+        const rColor2=rv<0?'#C62828':'#1565C0';
+        const mColor2=mv<0?'#C62828':'#1565C0';
+        rTxt=rv?'<span style="color:'+rColor2+';font-weight:700;">'+(rv>=0?'+':'−')+fmtS(rv)+'</span>':'';
+        mTxt=mv?'<span style="color:'+mColor2+';font-weight:700;">'+(mv>=0?'+':'−')+fmtS(mv)+'</span>':'';
       } else {
-        rTxt=fmtS(rv);mTxt=fmtS(mv);
+        const rColor2=rv<0?'#C62828':'#1565C0';
+        const mColor2=mv<0?'#C62828':'#1565C0';
+        rTxt=rv?'<span style="color:'+rColor2+';">'+fmtS(rv)+'</span>':'';
+        mTxt=mv?'<span style="color:'+mColor2+';">'+fmtS(mv)+'</span>':'';
       }
-      const rColor=isSaldo||isAcum?'#1a1a1a':colorLabel;
-      const mColor=isSaldo||isAcum?'#1a1a1a':'#8D6E63';
-      html+='<td style="text-align:right;padding:3px 8px;font-size:var(--wad-size-geral);font-weight:700;color:'+rColor+';border-left:1px solid rgba(0,0,0,.08);background:'+bg+';">'+rTxt+'</td>';
-      if(showOrc)html+='<td style="text-align:right;padding:3px 8px;font-size:var(--wad-size-geral);color:'+mColor+';background:'+bg+';">'+mTxt+'</td>';
+      html+='<td style="text-align:right;padding:3px 8px;font-size:var(--wad-size-geral);font-weight:700;border-left:1px solid rgba(0,0,0,.08);background:'+bg+';">'+rTxt+'</td>';
+      if(showOrc)html+='<td style="text-align:right;padding:3px 8px;font-size:var(--wad-size-geral);background:'+bg+';">'+mTxt+'</td>';
     });
     const tRV=validMs.reduce((s,m)=>s+(arrR[m]||0),0);
     const tMV=validMs.reduce((s,m)=>s+(arrM[m]||0),0);
