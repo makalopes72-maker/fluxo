@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#3e2a1e,#1e8a6e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#C9F2E4 !important;}
-  #splash .splash-sub{color:rgba(201,242,228,.65) !important;}
-  #splash .splash-version{color:rgba(201,242,228,.35) !important;}
-  #splash .splash-btn{background:#C9F2E4 !important;color:#3e2a1e !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#C9F2E4 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#2b4a63,#a8862a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F3E4B5 !important;}
+  #splash .splash-sub{color:rgba(243,228,181,.65) !important;}
+  #splash .splash-version{color:rgba(243,228,181,.35) !important;}
+  #splash .splash-btn{background:#F3E4B5 !important;color:#2b4a63 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F3E4B5 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.32';
+const APP_VERSION='18.33';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -9599,16 +9599,11 @@ function _waOrc2Render(){
   const esc=s=>String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
   const receitaTipos=['Receita','Investimentos'];
 
-  // universo de pastas/categorias: orçamento + categorias vistas em transações do ano
+  // universo OFICIAL: apenas pastas/categorias ATIVAS cadastradas no configurador
+  // (Pastas/Categorias). Registros antigos de orcData ou de transações de anos
+  // anteriores que não estejam no cadastro ficam preservados nos dados, mas não aparecem.
   const ud=orcData[user]||{};
-  const txCats={};
-  allData.forEach(t=>{
-    const d=parseDate(t.date);if(!d||d.getFullYear()!==yr)return;
-    const tp=getTipoPasta(t);const cat=t.cat||t.tipo||'Outros';
-    if(!txCats[tp])txCats[tp]=new Set();
-    txCats[tp].add(cat);
-  });
-  const allTipos=new Set([...Object.keys(ud),...Object.keys(txCats)]);
+  const allTipos=new Set(Object.keys(tiposData||{}).filter(t=>(tiposData[t]||{}).active!==false));
   const sorted=[...receitaTipos.filter(t=>allTipos.has(t)),...[...allTipos].filter(t=>!receitaTipos.includes(t)).sort()];
 
   // preserva rolagem
@@ -9649,8 +9644,7 @@ function _waOrc2Render(){
   sorted.forEach(tipo=>{
     const isPos=receitaTipos.includes(tipo);
     const ud_tipo=ud[tipo]||{};
-    const catSet=new Set([...Object.keys(ud_tipo),...(txCats[tipo]?[...txCats[tipo]]:[])]);
-    const cats=[...catSet].sort();
+    const cats=((tiposData[tipo]||{}).cats||[]).filter(cc=>cc.active!==false).map(cc=>cc.name||cc);
     if(!cats.length)return;
     // totais do grupo
     const gMeta=Array(12).fill(0);
