@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1e293b,#0e7490);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#CFFAFE !important;}
-  #splash .splash-sub{color:rgba(207,250,254,.65) !important;}
-  #splash .splash-version{color:rgba(207,250,254,.35) !important;}
-  #splash .splash-btn{background:#CFFAFE !important;color:#164e63 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#CFFAFE !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#3f3f1d,#92600a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FDE9B0 !important;}
+  #splash .splash-sub{color:rgba(253,233,176,.65) !important;}
+  #splash .splash-version{color:rgba(253,233,176,.35) !important;}
+  #splash .splash-btn{background:#FDE9B0 !important;color:#3f3f1d !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FDE9B0 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.17';
+const APP_VERSION='18.19';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8358,6 +8358,7 @@ function waDashDrill(el){
   const cat=el.dataset.cat;
   const mIdx=parseInt(el.dataset.m);
   const year=parseInt(el.dataset.yr);
+  window._wd2Drill={tipo:tipo,cat:cat,m:mIdx,yr:year};
   // open right panel with transactions for tipo+cat in month mIdx of year
   const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const rp=document.getElementById('wa-right');
@@ -8387,16 +8388,17 @@ function waDashDrill(el){
   const tot=txs.reduce((s,t)=>s+t.value,0);
 
   let html='<div style="padding:10px 12px;">'
-    +'<div style="font-size:.62rem;color:var(--muted);margin-bottom:8px;">'+txs.length+' transaç'+(txs.length===1?'ão':'ões')+' · Total R$ '+fmt(tot)+'</div>';
+    +'<div style="font-size:.62rem;color:var(--muted);margin-bottom:8px;">'+txs.length+' transaç'+(txs.length===1?'ão':'ões')+' · Total R$ '+fmt(tot)+' · <span style="color:#1565C0;">clique para editar</span></div>';
 
   if(!txs.length){
     html+='<div style="color:var(--muted);font-size:.75rem;padding:20px 0;text-align:center;">Nenhuma transação</div>';
   } else {
     txs.forEach(t=>{
+      const gi=allData.indexOf(t);
       const isIn=t.type==='entrada';
       const color=isIn?'var(--accent2)':'var(--red)';
       const dot='display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;border:1.5px solid '+(t.consolidated?'var(--font)':'var(--muted)')+';background:'+(t.consolidated?'var(--font)':'transparent')+';color:'+(t.consolidated?'var(--bg)':'var(--muted)')+';font-size:7px;font-weight:900;line-height:1;margin-right:5px;vertical-align:middle;';
-      html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);">'
+      html+='<div onclick="waDash2EditFromDrill('+gi+')" onmouseover="this.style.background=\'var(--kp)\'" onmouseout="this.style.background=\'\'" style="display:flex;align-items:center;justify-content:space-between;padding:6px 4px;border-bottom:1px solid var(--border);cursor:pointer;border-radius:6px;">'
         +'<div style="flex:1;min-width:0;">'
         +'<span style="'+dot+'">'+(t.consolidated?'\u2713':'')+'</span>'
         +'<span style="font-size:.72rem;font-weight:500;color:var(--font);">'+(t.desc||t.cat)+'</span>'
@@ -8408,6 +8410,28 @@ function waDashDrill(el){
   }
   html+='</div>';
   document.getElementById('wa-right-body').innerHTML=html;
+}
+
+// Reabre a lista de transações do último drill (após editar/salvar/voltar)
+function waDash2Redrill(){
+  const d=window._wd2Drill;
+  if(!d)return;
+  waDashDrill({dataset:{tipo:d.tipo,cat:d.cat,m:String(d.m),yr:String(d.yr)}});
+}
+// Abre o editor lateral a partir da lista do drill, com botão de voltar
+function waDash2EditFromDrill(idx){
+  waEditTx(idx);
+  const body=document.getElementById('wa-right-body');
+  if(body)body.insertAdjacentHTML('afterbegin',
+    '<div onclick="waResetLaunch();waDash2Redrill();" style="display:flex;align-items:center;gap:6px;padding:8px 12px;cursor:pointer;font-size:.68rem;font-weight:600;color:#1565C0;border-bottom:1px solid var(--border);">‹ voltar à lista</div>');
+}
+// Após salvar/excluir, se estamos no Quadro 2.0, re-renderiza e reabre o drill
+function waDash2AfterSave(){
+  const n2=document.getElementById('wanav-dash2');
+  if(n2&&n2.classList.contains('active')){
+    waDash2Render();
+    if(window._wd2Drill)waDash2Redrill();
+  }
 }
 
 function waToggleRight(){
@@ -8702,6 +8726,7 @@ async function waSave(){
     waResetLaunch();
     waRenderExtrato();
     renderDash();
+    if(typeof waDash2AfterSave==='function')waDash2AfterSave();
     return;
   }
 
@@ -8763,6 +8788,7 @@ async function waSave(){
     waResetLaunch();
     waRenderExtrato();
     renderDash();
+    if(typeof waDash2AfterSave==='function')waDash2AfterSave();
     // suggest keyword after reset so toast renders on top
     if(_kwDesc&&_kwTipo&&_kwCat){
       setTimeout(()=>waCheckAddKeyword(_kwDesc,_kwTipo,_kwCat),600);
@@ -8821,6 +8847,7 @@ async function waDelTx(idx){
   toast('Excluído!','success');
   waResetLaunch();
   waRenderExtrato();
+  if(typeof waDash2AfterSave==='function')waDash2AfterSave();
 }
 
 function waShowDash(){
@@ -8901,6 +8928,39 @@ function waDash2TogSec(s){
   window.waDash2Sec[s]=!window.waDash2Sec[s];
   waDash2Render();
 }
+function waDash2EditQDate(){
+  const inp=document.getElementById('wd2-qdate-input');
+  const disp=document.getElementById('wd2-qdate-display');
+  if(!inp)return;
+  const u=currentUser||'ALE';
+  const cur=_quadroDates[u]||'';
+  if(cur&&cur!=='--'){
+    const p=cur.split('/');
+    if(p.length===3)inp.value=p[2]+'-'+p[1]+'-'+p[0];
+  }
+  inp.style.display='inline-block';
+  if(disp)disp.style.display='none';
+  inp.focus();
+}
+function waDash2SaveQDate(){
+  const inp=document.getElementById('wd2-qdate-input');
+  const disp=document.getElementById('wd2-qdate-display');
+  if(!inp)return;
+  const u=currentUser||'ALE';
+  const iso=inp.value;
+  if(iso){
+    const [y,m,d]=iso.split('-');
+    _quadroDates[u]=d+'/'+m+'/'+y;
+  }
+  inp.style.display='none';
+  if(disp){disp.textContent=_quadroDates[u]||'--';disp.style.display='';}
+  // mesmo armazenamento do Quadro original: aba Preferencias + localStorage
+  sheetsPost({action:'appendLog',sheet:'Preferencias',row:[u,'quadro_date',_quadroDates[u]||'']})
+    .then(r=>{if(!(r&&r.ok!==false))toast('✗ Falha ao salvar a data no Sheets','error');})
+    .catch(e=>toast('✗ Erro ao salvar a data: '+e.message,'error'));
+  localStorage.setItem('fluxo_quadro_dates',JSON.stringify(_quadroDates));
+  if(typeof waRenderQuadroDate==='function')waRenderQuadroDate();
+}
 function waDash2RenderHeader(){
   const actions=document.getElementById('wa-center-actions');
   if(!actions)return;
@@ -8924,7 +8984,13 @@ function waDash2RenderHeader(){
     pills+='<button style="height:28px;padding:0 10px;border-radius:100px;border:1px solid #1a1a1a;background:#1a1a1a;color:#fff;font-size:9px;font-weight:700;cursor:pointer;" onclick="waDash2ClickMonth(0)">ATUAL</button>';
     for(let i=1;i<=3;i++)pills+=pill('waDash2ClickMonth('+i+')','+'+i,i<=futSel,'fut');
   }
+  const qd=_quadroDates[currentUser||'ALE']||'--';
   actions.innerHTML='<div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;justify-content:flex-end;">'
+    +'<div style="display:flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;border:1px solid #D8D6CC;background:#FBFAF6;">'
+      +'<span style="font-size:9px;color:#999;">dados até</span>'
+      +'<span id="wd2-qdate-display" onclick="waDash2EditQDate()" title="Clique para editar a data" style="font-size:10px;font-weight:700;color:#1a1a1a;cursor:pointer;">'+qd+'</span>'
+      +'<input type="date" id="wd2-qdate-input" onblur="waDash2SaveQDate()" onchange="waDash2SaveQDate()" style="display:none;font-size:10px;border:none;background:transparent;font-family:var(--font-body);outline:none;color:#1a1a1a;">'
+    +'</div>'
     +'<button onclick="window.waDashHideZero=!window.waDashHideZero;waDash2RenderHeader();waDash2Render();" style="'+(hideZero?fbon:fb)+'">'+(hideZero?'▣':'□')+' só lançados</button>'
     +'<button onclick="waDash2ToggleAll();" style="'+fb+'">▸▾ pastas</button>'
     +'<div style="width:1px;height:20px;background:#E0DED4;"></div>'
@@ -8968,15 +9034,15 @@ function _waDash2Render(){
       .wd2-kpi-v{font-size:18px;font-weight:600;letter-spacing:-.3px;}
       .wd2-kpi-s{font-size:9px;color:#AAA;margin-top:1px;}
       .wd2-tbl{border-collapse:collapse;width:100%;font-size:var(--wad-size-geral);font-family:var(--wad-font-geral);}
-      .wd2-tbl td,.wd2-tbl th{padding:4px 8px;border-bottom:1px solid #EEECE4;}
+      .wd2-tbl td,.wd2-tbl th{padding:4px 8px;border-bottom:1px solid #D9D6C9;}
       .wd2-lbl{position:sticky;left:0;z-index:3;background:#fff;white-space:nowrap;min-width:150px;max-width:210px;overflow:hidden;text-overflow:ellipsis;text-align:left;box-shadow:2px 0 4px rgba(0,0,0,.05);}
       .wd2-num{text-align:right;white-space:nowrap;font-family:var(--wad-font-valor);font-size:var(--wad-size-valor);}
       .wd2-prev{font-style:italic;color:#A1887F;cursor:pointer;background-image:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(161,136,127,.09) 3px,rgba(161,136,127,.09) 6px);}
       .wd2-prev:hover{filter:brightness(.96);}
       .wd2-cur{background-color:#FFF8E6;}
       .wd2-fut{color:#B9B7AE;}
-      .wd2-sec{background:#F4F2EC;cursor:pointer;}
-      .wd2-sec td{border-bottom:1px solid #E0DED4;font-weight:700;color:#3A3A36;padding:6px 8px;}
+      .wd2-sec{background:#E2DECF;cursor:pointer;}
+      .wd2-sec td{border-top:3px solid #A8A395;border-bottom:1px solid #C6C2B2;font-weight:700;color:#33322E;padding:6px 8px;}
       .wd2-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle;}
       .wd2-cat{padding-left:24px;color:#5F5E5A;cursor:pointer;}
       .wd2-band td{background:#F1EFE8;font-weight:700;color:#1a1a1a;border-top:2px solid #C9C6BA;}
@@ -9120,7 +9186,7 @@ function _waDash2Render(){
     const pastaSumM=totMeta.reduce((s,v)=>s+v,0);
     // linha da pasta
     html+='<tr class="wd2-sec" onclick="waDash2TogglePasta(\''+esc(tipo)+'\')">';
-    html+='<td class="wd2-lbl" style="background:#F4F2EC;">'+(collapsed?'▸':'▾')+' '+tipo+'</td>';
+    html+='<td class="wd2-lbl" style="background:#E2DECF;">'+(collapsed?'▸':'▾')+' '+tipo+'</td>';
     visMonths.forEach(m=>{
       const v=totReal[m];
       html+='<td class="wd2-num '+mCls(m)+'" style="color:'+(v?vColor(isPos?v:-Math.abs(v)):'#B9B7AE')+';">'+(v?fmtN(v):'')+'</td>';
@@ -9196,8 +9262,15 @@ function _waDash2Render(){
   // ── seções patrimoniais ──
   const secHead=(key,lbl)=>{
     const col=(window.waDash2Sec||{})[key];
-    return '<tr><td colspan="'+nCols+'" style="height:10px;border:none;background:transparent;"></td></tr>'
-      +'<tr class="wd2-sec" onclick="waDash2TogSec(\''+key+'\')"><td class="wd2-lbl" style="background:#EAEFEA;color:#2E5B34;">'+(col?'▸':'▾')+' '+lbl+'</td><td colspan="'+(nCols-1)+'" style="background:#EAEFEA;"></td></tr>';
+    const extra=k=>{
+      if(k!=='inv')return'';
+      const nEnc=(instituicoes||[]).reduce((s,i)=>s+(getInstAtivos(i)||[]).filter(a=>a.encerrado).length,0);
+      if(!nEnc)return'';
+      const on=!!window.waDash2ShowEnc;
+      return ' <span onclick="event.stopPropagation();window.waDash2ShowEnc=!window.waDash2ShowEnc;waDash2Render();" style="cursor:pointer;font-size:8px;font-weight:600;padding:1px 7px;border-radius:100px;border:1px solid #8FA98F;background:'+(on?'#1F4429':'transparent')+';color:'+(on?'#fff':'#1F4429')+';margin-left:6px;">'+(on?'ocultar':'mostrar')+' encerrados ('+nEnc+')</span>';
+    };
+    return '<tr><td colspan="'+nCols+'" style="height:28px;border:none;background:transparent;"></td></tr>'
+      +'<tr class="wd2-sec" onclick="waDash2TogSec(\''+key+'\')"><td class="wd2-lbl" style="background:#CFDCCF;color:#1F4429;">'+(col?'▸':'▾')+' '+lbl+extra(key)+'</td><td colspan="'+(nCols-1)+'" style="background:#CFDCCF;border-top:3px solid #8FA98F;"></td></tr>';
   };
   const valRow=(lbl,fn,cls,lastCol)=>{
     let r='<tr><td class="wd2-lbl '+(cls||'')+'">'+lbl+'</td>';
@@ -9233,11 +9306,14 @@ function _waDash2Render(){
   // Investimentos (encerrados incluídos — histórico preservado)
   html+=secHead('inv','Investimentos');
   if(!(window.waDash2Sec||{}).inv){
+    const showEnc=!!window.waDash2ShowEnc;
     (instituicoes||[]).forEach(inst=>{
       const ativos=getInstAtivos(inst)||[];
       if(!ativos.length)return;
+      const visAtivos=showEnc?ativos:ativos.filter(a=>!a.encerrado);
+      if(!visAtivos.length&&!showEnc)return;
       html+=valRow('<b>'+(inst.icon||'🏦')+' '+inst.name+'</b>',m=>ativos.reduce((s,a)=>{const v=getAtivoSaldoMes(a,m,dashYear);return s+(v||0);},0),'wd2-ind');
-      ativos.forEach(a=>{
+      visAtivos.forEach(a=>{
         html+=valRow(a.nome+(a.encerrado?' <span style="font-size:8px;color:#999;">(enc.)</span>':''),m=>getAtivoSaldoMes(a,m,dashYear),'wd2-ind',undefined);
       });
     });
@@ -9264,7 +9340,7 @@ function _waDash2Render(){
   };
   let ccLast=0;(instituicoes||[]).forEach(inst=>{for(let m=11;m>=0;m--){const v=getCcSaldoMes(inst.name,dashYear,m);if(v!==null){ccLast+=v;break;}}});
   const bensLast=bens.reduce((s,b)=>{const v=b.log&&b.log.length?b.log[b.log.length-1].value:0;return s+(v||0);},0);
-  html+='<tr><td colspan="'+nCols+'" style="height:6px;border:none;background:transparent;"></td></tr>';
+  html+='<tr><td colspan="'+nCols+'" style="height:28px;border:none;background:transparent;"></td></tr>';
   html+='<tr class="wd2-band"><td class="wd2-lbl" style="background:#E4EBE4;color:#1B4D2A;">Patrimônio total</td>';
   visMonths.forEach(m=>{
     const isP=isPastYear||(m<effectiveCurM),isC=!isPastYear&&m===effectiveCurM;
@@ -12694,9 +12770,7 @@ function waOnLogin(){
   const wu=document.getElementById('wa-user');
   if(wu)wu.textContent=currentUser||'ALE';
   waResetLaunch();
-  waGo('dash');
-  waDashRenderHeader();
-  waDashRender();
+  waGo('dash2');
   waSyncIndicator('✓ '+new Date().getFullYear()+' carregado','#059669',false);
 }
 
