@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#241b4f,#c76b5e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FBD9D0 !important;}
-  #splash .splash-sub{color:rgba(251,217,208,.65) !important;}
-  #splash .splash-version{color:rgba(251,217,208,.35) !important;}
-  #splash .splash-btn{background:#FBD9D0 !important;color:#241b4f !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FBD9D0 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#3e2a1e,#1e8a6e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#C9F2E4 !important;}
+  #splash .splash-sub{color:rgba(201,242,228,.65) !important;}
+  #splash .splash-version{color:rgba(201,242,228,.35) !important;}
+  #splash .splash-btn{background:#C9F2E4 !important;color:#3e2a1e !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#C9F2E4 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.31';
+const APP_VERSION='18.32';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6598,6 +6598,9 @@ const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+A
       <button class="wa-nav-item" id="wanav-dash2" onclick="waGo('dash2')">
         <span class="wa-ic">▦</span><span class="wa-lbl">Quadro 2.0</span>
       </button>
+      <button class="wa-nav-item" id="wanav-orc2" onclick="waGo('orc2')">
+        <span class="wa-ic">✎</span><span class="wa-lbl">Orçamento 2.0</span>
+      </button>
       <button class="wa-nav-item" id="wanav-add" onclick="waGo('add')">
         <span class="wa-ic">＋≡</span><span class="wa-lbl">Lançar / Extrato</span>
       </button>
@@ -6694,6 +6697,7 @@ function waGo(screen){
   if(screen==='add'||screen==='hist') waShowLaunch();
   else if(screen==='dash') waShowDash();
   else if(screen==='dash2') waShowDash2();
+  else if(screen==='orc2') waShowOrc2();
   else if(screen==='inv') waShowInv();
   else if(screen==='analytics') waShowAnalytics();
   else if(screen==='graficos') waShowGraficos();
@@ -9120,7 +9124,7 @@ function _waDash2Render(){
       return'vermelho';
     }
     if(mt===0)return'vermelho';
-    if(modo==='F'){
+    if(modo==='A'){
       return r>mt?'vermelho':'verde';
     }
     let pctMes;
@@ -9282,7 +9286,7 @@ function _waDash2Render(){
       const gFut=!isPastYear&&m>effectiveCurM;
       if(v&&!gFut){
         const gCur=!isPastYear&&m===effectiveCurM;
-        const gf=gCur?wd2Farol(isPos,'V',v,totMeta[m]):wd2Farol(isPos,'V',v,totMeta[m],1);
+        const gf=gCur?wd2Farol(isPos,'R',v,totMeta[m]):wd2Farol(isPos,'R',v,totMeta[m],1);
         if(gf)gFilete='box-shadow:inset -4px 0 0 '+FAROL_COLORS[gf]+';';
       }
       html+='<td class="wd2-num '+mCls(m)+'" style="color:'+(v?vColor(v):'#B9B7AE')+';'+gFilete+'">'+(v?fmtN(v):'')+'</td>';
@@ -9297,7 +9301,7 @@ function _waDash2Render(){
       const cd=ud_tipo[cat]||{};
       const te=esc(tipo),ce=esc(cat);
       html+='<tr>';
-      html+='<td class="wd2-lbl wd2-cat" onclick="openOrcEdit(\''+te+'\',\''+ce+'\')" title="Editar orçamento de '+cat+' · meta '+(cd.tipo==='F'?'absoluta (1 tacada)':'relativa (acumulativa, pró-rata)')+'">'+cat+'</td>';
+      html+='<td class="wd2-lbl wd2-cat" onclick="openOrcEdit(\''+te+'\',\''+ce+'\')" title="Editar orçamento de '+cat+' · farol '+((cd.farol||((cd.tipo==='F')?'A':'R'))==='A'?'absoluto (1 tacada)':'relativo (pró-rata)')+'">'+cat+'</td>';
       visMonths.forEach(m=>{
         const rv=arr[m]||0,mv=waDashGetMeta(user,tipo,cat,m);
         const te2=String(tipo).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
@@ -9308,7 +9312,8 @@ function _waDash2Render(){
         const isFut=!isPastYear&&m>effectiveCurM;
         if(rv&&!isFut){
           const isCurM=!isPastYear&&m===effectiveCurM;
-          const f=isCurM?wd2Farol(isPos,cd.tipo||'V',rv,mv):wd2Farol(isPos,cd.tipo||'V',rv,mv,1);
+          const fmode=cd.farol||((cd.tipo==='F')?'A':'R');
+          const f=isCurM?wd2Farol(isPos,fmode,rv,mv):wd2Farol(isPos,fmode,rv,mv,1);
           if(f)filete='box-shadow:inset -4px 0 0 '+FAROL_COLORS[f]+';';
         }
         if(rv){
@@ -9463,6 +9468,255 @@ function _waDash2Render(){
   html+='</div>';
   const body=document.getElementById('wa-center-body');
   if(body)body.innerHTML=html;
+}
+
+
+// ══════════════════════════════════════════════════════════════════════
+// ORÇAMENTO 2.0 — v18.32 — configuração de metas por categoria.
+// Mesmo orcData do Quadro 2.0 (por usuário): editar aqui reflete lá e vice-versa.
+// Colunas: categoria · periodicidade · tipo (F/V) · farol (A/R) · valor padrão · 12 meses.
+// Meses: valor herdado do padrão em itálico/hachura; meta PONTUAL em negrito.
+// Clique numa célula de mês para definir meta pontual; apagar o valor volta ao padrão.
+// ══════════════════════════════════════════════════════════════════════
+const ORC2_PERIODS=['mensal','bimestral','trimestral','semestral','anual'];
+function waShowOrc2(){
+  document.getElementById('wa-center-title').textContent='Orçamento 2.0';
+  document.getElementById('wa-right-title').textContent='--';
+  document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">--</div>';
+  const nb=document.getElementById('wa-new-btn');if(nb)nb.style.display='none';
+  const rp=document.getElementById('wa-right');if(rp)rp.classList.add('collapsed');
+  const btn=document.getElementById('wa-toggle-btn');if(btn)btn.textContent='‹';
+  const fb=document.getElementById('wa-filter-bar');if(fb)fb.remove();
+  const actions=document.getElementById('wa-center-actions');
+  if(actions){
+    const yr=new Date().getFullYear();
+    actions.innerHTML='<div style="display:flex;align-items:center;gap:10px;justify-content:flex-end;">'
+      +'<span style="font-size:10px;color:#999;">metas de <b style="color:#1a1a1a;">'+(currentUser||'ALE')+'</b> · ano <b style="color:#1a1a1a;">'+yr+'</b></span>'
+      +'</div>';
+  }
+  waOrc2Render();
+}
+function orc2GetCd(tipo,cat,create){
+  const user=currentUser||'ALE';
+  if(!orcData[user])orcData[user]={};
+  if(!orcData[user][tipo]){if(!create)return null;orcData[user][tipo]={};}
+  if(!orcData[user][tipo][cat]){
+    if(!create)return null;
+    orcData[user][tipo][cat]={default:0,period:'mensal',tipo:'V',farol:'R',months:{},defaults:{}};
+  }
+  return orcData[user][tipo][cat];
+}
+function orc2Key(yr,m){return yr+'-'+(m+1<10?'0':'')+(m+1);}
+function orc2GetMeta(cd,yr,m){
+  if(!cd)return 0;
+  const key=orc2Key(yr,m);
+  if(cd.months&&cd.months[key]!=null)return cd.months[key];
+  if(cd.defaults&&cd.defaults[String(yr)]!=null)return cd.defaults[String(yr)];
+  return cd.default||0;
+}
+function orc2HasOverride(cd,yr,m){return !!(cd&&cd.months&&cd.months[orc2Key(yr,m)]!=null);}
+function orc2Save(){
+  try{localStorage.setItem('fluxo_orc',JSON.stringify(orcData));}catch(e){}
+  pushToSheets('orc');
+}
+function orc2CyclePeriod(tipo,cat){
+  const cd=orc2GetCd(tipo,cat,true);
+  const i=ORC2_PERIODS.indexOf(cd.period||'mensal');
+  cd.period=ORC2_PERIODS[(i+1)%ORC2_PERIODS.length];
+  orc2Save();waOrc2Render();
+}
+function orc2ToggleTipo(tipo,cat){
+  const cd=orc2GetCd(tipo,cat,true);
+  cd.tipo=(cd.tipo==='F')?'V':'F';
+  orc2Save();waOrc2Render();
+}
+function orc2ToggleFarol(tipo,cat){
+  const cd=orc2GetCd(tipo,cat,true);
+  cd.farol=((cd.farol||((cd.tipo==='F')?'A':'R'))==='A')?'R':'A';
+  orc2Save();waOrc2Render();
+}
+function orc2EditDefault(td,tipo,cat){
+  const yr=new Date().getFullYear();
+  const cd=orc2GetCd(tipo,cat,true);
+  const cur=(cd.defaults&&cd.defaults[String(yr)]!=null)?cd.defaults[String(yr)]:(cd.default||0);
+  orc2InlineInput(td,cur,v=>{
+    if(!cd.defaults)cd.defaults={};
+    cd.defaults[String(yr)]=v;
+    orc2Save();waOrc2Render();
+  },()=>waOrc2Render());
+}
+function orc2EditMonth(td,tipo,cat,m){
+  const yr=new Date().getFullYear();
+  const cd=orc2GetCd(tipo,cat,true);
+  const cur=orc2HasOverride(cd,yr,m)?cd.months[orc2Key(yr,m)]:'';
+  orc2InlineInput(td,cur,v=>{
+    if(!cd.months)cd.months={};
+    cd.months[orc2Key(yr,m)]=v;
+    orc2Save();waOrc2Render();
+  },()=>waOrc2Render(),()=>{
+    // campo esvaziado: remove a meta pontual e volta ao padrão
+    if(cd.months)delete cd.months[orc2Key(yr,m)];
+    orc2Save();waOrc2Render();
+  });
+}
+function orc2InlineInput(td,curVal,onSave,onCancel,onClear){
+  const inp=document.createElement('input');
+  inp.type='text';inp.inputMode='decimal';
+  inp.value=(curVal===''||curVal==null)?'':String(curVal);
+  inp.style.cssText='width:70px;border:none;background:#D4BC96;color:#412402;font-family:var(--font-body);font-size:10px;text-align:right;padding:2px 4px;outline:none;font-style:normal;';
+  td.innerHTML='';td.appendChild(inp);
+  inp.focus();inp.select();
+  let done=false;
+  const save=()=>{
+    if(done)return;done=true;
+    const raw=inp.value.trim();
+    if(raw===''){ if(onClear){onClear();return;} onCancel();return; }
+    const v=parseBRNumber(raw);
+    if(isNaN(v)){onCancel();return;}
+    onSave(v);
+  };
+  inp.addEventListener('blur',save);
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter')save();
+    if(e.key==='Escape'){done=true;onCancel();}
+  });
+}
+function waOrc2Render(){
+  try{_waOrc2Render();}catch(e){
+    const el=document.getElementById('wa-center-body');
+    if(el)el.innerHTML='<div style="padding:20px;color:red;font-size:12px;font-family:monospace;white-space:pre-wrap;">ERRO waOrc2Render: '+e.message+'\n'+e.stack+'</div>';
+    console.error('[waOrc2Render]',e);
+  }
+}
+function _waOrc2Render(){
+  // garante o CSS compartilhado do Quadro 2.0
+  if(!document.getElementById('wd2-style')){try{_waDash2Render();}catch(e){}}
+  const user=currentUser||'ALE';
+  const yr=new Date().getFullYear();
+  const curM=new Date().getMonth();
+  const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const fmtM=n=>{if(!n&&n!==0)return'';return Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});};
+  const esc=s=>String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  const receitaTipos=['Receita','Investimentos'];
+
+  // universo de pastas/categorias: orçamento + categorias vistas em transações do ano
+  const ud=orcData[user]||{};
+  const txCats={};
+  allData.forEach(t=>{
+    const d=parseDate(t.date);if(!d||d.getFullYear()!==yr)return;
+    const tp=getTipoPasta(t);const cat=t.cat||t.tipo||'Outros';
+    if(!txCats[tp])txCats[tp]=new Set();
+    txCats[tp].add(cat);
+  });
+  const allTipos=new Set([...Object.keys(ud),...Object.keys(txCats)]);
+  const sorted=[...receitaTipos.filter(t=>allTipos.has(t)),...[...allTipos].filter(t=>!receitaTipos.includes(t)).sort()];
+
+  // preserva rolagem
+  const oldWrap=document.getElementById('wo2-wrap');
+  const sX=oldWrap?oldWrap.scrollLeft:0;
+  const bEl=document.getElementById('wa-center-body');
+  const sY=bEl?bEl.scrollTop:0;
+
+  const zoom=window.waDash2Zoom||1;
+  let html='<div class="wd2-wrap" id="wo2-wrap" style="zoom:'+zoom+';">';
+
+  // legenda
+  html+='<div style="display:flex;gap:14px;align-items:center;margin:0 0 8px;font-size:10px;color:#888;flex-wrap:wrap;">'
+    +'<span><b style="color:#1a1a1a;">padrão</b>: vale para todos os meses sem meta pontual</span>'
+    +'<span style="display:inline-flex;align-items:center;gap:5px;"><span style="width:14px;height:10px;border:1px solid #D8CBB8;display:inline-block;background:repeating-linear-gradient(45deg,#FBF7EF,#FBF7EF 3px,#EFE5D5 3px,#EFE5D5 6px);"></span><em>herdado do padrão</em></span>'
+    +'<span><b style="color:#1a1a1a;">negrito</b>: meta pontual do mês (clique define · apagar volta ao padrão)</span>'
+    +'<span>tipo: <b>F</b>ixo / <b>V</b>ariável · farol: <b>A</b>bsoluto / <b>R</b>elativo</span>'
+    +'</div>';
+
+  const nCols=5+12+1;
+  html+='<table class="wd2-tbl"><thead><tr>';
+  html+='<th class="wd2-lbl wd2-h" style="background:#FBFAF6;">pasta / categoria</th>';
+  html+='<th class="wd2-h" style="text-align:center;">period.</th>';
+  html+='<th class="wd2-h" style="text-align:center;">tipo</th>';
+  html+='<th class="wd2-h" style="text-align:center;">farol</th>';
+  html+='<th class="wd2-h wd2-tot" style="text-align:right;">padrão</th>';
+  for(let m=0;m<12;m++){
+    const ic=m===curM;
+    html+='<th class="wd2-h '+(ic?'cur wd2-cur':'')+'" style="text-align:right;">'+MESES[m].toLowerCase()+(ic?' · atual':'')+'</th>';
+  }
+  html+='<th class="wd2-h wd2-tot" style="text-align:right;">Σ ano</th>';
+  html+='</tr></thead><tbody>';
+
+  const chip=(lbl,oc,ttl,dark)=>'<span onclick="'+oc+'" title="'+ttl+'" style="display:inline-block;min-width:20px;text-align:center;padding:1px 7px;border-radius:100px;border:1px solid '+(dark?'#1a1a1a':'#C9C6BA')+';background:'+(dark?'#1a1a1a':'transparent')+';color:'+(dark?'#fff':'#777')+';font-size:9px;font-weight:700;cursor:pointer;">'+lbl+'</span>';
+
+  const sumMetaMes=Array(12).fill(0),sumMetaMesPos=Array(12).fill(0),sumMetaMesNeg=Array(12).fill(0);
+
+  sorted.forEach(tipo=>{
+    const isPos=receitaTipos.includes(tipo);
+    const ud_tipo=ud[tipo]||{};
+    const catSet=new Set([...Object.keys(ud_tipo),...(txCats[tipo]?[...txCats[tipo]]:[])]);
+    const cats=[...catSet].sort();
+    if(!cats.length)return;
+    // totais do grupo
+    const gMeta=Array(12).fill(0);
+    cats.forEach(cat=>{const cd=ud_tipo[cat];for(let m=0;m<12;m++)gMeta[m]+=orc2GetMeta(cd,yr,m);});
+    for(let m=0;m<12;m++){sumMetaMes[m]+=gMeta[m]*(isPos?1:-1);if(isPos)sumMetaMesPos[m]+=gMeta[m];else sumMetaMesNeg[m]+=gMeta[m];}
+    const gSum=gMeta.reduce((s,v)=>s+v,0);
+    // linha da pasta
+    html+='<tr class="wd2-sec">';
+    html+='<td class="wd2-lbl" style="background:#E2DECF;">'+tipo+'</td>';
+    html+='<td colspan="3" style="background:#E2DECF;"></td>';
+    html+='<td class="wd2-num wd2-tot"></td>';
+    for(let m=0;m<12;m++){
+      html+='<td class="wd2-num'+(m===curM?' wd2-cur':'')+'" '+(m===curM?'style="background-color:#E2DECF;"':'')+'>'+(gMeta[m]?fmtM(gMeta[m]):'')+'</td>';
+    }
+    html+='<td class="wd2-num wd2-tot" style="font-weight:700;">'+fmtM(gSum)+'</td>';
+    html+='</tr>';
+    // categorias
+    cats.forEach(cat=>{
+      const cd=ud_tipo[cat];
+      const te=esc(tipo),ce=esc(cat);
+      const per=(cd&&cd.period)||'mensal';
+      const tp=(cd&&cd.tipo)||'V';
+      const fa=(cd&&cd.farol)||((tp==='F')?'A':'R');
+      const defV=(cd&&cd.defaults&&cd.defaults[String(yr)]!=null)?cd.defaults[String(yr)]:((cd&&cd.default)||0);
+      let anoSum=0;
+      html+='<tr>';
+      html+='<td class="wd2-lbl wd2-cat">'+cat+'</td>';
+      html+='<td style="text-align:center;">'+chip(per.slice(0,3),'orc2CyclePeriod(\''+te+'\',\''+ce+'\')','Periodicidade: '+per+' — clique para alternar',false)+'</td>';
+      html+='<td style="text-align:center;">'+chip(tp,'orc2ToggleTipo(\''+te+'\',\''+ce+'\')','Tipo: '+(tp==='F'?'Fixo':'Variável')+' — clique para alternar',tp==='F')+'</td>';
+      html+='<td style="text-align:center;">'+chip(fa,'orc2ToggleFarol(\''+te+'\',\''+ce+'\')','Farol: '+(fa==='A'?'Absoluto (meta cheia, qualquer dia)':'Relativo (pró-rata do mês)')+' — clique para alternar',fa==='A')+'</td>';
+      html+='<td class="wd2-num wd2-tot" onclick="orc2EditDefault(this,\''+te+'\',\''+ce+'\')" title="Valor padrão do ano — clique para editar" style="cursor:pointer;font-weight:600;">'+(defV?fmtM(defV):'·')+'</td>';
+      for(let m=0;m<12;m++){
+        const mv=orc2GetMeta(cd,yr,m);anoSum+=mv;
+        const ov=orc2HasOverride(cd,yr,m);
+        const cls='wd2-num'+(m===curM?' wd2-cur':'')+(ov?'':' wd2-prev');
+        html+='<td class="'+cls+'" onclick="orc2EditMonth(this,\''+te+'\',\''+ce+'\','+m+')" title="'+(ov?'Meta pontual — apagar o valor volta ao padrão':'Herdado do padrão — clique para definir meta pontual')+'" style="cursor:pointer;'+(ov?'font-weight:700;color:#1a1a1a;font-style:normal;':'')+'">'+(mv?fmtM(mv):'·')+'</td>';
+      }
+      html+='<td class="wd2-num wd2-tot" style="font-style:italic;color:#8D6E63;">'+fmtM(anoSum)+'</td>';
+      html+='</tr>';
+    });
+  });
+
+  // TOTAL + saldo de metas
+  html+='<tr><td colspan="'+nCols+'" style="height:6px;border:none;background:transparent;"></td></tr>';
+  html+='<tr><td class="wd2-lbl" style="background:#3D3B33;color:#fff;font-weight:800;letter-spacing:.06em;padding:6px 8px;border-top:3px solid #23221D;">TOTAL</td><td colspan="'+(nCols-1)+'" style="background:#3D3B33;border-top:3px solid #23221D;"></td></tr>';
+  const bandMeta=(lbl,arr,signed)=>{
+    let r='<tr class="wd2-band"><td class="wd2-lbl" style="background:#F1EFE8;">'+lbl+'</td><td colspan="4" style="background:#F1EFE8;"></td>';
+    let s=0;
+    for(let m=0;m<12;m++){s+=arr[m];
+      r+='<td class="wd2-num'+(m===curM?' wd2-cur':'')+'" style="color:'+(signed?(arr[m]>=0?'#1565C0':'#C62828'):'#1a1a1a')+';">'+(arr[m]?(signed&&arr[m]<0?'-':'')+fmtM(arr[m]):'')+'</td>';}
+    r+='<td class="wd2-num wd2-tot" style="font-weight:700;color:'+(signed?(s>=0?'#1565C0':'#C62828'):'#1a1a1a')+';">'+(signed&&s<0?'-':'')+fmtM(s)+'</td></tr>';
+    return r;
+  };
+  html+=bandMeta('Receitas + Invest. (meta)',sumMetaMesPos,false);
+  html+=bandMeta('Despesas (meta)',sumMetaMesNeg,false);
+  html+=bandMeta('Saldo mês (meta)',sumMetaMes,true);
+
+  html+='</tbody></table>';
+  html+='<div style="margin-top:10px;font-size:9px;color:#AAA;">Orçamento 2.0 · mesmas metas do Quadro 2.0 — alterou aqui, mudou lá. Orçamento independente por usuário ('+user+').</div>';
+  html+='</div>';
+  const body=document.getElementById('wa-center-body');
+  if(body)body.innerHTML=html;
+  requestAnimationFrame(()=>{
+    const w=document.getElementById('wo2-wrap');if(w)w.scrollLeft=sX;
+    const b=document.getElementById('wa-center-body');if(b)b.scrollTop=sY;
+  });
 }
 
 // --- Quadro last-update date ---
