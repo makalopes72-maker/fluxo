@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#2b4a63,#a8862a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F3E4B5 !important;}
-  #splash .splash-sub{color:rgba(243,228,181,.65) !important;}
-  #splash .splash-version{color:rgba(243,228,181,.35) !important;}
-  #splash .splash-btn{background:#F3E4B5 !important;color:#2b4a63 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F3E4B5 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#7a3320,#37471f);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E8EFC9 !important;}
+  #splash .splash-sub{color:rgba(232,239,201,.65) !important;}
+  #splash .splash-version{color:rgba(232,239,201,.35) !important;}
+  #splash .splash-btn{background:#E8EFC9 !important;color:#7a3320 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#E8EFC9 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.33';
+const APP_VERSION='18.34';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6855,18 +6855,22 @@ function waShowCfg(){
 //  BACKUP & RESTAURO
 // ═══════════════════════════════════════════════════════════
 
+// kv:true = aba chave-valor SEM linha de cabeçalho (toda linha é registro)
 const BACKUP_SHEETS = [
   { key:'transacoes',    sheet:'Transações',       label:'Transações',        icon:'📝' },
-  { key:'orcamento',     sheet:'Orçamento',        label:'Orçamento',         icon:'🎯' },
+  { key:'orcamento',     sheet:'Orçamento',        label:'Orçamento',         icon:'🎯', kv:true },
   { key:'investimentos', sheet:'Investimentos',    label:'Investimentos',     icon:'📈' },
   { key:'invlog',        sheet:'InvestimentosLog', label:'Histórico Invest.', icon:'📊' },
-  { key:'contas',        sheet:'Contas',           label:'Contas',            icon:'🏦' },
-  { key:'pastas',        sheet:'Pastas',           label:'Pastas & Categorias',icon:'🗂' },
-  { key:'keywords',      sheet:'PalavrasChave',    label:'Palavras-chave',    icon:'🔤' },
-  { key:'preferencias',  sheet:'Preferencias',     label:'Preferências',      icon:'⚙️' },
+  { key:'contas',        sheet:'Contas',           label:'Contas',            icon:'🏦', kv:true },
+  { key:'pastas',        sheet:'Pastas',           label:'Pastas & Categorias',icon:'🗂', kv:true },
+  { key:'keywords',      sheet:'PalavrasChave',    label:'Palavras-chave',    icon:'🔤', kv:true },
+  { key:'preferencias',  sheet:'Preferencias',     label:'Preferências',      icon:'⚙️', kv:true },
   { key:'bens',          sheet:'Bens',             label:'Bens',              icon:'🏠' },
-  { key:'contacorrente', sheet:'ContaCorrente',    label:'Saldos CC',         icon:'💳' },
+  { key:'contacorrente', sheet:'ContaCorrente',    label:'Saldos CC',         icon:'💳', kv:true },
+  { key:'insts',         sheet:'Instituições',     label:'Instituições',      icon:'🏛' },
 ];
+// contagem de registros respeitando abas com/sem cabeçalho
+function _bkpCount(s,rows){ if(!rows||!rows.length)return 0; return s.kv?rows.length:Math.max(0,rows.length-1); }
 
 let _restoreData = null;   // JSON carregado aguardando restauro
 
@@ -6912,7 +6916,7 @@ async function waBackupExport(){
     if(btn) btn.textContent='Lendo…  '+(i+1)+'/'+BACKUP_SHEETS.length;
     try{
       const rows = await _bkpRead(s.sheet, 45000);
-      const n = Math.max(0,(rows.length||1)-1);
+      const n = _bkpCount(s,rows);
       totalLinhas += n;
       backup.dados[s.key] = { sheet:s.sheet, rows:rows };
       push('✓  '+s.label+'  <span style="opacity:.6;">'+n.toLocaleString('pt-BR')+' reg.</span>','#059669');
@@ -6931,13 +6935,17 @@ async function waBackupExport(){
       backup.local['fluxo_ativos_'+u]=localStorage.getItem('fluxo_ativos_'+u);
       backup.local['fluxo_cc_'+u]=localStorage.getItem('fluxo_cc_'+u);
       backup.local['fluxo_p8_'+u]=localStorage.getItem('fluxo_p8_'+u);
+      backup.local['fluxo_bens_'+u]=localStorage.getItem('fluxo_bens_'+u);
     });
     backup.local['fluxo_orc']=localStorage.getItem('fluxo_orc');
     backup.local['fluxo_kw']=localStorage.getItem('fluxo_kw');
+    backup.local['fluxo_tipos']=localStorage.getItem('fluxo_tipos');
+    backup.local['fluxo_quadro_dates']=localStorage.getItem('fluxo_quadro_dates');
+    backup.local['fluxo_cc_mensal']=localStorage.getItem('fluxo_cc_mensal');
   }catch(e){}
 
   const resumo={};
-  BACKUP_SHEETS.forEach(s=>{ resumo[s.key]=Math.max(0,((backup.dados[s.key]||{}).rows||[]).length-1); });
+  BACKUP_SHEETS.forEach(s=>{ resumo[s.key]=_bkpCount(s,(backup.dados[s.key]||{}).rows||[]); });
   backup._meta.resumo=resumo;
   backup._meta.abas_com_erro=erros;
 
@@ -7019,7 +7027,7 @@ function waBackupRenderPreview(){
   BACKUP_SHEETS.forEach(s=>{
     const d = _restoreData.dados[s.key];
     if(!d) return;
-    const n = Math.max(0,(d.rows.length||1)-1);
+    const n = _bkpCount(s,d.rows||[]);
     const on = _restoreSel[s.key];
     h += '<div onclick="waBackupToggle(\''+s.key+'\')" style="padding:7px 14px;display:flex;align-items:center;gap:9px;cursor:pointer;border-bottom:1px solid var(--border);background:'+(on?'#EDF4FD':'transparent')+';">'
       +  '<span style="width:15px;height:15px;border-radius:4px;border:1.5px solid '+(on?'#1565C0':'var(--border)')+';background:'+(on?'#1565C0':'transparent')+';color:#fff;font-size:10px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">'+(on?'✓':'')+'</span>'
@@ -7072,14 +7080,15 @@ async function waBackupRestore(){
     say('Restaurando '+s.label+'…  ('+(i+1)+'/'+sel.length+')');
     try{
       if(!rows.length){ ok++; continue; }
-      // 1. limpa a aba escrevendo só o cabeçalho
+      // 1. limpa a aba e grava o primeiro bloco (em abas kv a 1ª linha JÁ é registro — vai junto)
+      const head = s.kv ? rows.slice(0,Math.min(rows.length,400)) : [rows[0]];
       await fetch(APPS_SCRIPT_URL,{
         method:'POST', redirect:'follow',
         headers:{'Content-Type':'text/plain'},
-        body:JSON.stringify({action:'write',sheet:s.sheet,rows:[rows[0]]})
+        body:JSON.stringify({action:'write',sheet:s.sheet,rows:head})
       });
-      // 2. grava o corpo em blocos
-      const body = rows.slice(1);
+      // 2. grava o restante em blocos
+      const body = rows.slice(head.length);
       const CH = 400;
       for(let k=0;k<body.length;k+=CH){
         const chunk = body.slice(k,k+CH);
