@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#3f3f1d,#92600a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FDE9B0 !important;}
-  #splash .splash-sub{color:rgba(253,233,176,.65) !important;}
-  #splash .splash-version{color:rgba(253,233,176,.35) !important;}
-  #splash .splash-btn{background:#FDE9B0 !important;color:#3f3f1d !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FDE9B0 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#5c2c06,#123047);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFE0B8 !important;}
+  #splash .splash-sub{color:rgba(255,224,184,.65) !important;}
+  #splash .splash-version{color:rgba(255,224,184,.35) !important;}
+  #splash .splash-btn{background:#FFE0B8 !important;color:#5c2c06 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFE0B8 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.19';
+const APP_VERSION='18.22';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8961,6 +8961,17 @@ function waDash2SaveQDate(){
   localStorage.setItem('fluxo_quadro_dates',JSON.stringify(_quadroDates));
   if(typeof waRenderQuadroDate==='function')waRenderQuadroDate();
 }
+function waDash2ZoomStep(dir){
+  let z=window.waDash2Zoom||parseFloat(localStorage.getItem('fluxo_wd2_zoom')||'1')||1;
+  z=Math.round((z+dir*0.1)*10)/10;
+  z=Math.max(0.6,Math.min(1.8,z));
+  window.waDash2Zoom=z;
+  localStorage.setItem('fluxo_wd2_zoom',String(z));
+  const w=document.getElementById('wd2-wrap');
+  if(w)w.style.zoom=z;
+  const p=document.getElementById('wd2-zoom-pct');
+  if(p)p.textContent=Math.round(z*100)+'%';
+}
 function waDash2RenderHeader(){
   const actions=document.getElementById('wa-center-actions');
   if(!actions)return;
@@ -8980,12 +8991,21 @@ function waDash2RenderHeader(){
   let pills='';
   if(isPastYear){pills='<span style="font-size:10px;color:#999;font-style:italic;">ano inteiro</span>';}
   else{
+    const canDecPast=pastSel<11;
+    pills+='<button style="width:26px;height:26px;border-radius:50%;border:1px solid '+(canDecPast?'#8FB496':'#eee')+';background:'+(canDecPast?'#E7F0E7':'#fff')+';color:'+(canDecPast?'#2E5B34':'#ddd')+';font-size:9px;font-weight:700;cursor:'+(canDecPast?'pointer':'default')+';" onclick="waDash2ClickMonth('+(-(pastSel+1))+')">−'+(pastSel>3?pastSel:'')+'</button>';
     for(let i=-3;i<=-1;i++)pills+=pill('waDash2ClickMonth('+i+')',i,i>=-pastSel,'past');
     pills+='<button style="height:28px;padding:0 10px;border-radius:100px;border:1px solid #1a1a1a;background:#1a1a1a;color:#fff;font-size:9px;font-weight:700;cursor:pointer;" onclick="waDash2ClickMonth(0)">ATUAL</button>';
     for(let i=1;i<=3;i++)pills+=pill('waDash2ClickMonth('+i+')','+'+i,i<=futSel,'fut');
+    const canIncFut=futSel<11;
+    pills+='<button style="width:26px;height:26px;border-radius:50%;border:1px solid '+(canIncFut?'#E3C55A':'#eee')+';background:'+(canIncFut?'#FFF3C4':'#fff')+';color:'+(canIncFut?'#7A5D00':'#ddd')+';font-size:9px;font-weight:700;cursor:'+(canIncFut?'pointer':'default')+';" onclick="waDash2ClickMonth('+(futSel+1)+')">+'+(futSel>3?futSel:'')+'</button>';
   }
   const qd=_quadroDates[currentUser||'ALE']||'--';
   actions.innerHTML='<div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;justify-content:flex-end;">'
+    +'<div style="display:flex;align-items:center;gap:2px;padding:2px;border-radius:100px;border:1px solid #D8D6CC;background:#FBFAF6;" title="Tamanho das fontes desta tela">'
+      +'<button onclick="waDash2ZoomStep(-1)" style="width:24px;height:24px;border-radius:50%;border:none;background:transparent;cursor:pointer;font-size:12px;font-weight:800;color:#555;line-height:1;">A−</button>'
+      +'<span id="wd2-zoom-pct" style="font-size:9px;color:#999;min-width:28px;text-align:center;">'+Math.round((window.waDash2Zoom||1)*100)+'%</span>'
+      +'<button onclick="waDash2ZoomStep(1)" style="width:24px;height:24px;border-radius:50%;border:none;background:transparent;cursor:pointer;font-size:13px;font-weight:800;color:#1a1a1a;line-height:1;">A+</button>'
+    +'</div>'
     +'<div style="display:flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;border:1px solid #D8D6CC;background:#FBFAF6;">'
       +'<span style="font-size:9px;color:#999;">dados até</span>'
       +'<span id="wd2-qdate-display" onclick="waDash2EditQDate()" title="Clique para editar a data" style="font-size:10px;font-weight:700;color:#1a1a1a;cursor:pointer;">'+qd+'</span>'
@@ -9000,6 +9020,12 @@ function waDash2RenderHeader(){
     +'<div style="width:1px;height:20px;background:#E0DED4;"></div>'
     +'<div style="display:flex;align-items:center;gap:3px;">'+pills+'</div>'
     +'</div>';
+}
+function waDash2TogOrc(m,e){
+  if(e)e.stopPropagation();
+  if(!window.waDashShowOrc)window.waDashShowOrc={};
+  window.waDashShowOrc[m]=!window.waDashShowOrc[m];
+  waDash2Render();
 }
 function waDash2Render(){
   try{_waDash2Render();}catch(e){
@@ -9046,7 +9072,9 @@ function _waDash2Render(){
       .wd2-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle;}
       .wd2-cat{padding-left:24px;color:#5F5E5A;cursor:pointer;}
       .wd2-band td{background:#F1EFE8;font-weight:700;color:#1a1a1a;border-top:2px solid #C9C6BA;}
-      .wd2-mini td{color:#777;font-size:calc(var(--wad-size-geral) - 0px);}
+      .wd2-band td.wd2-cur{background-color:#F1EFE8;}
+      .wd2-mini td{color:#55534C;font-weight:600;background:#F3F0E6;font-size:calc(var(--wad-size-geral) - 0px);}
+      .wd2-mini td.wd2-cur{background-color:#F3F0E6;}
       .wd2-h{color:#999;font-weight:500;font-size:10px;border-bottom:1px solid #E0DED4;}
       .wd2-h.cur{color:#7A5D00;font-weight:700;}
       .wd2-tot{background:#F7F6F1;border-left:2px solid #DDD9CC;}
@@ -9054,6 +9082,37 @@ function _waDash2Render(){
     `;
     document.head.appendChild(st);
   }
+
+  // Farol do Quadro 2.0 — verde abaixo · cinza na meta · vermelho acima.
+  // Categorias VARIÁVEIS: meta parcial proporcional ao dia do mês (ex.: dia 10 de 30 → 33,3% da meta).
+  // Categorias FIXAS (1x/mês): cinza enquanto não ocorreu; depois compara direto com a meta cheia.
+  // Receitas/Investimentos: invertido (quanto mais, melhor), também pró-rata.
+  const wd2Farol=(isPos,fixo,realV,metaV)=>{
+    if(!metaV)return null;
+    // gasto/receita EFETIVO usa o líquido: entradas em categoria de despesa abatem o gasto
+    const r=isPos?Math.max(0,realV||0):Math.max(0,-(realV||0));
+    const mt=Math.abs(metaV);
+    const today=new Date();
+    const dim=new Date(today.getFullYear(),today.getMonth()+1,0).getDate();
+    const pctMes=today.getDate()/dim;
+    if(isPos){
+      const exp=mt*pctMes;
+      if(r>=exp)return'verde';
+      if(r>=exp*0.9)return'cinza';
+      return'vermelho';
+    }
+    if(fixo==='F'){
+      if(r===0)return'cinza';
+      if(r<=mt)return'verde';
+      if(r<=mt*1.1)return'cinza';
+      return'vermelho';
+    }
+    const exp=mt*pctMes;
+    if(r<=exp*0.9)return'verde';
+    if(r<=exp*1.1)return'cinza';
+    return'vermelho';
+  };
+  const FAROL_COLORS={verde:'#43A047',cinza:'#9E9E9E',vermelho:'#E53935'};
 
   // ── dados: mesma matriz do Quadro original ──
   let userAccts=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).map(a=>normalizeAcct(a.name));
@@ -9103,7 +9162,7 @@ function _waDash2Render(){
       catSet.forEach(cat=>{
         const cd=ud_tipo[cat]||{};const fc=cd.tipo||'V';
         for(let m=0;m<12;m++){
-          const rv=Math.abs((real[tipo]&&real[tipo][cat])?real[tipo][cat][m]:0);
+          const rv=-(((real[tipo]&&real[tipo][cat])?real[tipo][cat][m]:0));  // líquido invertido: estornos abatem
           const mv=waDashGetMeta(user,tipo,cat,m);
           if(fc==='F'){sumDF[m]+=rv;sumMetaDF[m]+=mv;}else{sumDV[m]+=rv;sumMetaDV[m]+=mv;}
         }
@@ -9134,7 +9193,9 @@ function _waDash2Render(){
       });
     });
   }
-  let html='<div class="wd2-wrap">';
+  const zoom=window.waDash2Zoom||parseFloat(localStorage.getItem('fluxo_wd2_zoom')||'1')||1;
+  window.waDash2Zoom=zoom;
+  let html='<div class="wd2-wrap" id="wd2-wrap" style="zoom:'+zoom+';">';
   html+='<div class="wd2-kpis">'
     +'<div class="wd2-kpi"><div class="wd2-kpi-l">'+(isPastYear?'Saldo do ano':'Saldo do mês')+'</div><div class="wd2-kpi-v" style="color:'+vColor(kpiSaldo)+';">'+fmtSg(kpiSaldo)+'</div><div class="wd2-kpi-s">'+(isPastYear?dashYear:MESES[curM]+' · só efetivadas'+(hideInvSaldo?' · s/ invest.':''))+'</div></div>'
     +'<div class="wd2-kpi"><div class="wd2-kpi-l">Acumulado</div><div class="wd2-kpi-v" style="color:'+vColor(kpiAcum)+';">'+fmtSg(kpiAcum)+'</div><div class="wd2-kpi-s">'+MESES[0]+' – '+MESES[isPastYear?11:curM]+' '+dashYear+'</div></div>'
@@ -9146,7 +9207,7 @@ function _waDash2Render(){
   html+='<div style="display:flex;gap:14px;align-items:center;margin:0 0 6px;font-size:10px;color:#888;">'
     +'<span style="display:inline-flex;align-items:center;gap:5px;"><span style="width:14px;height:10px;background:#fff;border:1px solid #C9C6BA;display:inline-block;"></span>real</span>'
     +'<span style="display:inline-flex;align-items:center;gap:5px;"><span style="width:14px;height:10px;border:1px solid #D8CBB8;display:inline-block;background:repeating-linear-gradient(45deg,#FBF7EF,#FBF7EF 3px,#EFE5D5 3px,#EFE5D5 6px);"></span>prev. · clique edita a meta</span>'
-    +'<span style="display:inline-flex;align-items:center;gap:4px;"><span class="wd2-dot" style="background:#43A047;margin:0;"></span><span class="wd2-dot" style="background:#F9A825;margin:0;"></span><span class="wd2-dot" style="background:#E53935;margin:0;"></span>farol da meta (mês atual)</span>'
+    +'<span style="display:inline-flex;align-items:center;gap:4px;"><span class="wd2-dot" style="background:#43A047;margin:0;"></span>abaixo <span class="wd2-dot" style="background:#9E9E9E;margin:0;"></span>na meta <span class="wd2-dot" style="background:#E53935;margin:0;"></span>acima — variáveis: meta proporcional ao dia · fixas: meta cheia</span>'
     +'</div>';
 
   // ── tabela ──
@@ -9155,8 +9216,11 @@ function _waDash2Render(){
   html+='<th class="wd2-lbl wd2-h" style="background:#FBFAF6;">pasta / categoria</th>';
   visMonths.forEach(m=>{
     const ic=!isPastYear&&m===effectiveCurM;
+    const isPastM=!isPastYear&&m<effectiveCurM;
     const cols=showOrcM(m)?2:1;
-    html+='<th colspan="'+cols+'" class="wd2-h '+(ic?'cur':'')+' '+mCls(m)+'" style="text-align:right;">'+MESES[m].toLowerCase()+(ic?' · atual':'')+'</th>';
+    const orcOn=window.waDashShowOrc&&window.waDashShowOrc[m];
+    const eye=isPastM?' <span onclick="waDash2TogOrc('+m+',event)" title="'+(orcOn?'Ocultar':'Mostrar')+' a meta deste mês" style="cursor:pointer;opacity:'+(orcOn?'1':'.45')+';font-style:normal;">◎</span>':'';
+    html+='<th colspan="'+cols+'" class="wd2-h '+(ic?'cur':'')+' '+mCls(m)+'" style="text-align:right;">'+MESES[m].toLowerCase()+(ic?' · atual':'')+eye+'</th>';
   });
   html+='<th class="wd2-h wd2-tot" style="text-align:right;">Σ real</th><th class="wd2-h wd2-tot" style="text-align:right;font-style:italic;">Σ meta</th>';
   html+='</tr><tr>';
@@ -9189,10 +9253,10 @@ function _waDash2Render(){
     html+='<td class="wd2-lbl" style="background:#E2DECF;">'+(collapsed?'▸':'▾')+' '+tipo+'</td>';
     visMonths.forEach(m=>{
       const v=totReal[m];
-      html+='<td class="wd2-num '+mCls(m)+'" style="color:'+(v?vColor(isPos?v:-Math.abs(v)):'#B9B7AE')+';">'+(v?fmtN(v):'')+'</td>';
+      html+='<td class="wd2-num '+mCls(m)+'" style="color:'+(v?vColor(v):'#B9B7AE')+';">'+(v?fmtN(v):'')+'</td>';
       if(showOrcM(m))html+='<td class="wd2-num wd2-prev '+mCls(m)+'" onclick="event.stopPropagation();">'+(totMeta[m]?fmtN(totMeta[m]):'')+'</td>';
     });
-    html+='<td class="wd2-num wd2-tot" style="font-weight:700;color:'+(pastaSumR?vColor(isPos?pastaSumR:-Math.abs(pastaSumR)):'#B9B7AE')+';">'+fmtN(pastaSumR)+'</td>';
+    html+='<td class="wd2-num wd2-tot" style="font-weight:700;color:'+(pastaSumR?vColor(pastaSumR):'#B9B7AE')+';">'+fmtN(pastaSumR)+'</td>';
     html+='<td class="wd2-num wd2-tot" style="font-style:italic;color:#8D6E63;">'+fmtN(pastaSumM)+'</td>';
     html+='</tr>';
     if(collapsed)return;
@@ -9200,10 +9264,10 @@ function _waDash2Render(){
       const arr=(real[tipo]&&real[tipo][cat])||Array(12).fill(0);
       const cd=ud_tipo[cat]||{};
       let farolDot='';
-      if(!isPastYear&&typeof getFarol==='function'){
-        try{const f=getFarol(tipo,cat,dashYear,curM);
-          if(f)farolDot='<span class="wd2-dot" style="background:'+(f==='verde'?'#43A047':f==='laranja'?'#F9A825':'#E53935')+';"></span>';
-        }catch(e){}
+      if(!isPastYear){
+        const metaCur=waDashGetMeta(user,tipo,cat,curM);
+        const f=wd2Farol(isPos,cd.tipo||'V',arr[curM],metaCur);
+        if(f)farolDot='<span class="wd2-dot" style="background:'+FAROL_COLORS[f]+';" title="'+(cd.tipo==='F'?'Meta fixa (1x no mês)':'Meta variável — proporcional ao dia do mês')+'"></span>';
       }
       if(!farolDot)farolDot='<span class="wd2-dot" style="background:#E4E2DA;"></span>';
       const te=esc(tipo),ce=esc(cat);
@@ -9214,7 +9278,7 @@ function _waDash2Render(){
         const te2=String(tipo).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
         const ce2=String(cat).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
         if(rv){
-          html+='<td class="wd2-num '+mCls(m)+'" data-tipo="'+te2+'" data-cat="'+ce2+'" data-m="'+m+'" data-yr="'+dashYear+'" onclick="waDashDrill(this)" title="Ver transações" style="cursor:pointer;color:'+vColor(rv)+';">'+fmtN(rv)+'</td>';
+          html+='<td class="wd2-num '+mCls(m)+'" data-tipo="'+te2+'" data-cat="'+ce2+'" data-m="'+m+'" data-yr="'+dashYear+'" onclick="waDashDrill(this)" title="Ver transações" style="cursor:pointer;font-weight:700;color:'+vColor(rv)+';">'+fmtN(rv)+'</td>';
         } else html+='<td class="wd2-num '+mCls(m)+'"></td>';
         if(showOrcM(m))html+='<td class="wd2-num wd2-prev '+mCls(m)+'" onclick="waDashEditMeta(this,\''+te+'\',\''+ce+'\','+m+','+mv+')">'+(mv?fmtN(mv):'·')+'</td>';
       });
@@ -9230,11 +9294,11 @@ function _waDash2Render(){
   const miniRow=(lbl,arrR,arrM,neg)=>{
     let r='<tr class="wd2-mini"><td class="wd2-lbl" style="padding-left:14px;color:#777;">'+lbl+'</td>';
     visMonths.forEach(m=>{
-      r+='<td class="wd2-num '+mCls(m)+'">'+(arrR[m]?fmtN(arrR[m]):'')+'</td>';
+      r+='<td class="wd2-num '+mCls(m)+'" style="color:'+(arrR[m]<0?'#1565C0':'inherit')+';">'+(arrR[m]?(arrR[m]<0?'-':'')+fmtN(arrR[m]):'')+'</td>';
       if(showOrcM(m))r+='<td class="wd2-num wd2-prev '+mCls(m)+'" style="cursor:default;">'+(arrM[m]?fmtN(arrM[m]):'')+'</td>';
     });
     const sR=validMs.reduce((s,m)=>s+arrR[m],0),sM=arrM.reduce((s,v)=>s+v,0);
-    r+='<td class="wd2-num wd2-tot">'+fmtN(sR)+'</td><td class="wd2-num wd2-tot" style="font-style:italic;">'+fmtN(sM)+'</td></tr>';
+    r+='<td class="wd2-num wd2-tot" style="color:'+(sR<0?'#1565C0':'inherit')+';">'+(sR<0?'-':'')+fmtN(sR)+'</td><td class="wd2-num wd2-tot" style="font-style:italic;">'+fmtN(sM)+'</td></tr>';
     return r;
   };
   const bandRow=(lbl,arrR,arrM,signed)=>{
@@ -9252,6 +9316,7 @@ function _waDash2Render(){
   };
   const invLbl='Invest. <span onclick="event.stopPropagation();window._dashHideInvSaldo=!window._dashHideInvSaldo;waDash2Render();" style="cursor:pointer;font-size:8px;padding:1px 5px;border-radius:100px;border:1px solid #90CAF9;background:'+(hideInvSaldo?'#1565C0':'transparent')+';color:'+(hideInvSaldo?'#fff':'#1565C0')+';margin-left:4px;">'+(hideInvSaldo?'ignorado':'ignorar')+'</span>';
   html+='<tr><td colspan="'+nCols+'" style="height:6px;border:none;background:transparent;"></td></tr>';
+  html+='<tr><td class="wd2-lbl" style="background:#3D3B33;color:#fff;font-weight:800;letter-spacing:.06em;padding:6px 8px;border-top:3px solid #23221D;">TOTAL</td><td colspan="'+(nCols-1)+'" style="background:#3D3B33;border-top:3px solid #23221D;"></td></tr>';
   html+=miniRow('Receita',sumReceita,sumMetaReceita,false);
   html+=miniRow(invLbl,hideInvSaldo?Array(12).fill(0):sumInvest,hideInvSaldo?Array(12).fill(0):sumMetaInvest,false);
   html+=miniRow('Desp. fixas',sumDF,sumMetaDF,true);
@@ -9801,7 +9866,7 @@ function _waDashRender(){
         const cd=ud_tipo[cat]||{};
         const tipoFC=cd.tipo||'V';
         for(let m=0;m<12;m++){
-          const rv=Math.abs((real[tipo]&&real[tipo][cat])?real[tipo][cat][m]:0);
+          const rv=-(((real[tipo]&&real[tipo][cat])?real[tipo][cat][m]:0));  // líquido invertido: estornos abatem
           const mv=waDashGetMeta(user,tipo,cat,m);
           if(tipoFC==='F'){sumDF[m]+=rv;sumMetaDF[m]+=mv;}
           else{sumDV[m]+=rv;sumMetaDV[m]+=mv;}
