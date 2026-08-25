@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0d4f4f,#a35d3a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#CFEDE8 !important;}
-  #splash .splash-sub{color:rgba(207,237,232,.65) !important;}
-  #splash .splash-version{color:rgba(207,237,232,.35) !important;}
-  #splash .splash-btn{background:#CFEDE8 !important;color:#0d4f4f !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#CFEDE8 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1f4a38,#b06a52);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F8DDD2 !important;}
+  #splash .splash-sub{color:rgba(248,221,210,.65) !important;}
+  #splash .splash-version{color:rgba(248,221,210,.35) !important;}
+  #splash .splash-btn{background:#F8DDD2 !important;color:#1f4a38 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F8DDD2 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.28';
+const APP_VERSION='18.30';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6008,10 +6008,21 @@ const SHEETS = {
 let prefsData={};
 // Bens data: {user: [{id, nome, log:[{date,value,note}]}]}
 let bensData={};
+function normDateBR(s){
+  // "25/08/2026" fica como está; "2026-08-25T03:00:00.000Z" (ou similar) vira "25/08/2026"
+  if(!s)return s;
+  const str=String(s).trim();
+  if(/^\d{2}\/\d{2}\/\d{4}$/.test(str))return str;
+  const d=new Date(str);
+  if(isNaN(d))return str;
+  return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+}
 function loadBens(){
   const u=currentUser||'ALE';
   try{const s=localStorage.getItem('fluxo_bens_'+u);if(s)bensData[u]=JSON.parse(s)||[];}catch(e){}
   if(!bensData[u])bensData[u]=[];
+  // normaliza datas ISO que possam ter ficado gravadas de cargas anteriores
+  (bensData[u]||[]).forEach(b=>{(b.log||[]).forEach(l=>{l.date=normDateBR(l.date);});});
 }
 async function loadBensFromSheets(){
   try{
@@ -6024,7 +6035,7 @@ async function loadBensFromSheets(){
     json.data.slice(1).forEach(r=>{
       const user=String(r[0]||'').trim();
       const nome=String(r[1]||'').trim();
-      const date=String(r[2]||'').trim();
+      const date=normDateBR(String(r[2]||'').trim());
       const value=Number(r[3])||0;
       const note=String(r[4]||'');
       if(!user||!nome||!date)return;
@@ -9121,7 +9132,7 @@ function _waDash2Render(){
     if(r<=exp*1.1)return'cinza';
     return'vermelho';
   };
-  const FAROL_COLORS={verde:'#81C784',cinza:'#B0B0B0',vermelho:'#EF7B70'};
+  const FAROL_COLORS={verde:'#A3E635',cinza:'#B0B0B0',vermelho:'#B91C1C'};
 
   // ── dados: mesma matriz do Quadro original ──
   let userAccts=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).map(a=>normalizeAcct(a.name));
@@ -9216,7 +9227,7 @@ function _waDash2Render(){
   html+='<div style="display:flex;gap:14px;align-items:center;margin:0 0 6px;font-size:10px;color:#888;">'
     +'<span style="display:inline-flex;align-items:center;gap:5px;"><span style="width:14px;height:10px;background:#fff;border:1px solid #C9C6BA;display:inline-block;"></span>real</span>'
     +'<span style="display:inline-flex;align-items:center;gap:5px;"><span style="width:14px;height:10px;border:1px solid #D8CBB8;display:inline-block;background:repeating-linear-gradient(45deg,#FBF7EF,#FBF7EF 3px,#EFE5D5 3px,#EFE5D5 6px);"></span>prev. · clique edita a meta</span>'
-    +'<span style="display:inline-flex;align-items:center;gap:5px;">filete: <span style="display:inline-block;width:4px;height:12px;background:#81C784;"></span>abaixo <span style="display:inline-block;width:4px;height:12px;background:#B0B0B0;"></span>na meta <span style="display:inline-block;width:4px;height:12px;background:#EF7B70;"></span>acima — mês atual: variáveis pró-rata · meses passados: meta cheia</span>'
+    +'<span style="display:inline-flex;align-items:center;gap:5px;">filete: <span style="display:inline-block;width:4px;height:12px;background:#A3E635;"></span>abaixo <span style="display:inline-block;width:4px;height:12px;background:#B0B0B0;"></span>na meta <span style="display:inline-block;width:4px;height:12px;background:#B91C1C;"></span>acima — mês atual: variáveis pró-rata · meses passados: meta cheia</span>'
     +'</div>';
 
   // ── tabela ──
@@ -10594,8 +10605,8 @@ function waBemEdit(bi){
     +(bem.log&&bem.log.length?[...bem.log].reverse().map((l,ri)=>{
       const realI=bem.log.length-1-ri;
       return '<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border);font-size:.72rem;">'
-        +'<span style="color:var(--muted);flex-shrink:0;width:70px;">'+l.date+'</span>'
-        +'<span style="font-weight:700;color:var(--font);flex:1;">R$ '+Number(l.value).toLocaleString('pt-BR')+'</span>'
+        +'<span style="color:var(--muted);flex-shrink:0;width:70px;">'+normDateBR(l.date)+'</span>'
+        +'<span style="font-weight:700;color:var(--font);flex:1;">R$ '+Number(l.value).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>'
         +'<span style="color:var(--muted);flex:1;font-size:.65rem;">'+l.note+'</span>'
         +'<button onclick="waBemDelLog('+bi+','+realI+')" style="border:none;background:transparent;cursor:pointer;color:var(--red);font-size:11px;padding:0;">✕</button>'
         +'</div>';
