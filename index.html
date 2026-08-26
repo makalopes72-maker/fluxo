@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#124232,#8d7ab5);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E4DBF2 !important;}
-  #splash .splash-sub{color:rgba(228,219,242,.65) !important;}
-  #splash .splash-version{color:rgba(228,219,242,.35) !important;}
-  #splash .splash-btn{background:#E4DBF2 !important;color:#124232 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#E4DBF2 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#5e1030,#3d7ea6);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#CFE6F5 !important;}
+  #splash .splash-sub{color:rgba(207,230,245,.65) !important;}
+  #splash .splash-version{color:rgba(207,230,245,.35) !important;}
+  #splash .splash-btn{background:#CFE6F5 !important;color:#5e1030 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#CFE6F5 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.36';
+const APP_VERSION='18.37';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5948,8 +5948,7 @@ function editOrcMonth(key,monthName,curVal){
 function saveOrcEdit(){
   if(!_orcEditTipo||!_orcEditCat)return;
   const inp=document.getElementById('orc-edit-default');
-  const raw=inp?inp.value.replace(',','.').trim():'0';
-  const n=parseFloat(raw)||0;
+  const n=parseBRNumber(inp?inp.value.trim():'0')||0;
   const o=getOrcCat(_orcEditTipo,_orcEditCat);
   // save year-specific default
   if(!o.defaults)o.defaults={};
@@ -5957,7 +5956,9 @@ function saveOrcEdit(){
   o.defaults[_saveYr]=n;
   o.default=n;o.period=_orcEditPeriod;o.tipo=_orcEditTipoFC;o.farol=_orcEditFarol;
   saveOrc();closeOrcEdit();renderOrc();renderDashFarois();
-  if(typeof waDashRender==='function'){waDashRenderHeader();waDashRender();}
+  // re-renderiza a TELA ATIVA (permanece no Quadro 2.0 / Orçamento 2.0; não volta ao Início)
+  if(typeof waActiveDashFullRender==='function')waActiveDashFullRender();
+  else if(typeof waDashRender==='function'){waDashRenderHeader();waDashRender();}
   if(typeof toast==='function')toast('Orçamento salvo!','success');
   else waSyncIndicator('✓ Orçamento salvo','#059669',false);
 }
@@ -6606,6 +6607,9 @@ const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+A
       <button class="wa-nav-item" id="wanav-orc2" onclick="waGo('orc2')">
         <span class="wa-ic">✎</span><span class="wa-lbl">Orçamento 2.0</span>
       </button>
+      <button class="wa-nav-item" id="wanav-chart2" onclick="waGo('chart2')">
+        <span class="wa-ic">◔</span><span class="wa-lbl">Gráficos 2.0</span>
+      </button>
       <button class="wa-nav-item" id="wanav-add" onclick="waGo('add')">
         <span class="wa-ic">＋≡</span><span class="wa-lbl">Lançar / Extrato</span>
       </button>
@@ -6703,6 +6707,7 @@ function waGo(screen){
   else if(screen==='dash') waShowDash();
   else if(screen==='dash2') waShowDash2();
   else if(screen==='orc2') waShowOrc2();
+  else if(screen==='chart2') waShowCharts2();
   else if(screen==='inv') waShowInv();
   else if(screen==='analytics') waShowAnalytics();
   else if(screen==='graficos') waShowGraficos();
@@ -9244,7 +9249,7 @@ function _waDash2Render(){
       .wd2-sec td.wd2-cur{background-color:#E2DECF;}
       .wd2-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle;}
       .wd2-cat{padding-left:24px;color:#5F5E5A;cursor:pointer;}
-      .wd2-band td{background:#F1EFE8;font-weight:700;color:#1a1a1a;border-top:2px solid #C9C6BA;}
+      .wd2-band td{background:#F1EFE8;font-weight:700;color:#1a1a1a;border-top:2px solid #C9C6BA;font-size:var(--wad-size-geral);}
       .wd2-band td.wd2-cur{background-color:#F1EFE8;}
       .wd2-mini td{color:#55534C;font-weight:600;background:#F3F0E6;font-size:calc(var(--wad-size-geral) - 0px);}
       .wd2-mini td.wd2-cur{background-color:#F3F0E6;}
@@ -9876,6 +9881,188 @@ function _waOrc2Render(){
     const w=document.getElementById('wo2-wrap');if(w)w.scrollLeft=sX;
     const b=document.getElementById('wa-center-body');if(b)b.scrollTop=sY;
   });
+}
+
+
+// ══════════════════════════════════════════════════════════════════════
+// GRÁFICOS 2.0 — v18.37 — análises profissionais para web.
+// Cartões: fluxo mensal (receita × despesa × saldo), acumulado do ano,
+// despesas por pasta (mês atual × média 6m), evolução do patrimônio.
+// Usa o histórico multi-ano carregado silenciosamente em segundo plano.
+// ══════════════════════════════════════════════════════════════════════
+function waShowCharts2(){
+  document.getElementById('wa-center-title').textContent='Gráficos 2.0';
+  document.getElementById('wa-right-title').textContent='--';
+  document.getElementById('wa-right-body').innerHTML='<div class="wa-empty">--</div>';
+  const nb=document.getElementById('wa-new-btn');if(nb)nb.style.display='none';
+  const rp=document.getElementById('wa-right');if(rp)rp.classList.add('collapsed');
+  const btn=document.getElementById('wa-toggle-btn');if(btn)btn.textContent='‹';
+  const fb=document.getElementById('wa-filter-bar');if(fb)fb.remove();
+  const actions=document.getElementById('wa-center-actions');
+  if(actions)actions.innerHTML='<span style="font-size:10px;color:#999;">análises de <b style="color:#1a1a1a;">'+(currentUser||'ALE')+'</b> · últimos 12 meses</span>';
+  waCharts2Render();
+}
+function waCharts2Render(){
+  try{_waCharts2Render();}catch(e){
+    const el=document.getElementById('wa-center-body');
+    if(el)el.innerHTML='<div style="padding:20px;color:red;font-size:12px;font-family:monospace;white-space:pre-wrap;">ERRO waCharts2Render: '+e.message+'\n'+e.stack+'</div>';
+    console.error('[waCharts2Render]',e);
+  }
+}
+function _waCharts2Render(){
+  const user=currentUser||'ALE';
+  const now=new Date();
+  const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const POS='#1565C0',NEG='#C62828',GRID='#EEECE4',MUT='#999';
+  const fmtK=v=>{const a=Math.abs(v);return (v<0?'-':'')+(a>=1000?(a/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})+'k':Math.round(a).toLocaleString('pt-BR'));};
+  let uAccts=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).map(a=>normalizeAcct(a.name));
+
+  // janela: últimos 12 meses
+  const meses=[];
+  for(let i=11;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);meses.push({y:d.getFullYear(),m:d.getMonth()});}
+  const idxOf=(y,m)=>meses.findIndex(mm=>mm.y===y&&mm.m===m);
+
+  // agregações mensais
+  const inArr=meses.map(()=>0),outArr=meses.map(()=>0),saldoArr=meses.map(()=>0);
+  const pastaCur={},pasta6m={};
+  const cur6=meses.slice(6).map(mm=>mm.y+'-'+mm.m);
+  const receitaTipos=['Receita','Investimentos'];
+  allData.forEach(t=>{
+    if(!t.consolidated)return;
+    if(uAccts.length&&!uAccts.includes(normalizeAcct(t.account)))return;
+    const d=parseDate(t.date);if(!d)return;
+    const i=idxOf(d.getFullYear(),d.getMonth());if(i<0)return;
+    const sign=t.type==='entrada'?1:-1;
+    saldoArr[i]+=Math.abs(t.value)*sign;
+    if(t.type!=='transferência'&&!t._transferId&&!t._isAdjust){
+      if(t.type==='entrada')inArr[i]+=Math.abs(t.value);else outArr[i]+=Math.abs(t.value);
+    }
+    // despesas por pasta
+    const tp=getTipoPasta(t);
+    if(!receitaTipos.includes(tp)&&!t._isAdjust){
+      const net=Math.abs(t.value)*sign;
+      if(i===11)pastaCur[tp]=(pastaCur[tp]||0)-net;
+      if(cur6.includes(d.getFullYear()+'-'+d.getMonth()))pasta6m[tp]=(pasta6m[tp]||0)-net;
+    }
+  });
+  // acumulado dentro da janela
+  const acum=[];let acc=0;
+  saldoArr.forEach(v=>{acc+=v;acum.push(acc);});
+
+  // patrimônio por mês (cc + investimentos + bens)
+  const bens=(bensData&&bensData[user])||[];
+  const patri=meses.map(mm=>{
+    const inv=(instituicoes||[]).reduce((s,inst)=>s+(getInstAtivos(inst)||[]).reduce((ss,a)=>{const v=getAtivoSaldoMes(a,mm.m,mm.y);return ss+(v||0);},0),0);
+    let cc=0;(instituicoes||[]).forEach(inst=>{const v=getCcSaldoMes(inst.name,mm.y,mm.m);if(v!==null)cc+=v;});
+    const bb=bens.reduce((s,b)=>{const v=getBensSaldoMes(b,mm.y,mm.m);return s+(v||0);},0);
+    return inv+cc+bb;
+  });
+
+  // ── helpers SVG ──
+  const card=(title,sub,svg)=>'<div style="background:#fff;border:1px solid #E4E2DA;border-radius:12px;padding:14px 16px;">'
+    +'<div style="font-size:12px;font-weight:700;color:#1a1a1a;">'+title+'</div>'
+    +'<div style="font-size:9px;color:'+MUT+';margin-bottom:8px;">'+sub+'</div>'+svg+'</div>';
+  const axes=(W,H,pL,pB,pT,pR,maxV,minV)=>{
+    let s='';const range=maxV-minV||1;
+    for(let g=0;g<=4;g++){
+      const gv=minV+range*g/4,gy=pT+(H-pT-pB)*(1-(gv-minV)/range);
+      s+='<line x1="'+pL+'" y1="'+gy+'" x2="'+(W-pR)+'" y2="'+gy+'" stroke="'+GRID+'"/>';
+      s+='<text x="'+(pL-6)+'" y="'+(gy+3)+'" text-anchor="end" font-size="8.5" fill="'+MUT+'">'+fmtK(gv)+'</text>';
+    }
+    return s;
+  };
+  const mLabels=(W,pL,pB,pR,H)=>{
+    const cw=(W-pL-pR)/12;let s='';
+    meses.forEach((mm,i)=>{
+      s+='<text x="'+(pL+i*cw+cw/2)+'" y="'+(H-pB+11)+'" text-anchor="middle" font-size="8" fill="'+MUT+'">'+MESES[mm.m].toLowerCase()+'</text>';
+      if(mm.m===0||i===0)s+='<text x="'+(pL+i*cw+cw/2)+'" y="'+(H-pB+20)+'" text-anchor="middle" font-size="7" fill="#CCC">'+mm.y+'</text>';
+    });
+    return s;
+  };
+
+  // ── G1: fluxo mensal (barras in/out + linha saldo) ──
+  const W1=620,H1=250,pL=54,pB=30,pT=16,pR=12;
+  const max1=Math.max(...inArr,...outArr,1);
+  const min1s=Math.min(...saldoArr,0),max1s=Math.max(...saldoArr,0);
+  const cw1=(W1-pL-pR)/12;
+  const y1=v=>pT+(H1-pT-pB)*(1-v/max1);
+  let g1='<svg viewBox="0 0 '+W1+' '+H1+'" style="width:100%;height:auto;">'+axes(W1,H1,pL,pB,pT,pR,max1,0);
+  meses.forEach((mm,i)=>{
+    const x=pL+i*cw1;
+    const bw=cw1*0.30;
+    g1+='<rect x="'+(x+cw1*0.14)+'" y="'+y1(inArr[i])+'" width="'+bw+'" height="'+((H1-pB)-y1(inArr[i]))+'" rx="2" fill="'+POS+'" opacity=".85"/>';
+    g1+='<rect x="'+(x+cw1*0.14+bw+2)+'" y="'+y1(outArr[i])+'" width="'+bw+'" height="'+((H1-pB)-y1(outArr[i]))+'" rx="2" fill="'+NEG+'" opacity=".8"/>';
+  });
+  // linha do saldo (escala própria normalizada na mesma área)
+  const rng1=(max1s-min1s)||1;
+  const yS=v=>pT+(H1-pT-pB)*(1-(v-min1s)/rng1);
+  g1+='<polyline points="'+saldoArr.map((v,i)=>(pL+i*cw1+cw1/2)+','+yS(v)).join(' ')+'" fill="none" stroke="#1a1a1a" stroke-width="1.8"/>';
+  saldoArr.forEach((v,i)=>{g1+='<circle cx="'+(pL+i*cw1+cw1/2)+'" cy="'+yS(v)+'" r="2.6" fill="#1a1a1a"/>';});
+  g1+=mLabels(W1,pL,pB,pR,H1)+'</svg>';
+  g1+='<div style="display:flex;gap:14px;font-size:9px;color:'+MUT+';margin-top:4px;">'
+    +'<span><span style="display:inline-block;width:10px;height:8px;background:'+POS+';border-radius:2px;"></span> receitas</span>'
+    +'<span><span style="display:inline-block;width:10px;height:8px;background:'+NEG+';border-radius:2px;"></span> despesas</span>'
+    +'<span><span style="display:inline-block;width:12px;height:2px;background:#1a1a1a;vertical-align:middle;"></span> saldo líquido (escala própria)</span>'
+    +'</div>';
+
+  // ── G2: acumulado (área) ──
+  const min2=Math.min(...acum,0),max2=Math.max(...acum,1);
+  const rng2=(max2-min2)||1;
+  const y2=v=>pT+(H1-pT-pB)*(1-(v-min2)/rng2);
+  let g2='<svg viewBox="0 0 '+W1+' '+H1+'" style="width:100%;height:auto;">'+axes(W1,H1,pL,pB,pT,pR,max2,min2);
+  const pts2=acum.map((v,i)=>(pL+i*cw1+cw1/2)+','+y2(v));
+  g2+='<polygon points="'+pL+','+y2(Math.max(min2,0))+' '+pts2.join(' ')+' '+(W1-pR)+','+y2(Math.max(min2,0))+'" fill="'+POS+'" opacity=".10"/>';
+  g2+='<polyline points="'+pts2.join(' ')+'" fill="none" stroke="'+POS+'" stroke-width="2"/>';
+  acum.forEach((v,i)=>{g2+='<circle cx="'+(pL+i*cw1+cw1/2)+'" cy="'+y2(v)+'" r="2.6" fill="'+POS+'"/>'
+    +'<text x="'+(pL+i*cw1+cw1/2)+'" y="'+(y2(v)-6)+'" text-anchor="middle" font-size="7.5" fill="#666">'+fmtK(v)+'</text>';});
+  if(min2<0)g2+='<line x1="'+pL+'" y1="'+y2(0)+'" x2="'+(W1-pR)+'" y2="'+y2(0)+'" stroke="#C62828" stroke-width="1" stroke-dasharray="4 3"/>';
+  g2+=mLabels(W1,pL,pB,pR,H1)+'</svg>';
+
+  // ── G3: despesas por pasta (mês atual × média 6m, barras horizontais) ──
+  const pastas=Object.keys({...pastaCur,...pasta6m}).sort((a,b)=>(pastaCur[b]||0)-(pastaCur[a]||0));
+  const H3=Math.max(pastas.length*34+30,110),W3=620,pL3=150;
+  const max3=Math.max(...pastas.map(p=>Math.max(pastaCur[p]||0,(pasta6m[p]||0)/6)),1);
+  let g3='<svg viewBox="0 0 '+W3+' '+H3+'" style="width:100%;height:auto;">';
+  pastas.forEach((p,i)=>{
+    const yy=14+i*34;
+    const vCur=Math.max(pastaCur[p]||0,0),vMed=Math.max((pasta6m[p]||0)/6,0);
+    const wCur=(W3-pL3-70)*vCur/max3, wMed=(W3-pL3-70)*vMed/max3;
+    g3+='<text x="'+(pL3-8)+'" y="'+(yy+13)+'" text-anchor="end" font-size="10" fill="#3A3A36">'+p+'</text>';
+    g3+='<rect x="'+pL3+'" y="'+yy+'" width="'+Math.max(wCur,1)+'" height="12" rx="2" fill="'+NEG+'" opacity=".85"/>';
+    g3+='<text x="'+(pL3+Math.max(wCur,1)+5)+'" y="'+(yy+10)+'" font-size="8.5" fill="#666">'+fmtK(vCur)+'</text>';
+    g3+='<rect x="'+pL3+'" y="'+(yy+14)+'" width="'+Math.max(wMed,1)+'" height="5" rx="2" fill="#B0AB9C"/>';
+  });
+  g3+='</svg>'
+    +'<div style="display:flex;gap:14px;font-size:9px;color:'+MUT+';margin-top:4px;">'
+    +'<span><span style="display:inline-block;width:10px;height:8px;background:'+NEG+';border-radius:2px;"></span> '+MESES[now.getMonth()].toLowerCase()+' (atual)</span>'
+    +'<span><span style="display:inline-block;width:10px;height:5px;background:#B0AB9C;border-radius:2px;"></span> média 6 meses</span>'
+    +'</div>';
+
+  // ── G4: patrimônio (linha) ──
+  const hasPatri=patri.some(v=>v>0);
+  const min4=Math.min(...patri),max4=Math.max(...patri,1);
+  const rng4=(max4-min4)||1;
+  const y4=v=>pT+(H1-pT-pB)*(1-(v-min4)/rng4);
+  let g4='<svg viewBox="0 0 '+W1+' '+H1+'" style="width:100%;height:auto;">'+axes(W1,H1,pL,pB,pT,pR,max4,min4);
+  const pts4=patri.map((v,i)=>(pL+i*cw1+cw1/2)+','+y4(v));
+  g4+='<polygon points="'+pL+','+(H1-pB)+' '+pts4.join(' ')+' '+(W1-pR)+','+(H1-pB)+'" fill="#1B4D2A" opacity=".08"/>';
+  g4+='<polyline points="'+pts4.join(' ')+'" fill="none" stroke="#1B4D2A" stroke-width="2"/>';
+  patri.forEach((v,i)=>{g4+='<circle cx="'+(pL+i*cw1+cw1/2)+'" cy="'+y4(v)+'" r="2.6" fill="#1B4D2A"/>'
+    +'<text x="'+(pL+i*cw1+cw1/2)+'" y="'+(y4(v)-6)+'" text-anchor="middle" font-size="7.5" fill="#666">'+fmtK(v)+'</text>';});
+  g4+=mLabels(W1,pL,pB,pR,H1)+'</svg>';
+
+  const zoom=window.waDash2Zoom||1;
+  let html='<div class="wd2-wrap" style="zoom:'+zoom+';">';
+  html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(480px,1fr));gap:14px;">';
+  html+=card('Fluxo mensal','receitas × despesas (sem transferências e ajustes) · linha = saldo líquido',g1);
+  html+=card('Acumulado — 12 meses','soma corrente do saldo líquido na janela',g2);
+  html+=card('Despesas por pasta','mês atual comparado com a média dos últimos 6 meses',g3);
+  html+=card('Patrimônio','conta corrente + investimentos + bens'+(hasPatri?'':' · sem dados patrimoniais na janela'),g4);
+  html+='</div>';
+  html+='<div style="margin-top:10px;font-size:9px;color:#AAA;">Gráficos 2.0 · meses de anos anteriores preenchem conforme a carga silenciosa do histórico termina.</div>';
+  html+='</div>';
+  const body=document.getElementById('wa-center-body');
+  if(body)body.innerHTML=html;
 }
 
 // --- Quadro last-update date ---
@@ -11197,6 +11384,15 @@ function waDashTogOrc(m,e){
   waDashRender();
 }
 
+function waActiveDashFullRender(){
+  const no=document.getElementById('wanav-orc2');
+  if(no&&no.classList.contains('active')&&typeof waOrc2Render==='function'){waOrc2Render();return;}
+  const n2=document.getElementById('wanav-dash2');
+  if(n2&&n2.classList.contains('active')&&typeof waDash2Render==='function'){waDash2RenderHeader();waDash2Render();return;}
+  const ng=document.getElementById('wanav-chart2');
+  if(ng&&ng.classList.contains('active')&&typeof waCharts2Render==='function'){waCharts2Render();return;}
+  waDashRenderHeader();waDashRender();
+}
 function waActiveDashRender(){
   const n2=document.getElementById('wanav-dash2');
   if(n2&&n2.classList.contains('active')&&typeof waDash2Render==='function')waDash2Render();
