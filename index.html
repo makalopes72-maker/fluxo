@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4f6b1c,#5b2a6e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E9D9F5 !important;}
-  #splash .splash-sub{color:rgba(233,217,245,.65) !important;}
-  #splash .splash-version{color:rgba(233,217,245,.35) !important;}
-  #splash .splash-btn{background:#E9D9F5 !important;color:#4f6b1c !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#E9D9F5 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#2e3a4d,#a86478);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F5DCE3 !important;}
+  #splash .splash-sub{color:rgba(245,220,227,.65) !important;}
+  #splash .splash-version{color:rgba(245,220,227,.35) !important;}
+  #splash .splash-btn{background:#F5DCE3 !important;color:#2e3a4d !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F5DCE3 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.38';
+const APP_VERSION='18.39';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5895,7 +5895,7 @@ function waOrcDelete(){
   saveOrc();
   pushToSheets('orc');
   const modal=document.getElementById('wa-orc-modal');if(modal)modal.remove();
-  waDashRenderHeader();waDashRender();
+  waActiveDashFullRender(); // permanece na tela atual
   waSyncIndicator('🗑 Categoria removida','#E53935',false);
 }
 
@@ -5913,8 +5913,7 @@ function waOrcSeg(field,val,btn){
 function waOrcSave(){
   if(!_orcEditTipo||!_orcEditCat)return;
   const inp=document.getElementById('wa-orc-default');
-  const raw=inp?inp.value.replace(',','.').trim():'0';
-  const n=parseFloat(raw)||0;
+  const n=parseBRNumber(inp?inp.value.trim():'0')||0;
   const o=getOrcCat(_orcEditTipo,_orcEditCat);
   // save as year-specific default
   const yr=String((window.waDashYear)||new Date().getFullYear());
@@ -5924,8 +5923,9 @@ function waOrcSave(){
   o.default=n;
   o.period=_orcEditPeriod;o.tipo=_orcEditTipoFC;o.farol=_orcEditFarol;
   saveOrc();
+  pushToSheets('orc');
   const modal=document.getElementById('wa-orc-modal');if(modal)modal.remove();
-  waDashRenderHeader();waDashRender();
+  waActiveDashFullRender(); // permanece na tela atual (Quadro 2.0 etc.)
   waSyncIndicator('✓ Orçamento '+yr+' salvo','#059669',false);
 }
 function closeOrcEdit(){
@@ -9960,6 +9960,19 @@ function waC2PastasModal(){
   };
   render();ov.appendChild(box);document.body.appendChild(ov);
 }
+// Tooltip flutuante dos Gráficos 2.0 (aparece ao aproximar o mouse)
+function waC2Tip(e,html){
+  let t=document.getElementById('wa-c2-tip');
+  if(!t){
+    t=document.createElement('div');t.id='wa-c2-tip';
+    t.style.cssText='position:fixed;z-index:500;background:#1a1a1a;color:#fff;padding:8px 12px;border-radius:9px;font-size:11px;line-height:1.55;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.3);max-width:250px;font-family:var(--font-body);';
+    document.body.appendChild(t);
+  }
+  t.innerHTML=html;t.style.display='block';
+  t.style.left=Math.min(e.clientX+14,window.innerWidth-260)+'px';
+  t.style.top=Math.min(e.clientY+14,window.innerHeight-110)+'px';
+}
+function waC2TipHide(){const t=document.getElementById('wa-c2-tip');if(t)t.style.display='none';}
 function waCharts2Render(){
   try{_waCharts2Render();}catch(e){
     const el=document.getElementById('wa-center-body');
@@ -10043,6 +10056,9 @@ function _waCharts2Render(){
     return sv;
   };
 
+  const fmtR=v=>'R$ '+Math.round(v).toLocaleString('pt-BR');
+  const tipA=h=>' onmousemove="waC2Tip(event,this.dataset.tip)" onmouseleave="waC2TipHide()" data-tip="'+String(h).replace(/"/g,'&quot;')+'" style="cursor:crosshair;"';
+  const hitCols=(n,tips)=>{const cw2=(W-pL-pR)/Math.max(n,1);let sv='';for(let i=0;i<n;i++){sv+='<rect x="'+(pL+i*cw2)+'" y="'+pT+'" width="'+cw2+'" height="'+(H-pT-pB)+'" fill="transparent"'+tipA(tips[i])+'/>';}return sv;};
   const periodLbl=s.period==='ano'?('ano '+s.year):('últimos '+(s.period==='6m'?6:s.period==='24m'?24:12)+' meses');
   const pastaLbl=s.pastas?(s.pastas.length+' pasta'+(s.pastas.length>1?'s':'')):'todas as pastas';
 
@@ -10061,6 +10077,7 @@ function _waCharts2Render(){
     });
     const mn=Math.min(...saldoArr,0),mx=Math.max(...saldoArr,1);
     svg+=line(saldoArr,'#1a1a1a',mn,mx);
+    svg+=hitCols(meses.length,meses.map((mm,i)=>'<b>'+MESES[mm.m]+' '+mm.y+'</b><br>Receitas: '+fmtR(inArr[i])+'<br>Despesas: '+fmtR(outArr[i])+'<br>Saldo: <b>'+fmtR(saldoArr[i])+'</b>'));
     svg+=mLabels()+'</svg>';
     extra='<span><span style="display:inline-block;width:10px;height:8px;background:'+POS+';border-radius:2px;"></span> receitas</span><span><span style="display:inline-block;width:10px;height:8px;background:'+NEG+';border-radius:2px;"></span> despesas</span><span><span style="display:inline-block;width:12px;height:2px;background:#1a1a1a;vertical-align:middle;"></span> saldo (escala própria)</span>';
   }
@@ -10075,6 +10092,7 @@ function _waCharts2Render(){
     svg+='<polygon points="'+pL+','+yF(Math.max(mn,0))+' '+pts.join(' ')+' '+(W-pR)+','+yF(Math.max(mn,0))+'" fill="'+POS+'" opacity=".10"/>';
     svg+=line(acum,POS,mn,mx);
     if(mn<0)svg+='<line x1="'+pL+'" y1="'+yF(0)+'" x2="'+(W-pR)+'" y2="'+yF(0)+'" stroke="'+NEG+'" stroke-dasharray="4 3"/>';
+    svg+=hitCols(meses.length,meses.map((mm,i)=>'<b>'+MESES[mm.m]+' '+mm.y+'</b><br>Saldo do mês: '+fmtR(saldoArr[i])+'<br>Acumulado: <b>'+fmtR(acum[i])+'</b>'));
     svg+=mLabels()+'</svg>';
   }
   else if(s.chart==='pastas'){
@@ -10091,6 +10109,7 @@ function _waCharts2Render(){
       svg+='<text x="142" y="'+(yy+13)+'" text-anchor="end" font-size="10" fill="#3A3A36">'+p+'</text>';
       svg+='<rect x="150" y="'+yy+'" width="'+Math.max(wT,1)+'" height="12" rx="2" fill="'+NEG+'" opacity=".85"/>';
       svg+='<text x="'+(150+Math.max(wT,1)+5)+'" y="'+(yy+10)+'" font-size="8.5" fill="#666">'+fmtK(tot)+' <tspan fill="#AAA">('+fmtK(med)+'/mês)</tspan></text>';
+      svg+='<rect x="0" y="'+(yy-3)+'" width="'+W+'" height="24" fill="transparent"'+tipA('<b>'+p+'</b><br>Total do período: '+fmtR(tot)+'<br>Média mensal: '+fmtR(med))+'/>';
     });
     svg+='</svg>';
   }
@@ -10123,6 +10142,7 @@ function _waCharts2Render(){
       svg+='<rect x="'+bx+'" y="'+yy+'" width="'+Math.max(wB,1)+'" height="12" rx="2" fill="'+col+'"/>';
       svg+='<line x1="'+(bx+bwMax/2)+'" y1="'+(yy-1)+'" x2="'+(bx+bwMax/2)+'" y2="'+(yy+13)+'" stroke="#1a1a1a" stroke-width="1"/>';
       svg+='<text x="'+(bx+bwMax+6)+'" y="'+(yy+10)+'" font-size="8.5" fill="#666">'+(it.meta>0?Math.round(it.pct*100)+'%':'sem meta')+' <tspan fill="#AAA">'+fmtK(it.real)+'/'+fmtK(it.meta)+'</tspan></text>';
+      svg+='<rect x="0" y="'+(yy-2)+'" width="'+W+'" height="18" fill="transparent"'+tipA('<b>'+it.cat+'</b> · '+it.tp+'<br>Real: '+fmtR(it.real)+'<br>Meta do período: '+(it.meta>0?fmtR(it.meta)+'<br>Consumo: <b>'+Math.round(it.pct*100)+'%</b>':'<b>sem meta</b>'))+'/>';
     });
     svg+='</svg>';
     extra='<span>barra até a marca central = 100% da meta · <span style="color:'+FC.vermelho+';">sem meta = vermelho</span></span>';
@@ -10166,6 +10186,7 @@ function _waCharts2Render(){
     svg+='<circle cx="'+(pL+(today-1)*cw+cw/2)+'" cy="'+yF(cum[today-1])+'" r="3.4" fill="'+POS+'"/>';
     svg+='<text x="'+(pL+(today-1)*cw+cw/2)+'" y="'+(yF(cum[today-1])-8)+'" text-anchor="middle" font-size="9" font-weight="700" fill="'+POS+'">'+fmtK(cum[today-1])+'</text>';
     for(let dd=4;dd<=dim;dd+=5)svg+='<text x="'+(pL+(dd-1)*cw+cw/2)+'" y="'+(H-pB+11)+'" text-anchor="middle" font-size="8" fill="'+MUT+'">'+dd+'</text>';
+    svg+=hitCols(dim,Array(dim).fill(0).map((_,i)=>'<b>Dia '+(i+1)+'</b><br>'+(i<today?'Acumulado: <b>'+fmtR(cum[i])+'</b><br>':'')+(metaTot>0?'Meta pró-rata: '+fmtR(metaLine[i])+'<br>':'')+(i<dimPrev?'Mês anterior: '+fmtR(cumPrev[i]):'')));
     svg+='</svg>';
     extra='<span><span style="display:inline-block;width:12px;height:2px;background:'+POS+';vertical-align:middle;"></span> este mês</span>'
       +(metaTot>0?'<span><span style="display:inline-block;width:12px;height:2px;background:'+FC.vermelho+';vertical-align:middle;"></span> meta pró-rata ('+fmtK(metaTot)+' no mês)</span>':'')
@@ -10205,6 +10226,7 @@ function _waCharts2Render(){
       svg+='<rect x="150" y="'+yy+'" width="'+Math.max(wS,1)+'" height="12" rx="2" fill="'+col+'"/>';
       if(r.meta>0)svg+='<line x1="'+xM+'" y1="'+(yy-2)+'" x2="'+xM+'" y2="'+(yy+14)+'" stroke="#1a1a1a" stroke-width="1.4"/>';
       svg+='<text x="'+(150+Math.max(wP,1)+5)+'" y="'+(yy+10)+'" font-size="8.5" fill="#666">→ '+fmtK(r.proj)+(r.meta>0?' <tspan fill="#AAA">/ meta '+fmtK(r.meta)+'</tspan>':' <tspan fill="'+FC.vermelho+'">sem meta</tspan>')+'</text>';
+      svg+='<rect x="0" y="'+(yy-3)+'" width="'+W+'" height="24" fill="transparent"'+tipA('<b>'+r.tp+'</b><br>Já gasto: '+fmtR(r.spent)+'<br>Projeção fim do mês: <b>'+fmtR(r.proj)+'</b><br>'+(r.meta>0?'Meta: '+fmtR(r.meta)+' ('+Math.round(r.proj/r.meta*100)+'%)':'sem meta'))+'/>';
     });
     svg+='</svg>';
     extra='<span>barra cheia = já gasto · translúcida = projeção · traço preto = meta</span>';
@@ -10233,6 +10255,10 @@ function _waCharts2Render(){
     svg+='<polyline points="'+cur.map((v,i)=>(pL+i*cw+cw/2)+','+yF(v)).join(' ')+'" fill="none" stroke="'+NEG+'" stroke-width="2.2"/>';
     cur.forEach((v,i)=>{if(v>0)svg+='<circle cx="'+(pL+i*cw+cw/2)+'" cy="'+yF(v)+'" r="2.6" fill="'+NEG+'"/><text x="'+(pL+i*cw+cw/2)+'" y="'+(yF(v)-6)+'" text-anchor="middle" font-size="7.5" fill="#666">'+fmtK(v)+'</text>';});
     for(let m=0;m<12;m++)svg+='<text x="'+(pL+m*cw+cw/2)+'" y="'+(H-pB+11)+'" text-anchor="middle" font-size="8" fill="'+MUT+'">'+MESES[m].toLowerCase()+'</text>';
+    svg+=hitCols(12,[...Array(12).keys()].map(m=>{
+      const dv=prev[m]>0?Math.round((cur[m]-prev[m])/prev[m]*100):null;
+      return '<b>'+MESES[m]+'</b><br>'+s.year+': '+fmtR(cur[m])+'<br>'+(s.year-1)+': '+fmtR(prev[m])+(dv!==null?'<br>Variação: <b>'+(dv>0?'+':'')+dv+'%</b>':'');
+    }));
     svg+='</svg>';
     extra='<span><span style="display:inline-block;width:12px;height:2px;background:'+NEG+';vertical-align:middle;"></span> '+s.year+'</span><span><span style="display:inline-block;width:12px;height:2px;background:#B0AB9C;vertical-align:middle;"></span> '+(s.year-1)+' (carrega em segundo plano)</span>';
   }
@@ -10258,7 +10284,7 @@ function _waCharts2Render(){
       for(let m=0;m<12;m++){
         const v=Math.max(grid[i][m],0);
         const op=v>0?0.12+0.88*(v/mx):0;
-        svg+='<rect x="'+(160+m*cellW+1)+'" y="'+(yy+1)+'" width="'+(cellW-2)+'" height="'+(cellH-2)+'" rx="3" fill="'+(v>0?NEG:'#F4F2EC')+'" opacity="'+(v>0?op.toFixed(2):1)+'"/>';
+        svg+='<rect x="'+(160+m*cellW+1)+'" y="'+(yy+1)+'" width="'+(cellW-2)+'" height="'+(cellH-2)+'" rx="3" fill="'+(v>0?NEG:'#F4F2EC')+'" opacity="'+(v>0?op.toFixed(2):1)+'"'+tipA('<b>'+p+'</b> · '+MESES[m]+' '+s.year+'<br>Despesa: <b>'+fmtR(v)+'</b>')+'/>';
         if(v>0)svg+='<text x="'+(160+m*cellW+cellW/2)+'" y="'+(yy+cellH/2+3)+'" text-anchor="middle" font-size="7.5" fill="'+(op>0.55?'#fff':'#7a2020')+'">'+fmtK(v)+'</text>';
       }
     });
@@ -10281,6 +10307,7 @@ function _waCharts2Render(){
     svg+='<polygon points="'+pL+','+(H-pB)+' '+pts.join(' ')+' '+(W-pR)+','+(H-pB)+'" fill="#1B4D2A" opacity=".08"/>';
     svg+=line(patri,'#1B4D2A',mn,mx);
     patri.forEach((v,i)=>{svg+='<text x="'+(pL+i*cw+cw/2)+'" y="'+(yF(v)-6)+'" text-anchor="middle" font-size="7.5" fill="#666">'+fmtK(v)+'</text>';});
+    svg+=hitCols(meses.length,meses.map((mm,i)=>'<b>'+MESES[mm.m]+' '+mm.y+'</b><br>Patrimônio: <b>'+fmtR(patri[i])+'</b>'+(i>0?'<br>Variação: '+fmtR(patri[i]-patri[i-1]):'')));
     svg+=mLabels()+'</svg>';
   }
 
