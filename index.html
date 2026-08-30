@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#101c2b,#5fd3c4);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#DFF7F3 !important;}
-  #splash .splash-sub{color:rgba(223,247,243,.65) !important;}
-  #splash .splash-version{color:rgba(223,247,243,.35) !important;}
-  #splash .splash-btn{background:#DFF7F3 !important;color:#101c2b !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#DFF7F3 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4a2e1f,#2e8b6f);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E3F4EC !important;}
+  #splash .splash-sub{color:rgba(227,244,236,.65) !important;}
+  #splash .splash-version{color:rgba(227,244,236,.35) !important;}
+  #splash .splash-btn{background:#E3F4EC !important;color:#4a2e1f !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#E3F4EC !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.48';
+const APP_VERSION='18.49';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -10690,7 +10690,7 @@ function _waInv2Render(){
       .wi2-f input,.wi2-f select{width:100%;min-width:0;box-sizing:border-box;padding:8px 10px;border:1px solid #D8D6CC;border-radius:8px;background:#fff;color:var(--font);font-family:var(--font-body);font-size:12px;}
       .wi2-f input.rt{text-align:right;}
       .wi2-r2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;} .wi2-r3{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);gap:8px;}
-      .wi2-mf{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;flex-wrap:wrap;}
+      .wi2-mf{display:flex;justify-content:flex-end;gap:8px;margin-top:8px;flex-wrap:wrap;position:sticky;bottom:-18px;background:var(--bg);padding:12px 0 18px;border-top:1px solid #E4E2DA;z-index:2;}
       .wi2-btn{padding:7px 14px;border-radius:8px;border:1px solid #D8D6CC;background:transparent;color:var(--font);font-family:var(--font-body);font-size:12px;cursor:pointer;}
       .wi2-btn.p{background:#1a1a1a;border-color:#1a1a1a;color:#fff;font-weight:600;} .wi2-btn.danger{border-color:#f3b9b4;color:#C62828;}
       .wi2-hint{font-size:11px;color:var(--muted);background:#F1EFE8;border-radius:8px;padding:8px 10px;margin:4px 0 8px;}
@@ -10921,12 +10921,13 @@ async function waInv2SaveUpd(){
   if(!added&&!changed){_i2Close();return;}
   target.log.sort((p,q)=>(parseDate(p.date)||0)-(parseDate(q.date)||0));
   _i2Close();
-  if(added){
-    const nomeLog=isSubs?(a.nome+' » '+(target.nome||'Aporte '+(si+1))):a.nome;
-    try{const rr=await sheetsAppendLog(currentUser||'ALE',r.inst.name,nomeLog,added.date,added.value,added.note);if(!(rr&&rr.ok!==false))toast('✗ Falha ao gravar no log','error');}catch(e){toast('✗ Erro no log: '+e.message,'error');}
-  }
+  // 1º: tela e cadastro atualizados na hora; 2º: log no Sheets em segundo plano
   saveInvestimentos();waInv2Render();
   toast(added?'✓ Valor registrado: '+_i2R2(added.value):'✓ Lançamentos atualizados','success');
+  if(added){
+    const nomeLog=isSubs?(a.nome+' » '+(target.nome||'Aporte '+(si+1))):a.nome;
+    try{const rr=await sheetsAppendLog(currentUser||'ALE',r.inst.name,nomeLog,added.date,added.value,added.note);if(!(rr&&rr.ok!==false))toast('✗ Falha ao gravar no log do Sheets','error');}catch(e){toast('✗ Erro no log: '+e.message,'error');}
+  }
 }
 function waInv2UpdSub(si){waInv2Upd(si);}
 function waInv2EditLog(li){const r=_i2Sel();if(!r)return;const x=r.a.log[li];if(!x)return;
@@ -13931,75 +13932,95 @@ function waSubsModal(idx){
   const a=getInstAtivos(inst)[idx];
   if(!a)return;
   if(!a.subs)a.subs=[];
-  const old=document.getElementById('wa-subs-overlay');if(old)old.remove();
-  const ov=document.createElement('div');
-  ov.id='wa-subs-overlay';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;display:flex;align-items:center;justify-content:center;';
-  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
-  const box=document.createElement('div');
-  box.style.cssText='background:var(--bg);border-radius:14px;padding:18px 20px;width:min(560px,94vw);max-width:94vw;box-sizing:border-box;max-height:86vh;overflow-y:auto;overflow-x:hidden;box-shadow:0 12px 40px rgba(0,0,0,.25);';
-  const render=()=>{
-    let h='<div style="font-size:.82rem;font-weight:700;color:var(--font);margin-bottom:2px;">Investimento composto</div>'
-      +'<div style="font-size:.62rem;color:var(--muted);margin-bottom:12px;">'+a.nome+'</div>'
-      +'<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">'
-      +'<span style="font-size:.68rem;color:var(--muted);">Composto:</span>'
-      +'<button id="ws-tog" style="padding:5px 14px;border-radius:100px;border:1px solid '+(a.composto?'var(--font)':'var(--border)')+';background:'+(a.composto?'var(--font)':'transparent')+';color:'+(a.composto?'var(--bg)':'var(--muted)')+';font-size:.68rem;font-weight:700;cursor:pointer;">'+(a.composto?'SIM':'NÃO')+'</button>'
-      +'</div>';
-    if(a.composto){
-      h+='<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">'
-        +'<span style="font-size:.68rem;color:var(--muted);">Atualização de valores:</span>'
-        +'<button id="ws-mode-t" style="padding:5px 12px;border-radius:100px 0 0 100px;border:1px solid var(--border);background:'+(a.updMode!=='subs'?'var(--font)':'transparent')+';color:'+(a.updMode!=='subs'?'var(--bg)':'var(--muted)')+';font-size:.64rem;font-weight:700;cursor:pointer;">pelo TOTAL</button>'
-        +'<button id="ws-mode-s" style="padding:5px 12px;border-radius:0 100px 100px 0;border:1px solid var(--border);border-left:none;margin-left:-8px;background:'+(a.updMode==='subs'?'var(--font)':'transparent')+';color:'+(a.updMode==='subs'?'var(--bg)':'var(--muted)')+';font-size:.64rem;font-weight:700;cursor:pointer;">por SUB</button>'
-        +'</div>'
-        +'<div style="font-size:.6rem;color:var(--muted);margin-bottom:10px;">'+(a.updMode==='subs'?'Cada aporte tem histórico próprio; o total do investimento é a soma dos aportes.':'O valor atual é atualizado no total (como hoje); os aportes guardam só valor original e vencimento.')+'</div>';
-      h+='<div style="font-size:.7rem;font-weight:700;color:var(--font);margin-bottom:6px;">Aportes ('+a.subs.length+')</div>'
-        +'<div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) auto;gap:6px;font-size:.55rem;color:var(--muted);margin-bottom:3px;"><span>nome</span><span style="text-align:right;">valor R$</span><span>aplicação</span><span>vencimento</span><span></span></div>';
-      a.subs.forEach((sb,i)=>{
-        h+='<div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) auto;gap:6px;align-items:center;margin-bottom:6px;">'
-          +'<input data-f="nome" data-i="'+i+'" value="'+String(sb.nome||'').replace(/"/g,'&quot;')+'" placeholder="'+subLabelAuto(sb,i).replace(/"/g,'&quot;')+'" style="padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-size:.66rem;background:transparent;color:var(--font);width:100%;min-width:0;box-sizing:border-box;">'
-          +'<input data-f="valor" data-i="'+i+'" value="'+(sb.valor||'')+'" placeholder="valor R$" inputmode="decimal" style="padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-size:.66rem;text-align:right;background:transparent;color:var(--font);width:100%;min-width:0;box-sizing:border-box;">'
-          +'<input type="date" data-f="dataAplic" data-i="'+i+'" value="'+_i2ToISO(sb.dataAplic||'')+'" title="data de aplicação" style="padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-size:.62rem;background:transparent;color:var(--font);width:100%;min-width:0;box-sizing:border-box;">'
-          +'<input type="date" data-f="vencimento" data-i="'+i+'" value="'+_i2ToISO(sb.vencimento||'')+'" title="vencimento" style="padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-size:.62rem;background:transparent;color:var(--font);width:100%;min-width:0;box-sizing:border-box;">'
-          +'<button data-del="'+i+'" style="border:none;background:transparent;color:var(--red);cursor:pointer;font-size:.85rem;">✕</button>'
-          +'</div>';
-      });
-      h+='<button id="ws-add" style="width:100%;padding:8px;border-radius:10px;border:1px dashed var(--border);background:transparent;color:var(--muted);font-size:.68rem;cursor:pointer;margin:4px 0 12px;">＋ adicionar aporte</button>';
-    }
-    h+='<div style="display:flex;gap:8px;justify-content:flex-end;">'
-      +'<button id="ws-cancel" style="font-size:.68rem;padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--font);cursor:pointer;">Fechar</button>'
-      +'<button id="ws-save" style="font-size:.68rem;padding:7px 18px;border-radius:8px;border:none;background:var(--font);color:var(--bg);font-weight:700;cursor:pointer;">Salvar</button>'
-      +'</div>';
-    box.innerHTML=h;
-    const pull=()=>{ // lê os inputs para o objeto antes de re-render
-      box.querySelectorAll('input[data-f]').forEach(inp=>{
-        const i=+inp.dataset.i,f=inp.dataset.f;
-        if(!a.subs[i])return;
-        a.subs[i][f]=f==='valor'?(parseBRNumber(inp.value.trim())||0):((f==='dataAplic'||f==='vencimento')?_i2FromISO(inp.value.trim()):inp.value.trim());
-      });
-    };
-    const tg=box.querySelector('#ws-tog');
-    if(tg)tg.addEventListener('click',()=>{pull();a.composto=!a.composto;if(a.composto&&!a.updMode)a.updMode='total';render();});
-    const mt=box.querySelector('#ws-mode-t');if(mt)mt.addEventListener('click',()=>{pull();a.updMode='total';render();});
-    const ms=box.querySelector('#ws-mode-s');if(ms)ms.addEventListener('click',()=>{pull();a.updMode='subs';render();});
-    const ad=box.querySelector('#ws-add');
-    if(ad)ad.addEventListener('click',()=>{pull();const n=a.subs.length+1;a.subs.push({id:'sub_'+Date.now(),nome:'Aporte '+n,valor:0,dataAplic:'',vencimento:'',log:[]});render();});
-    box.querySelectorAll('button[data-del]').forEach(b=>b.addEventListener('click',()=>{pull();
-      const i=+b.dataset.del;
-      if((a.subs[i].log||[]).length&&!confirm('Este aporte tem histórico de valores. Remover mesmo assim?'))return;
-      a.subs.splice(i,1);render();
-    }));
-    box.querySelector('#ws-cancel').addEventListener('click',()=>ov.remove());
-    box.querySelector('#ws-save').addEventListener('click',()=>{
-      pull();
-      a.subs.forEach((sb,i)=>{if(!sb.nome)sb.nome='Aporte '+(i+1);});
-      saveInvestimentos();
-      ov.remove();
-      waInvRenderDetail(idx);
-      if(typeof waActiveDashRender==='function')waActiveDashRender();
-      toast('✓ Composto salvo ('+a.subs.length+' aportes)','success');
+  window._subsIdx=idx;window._subsInstIdx=waInvInstIdx;
+  if(window._subsTab===undefined||window._subsTab>=a.subs.length)window._subsTab=0;
+  window._subsPending=[]; // lançamentos novos a gravar no InvestimentosLog ao salvar
+  _subsRender();
+}
+function _subsA(){const inst=instituicoes[window._subsInstIdx];if(!inst)return null;const a=getInstAtivos(inst)[window._subsIdx];return a?{inst,a}:null;}
+function _subsRender(){
+  const r=_subsA();if(!r)return;const a=r.a;
+  const si=window._subsTab||0;const sb=a.subs[si]||null;
+  const isSubsMode=a.updMode==='subs';
+  const t=new Date();const iso=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+  const inp='padding:6px 8px;border:1px solid #D8D6CC;border-radius:8px;font-size:12px;background:#fff;color:var(--font);font-family:var(--font-body);width:100%;min-width:0;box-sizing:border-box;';
+  let h='<h3>Investimento composto</h3><div class="m">'+_i2Esc(a.nome)+'</div>'
+    +'<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">'
+    +'<div style="display:flex;gap:6px;align-items:center;"><span style="font-size:11px;color:var(--muted);">Composto</span><div class="wi2-seg"><button class="'+(a.composto?'':'on')+'" onclick="_subsCollect();_subsA().a.composto=false;_subsRender()">não</button><button class="'+(a.composto?'on':'')+'" onclick="_subsCollect();_subsA().a.composto=true;if(!_subsA().a.updMode)_subsA().a.updMode=\'total\';_subsRender()">sim</button></div></div>';
+  if(a.composto){
+    h+='<div style="display:flex;gap:6px;align-items:center;"><span style="font-size:11px;color:var(--muted);">Atualização</span><div class="wi2-seg"><button class="'+(!isSubsMode?'on':'')+'" onclick="_subsCollect();_subsA().a.updMode=\'total\';_subsRender()">pelo total</button><button class="'+(isSubsMode?'on':'')+'" onclick="_subsCollect();_subsA().a.updMode=\'subs\';_subsRender()">por sub</button></div></div>';
+  }
+  h+='</div>';
+  if(a.composto){
+    h+='<div class="wi2-hint">'+(isSubsMode?'Cada aporte tem histórico próprio; o total do investimento é a soma dos aportes.':'O valor atual é atualizado no total; os aportes guardam só valor original e vencimento (para o aviso de “vence em”).')+'</div>';
+    // abas
+    h+='<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;">'
+      +a.subs.map((x,k)=>'<button class="wi2-tab '+(k===si?'on':'')+'" onclick="_subsCollect();window._subsTab='+k+';_subsRender()">'+_i2Esc(x.nome||('Aporte '+(k+1)))+'</button>').join('')
+      +'<button class="wi2-tab" style="border-style:dashed;" onclick="_subsCollect();_subsA().a.subs.push({id:\'sub_\'+Date.now(),nome:\'Aporte \'+(_subsA().a.subs.length+1),valor:0,dataAplic:\''+_i2FromISO(iso)+'\',vencimento:\'\',log:[]});window._subsTab=_subsA().a.subs.length-1;_subsRender()">＋ novo aporte</button></div>';
+    if(sb){
+      h+='<div style="border:1px solid #E4E2DA;border-radius:10px;padding:10px 12px;margin-bottom:10px;background:#fff;">'
+        +'<div class="wi2-r2"><div class="wi2-f"><label>nome do aporte</label><input id="sb-nome" value="'+_i2Esc(sb.nome)+'"></div><div class="wi2-f"><label>valor original (R$)</label><input id="sb-valor" inputmode="numeric" value="'+_i2MoneyInit(sb.valor)+'" data-raw="'+Number(sb.valor||0)+'" oninput="_i2Money(this)" class="rt"></div></div>'
+        +'<div class="wi2-r2"><div class="wi2-f"><label>data de aplicação</label><input type="date" id="sb-da" value="'+_i2ToISO(sb.dataAplic)+'"></div><div class="wi2-f"><label>vencimento</label><input type="date" id="sb-venc" value="'+_i2ToISO(sb.vencimento)+'"></div></div>'
+        +'<button onclick="_subsRemove('+si+')" style="border:1px solid #f3b9b4;background:transparent;color:#C62828;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;">✕ remover este aporte</button>'
+        +'</div>';
+      if(isSubsMode){
+        if(!sb.log)sb.log=[];
+        const sorted=[...sb.log].map((x,k)=>({x,k})).sort((p,q)=>(parseDate(q.x.date)||0)-(parseDate(p.x.date)||0));
+        h+='<div class="wi2-h">Lançamentos de '+_i2Esc(sb.nome)+'</div>'
+          +'<div style="display:grid;grid-template-columns:130px minmax(0,1fr) minmax(0,1.2fr) 24px;gap:6px;font-size:10px;color:var(--muted);margin-bottom:4px;"><span>data</span><span style="text-align:right;">valor R$</span><span>nota</span><span></span></div>'
+          +'<div style="display:grid;grid-template-columns:130px minmax(0,1fr) minmax(0,1.2fr) 24px;gap:6px;align-items:center;margin-bottom:6px;background:#EEF3FA;border-radius:8px;padding:4px;">'
+          +'<input type="date" id="sb-new-d" value="'+iso+'" style="'+inp+'"><input id="sb-new-v" inputmode="numeric" placeholder="0,00" oninput="_i2Money(this)" style="'+inp+'text-align:right;font-weight:700;"><input id="sb-new-n" value="Atualização" style="'+inp+'"><span style="font-size:10px;color:#1565C0;text-align:center;">novo</span></div>';
+        sorted.forEach(({x,k})=>{
+          h+='<div style="display:grid;grid-template-columns:130px minmax(0,1fr) minmax(0,1.2fr) 24px;gap:6px;align-items:center;margin-bottom:4px;" data-srow="'+k+'">'
+            +'<input type="date" data-f="date" value="'+_i2ToISO(x.date)+'" style="'+inp+'"><input data-f="value" inputmode="numeric" value="'+_i2MoneyInit(x.value)+'" data-raw="'+Number(x.value||0)+'" oninput="_i2Money(this)" style="'+inp+'text-align:right;"><input data-f="note" value="'+_i2Esc(x.note||'')+'" style="'+inp+'">'
+            +'<button onclick="_subsDelRow('+k+')" style="border:none;background:transparent;color:#C62828;cursor:pointer;font-size:13px;">✕</button></div>';
+        });
+        if(!sorted.length)h+='<div class="wi2-mute" style="font-size:11px;padding:4px 0 8px;">Nenhum lançamento ainda.</div>';
+      }
+    } else h+='<div class="wi2-mute" style="font-size:11px;padding:6px 0 10px;">Nenhum aporte — use “＋ novo aporte”.</div>';
+  }
+  h+='<div class="wi2-mf"><button class="wi2-btn" onclick="_i2Close();if(typeof waActiveDashRender===\'function\')waActiveDashRender();">Fechar</button><button class="wi2-btn p" onclick="_subsSave()">Salvar</button></div>';
+  const ov=_i2Modal(h);
+  if(!document.getElementById('wi2-seg-style')){const st=document.createElement('style');st.id='wi2-seg-style';st.textContent='.wi2-seg{display:inline-flex;border:1px solid #D8D6CC;border-radius:100px;overflow:hidden;}.wi2-seg button{border:none;background:transparent;padding:5px 12px;font-size:11px;color:#8A8A82;cursor:pointer;font-family:var(--font-body);}.wi2-seg button.on{background:#1a1a1a;color:#fff;}';document.head.appendChild(st);}
+}
+// lê os campos da aba atual para o objeto (chamado antes de trocar de aba e ao salvar)
+function _subsCollect(){
+  const r=_subsA();if(!r)return;const a=r.a;const si=window._subsTab||0;const sb=a.subs[si];if(!sb)return;
+  const g=id=>document.getElementById(id);
+  if(g('sb-nome'))sb.nome=(g('sb-nome').value||'').trim()||sb.nome||('Aporte '+(si+1));
+  if(g('sb-valor')){const raw=g('sb-valor').dataset.raw;sb.valor=(raw!==undefined&&raw!=='')?parseFloat(raw):parseBRNumber(g('sb-valor').value)||0;}
+  if(g('sb-da'))sb.dataAplic=_i2FromISO(g('sb-da').value.trim());
+  if(g('sb-venc'))sb.vencimento=_i2FromISO(g('sb-venc').value.trim());
+  if(a.updMode==='subs'){
+    if(!sb.log)sb.log=[];
+    document.querySelectorAll('#wi2-ov [data-srow]').forEach(row=>{
+      const k=+row.dataset.srow;const x=sb.log[k];if(!x)return;
+      const d=_i2FromISO(row.querySelector('[data-f=date]').value.trim());const vEl=row.querySelector('[data-f=value]');
+      const v=(vEl.dataset.raw!==undefined&&vEl.dataset.raw!=='')?parseFloat(vEl.dataset.raw):parseBRNumber(vEl.value.trim());
+      if(d)x.date=d;if(!isNaN(v))x.value=v;x.note=row.querySelector('[data-f=note]').value.trim();
     });
-  };
-  render();ov.appendChild(box);document.body.appendChild(ov);
+    const nv=g('sb-new-v');
+    if(nv&&nv.dataset.raw){
+      const entry={date:_i2FromISO(g('sb-new-d').value.trim())||normDateBR(new Date().toISOString()),value:parseFloat(nv.dataset.raw),note:(g('sb-new-n').value||'').trim()||'Atualização'};
+      sb.log.push(entry);
+      (window._subsPending=window._subsPending||[]).push({inst:r.inst.name,nome:a.nome+' » '+sb.nome,entry});
+    }
+    sb.log.sort((p,q)=>(parseDate(p.date)||0)-(parseDate(q.date)||0));
+  }
+}
+function _subsDelRow(k){const r=_subsA();if(!r)return;const sb=r.a.subs[window._subsTab||0];if(!sb||!sb.log[k])return;if(!confirm('Excluir o lançamento de '+normDateBR(sb.log[k].date)+'?'))return;_subsCollect();sb.log.splice(k,1);_subsRender();}
+function _subsRemove(si){const r=_subsA();if(!r)return;const sb=r.a.subs[si];if(!sb)return;if((sb.log||[]).length&&!confirm('Este aporte tem histórico de valores. Remover mesmo assim?'))return;r.a.subs.splice(si,1);window._subsTab=Math.max(0,si-1);_subsRender();}
+async function _subsSave(){
+  const r=_subsA();if(!r)return;const a=r.a;
+  _subsCollect();
+  a.subs.forEach((sb,i)=>{if(!sb.nome)sb.nome='Aporte '+(i+1);});
+  const pend=(window._subsPending||[]).slice();window._subsPending=[];
+  _i2Close();
+  saveInvestimentos();
+  if(typeof waActiveDashRender==='function')waActiveDashRender();
+  if(!waInv2Active())waInvRenderDetail(window._subsIdx);
+  toast('✓ Composto salvo ('+a.subs.length+' aportes)','success');
+  for(const p of pend){try{const rr=await sheetsAppendLog(currentUser||'ALE',p.inst,p.nome,p.entry.date,p.entry.value,p.entry.note);if(!(rr&&rr.ok!==false))toast('✗ Falha ao gravar lançamento no log','error');}catch(e){toast('✗ Erro no log: '+e.message,'error');}}
 }
 function waInvRenderDetail(idx){
   if(typeof waInv2Active==='function'&&waInv2Active()){waInv2Render();return;}
