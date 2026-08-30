@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#2d2a6e,#3fb08a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#D5F5E6 !important;}
-  #splash .splash-sub{color:rgba(213,245,230,.65) !important;}
-  #splash .splash-version{color:rgba(213,245,230,.35) !important;}
-  #splash .splash-btn{background:#D5F5E6 !important;color:#2d2a6e !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#D5F5E6 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#5a1f3a,#d9c5a0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F6ECD8 !important;}
+  #splash .splash-sub{color:rgba(246,236,216,.65) !important;}
+  #splash .splash-version{color:rgba(246,236,216,.35) !important;}
+  #splash .splash-btn{background:#F6ECD8 !important;color:#5a1f3a !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F6ECD8 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.44';
+const APP_VERSION='18.45';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -10755,7 +10755,7 @@ function waInv2Upd(){
   const t=new Date();const ds=String(t.getDate()).padStart(2,'0')+'/'+String(t.getMonth()+1).padStart(2,'0')+'/'+t.getFullYear();
   _i2Modal('<h3>Atualizar valor</h3><div class="m">'+_i2Esc(a.nome)+' · último: '+_i2R2(last)+'</div>'
     +(isUSD?'<div class="wi2-hint">Ativo em dólar: informe o saldo em USD e a cotação — o valor em reais é calculado e é ele que vai para o histórico.</div><div class="wi2-r2"><div class="wi2-f"><label>saldo em USD</label><input id="wi2-usd" class="rt" inputmode="decimal" placeholder="0,00" oninput="waInv2CalcBRL()"></div><div class="wi2-f"><label>cotação R$/USD</label><input id="wi2-cot" class="rt" inputmode="decimal" placeholder="5,40" oninput="waInv2CalcBRL()"></div></div>':'')
-    +'<div class="wi2-r2"><div class="wi2-f"><label>valor atual (R$)</label><input id="wi2-val" class="rt" inputmode="decimal" placeholder="'+_i2R2(last).replace('R$ ','')+'" oninput="waInv2UpdHint()"></div><div class="wi2-f"><label>data</label><input id="wi2-date" value="'+ds+'"></div></div>'
+    +'<div class="wi2-r2"><div class="wi2-f"><label>valor atual (R$)</label><input id="wi2-val" class="rt" inputmode="decimal" placeholder="'+_i2R2(last).replace('R$ ','')+'" oninput="waInv2UpdHint()"></div><div class="wi2-f"><label>data</label><input type="date" id="wi2-date" value="'+_i2ToISO(ds)+'"></div></div>'
     +'<div class="wi2-f"><label>nota</label><input id="wi2-note" value="Atualização"></div><div id="wi2-hint" class="wi2-hint" style="display:none;"></div>'
     +'<div class="wi2-mf"><button class="wi2-btn" onclick="_i2Close()">Cancelar</button><button class="wi2-btn p" onclick="waInv2SaveUpd()">Salvar no histórico</button></div>');
 }
@@ -10765,7 +10765,7 @@ async function waInv2SaveUpd(){
   const r=_i2Ctx();if(!r)return;const a=r.a;
   const v=parseBRNumber(document.getElementById('wi2-val').value.trim());
   if(isNaN(v)||v<0){toast('Informe um valor válido','error');return;}
-  const ds=document.getElementById('wi2-date').value.trim()||normDateBR(new Date().toISOString());
+  const ds=_i2FromISO(document.getElementById('wi2-date').value.trim())||normDateBR(new Date().toISOString());
   const note=document.getElementById('wi2-note').value.trim()||'Atualização';
   if(!a.log)a.log=[];a.log.push({date:ds,value:v,note});a.log.sort((x,y)=>(parseDate(x.date)||0)-(parseDate(y.date)||0));
   _i2Close();
@@ -10774,42 +10774,60 @@ async function waInv2SaveUpd(){
 }
 function waInv2UpdSub(si){const r=_i2Ctx();if(!r)return;const t=new Date();waDash2SubEdit(r.ii,r.idx,si,t.getFullYear(),t.getMonth());}
 function waInv2EditLog(li){const r=_i2Sel();if(!r)return;const x=r.a.log[li];if(!x)return;
-  _i2Modal('<h3>Editar registro</h3><div class="m">'+_i2Esc(r.a.nome)+'</div><div class="wi2-r2"><div class="wi2-f"><label>data</label><input id="wi2-ld" value="'+normDateBR(x.date)+'"></div><div class="wi2-f"><label>valor (R$)</label><input id="wi2-lv" class="rt" inputmode="decimal" value="'+Number(x.value).toLocaleString('pt-BR',{minimumFractionDigits:2})+'"></div></div><div class="wi2-f"><label>nota</label><input id="wi2-ln" value="'+_i2Esc(x.note||'')+'"></div>'
+  _i2Modal('<h3>Editar registro</h3><div class="m">'+_i2Esc(r.a.nome)+'</div><div class="wi2-r2"><div class="wi2-f"><label>data</label><input type="date" id="wi2-ld" value="'+_i2ToISO(x.date)+'"></div><div class="wi2-f"><label>valor (R$)</label><input id="wi2-lv" class="rt" inputmode="decimal" value="'+Number(x.value).toLocaleString('pt-BR',{minimumFractionDigits:2})+'"></div></div><div class="wi2-f"><label>nota</label><input id="wi2-ln" value="'+_i2Esc(x.note||'')+'"></div>'
     +'<div class="wi2-hint">A alteração vale para o cadastro e para este dispositivo; o registro original no InvestimentosLog é preservado.</div>'
     +'<div class="wi2-mf"><button class="wi2-btn" onclick="_i2Close()">Cancelar</button><button class="wi2-btn p" onclick="waInv2SaveLog('+li+')">Salvar</button></div>');}
-function waInv2SaveLog(li){const r=_i2Ctx();if(!r)return;const x=r.a.log[li];if(!x)return;const v=parseBRNumber(document.getElementById('wi2-lv').value.trim());if(isNaN(v)){toast('Valor inválido','error');return;}x.date=document.getElementById('wi2-ld').value.trim();x.value=v;x.note=document.getElementById('wi2-ln').value.trim();r.a.log.sort((p,q)=>(parseDate(p.date)||0)-(parseDate(q.date)||0));_i2Close();saveInvestimentos();waInv2Render();toast('✓ Registro atualizado','success');}
+function waInv2SaveLog(li){const r=_i2Ctx();if(!r)return;const x=r.a.log[li];if(!x)return;const v=parseBRNumber(document.getElementById('wi2-lv').value.trim());if(isNaN(v)){toast('Valor inválido','error');return;}x.date=_i2FromISO(document.getElementById('wi2-ld').value.trim())||x.date;x.value=v;x.note=document.getElementById('wi2-ln').value.trim();r.a.log.sort((p,q)=>(parseDate(p.date)||0)-(parseDate(q.date)||0));_i2Close();saveInvestimentos();waInv2Render();toast('✓ Registro atualizado','success');}
 function waInv2DelLog(li){const r=_i2Sel();if(!r)return;const x=r.a.log[li];if(!x)return;
   _i2Modal('<h3>Excluir registro?</h3><div class="m">'+normDateBR(x.date)+' · '+_i2R2(x.value)+' · '+_i2Esc(x.note||'')+'</div><div class="wi2-hint">Remove do cadastro e deste dispositivo; o registro original no InvestimentosLog é preservado.</div><div class="wi2-mf"><button class="wi2-btn" onclick="_i2Close()">Manter</button><button class="wi2-btn danger" onclick="(function(){const r=_i2Ctx();if(!r)return;r.a.log.splice('+li+',1);_i2Close();saveInvestimentos();waInv2Render();toast(\'Registro excluído\',\'\');})()">Excluir</button></div>');}
-const WI2_CLASSES=['Renda Fixa','Renda Variável','Fundos','Previdência','Cripto','Outros'];
+const WI2_INDEX=['% do CDI','SELIC','Prefixado (% a.a.)','IPCA + taxa','Dólar','Euro','Outro'];
+const WI2_LIQ=['Diária (D+0)','D+1','No vencimento','Perpétuo','Outro'];
+const WI2_GAR=['FGC (até R$ 250 mil/CPF)','Risco Soberano (Tesouro)','Risco Privado (sem FGC)','N/A'];
+const WI2_IR=['Isento (PF)','Tabela Regressiva','15% (ganho de capital)','20% (day trade)','Come-cotas','Outro'];
+function _i2ToISO(d){const b=normDateBR(d||'');const p=String(b||'').split('/');return p.length===3?p[2]+'-'+p[1]+'-'+p[0]:'';}
+function _i2FromISO(iso){if(!iso)return '';const p=iso.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:iso;}
+// select com as opções oficiais; valor atual fora da lista entra como opção extra para não se perder
+function _i2SelOpts(id,opts,cur){const list=(cur&&!opts.includes(cur))?[cur,...opts]:opts;return '<select id="'+id+'"><option value="">Selecione…</option>'+list.map(o=>'<option value="'+_i2Esc(o)+'"'+(o===cur?' selected':'')+'>'+_i2Esc(o)+'</option>').join('')+'</select>';}
+function _i2TipoSel(id,classe,cur){const opts=(typeof ATIVO_TIPOS!=='undefined'&&ATIVO_TIPOS[classe])||[];const list=(cur&&!opts.includes(cur))?[cur,...opts]:opts;return '<option value="">'+(opts.length?'Selecione…':'Selecione a classe primeiro')+'</option>'+list.map(o=>'<option value="'+_i2Esc(o)+'"'+(o===cur?' selected':'')+'>'+_i2Esc(o)+'</option>').join('');}
+function waInv2ClasseChange(prefix){const cl=document.getElementById(prefix+'classe').value;const t=document.getElementById(prefix+'tipo');if(t)t.innerHTML=_i2TipoSel(prefix+'tipo',cl,'');}
 function waInv2Edit(){const r=_i2Sel();if(!r)return;const a=r.a;
-  const cls=WI2_CLASSES.includes(a.classe)?WI2_CLASSES:[a.classe||'',...WI2_CLASSES];
+  const classes=Object.keys(typeof ATIVO_TIPOS!=='undefined'?ATIVO_TIPOS:{});
   _i2Modal('<h3>Editar ativo</h3><div class="m">'+_i2Esc(r.inst.name)+'</div>'
     +'<div class="wi2-f"><label>nome</label><input id="wi2-e-nome" value="'+_i2Esc(a.nome)+'"></div>'
-    +'<div class="wi2-r2"><div class="wi2-f"><label>instituição</label><select id="wi2-e-inst">'+(instituicoes||[]).map(i=>'<option '+(i.name===r.inst.name?'selected':'')+'>'+_i2Esc(i.name)+'</option>').join('')+'</select></div><div class="wi2-f"><label>classe</label><select id="wi2-e-classe">'+cls.map(x=>'<option '+(x===(a.classe||'')?'selected':'')+'>'+_i2Esc(x)+'</option>').join('')+'</select></div></div>'
-    +'<div class="wi2-r3"><div class="wi2-f"><label>tipo</label><input id="wi2-e-tipo" value="'+_i2Esc(a.tipo||'')+'"></div><div class="wi2-f"><label>indexador</label><input id="wi2-e-idx" value="'+_i2Esc(a.indexador||'')+'"></div><div class="wi2-f"><label>taxa</label><input id="wi2-e-taxa" value="'+_i2Esc(a.taxa||'')+'"></div></div>'
-    +'<div class="wi2-r3"><div class="wi2-f"><label>aplicado (R$)</label><input id="wi2-e-ap" class="rt" inputmode="decimal" value="'+Number(a.aplicado||0).toLocaleString('pt-BR',{minimumFractionDigits:2})+'"></div><div class="wi2-f"><label>data aplicação</label><input id="wi2-e-da" value="'+normDateBR(a.dataAplic||'')+'"></div><div class="wi2-f"><label>vencimento</label><input id="wi2-e-venc" value="'+(a.vencimento?normDateBR(a.vencimento):'')+'" placeholder="dd/mm/aaaa"></div></div>'
-    +'<div class="wi2-r3"><div class="wi2-f"><label>liquidez</label><input id="wi2-e-liq" value="'+_i2Esc(a.liquidez||'')+'"></div><div class="wi2-f"><label>garantia</label><input id="wi2-e-gar" value="'+_i2Esc(a.garantia||'')+'"></div><div class="wi2-f"><label>IR</label><input id="wi2-e-ir" value="'+_i2Esc(a.ir||'')+'"></div></div>'
-    +'<div class="wi2-f"><label>observações</label><input id="wi2-e-obs" value="'+_i2Esc(a.obs||'')+'"></div>'
+    +'<div class="wi2-r2"><div class="wi2-f"><label>instituição</label><select id="wi2-e-inst">'+(instituicoes||[]).map(x=>'<option '+(x.name===r.inst.name?'selected':'')+'>'+_i2Esc(x.name)+'</option>').join('')+'</select></div>'
+    +'<div class="wi2-f"><label>classe</label>'+_i2SelOpts('wi2-e-classe',classes,a.classe||'').replace('<select id="wi2-e-classe">','<select id="wi2-e-classe" onchange="waInv2ClasseChange(\'wi2-e-\')">')+'</div></div>'
+    +'<div class="wi2-r2"><div class="wi2-f"><label>tipo</label><select id="wi2-e-tipo">'+_i2TipoSel('wi2-e-tipo',a.classe||'',a.tipo||'')+'</select></div>'
+    +'<div class="wi2-f"><label>indexador</label>'+_i2SelOpts('wi2-e-idx',WI2_INDEX,a.indexador||'')+'</div></div>'
+    +'<div class="wi2-r2"><div class="wi2-f"><label>taxa / percentual</label><input id="wi2-e-taxa" value="'+_i2Esc(a.taxa||'')+'" placeholder="Ex: 110% ou 12% a.a."></div>'
+    +'<div class="wi2-f"><label>aplicado (R$)</label><input id="wi2-e-ap" class="rt" inputmode="decimal" value="'+Number(a.aplicado||0).toLocaleString('pt-BR',{minimumFractionDigits:2})+'"></div></div>'
+    +'<div class="wi2-r2"><div class="wi2-f"><label>data de aplicação</label><input type="date" id="wi2-e-da" value="'+_i2ToISO(a.dataAplic)+'"></div><div class="wi2-f"><label>vencimento</label><input type="date" id="wi2-e-venc" value="'+_i2ToISO(a.vencimento)+'"></div></div>'
+    +'<div class="wi2-r3"><div class="wi2-f"><label>liquidez</label>'+_i2SelOpts('wi2-e-liq',WI2_LIQ,a.liquidez||'')+'</div><div class="wi2-f"><label>garantia</label>'+_i2SelOpts('wi2-e-gar',WI2_GAR,a.garantia||'')+'</div><div class="wi2-f"><label>IR</label>'+_i2SelOpts('wi2-e-ir',WI2_IR,a.ir||'')+'</div></div>'
+    +'<div class="wi2-f"><label>observações</label><input id="wi2-e-obs" value="'+_i2Esc(a.obs||'')+'" placeholder="Opcional…"></div>'
     +'<div class="wi2-mf"><button class="wi2-btn" onclick="_i2Close()">Cancelar</button><button class="wi2-btn p" onclick="waInv2SaveEdit()">Salvar alterações</button></div>');}
 function waInv2SaveEdit(){const r=_i2Ctx();if(!r)return;const a=r.a;const g=id=>(document.getElementById(id)?.value||'').trim();
   const newInst=g('wi2-e-inst');
   a.nome=g('wi2-e-nome')||a.nome;a.classe=g('wi2-e-classe');a.tipo=g('wi2-e-tipo');a.indexador=g('wi2-e-idx');a.taxa=g('wi2-e-taxa');
-  a.aplicado=parseBRNumber(g('wi2-e-ap'))||a.aplicado;a.dataAplic=g('wi2-e-da');a.vencimento=g('wi2-e-venc');a.liquidez=g('wi2-e-liq');a.garantia=g('wi2-e-gar');a.ir=g('wi2-e-ir');a.obs=g('wi2-e-obs');
+  a.aplicado=parseBRNumber(g('wi2-e-ap'))||a.aplicado;a.dataAplic=_i2FromISO(g('wi2-e-da'));a.vencimento=_i2FromISO(g('wi2-e-venc'));a.liquidez=g('wi2-e-liq');a.garantia=g('wi2-e-gar');a.ir=g('wi2-e-ir');a.obs=g('wi2-e-obs');
   if(newInst&&newInst!==r.inst.name){const dst=(instituicoes||[]).find(i=>i.name===newInst);if(dst){getInstAtivos(r.inst).splice(r.idx,1);getInstAtivos(dst).push(a);waI2().sel={inst:dst.name,id:a.id};}}
   _i2Close();saveInvestimentos();waInv2Render();toast('✓ Ativo salvo','success');}
 function waInv2NewAtivo(){const s=waI2();const insts=instituicoes||[];if(!insts.length){toast('Cadastre uma instituição primeiro','error');return;}
-  const t=new Date();const ds=String(t.getDate()).padStart(2,'0')+'/'+String(t.getMonth()+1).padStart(2,'0')+'/'+t.getFullYear();
+  const classes=Object.keys(typeof ATIVO_TIPOS!=='undefined'?ATIVO_TIPOS:{});
+  const t=new Date();const iso=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
   _i2Modal('<h3>Novo ativo</h3><div class="m">'+(s.inst!=='*'?'em '+_i2Esc(s.inst):'escolha a instituição')+'</div>'
-    +'<div class="wi2-f"><label>nome</label><input id="wi2-n-nome" placeholder="ex.: CDB Banco X 110% CDI"></div>'
-    +'<div class="wi2-r2"><div class="wi2-f"><label>instituição</label><select id="wi2-n-inst">'+insts.map(i=>'<option '+(i.name===s.inst?'selected':'')+'>'+_i2Esc(i.name)+'</option>').join('')+'</select></div><div class="wi2-f"><label>classe</label><select id="wi2-n-classe">'+WI2_CLASSES.map(x=>'<option>'+x+'</option>').join('')+'</select></div></div>'
-    +'<div class="wi2-r3"><div class="wi2-f"><label>aplicado (R$)</label><input id="wi2-n-ap" class="rt" inputmode="decimal" placeholder="0,00"></div><div class="wi2-f"><label>data aplicação</label><input id="wi2-n-da" value="'+ds+'"></div><div class="wi2-f"><label>vencimento</label><input id="wi2-n-venc" placeholder="dd/mm/aaaa"></div></div>'
-    +'<div class="wi2-r3"><div class="wi2-f"><label>indexador</label><input id="wi2-n-idx" placeholder="CDI / IPCA / Dólar"></div><div class="wi2-f"><label>taxa</label><input id="wi2-n-taxa" placeholder="100% CDI"></div><div class="wi2-f"><label>liquidez</label><input id="wi2-n-liq" placeholder="diária"></div></div>'
+    +'<div class="wi2-f"><label>nome</label><input id="wi2-n-nome" placeholder="Ex: CDB Safra 110% CDI"></div>'
+    +'<div class="wi2-r2"><div class="wi2-f"><label>instituição</label><select id="wi2-n-inst">'+insts.map(x=>'<option '+(x.name===s.inst?'selected':'')+'>'+_i2Esc(x.name)+'</option>').join('')+'</select></div>'
+    +'<div class="wi2-f"><label>classe</label>'+_i2SelOpts('wi2-n-classe',classes,'').replace('<select id="wi2-n-classe">','<select id="wi2-n-classe" onchange="waInv2ClasseChange(\'wi2-n-\')">')+'</div></div>'
+    +'<div class="wi2-r2"><div class="wi2-f"><label>tipo</label><select id="wi2-n-tipo">'+_i2TipoSel('wi2-n-tipo','','')+'</select></div><div class="wi2-f"><label>indexador</label>'+_i2SelOpts('wi2-n-idx',WI2_INDEX,'')+'</div></div>'
+    +'<div class="wi2-r2"><div class="wi2-f"><label>taxa / percentual</label><input id="wi2-n-taxa" placeholder="Ex: 110% ou 12% a.a."></div><div class="wi2-f"><label>aplicado (R$)</label><input id="wi2-n-ap" class="rt" inputmode="decimal" placeholder="0,00"></div></div>'
+    +'<div class="wi2-r2"><div class="wi2-f"><label>data de aplicação</label><input type="date" id="wi2-n-da" value="'+iso+'"></div><div class="wi2-f"><label>vencimento</label><input type="date" id="wi2-n-venc"></div></div>'
+    +'<div class="wi2-r3"><div class="wi2-f"><label>liquidez</label>'+_i2SelOpts('wi2-n-liq',WI2_LIQ,'')+'</div><div class="wi2-f"><label>garantia</label>'+_i2SelOpts('wi2-n-gar',WI2_GAR,'')+'</div><div class="wi2-f"><label>IR</label>'+_i2SelOpts('wi2-n-ir',WI2_IR,'')+'</div></div>'
+    +'<div class="wi2-f"><label>observações</label><input id="wi2-n-obs" placeholder="Opcional…"></div>'
     +'<div class="wi2-mf"><button class="wi2-btn" onclick="_i2Close()">Cancelar</button><button class="wi2-btn p" onclick="waInv2SaveNew()">Cadastrar ativo</button></div>');}
 async function waInv2SaveNew(){const g=id=>(document.getElementById(id)?.value||'').trim();const nome=g('wi2-n-nome');const ap=parseBRNumber(g('wi2-n-ap'));
   if(!nome||!(ap>0)){toast('Informe nome e valor aplicado','error');return;}
   const inst=(instituicoes||[]).find(i=>i.name===g('wi2-n-inst'));if(!inst)return;
-  const da=g('wi2-n-da');
-  const novo={id:'atv_'+inst.name+'_'+nome,nome,classe:g('wi2-n-classe'),tipo:'',aplicado:ap,indexador:g('wi2-n-idx'),taxa:g('wi2-n-taxa'),dataAplic:da,vencimento:g('wi2-n-venc'),liquidez:g('wi2-n-liq'),garantia:'',ir:'',obs:'',encerrado:false,composto:false,updMode:'total',subs:[],log:[{date:da,value:ap,note:'Aplicação inicial'}]};
+  const da=_i2FromISO(g('wi2-n-da'));
+  const novo={id:'atv_'+inst.name+'_'+nome,nome,classe:g('wi2-n-classe'),tipo:g('wi2-n-tipo'),aplicado:ap,indexador:g('wi2-n-idx'),taxa:g('wi2-n-taxa'),dataAplic:da,vencimento:_i2FromISO(g('wi2-n-venc')),liquidez:g('wi2-n-liq'),garantia:g('wi2-n-gar'),ir:g('wi2-n-ir'),obs:g('wi2-n-obs'),encerrado:false,composto:false,updMode:'total',subs:[],log:[{date:da,value:ap,note:'Aplicação inicial'}]};
   getInstAtivos(inst).push(novo);
   waI2().inst=inst.name;waI2().tab='ativos';waI2().sel={inst:inst.name,id:novo.id};
   _i2Close();
@@ -13713,13 +13731,14 @@ function waSubsModal(idx){
         +'<button id="ws-mode-s" style="padding:5px 12px;border-radius:0 100px 100px 0;border:1px solid var(--border);border-left:none;margin-left:-8px;background:'+(a.updMode==='subs'?'var(--font)':'transparent')+';color:'+(a.updMode==='subs'?'var(--bg)':'var(--muted)')+';font-size:.64rem;font-weight:700;cursor:pointer;">por SUB</button>'
         +'</div>'
         +'<div style="font-size:.6rem;color:var(--muted);margin-bottom:10px;">'+(a.updMode==='subs'?'Cada aporte tem histórico próprio; o total do investimento é a soma dos aportes.':'O valor atual é atualizado no total (como hoje); os aportes guardam só valor original e vencimento.')+'</div>';
-      h+='<div style="font-size:.7rem;font-weight:700;color:var(--font);margin-bottom:6px;">Aportes ('+a.subs.length+')</div>';
+      h+='<div style="font-size:.7rem;font-weight:700;color:var(--font);margin-bottom:6px;">Aportes ('+a.subs.length+')</div>'
+        +'<div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) auto;gap:6px;font-size:.55rem;color:var(--muted);margin-bottom:3px;"><span>nome</span><span style="text-align:right;">valor R$</span><span>aplicação</span><span>vencimento</span><span></span></div>';
       a.subs.forEach((sb,i)=>{
         h+='<div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) auto;gap:6px;align-items:center;margin-bottom:6px;">'
           +'<input data-f="nome" data-i="'+i+'" value="'+String(sb.nome||'').replace(/"/g,'&quot;')+'" placeholder="'+subLabelAuto(sb,i).replace(/"/g,'&quot;')+'" style="padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-size:.66rem;background:transparent;color:var(--font);width:100%;min-width:0;box-sizing:border-box;">'
           +'<input data-f="valor" data-i="'+i+'" value="'+(sb.valor||'')+'" placeholder="valor R$" inputmode="decimal" style="padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-size:.66rem;text-align:right;background:transparent;color:var(--font);width:100%;min-width:0;box-sizing:border-box;">'
-          +'<input data-f="dataAplic" data-i="'+i+'" value="'+(sb.dataAplic||'')+'" placeholder="aplic. dd/mm/aaaa" style="padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-size:.62rem;background:transparent;color:var(--font);width:100%;min-width:0;box-sizing:border-box;">'
-          +'<input data-f="vencimento" data-i="'+i+'" value="'+(sb.vencimento||'')+'" placeholder="venc. dd/mm/aaaa" style="padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-size:.62rem;background:transparent;color:var(--font);width:100%;min-width:0;box-sizing:border-box;">'
+          +'<input type="date" data-f="dataAplic" data-i="'+i+'" value="'+_i2ToISO(sb.dataAplic||'')+'" title="data de aplicação" style="padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-size:.62rem;background:transparent;color:var(--font);width:100%;min-width:0;box-sizing:border-box;">'
+          +'<input type="date" data-f="vencimento" data-i="'+i+'" value="'+_i2ToISO(sb.vencimento||'')+'" title="vencimento" style="padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-size:.62rem;background:transparent;color:var(--font);width:100%;min-width:0;box-sizing:border-box;">'
           +'<button data-del="'+i+'" style="border:none;background:transparent;color:var(--red);cursor:pointer;font-size:.85rem;">✕</button>'
           +'</div>';
       });
@@ -13734,7 +13753,7 @@ function waSubsModal(idx){
       box.querySelectorAll('input[data-f]').forEach(inp=>{
         const i=+inp.dataset.i,f=inp.dataset.f;
         if(!a.subs[i])return;
-        a.subs[i][f]=f==='valor'?(parseBRNumber(inp.value.trim())||0):inp.value.trim();
+        a.subs[i][f]=f==='valor'?(parseBRNumber(inp.value.trim())||0):((f==='dataAplic'||f==='vencimento')?_i2FromISO(inp.value.trim()):inp.value.trim());
       });
     };
     const tg=box.querySelector('#ws-tog');
