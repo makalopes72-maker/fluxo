@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#3c3c44,#d95a8f);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FCE1EC !important;}
-  #splash .splash-sub{color:rgba(252,225,236,.65) !important;}
-  #splash .splash-version{color:rgba(252,225,236,.35) !important;}
-  #splash .splash-btn{background:#FCE1EC !important;color:#3c3c44 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FCE1EC !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#5b3a29,#8fd3e0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E6F6F9 !important;}
+  #splash .splash-sub{color:rgba(230,246,249,.65) !important;}
+  #splash .splash-version{color:rgba(230,246,249,.35) !important;}
+  #splash .splash-btn{background:#E6F6F9 !important;color:#5b3a29 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#E6F6F9 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.51';
+const APP_VERSION='18.54';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -10628,7 +10628,7 @@ function _i2Modal(html){const old=document.getElementById('wi2-ov');if(old)old.r
 function _i2Close(){const o=document.getElementById('wi2-ov');if(o)o.remove();}
 function _i2Sel(){const s=waI2();if(!s.sel)return null;const inst=(instituicoes||[]).find(i=>i.name===s.sel.inst);if(!inst)return null;const a=(getInstAtivos(inst)||[]).find(x=>x.id===s.sel.id)||null;return a?{inst,a,idx:getInstAtivos(inst).indexOf(a),ii:instituicoes.indexOf(inst)}:null;}
 function _i2Ctx(){const r=_i2Sel();if(!r)return null;waInvInstIdx=r.ii;return r;} // sincroniza o contexto usado pelas funções legadas
-function waInv2Set(k,v){waI2()[k]=v;waInv2Render();}
+function waInv2Set(k,v){const s=waI2();s[k]=v;if(k==='reorder'&&v){s.sort='manual';if(s.inst==='*'&&(instituicoes||[]).length)s.inst=instituicoes[0].name;}waInv2Render();}
 function waInv2Pick(inst,id){const s=waI2();s.sel={inst,id};waInv2Render();}
 function waInv2Q(v){waI2().q=v;waInv2RenderTable();}
 
@@ -10725,6 +10725,7 @@ function _waInv2Render(){
     +'<button class="wi2-tab '+(s.tab==='enc'?'on':'')+'" onclick="waInv2Set(\'tab\',\'enc\')">Encerrados · '+allAtivos.filter(x=>x.a.encerrado&&(s.inst==='*'||x.inst.name===s.inst)).length+'</button></div>'
     +'<div class="wi2-tools"><input id="wi2-q" placeholder="buscar ativo…" value="'+_i2Esc(s.q)+'" oninput="waInv2Q(this.value)">'
     +'<select onchange="waInv2Set(\'sort\',this.value)"><option value="venc"'+(s.sort==='venc'?' selected':'')+'>ordenar: vencimento</option><option value="atual"'+(s.sort==='atual'?' selected':'')+'>ordenar: valor atual</option><option value="rend"'+(s.sort==='rend'?' selected':'')+'>ordenar: rendimento</option><option value="nome"'+(s.sort==='nome'?' selected':'')+'>ordenar: nome</option><option value="manual"'+(s.sort==='manual'?' selected':'')+'>ordem manual</option></select></div></div>'
+    +(s.reorder?'<div style="padding:6px 12px;font-size:10.5px;color:#1565C0;background:#EEF3FA;border-bottom:1px solid #E4E2DA;">Modo ordenar: arraste as linhas pelo ⠿ ou use ▲▼ · a ordem é gravada na planilha · clique em “✓ concluir” ao terminar</div>':'')
     +'<div id="wi2-tbl"></div></div>'
     +'<div class="wi2-panel"><div id="wi2-det" class="wi2-det"></div></div></div></div>';
   const body=document.getElementById('wa-center-body');if(body)body.innerHTML=h;
@@ -10750,13 +10751,22 @@ function waInv2RenderTable(){
   l.forEach(x=>{const a=x.a;const at=_i2Atual(a),apv=_i2Aplic(a),r=at-apv,p=apv?r/apv*100:0;
     const isSel=s.sel&&s.sel.inst===x.inst.name&&s.sel.id===a.id;
     const nm=_i2Esc(x.inst.name).replace(/'/g,"\\'");
-    h+='<tr class="r '+(isSel?'sel':'')+'" onclick="waInv2Pick(\''+nm+'\',\''+_i2Esc(a.id).replace(/'/g,"\\'")+'\')">'
-      +'<td><div class="wi2-nm">'+(a.composto?'🧩 ':'')+_i2Esc(a.nome)+'</div><div class="wi2-sub">'+(s.inst==='*'?_i2Esc(x.inst.name)+' · ':'')+(a.composto?'composto · '+((a.subs||[]).length)+' aportes · '+(a.updMode==='subs'?'por sub':'pelo total'):_i2Esc(a.classe||'')+(a.taxa?' · '+_i2Esc(a.taxa):''))
+    const dragAttrs=(s.reorder&&s.inst!=='*')?' draggable="true" ondragstart="waInv2DragStart(event,'+x.ai+')" ondragover="event.preventDefault();this.style.outline=\'2px dashed #1565C0\'" ondragleave="this.style.outline=\'\'" ondrop="this.style.outline=\'\';waInv2Drop(event,'+x.ai+')"':'';
+    h+='<tr class="r '+(isSel?'sel':'')+'"'+dragAttrs+' onclick="waInv2Pick(\''+nm+'\',\''+_i2Esc(a.id).replace(/'/g,"\\'")+'\')">'
+      +'<td>'+((s.reorder&&s.inst!=='*')?'<span style="cursor:grab;color:#B9B7AE;margin-right:6px;font-size:13px;" title="arraste para reordenar">⠿</span>':'')+'<div class="wi2-nm" style="display:inline-block;">'+(a.composto?'🧩 ':'')+_i2Esc(a.nome)+'</div><div class="wi2-sub">'+(s.inst==='*'?_i2Esc(x.inst.name)+' · ':'')+(a.composto?'composto · '+((a.subs||[]).length)+' aportes · '+(a.updMode==='subs'?'por sub':'pelo total'):_i2Esc(a.classe||'')+(a.taxa?' · '+_i2Esc(a.taxa):''))
       +(s.reorder&&s.inst!=='*'?' <span class="wi2-reord"><button onclick="event.stopPropagation();waInv2MoveAtivo(\''+nm+'\','+x.ai+',-1)">▲</button><button onclick="event.stopPropagation();waInv2MoveAtivo(\''+nm+'\','+x.ai+',1)">▼</button></span>':'')+'</div></td>'
       +'<td class="wi2-mute">'+_i2R(apv).replace('R$ ','')+'</td><td><b>'+_i2R(at).replace('R$ ','')+'</b></td>'
       +'<td class="'+(r>=0?'wi2-pos':'wi2-neg')+'">'+(r>=0?'+':'−')+Math.abs(p).toFixed(1)+'%</td>'
       +'<td class="'+_i2VencCls(a)+'" style="padding-right:12px;">'+_i2VencTxt(a)+'</td></tr>';});
   el.innerHTML=h+'</table>';
+}
+function waInv2DragStart(e,ai){window._i2Drag=ai;e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',String(ai));}catch(x){}}
+function waInv2Drop(e,toIdx){
+  e.preventDefault();const from=window._i2Drag;window._i2Drag=null;
+  if(from===null||from===undefined||from===toIdx)return;
+  const s=waI2();const inst=(instituicoes||[]).find(i=>i.name===s.inst);if(!inst)return;
+  const arr=getInstAtivos(inst);const item=arr.splice(from,1)[0];arr.splice(toIdx,0,item);
+  s.sort='manual';saveInvestimentos();waInv2Render();
 }
 function waInv2MoveAtivo(instName,ai,dir){
   const inst=(instituicoes||[]).find(i=>i.name===instName);if(!inst)return;
@@ -13942,7 +13952,7 @@ function _subsRender(){
   const isSubsMode=a.updMode==='subs';
   const t=new Date();const iso=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
   const inp='padding:6px 8px;border:1px solid #D8D6CC;border-radius:8px;font-size:12px;background:#fff;color:var(--font);font-family:var(--font-body);width:100%;min-width:0;box-sizing:border-box;';
-  const cols='minmax(0,1.4fr) minmax(0,1fr) 128px 128px 56px';
+  const money=inp+'text-align:right;font-variant-numeric:tabular-nums;';
   let h='<h3>Investimento composto</h3><div class="m">'+_i2Esc(a.nome)+'</div>'
     +'<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">'
     +'<div style="display:flex;gap:6px;align-items:center;"><span style="font-size:11px;color:var(--muted);">Composto</span><div class="wi2-seg"><button class="'+(a.composto?'':'on')+'" onclick="_subsCollect();_subsA().a.composto=false;_subsRender()">não</button><button class="'+(a.composto?'on':'')+'" onclick="_subsCollect();_subsA().a.composto=true;if(!_subsA().a.updMode)_subsA().a.updMode=\'total\';_subsRender()">sim</button></div></div>';
@@ -13950,38 +13960,61 @@ function _subsRender(){
     h+='<div style="display:flex;gap:6px;align-items:center;"><span style="font-size:11px;color:var(--muted);">Atualização</span><div class="wi2-seg"><button class="'+(!isSubsMode?'on':'')+'" onclick="_subsCollect();_subsA().a.updMode=\'total\';_subsRender()">pelo total</button><button class="'+(isSubsMode?'on':'')+'" onclick="_subsCollect();_subsA().a.updMode=\'subs\';_subsRender()">por sub</button></div></div>';
   }
   h+='</div>';
-  if(a.composto){
-    h+='<div class="wi2-hint">'+(isSubsMode?'Cada aporte tem histórico próprio (clique em 📈 para lançar valores); o total do investimento é a soma dos aportes.':'O valor atual é atualizado no total; os aportes guardam valor original e vencimento (para o aviso de “vence em”).')+'</div>';
-    h+='<div style="display:grid;grid-template-columns:'+cols+';gap:6px;font-size:10px;color:var(--muted);margin-bottom:4px;"><span>aporte</span><span style="text-align:right;">valor original R$</span><span>aplicação</span><span>vencimento</span><span></span></div>';
-    // linha nova (topo)
-    h+='<div style="display:grid;grid-template-columns:'+cols+';gap:6px;align-items:center;margin-bottom:6px;background:#EEF3FA;border-radius:8px;padding:4px;">'
-      +'<input id="sb-new-nome" placeholder="Aporte '+(a.subs.length+1)+'" style="'+inp+'">'
-      +'<input id="sb-new-valor" inputmode="numeric" placeholder="0,00" oninput="_i2Money(this)" style="'+inp+'text-align:right;font-weight:700;">'
-      +'<input type="date" id="sb-new-da" value="'+iso+'" style="'+inp+'">'
-      +'<input type="date" id="sb-new-venc" style="'+inp+'">'
-      +'<span style="font-size:10px;color:#1565C0;text-align:center;">novo</span></div>';
-    // aportes existentes (mais recente primeiro)
+  if(a.composto&&!isSubsMode){
+    // ── MODO TOTAL: lista/planilha de aportes ──
+    const cols='minmax(0,1fr) 150px 132px 132px 40px';
+    h+='<div class="wi2-hint">O valor atual é atualizado no total do investimento; os aportes guardam valor original e vencimento (para o aviso de “vence em”).</div>'
+      +'<div style="display:grid;grid-template-columns:'+cols+';gap:6px;font-size:10px;color:var(--muted);margin-bottom:4px;"><span>aporte</span><span style="text-align:right;">valor original R$</span><span>aplicação</span><span>vencimento</span><span></span></div>'
+      +'<div style="display:grid;grid-template-columns:'+cols+';gap:6px;align-items:center;margin-bottom:6px;background:#EEF3FA;border-radius:8px;padding:4px;">'
+      +'<input id="sb-new-nome" placeholder="Aporte '+(a.subs.length+1)+'" style="'+inp+'"><input id="sb-new-valor" inputmode="numeric" placeholder="0,00" oninput="_i2Money(this)" style="'+money+'font-weight:700;"><input type="date" id="sb-new-da" value="'+iso+'" style="'+inp+'"><input type="date" id="sb-new-venc" style="'+inp+'"><span style="font-size:10px;color:#1565C0;text-align:center;">novo</span></div>';
     const order=a.subs.map((sb,k)=>({sb,k})).sort((p,q)=>(parseDate(normDateBR(q.sb.dataAplic))||0)-(parseDate(normDateBR(p.sb.dataAplic))||0));
     order.forEach(({sb,k})=>{
-      const last=(sb.log&&sb.log.length)?sb.log[sb.log.length-1].value:null;
       h+='<div style="display:grid;grid-template-columns:'+cols+';gap:6px;align-items:center;margin-bottom:4px;" data-sub="'+k+'">'
-        +'<div style="min-width:0;"><input data-f="nome" value="'+_i2Esc(sb.nome)+'" style="'+inp+'">'+(isSubsMode?'<div style="font-size:10px;color:#8A8A82;margin:2px 0 0 4px;">atual: '+(last!==null?_i2R2(last):'—')+' · '+((sb.log||[]).length)+' lanç.</div>':'')+'</div>'
-        +'<input data-f="valor" inputmode="numeric" value="'+_i2MoneyInit(sb.valor)+'" data-raw="'+Number(sb.valor||0)+'" oninput="_i2Money(this)" style="'+inp+'text-align:right;">'
-        +'<input type="date" data-f="da" value="'+_i2ToISO(sb.dataAplic)+'" style="'+inp+'">'
-        +'<input type="date" data-f="venc" value="'+_i2ToISO(sb.vencimento)+'" style="'+inp+'">'
-        +'<div style="display:flex;gap:2px;justify-content:center;">'
-        +(isSubsMode?'<button onclick="_subsOpenLanc('+k+')" title="lançamentos deste aporte" style="border:none;background:transparent;cursor:pointer;font-size:13px;">📈</button>':'')
-        +'<button onclick="_subsRemove('+k+')" title="remover aporte" style="border:none;background:transparent;color:#C62828;cursor:pointer;font-size:13px;">✕</button></div></div>';
+        +'<input data-f="nome" value="'+_i2Esc(sb.nome)+'" style="'+inp+'"><input data-f="valor" inputmode="numeric" value="'+_i2MoneyInit(sb.valor)+'" data-raw="'+Number(sb.valor||0)+'" oninput="_i2Money(this)" style="'+money+'"><input type="date" data-f="da" value="'+_i2ToISO(sb.dataAplic)+'" style="'+inp+'"><input type="date" data-f="venc" value="'+_i2ToISO(sb.vencimento)+'" style="'+inp+'">'
+        +'<button onclick="_subsRemove('+k+')" title="remover aporte" style="border:none;background:transparent;color:#C62828;cursor:pointer;font-size:13px;">✕</button></div>';
     });
     if(!a.subs.length)h+='<div class="wi2-mute" style="font-size:11px;padding:4px 0 8px;">Nenhum aporte ainda — preencha a linha azul e salve.</div>';
   }
+  if(a.composto&&isSubsMode){
+    // ── MODO POR SUB: uma aba por aporte, cada uma com seus dados e sua planilha de lançamentos ──
+    if(window._subsTab===undefined||window._subsTab>=a.subs.length)window._subsTab=0;
+    const si=window._subsTab;const sb=a.subs[si]||null;
+    h+='<div class="wi2-hint">Cada aporte tem histórico próprio, acompanhado mês a mês; o total do investimento é a soma dos aportes.</div>'
+      +'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;">'
+      +a.subs.map((x,k)=>'<button class="wi2-tab '+(k===si?'on':'')+'" onclick="_subsCollect();window._subsTab='+k+';_subsRender()">'+_i2Esc(x.nome||('Aporte '+(k+1)))+'</button>').join('')
+      +'<button class="wi2-tab" style="border-style:dashed;" onclick="_subsCollect();_subsA().a.subs.push({id:\'sub_\'+Date.now(),nome:\'Aporte \'+(_subsA().a.subs.length+1),valor:0,dataAplic:\''+_i2FromISO(iso)+'\',vencimento:\'\',log:[]});window._subsTab=_subsA().a.subs.length-1;_subsRender()">＋ novo aporte</button></div>';
+    if(sb){
+      const cf='minmax(0,1fr) 150px 132px 132px auto';
+      h+='<div style="border:1px solid #E4E2DA;border-radius:10px;padding:10px 12px;margin-bottom:10px;background:#fff;" data-subtab="'+si+'">'
+        +'<div style="display:grid;grid-template-columns:'+cf+';gap:6px;font-size:10px;color:var(--muted);margin-bottom:3px;"><span>nome do aporte</span><span style="text-align:right;">valor original R$</span><span>aplicação</span><span>vencimento</span><span></span></div>'
+        +'<div style="display:grid;grid-template-columns:'+cf+';gap:6px;align-items:center;">'
+        +'<input id="sb-nome" value="'+_i2Esc(sb.nome)+'" style="'+inp+'"><input id="sb-valor" inputmode="numeric" value="'+_i2MoneyInit(sb.valor)+'" data-raw="'+Number(sb.valor||0)+'" oninput="_i2Money(this)" style="'+money+'"><input type="date" id="sb-da" value="'+_i2ToISO(sb.dataAplic)+'" style="'+inp+'"><input type="date" id="sb-venc" value="'+_i2ToISO(sb.vencimento)+'" style="'+inp+'">'
+        +'<button onclick="_subsRemove('+si+')" title="remover este aporte" style="border:1px solid #f3b9b4;background:transparent;color:#C62828;border-radius:8px;padding:5px 9px;font-size:11px;cursor:pointer;white-space:nowrap;">✕ remover</button></div></div>';
+      if(!sb.log)sb.log=[];
+      const sorted=[...sb.log].map((x,k)=>({x,k})).sort((p,q)=>(parseDate(q.x.date)||0)-(parseDate(p.x.date)||0));
+      const cl='140px 150px minmax(0,1fr) 28px';
+      h+='<div class="wi2-h">Lançamentos de '+_i2Esc(sb.nome)+' · '+sorted.length+' registro'+(sorted.length===1?'':'s')+'</div>'
+        +'<div style="display:grid;grid-template-columns:'+cl+';gap:6px;font-size:10px;color:var(--muted);margin-bottom:4px;"><span>data</span><span style="text-align:right;">valor R$</span><span>nota</span><span></span></div>'
+        +'<div style="display:grid;grid-template-columns:'+cl+';gap:6px;align-items:center;margin-bottom:6px;background:#EEF3FA;border-radius:8px;padding:4px;">'
+        +'<input type="date" id="sb-new-d" value="'+iso+'" style="'+inp+'"><input id="sb-new-v" inputmode="numeric" placeholder="0,00" oninput="_i2Money(this)" style="'+money+'font-weight:700;"><input id="sb-new-n" value="Atualização" style="'+inp+'"><span style="font-size:10px;color:#1565C0;text-align:center;">novo</span></div>';
+      sorted.forEach(({x,k})=>{
+        h+='<div style="display:grid;grid-template-columns:'+cl+';gap:6px;align-items:center;margin-bottom:4px;" data-srow="'+k+'">'
+          +'<input type="date" data-f="date" value="'+_i2ToISO(x.date)+'" style="'+inp+'"><input data-f="value" inputmode="numeric" value="'+_i2MoneyInit(x.value)+'" data-raw="'+Number(x.value||0)+'" oninput="_i2Money(this)" style="'+money+'"><input data-f="note" value="'+_i2Esc(x.note||'')+'" style="'+inp+'">'
+          +'<button onclick="_subsDelRow('+k+')" style="border:none;background:transparent;color:#C62828;cursor:pointer;font-size:13px;">✕</button></div>';
+      });
+      if(!sorted.length)h+='<div class="wi2-mute" style="font-size:11px;padding:4px 0 8px;">Nenhum lançamento ainda — preencha a linha azul e salve.</div>';
+    } else h+='<div class="wi2-mute" style="font-size:11px;padding:6px 0 10px;">Nenhum aporte — use “＋ novo aporte”.</div>';
+  }
   h+='<div class="wi2-mf"><button class="wi2-btn" onclick="_i2Close();if(typeof waActiveDashRender===\'function\')waActiveDashRender();">Fechar</button><button class="wi2-btn p" onclick="_subsSave()">Salvar</button></div>';
   _i2Modal(h);
+  const _mb=document.querySelector('#wi2-ov .wi2-mod');if(_mb)_mb.style.width='min(860px,96vw)';
   if(!document.getElementById('wi2-seg-style')){const st=document.createElement('style');st.id='wi2-seg-style';st.textContent='.wi2-seg{display:inline-flex;border:1px solid #D8D6CC;border-radius:100px;overflow:hidden;}.wi2-seg button{border:none;background:transparent;padding:5px 12px;font-size:11px;color:#8A8A82;cursor:pointer;font-family:var(--font-body);}.wi2-seg button.on{background:#1a1a1a;color:#fff;}';document.head.appendChild(st);}
 }
-// lê a planilha de aportes para o objeto (linhas existentes + linha nova)
+// lê o que está na tela para o objeto (funciona nos dois layouts: lista e abas)
 function _subsCollect(){
   const r=_subsA();if(!r)return;const a=r.a;
+  const g=id=>document.getElementById(id);
+  // layout LISTA (modo total)
   document.querySelectorAll('#wi2-ov [data-sub]').forEach(row=>{
     const k=+row.dataset.sub;const sb=a.subs[k];if(!sb)return;
     const nm=(row.querySelector('[data-f=nome]').value||'').trim();if(nm)sb.nome=nm;
@@ -13989,35 +14022,38 @@ function _subsCollect(){
     sb.dataAplic=_i2FromISO(row.querySelector('[data-f=da]').value.trim());
     sb.vencimento=_i2FromISO(row.querySelector('[data-f=venc]').value.trim());
   });
-  const nv=document.getElementById('sb-new-valor');
-  if(nv&&nv.dataset.raw){
-    const nome=(document.getElementById('sb-new-nome').value||'').trim()||('Aporte '+(a.subs.length+1));
-    const da=_i2FromISO(document.getElementById('sb-new-da').value.trim());
-    const venc=_i2FromISO(document.getElementById('sb-new-venc').value.trim());
-    const valor=parseFloat(nv.dataset.raw);
-    const sb={id:'sub_'+Date.now(),nome,valor,dataAplic:da,vencimento:venc,log:[]};
-    if(a.updMode==='subs'&&da&&valor>0){
-      sb.log.push({date:da,value:valor,note:'Aplicação inicial'});
-      (window._subsPending=window._subsPending||[]).push({inst:r.inst.name,nome:a.nome+' » '+nome,entry:sb.log[0]});
+  if(g('sb-new-valor')&&g('sb-new-valor').dataset.raw){
+    const nome=(g('sb-new-nome').value||'').trim()||('Aporte '+(a.subs.length+1));
+    a.subs.push({id:'sub_'+Date.now(),nome,valor:parseFloat(g('sb-new-valor').dataset.raw),dataAplic:_i2FromISO(g('sb-new-da').value.trim()),vencimento:_i2FromISO(g('sb-new-venc').value.trim()),log:[]});
+  }
+  // layout ABAS (modo por sub): aba atual
+  const tab=document.querySelector('#wi2-ov [data-subtab]');
+  if(tab){
+    const si=+tab.dataset.subtab;const sb=a.subs[si];
+    if(sb){
+      if(g('sb-nome'))sb.nome=(g('sb-nome').value||'').trim()||sb.nome||('Aporte '+(si+1));
+      if(g('sb-valor')){const raw=g('sb-valor').dataset.raw;sb.valor=(raw!==undefined&&raw!=='')?parseFloat(raw):(parseBRNumber(g('sb-valor').value)||0);}
+      if(g('sb-da'))sb.dataAplic=_i2FromISO(g('sb-da').value.trim());
+      if(g('sb-venc'))sb.vencimento=_i2FromISO(g('sb-venc').value.trim());
+      if(!sb.log)sb.log=[];
+      document.querySelectorAll('#wi2-ov [data-srow]').forEach(row=>{
+        const k=+row.dataset.srow;const x=sb.log[k];if(!x)return;
+        const d=_i2FromISO(row.querySelector('[data-f=date]').value.trim());const vEl=row.querySelector('[data-f=value]');
+        const v=(vEl.dataset.raw!==undefined&&vEl.dataset.raw!=='')?parseFloat(vEl.dataset.raw):parseBRNumber(vEl.value.trim());
+        if(d)x.date=d;if(!isNaN(v))x.value=v;x.note=row.querySelector('[data-f=note]').value.trim();
+      });
+      const nv=g('sb-new-v');
+      if(nv&&nv.dataset.raw){
+        const entry={date:_i2FromISO(g('sb-new-d').value.trim())||normDateBR(new Date().toISOString()),value:parseFloat(nv.dataset.raw),note:(g('sb-new-n').value||'').trim()||'Atualização'};
+        sb.log.push(entry);
+        (window._subsPending=window._subsPending||[]).push({inst:r.inst.name,nome:a.nome+' » '+sb.nome,entry});
+      }
+      sb.log.sort((p,q)=>(parseDate(p.date)||0)-(parseDate(q.date)||0));
     }
-    a.subs.push(sb);
   }
 }
-// abre a planilha de lançamentos do aporte (mesmo modal de atualização de valores, na aba do aporte)
-function _subsOpenLanc(k){
-  _subsCollect();
-  const r=_subsA();if(!r)return;
-  saveInvestimentos();
-  waInvInstIdx=window._subsInstIdx;
-  const a=r.a;
-  if(waInv2Active()){waI2().sel={inst:r.inst.name,id:a.id};waInv2Upd(k);}
-  else{waInv2UpdFromLegacy(window._subsInstIdx,window._subsIdx,k);}
-}
-function waInv2UpdFromLegacy(ii,ai,k){ // uso a partir da tela Investimentos antiga
-  const inst=instituicoes[ii];const a=getInstAtivos(inst)[ai];if(!a)return;
-  const t=new Date();waDash2SubEdit(ii,ai,k,t.getFullYear(),t.getMonth());
-}
-function _subsRemove(k){const r=_subsA();if(!r)return;const sb=r.a.subs[k];if(!sb)return;if((sb.log||[]).length&&!confirm('Este aporte tem histórico de valores. Remover mesmo assim?'))return;_subsCollect();r.a.subs.splice(k,1);_subsRender();}
+function _subsDelRow(k){const r=_subsA();if(!r)return;const sb=r.a.subs[window._subsTab||0];if(!sb||!sb.log[k])return;if(!confirm('Excluir o lançamento de '+normDateBR(sb.log[k].date)+'?'))return;_subsCollect();sb.log.splice(k,1);_subsRender();}
+function _subsRemove(k){const r=_subsA();if(!r)return;const sb=r.a.subs[k];if(!sb)return;if((sb.log||[]).length&&!confirm('Este aporte tem histórico de valores. Remover mesmo assim?'))return;_subsCollect();r.a.subs.splice(k,1);window._subsTab=Math.max(0,k-1);_subsRender();}
 async function _subsSave(){
   const r=_subsA();if(!r)return;const a=r.a;
   _subsCollect();
