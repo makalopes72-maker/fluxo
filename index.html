@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#2e3a4d,#a86478);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F5DCE3 !important;}
-  #splash .splash-sub{color:rgba(245,220,227,.65) !important;}
-  #splash .splash-version{color:rgba(245,220,227,.35) !important;}
-  #splash .splash-btn{background:#F5DCE3 !important;color:#2e3a4d !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F5DCE3 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#8c2f1b,#c2a878);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F7EDD8 !important;}
+  #splash .splash-sub{color:rgba(247,237,216,.65) !important;}
+  #splash .splash-version{color:rgba(247,237,216,.35) !important;}
+  #splash .splash-btn{background:#F7EDD8 !important;color:#8c2f1b !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F7EDD8 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.39';
+const APP_VERSION='18.40';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6332,6 +6332,26 @@ async function loadInvFromSheets(){
         }
       });
     });
+    // AUTOCURA: se o Sheets não trouxe NENHUM ativo deste usuário mas o dispositivo
+    // tem cadastro local (ou o backup pré-sync), NÃO sobrescreve o local com vazio —
+    // mantém os dados e re-grava o cadastro no Sheets (a escrita agora mescla por usuário).
+    const _sheetCount=Object.values(userAtivos).reduce((s,a)=>s+a.length,0);
+    if(_sheetCount===0){
+      let localFull=null;
+      try{localFull=JSON.parse(localStorage.getItem('fluxo_ativos_'+user)||'null');}catch(e){}
+      if(!localFull||!Object.values(localFull).some(a=>a&&a.length)){
+        try{localFull=JSON.parse(localStorage.getItem('fluxo_ativos_backup_'+user)||'null');}catch(e){}
+      }
+      if(localFull&&Object.values(localFull).some(a=>a&&a.length)){
+        ativosPorUser[user]=localFull;
+        localStorage.setItem('fluxo_ativos_'+user,JSON.stringify(localFull));
+        if(typeof toast==='function')toast('↻ Cadastro de investimentos ausente no Sheets — restaurando a partir deste dispositivo','');
+        try{pushToSheets('inv');}catch(e){console.error('autocura inv',e);}
+        renderInv();
+        if(document.getElementById('wai-inst-list'))waInvRenderInst();
+        return;
+      }
+    }
     ativosPorUser[user]=userAtivos;
     localStorage.setItem('fluxo_ativos_'+user,JSON.stringify(userAtivos));
     renderInv();
@@ -6481,28 +6501,44 @@ async function pushToSheets(dataset){
       const rows=[['ID','Nome','Icone'],...instituicoes.map(i=>[i.id||i.name,i.name,i.icon||'🏦'])];
       res=await sheetsWriteSafe('Instituições', rows);
     } else if(dataset==='inv'){
-      // Reescreve APENAS o cadastro de ativos (aba Investimentos), em 1 POST atômico.
-      // InvestimentosLog NUNCA é tocado aqui — logs são gravados individualmente
-      // via sheetsAppendLog no momento da criação (regra permanente, ver doc §5.4).
+      // REGRA CRÍTICA (incidente 30/08/26): a aba Investimentos guarda as carteiras
+      // de TODOS os usuários. A reescrita precisa MESCLAR: lê o cadastro atual,
+      // preserva as linhas dos OUTROS usuários e substitui apenas as do usuário logado.
+      // Se a leitura falhar, NÃO grava nada (proteção contra apagar a carteira alheia).
+      // InvestimentosLog NUNCA é tocado aqui — logs via sheetsAppendLog (doc §5.4).
       const user=currentUser||'ALE';
-      const rows=[['Usuário','Instituição','Nome','Classe','Tipo','Aplicado','Atual','Indexador','Taxa','DataAplic','Vencimento','Liquidez','Garantia','IR','Obs','Encerrado']];
-      instituicoes.forEach(inst=>{
-        (getInstAtivos(inst)||[]).forEach(a=>{
-          const cur=a.log&&a.log.length?a.log[a.log.length-1].value:a.aplicado;
-          rows.push([
-            user, inst.name, a.nome, a.classe||'', a.tipo||'',
-            a.aplicado||0, cur,
-            a.indexador||'', a.taxa||'',
-            a.dataAplic||'', a.vencimento||'',
-            a.liquidez||'', a.garantia||'',
-            a.ir||'', a.obs||'',
-            a.encerrado?'Sim':'Não'
-          ]);
+      const header=['Usuário','Instituição','Nome','Classe','Tipo','Aplicado','Atual','Indexador','Taxa','DataAplic','Vencimento','Liquidez','Garantia','IR','Obs','Encerrado'];
+      let others=null;
+      try{
+        const cur=await sheetsRead(SHEETS.investimentos);
+        if(cur&&cur.ok&&Array.isArray(cur.data)){
+          others=cur.data.filter((r,i)=>{
+            const u=String((r&&r[0])||'').trim();
+            if(i===0&&u==='Usuário')return false; // cabeçalho
+            return u&&u!==user;
+          });
+        }
+      }catch(e){console.error('[inv merge] leitura falhou',e);}
+      if(others===null){
+        res={ok:false,error:'não foi possível ler o cadastro atual — gravação ABORTADA para proteger as carteiras dos outros usuários'};
+      } else {
+        const rows=[header,...others];
+        instituicoes.forEach(inst=>{
+          (getInstAtivos(inst)||[]).forEach(a=>{
+            const cur=a.log&&a.log.length?a.log[a.log.length-1].value:a.aplicado;
+            rows.push([
+              user, inst.name, a.nome, a.classe||'', a.tipo||'',
+              a.aplicado||0, cur,
+              a.indexador||'', a.taxa||'',
+              a.dataAplic||'', a.vencimento||'',
+              a.liquidez||'', a.garantia||'',
+              a.ir||'', a.obs||'',
+              a.encerrado?'Sim':'Não'
+            ]);
+          });
         });
-      });
-      res=await sheetsWriteSafe(SHEETS.investimentos, rows);
-      // Saldos de conta corrente: modelo mensal via ccUpsert (aba ContaCorrente).
-      // A escrita legada na aba fantasma "ContasCorrente" foi removida.
+        res=await sheetsWriteSafe(SHEETS.investimentos, rows);
+      }
     } else if(dataset==='accounts'){
       res=await sheetsWriteSafe(SHEETS.contas, serializeKV({accounts}));
     } else if(dataset==='pastas'){
@@ -6512,11 +6548,27 @@ async function pushToSheets(dataset){
     } else if(dataset==='kw'){
       res=await sheetsWriteSafe(SHEETS.keywords, serializeKV({keywords:keywordsData}));
     } else if(dataset==='bens'){
+      // Mesma regra de MESCLA da aba Investimentos: preserva os bens dos outros usuários.
       const u=currentUser||'ALE';
-      const bens=bensData[u]||[];
-      const rows=[['Usuário','Nome','Data','Valor','Nota']];
-      bens.forEach(b=>(b.log||[]).forEach(l=>rows.push([u,b.nome,l.date,l.value,l.note||''])));
-      res=await sheetsWriteSafe(SHEETS.bens, rows);
+      let othersB=null;
+      try{
+        const cur=await sheetsRead(SHEETS.bens);
+        if(cur&&cur.ok&&Array.isArray(cur.data)){
+          othersB=cur.data.filter((r,i)=>{
+            const ru=String((r&&r[0])||'').trim();
+            if(i===0&&ru==='Usuário')return false;
+            return ru&&ru!==u;
+          });
+        }
+      }catch(e){console.error('[bens merge] leitura falhou',e);}
+      if(othersB===null){
+        res={ok:false,error:'não foi possível ler a aba Bens — gravação ABORTADA para proteger os dados dos outros usuários'};
+      } else {
+        const bens=bensData[u]||[];
+        const rows=[['Usuário','Nome','Data','Valor','Nota'],...othersB];
+        bens.forEach(b=>(b.log||[]).forEach(l=>rows.push([u,b.nome,l.date,l.value,l.note||''])));
+        res=await sheetsWriteSafe(SHEETS.bens, rows);
+      }
     }
     // Superfície de erro: falha de escrita nunca é silenciosa
     if(res&&res.ok===false){
