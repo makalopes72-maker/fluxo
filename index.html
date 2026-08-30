@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#2b2b2b,#b8865f);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F2DFC9 !important;}
-  #splash .splash-sub{color:rgba(242,223,201,.65) !important;}
-  #splash .splash-version{color:rgba(242,223,201,.35) !important;}
-  #splash .splash-btn{background:#F2DFC9 !important;color:#2b2b2b !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F2DFC9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#134e4a,#c97b4a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FCE3D1 !important;}
+  #splash .splash-sub{color:rgba(252,227,209,.65) !important;}
+  #splash .splash-version{color:rgba(252,227,209,.35) !important;}
+  #splash .splash-btn{background:#FCE3D1 !important;color:#134e4a !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FCE3D1 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.42';
+const APP_VERSION='18.43';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3947,10 +3947,12 @@ async function loadData(){
     })).filter(r=>r.date);
     allData=[...allData,...newRows];
     if(!allData.length)seedDemo();
-    // carga silenciosa dos anos anteriores em segundo plano (não bloqueia o uso)
+    // carga silenciosa dos anos anteriores em segundo plano (não bloqueia o uso).
+    // Começa 20s após o boot (deixa os syncs iniciais terminarem) — cada ano é uma
+    // leitura pesada da aba Transações, então o espaçamento evita congestionar o Apps Script.
     if(!window._bgSched&&!window._bgYearLoad){
       window._bgSched=true;
-      setTimeout(()=>{try{waBgLoadPrevYears();}catch(e){console.warn('bg years',e);}},5000);
+      setTimeout(()=>{try{waBgLoadPrevYears();}catch(e){console.warn('bg years',e);}},20000);
     }
     // Load preferences from Sheets
     try{
@@ -10672,13 +10674,15 @@ async function waBgLoadPrevYears(){
     const orig=syncYears.slice();
     window._bgYearLoad=true;
     syncYears=[y];
-    try{await loadData();}catch(e){console.warn('bg load',y,e);}
+    let failed=false;
+    try{await loadData();}catch(e){console.warn('bg load',y,e);failed=true;}
     syncYears=orig;
     window._bgYearLoad=false;
+    if(failed)break; // backend lento/congestionado: desiste em silêncio, tenta na próxima sessão
     const got=allData.some(t=>{const d=parseDate(t.date);return d&&d.getFullYear()===y;});
     if(!got)break; // ano vazio: não há mais histórico
     loadedAny=true;
-    await new Promise(r=>setTimeout(r,800)); // respiro entre anos
+    await new Promise(r=>setTimeout(r,4000)); // respiro maior entre anos (cada um é uma leitura pesada)
   }
   if(loadedAny){
     // re-render suave da tela ativa preservando a rolagem
