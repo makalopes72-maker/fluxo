@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#12365c,#7ba32a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#EAF5CF !important;}
-  #splash .splash-sub{color:rgba(234,245,207,.65) !important;}
-  #splash .splash-version{color:rgba(234,245,207,.35) !important;}
-  #splash .splash-btn{background:#EAF5CF !important;color:#12365c !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#EAF5CF !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#2b2b2b,#b8865f);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F2DFC9 !important;}
+  #splash .splash-sub{color:rgba(242,223,201,.65) !important;}
+  #splash .splash-version{color:rgba(242,223,201,.35) !important;}
+  #splash .splash-btn{background:#F2DFC9 !important;color:#2b2b2b !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F2DFC9 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.41';
+const APP_VERSION='18.42';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6516,9 +6516,9 @@ async function pushToSheets(dataset){
       const header=['Usuário','Instituição','Nome','Classe','Tipo','Aplicado','Atual','Indexador','Taxa','DataAplic','Vencimento','Liquidez','Garantia','IR','Obs','Encerrado','Composto','ModoAtualiza'];
       let others=null;
       try{
-        const cur=await sheetsRead(SHEETS.investimentos);
-        if(cur&&cur.ok&&Array.isArray(cur.data)){
-          others=cur.data.filter((r,i)=>{
+        const cur=await sheetsRead(SHEETS.investimentos); // retorna ARRAY de linhas; lança em falha
+        if(Array.isArray(cur)){
+          others=cur.filter((r,i)=>{
             const u=String((r&&r[0])||'').trim();
             if(i===0&&u==='Usuário')return false; // cabeçalho
             return u&&u!==user;
@@ -6573,9 +6573,9 @@ async function pushToSheets(dataset){
       const u=currentUser||'ALE';
       let othersB=null;
       try{
-        const cur=await sheetsRead(SHEETS.bens);
-        if(cur&&cur.ok&&Array.isArray(cur.data)){
-          othersB=cur.data.filter((r,i)=>{
+        const cur=await sheetsRead(SHEETS.bens); // retorna ARRAY de linhas; lança em falha
+        if(Array.isArray(cur)){
+          othersB=cur.filter((r,i)=>{
             const ru=String((r&&r[0])||'').trim();
             if(i===0&&ru==='Usuário')return false;
             return ru&&ru!==u;
