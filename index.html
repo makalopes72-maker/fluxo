@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0f2a4a,#e9c46a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFF4CC !important;}
-  #splash .splash-sub{color:rgba(255,244,204,.65) !important;}
-  #splash .splash-version{color:rgba(255,244,204,.35) !important;}
-  #splash .splash-btn{background:#FFF4CC !important;color:#0f2a4a !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFF4CC !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1b3a2a,#e08e79);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FDE4DD !important;}
+  #splash .splash-sub{color:rgba(253,228,221,.65) !important;}
+  #splash .splash-version{color:rgba(253,228,221,.35) !important;}
+  #splash .splash-btn{background:#FDE4DD !important;color:#1b3a2a !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FDE4DD !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.46';
+const APP_VERSION='18.47';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -10809,7 +10809,27 @@ function waInv2RenderDetail(){
 }
 // ── ações ──
 function waInv2Chart(){const r=_i2Ctx();if(!r)return;waInvOpenChartModal(r.idx);}
-function waInv2Del(){const r=_i2Ctx();if(!r)return;waInvApagarAtivo(r.idx);waI2().sel=null;waInv2Render();}
+function waInv2Del(){
+  const r=_i2Ctx();if(!r)return;const a=r.a;
+  const nLogs=(a.log||[]).length+((a.subs||[]).reduce((s,sb)=>s+((sb.log||[]).length),0));
+  const semHistorico=nLogs<=1; // só a aplicação inicial (ou nada): cadastro errado pode ser apagado direto
+  if(!a.encerrado&&!semHistorico){
+    _i2Modal('<h3>Encerre antes de apagar</h3><div class="m">'+_i2Esc(a.nome)+' · '+nLogs+' registros no histórico</div>'
+      +'<div class="wi2-hint">Regra de segurança do app: um investimento com histórico de valores só pode ser apagado depois de <b>encerrado</b>. O encerramento registra o valor final (e a transferência para a conta corrente, se houver) e preserva os meses passados no Quadro.</div>'
+      +'<div class="wi2-mf"><button class="wi2-btn" onclick="_i2Close()">Fechar</button><button class="wi2-btn p" onclick="_i2Close();_i2Ctx();waInvToggleEnc('+r.idx+')">⏹ Encerrar agora</button></div>');
+    return;
+  }
+  _i2Modal('<h3>Apagar investimento?</h3><div class="m">'+_i2Esc(a.nome)+(a.encerrado?' · encerrado':' · sem histórico de valores')+'</div>'
+    +'<div class="wi2-hint">O cadastro é removido das telas'+(a.encerrado?' e do Quadro a partir de agora':'')+'. Os registros já gravados no InvestimentosLog são preservados (regra permanente).</div>'
+    +'<div class="wi2-mf"><button class="wi2-btn" onclick="_i2Close()">Manter</button><button class="wi2-btn danger" onclick="waInv2DelConfirm()">Apagar</button></div>');
+}
+function waInv2DelConfirm(){
+  const r=_i2Ctx();if(!r)return;
+  getInstAtivos(r.inst).splice(r.idx,1);
+  saveInvestimentosFull();
+  _i2Close();waI2().sel=null;waInv2Render();
+  toast('🗑 Investimento apagado — sincronizando…','');
+}
 function waInv2Upd(){
   const r=_i2Sel();if(!r)return;const a=r.a;const last=_i2Atual(a);
   const isUSD=/d[oó]lar|usd/i.test((a.indexador||'')+' '+(a.obs||'')+' '+(a.classe||''));
