@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#5a1f3a,#d9c5a0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F6ECD8 !important;}
-  #splash .splash-sub{color:rgba(246,236,216,.65) !important;}
-  #splash .splash-version{color:rgba(246,236,216,.35) !important;}
-  #splash .splash-btn{background:#F6ECD8 !important;color:#5a1f3a !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F6ECD8 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0f2a4a,#e9c46a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFF4CC !important;}
+  #splash .splash-sub{color:rgba(255,244,204,.65) !important;}
+  #splash .splash-version{color:rgba(255,244,204,.35) !important;}
+  #splash .splash-btn{background:#FFF4CC !important;color:#0f2a4a !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFF4CC !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.45';
+const APP_VERSION='18.46';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6422,6 +6422,7 @@ async function syncAll(manual=false){
       const rows=await sheetsRead(SHEETS.pastas);
       if(rows&&rows.length>0){
         const obj=deserializeKV(rows);
+        if(obj.invOpts&&obj.invOpts.classes){invOpts=obj.invOpts;try{localStorage.setItem('fluxo_invopts',JSON.stringify(invOpts));}catch(e){}}
         if(obj.tiposData&&Object.keys(obj.tiposData).length>0){
           tiposData=obj.tiposData;
           localStorage.setItem('fluxo_tipos',JSON.stringify(tiposData));
@@ -6565,7 +6566,7 @@ async function pushToSheets(dataset){
     } else if(dataset==='accounts'){
       res=await sheetsWriteSafe(SHEETS.contas, serializeKV({accounts}));
     } else if(dataset==='pastas'){
-      res=await sheetsWriteSafe(SHEETS.pastas, serializeKV({tiposData}));
+      res=await sheetsWriteSafe(SHEETS.pastas, serializeKV({tiposData, invOpts:getInvOpts()}));
     } else if(dataset==='prefs'){
       res=await sheetsWriteSafe(SHEETS.preferencias, serializeKV(prefsData));
     } else if(dataset==='kw'){
@@ -6903,7 +6904,7 @@ function waShowCfg(){
   // tab bar
   const tabBar=document.createElement('div');
   tabBar.style.cssText='display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;';
-  const tabs=[['tipografia','🔤 Tipografia Web'],['layout','📐 Layout'],['pastas','🗂 Pastas & Categorias'],['contas','💳 Contas'],['backup','💾 Backup']];
+  const tabs=[['tipografia','🔤 Tipografia Web'],['layout','📐 Layout'],['pastas','🗂 Pastas & Categorias'],['contas','💳 Contas'],['invopts','📈 Investimentos'],['backup','💾 Backup']];
   if(!window.waCfgTab||window.waCfgTab==='aparencia')window.waCfgTab='tipografia';
   tabs.forEach(([id,lbl])=>{
     const b=document.createElement('button');
@@ -6931,6 +6932,8 @@ function waShowCfg(){
     waCfgRenderLayout(content);
   } else if(window.waCfgTab==='contas'){
     waCfgRenderContas(content);
+  } else if(window.waCfgTab==='invopts'){
+    waCfgRenderInvOpts(content);
   } else if(window.waCfgTab==='backup'){
     waCfgRenderBackup(content);
   } else {
@@ -7029,6 +7032,7 @@ async function waBackupExport(){
     backup.local['fluxo_orc']=localStorage.getItem('fluxo_orc');
     backup.local['fluxo_kw']=localStorage.getItem('fluxo_kw');
     backup.local['fluxo_tipos']=localStorage.getItem('fluxo_tipos');
+    backup.local['fluxo_invopts']=localStorage.getItem('fluxo_invopts');
     backup.local['fluxo_quadro_dates']=localStorage.getItem('fluxo_quadro_dates');
     backup.local['fluxo_cc_mensal']=localStorage.getItem('fluxo_cc_mensal');
   }catch(e){}
@@ -7208,6 +7212,63 @@ async function waBackupRestore(){
   say('✓ '+ok+' conjunto(s) restaurado(s)'+(fail?' · '+fail+' com erro':'')+'. Recarregando…', fail?'#E65100':'#059669');
   setTimeout(()=>location.reload(), 2200);
 }
+
+// ---------- Config → Investimentos: listas e sugestões ----------
+function waCfgRenderInvOpts(root){
+  if(!root)return;
+  const o=getInvOpts();
+  const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+  const listBox=(key,title)=>{
+    const items=o[key]||[];
+    let h='<div style="background:#F9F9F9;border-radius:10px;padding:12px 14px;margin-bottom:12px;"><div style="font-size:12px;font-weight:600;color:#1a1a1a;margin-bottom:6px;">'+title+'</div>';
+    items.forEach((it,i)=>{
+      h+='<div style="display:flex;gap:6px;align-items:center;margin-bottom:4px;">'
+        +'<input value="'+esc(it)+'" onchange="waCfgInvRename(\''+key+'\','+i+',this.value)" style="flex:1;min-width:0;padding:5px 8px;border:1px solid #D8D6CC;border-radius:8px;font-size:11px;background:#fff;">'
+        +'<button onclick="waCfgInvRemove(\''+key+'\','+i+')" style="border:none;background:transparent;color:#C62828;cursor:pointer;font-size:13px;">✕</button></div>';
+    });
+    h+='<div style="display:flex;gap:6px;margin-top:6px;"><input id="cfg-inv-new-'+key+'" placeholder="novo item…" style="flex:1;min-width:0;padding:5px 8px;border:1px dashed #D8D6CC;border-radius:8px;font-size:11px;background:#fff;"><button onclick="waCfgInvAdd(\''+key+'\')" style="padding:5px 12px;border-radius:100px;border:1px solid #1a1a1a;background:#1a1a1a;color:#fff;font-size:11px;cursor:pointer;">＋ adicionar</button></div></div>';
+    return h;
+  };
+  const selOpt=(list,cur)=>'<option value="">—</option>'+list.map(x=>'<option value="'+esc(x)+'"'+(x===cur?' selected':'')+'>'+esc(x)+'</option>').join('');
+  let h='<div style="max-width:900px;">'
+    +'<div style="font-size:11px;color:#666;margin-bottom:12px;">Estas listas alimentam os campos de múltipla escolha da tela Investimentos 2.0. Em cada <b>tipo</b> você define a <b>sugestão</b> (indexador, liquidez, garantia e IR) que é preenchida automaticamente ao escolher o tipo — o usuário pode alterar livremente depois. Tudo é gravado na planilha (aba Pastas) e vale para os dois usuários.</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">'
+    +listBox('indexador','Indexadores')+listBox('liquidez','Liquidez')+listBox('garantia','Garantias')+listBox('ir','Tributação (IR)')+'</div>';
+  h+='<div style="font-size:12px;font-weight:600;color:#1a1a1a;margin:14px 0 6px;">Classes, tipos e sugestões</div>';
+  Object.keys(o.classes||{}).forEach(cl=>{
+    h+='<div style="background:#F9F9F9;border-radius:10px;padding:12px 14px;margin-bottom:12px;">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><input value="'+esc(cl)+'" onchange="waCfgInvRenameClasse(\''+esc(cl).replace(/'/g,"\\'")+'\',this.value)" style="font-size:12px;font-weight:600;padding:5px 8px;border:1px solid #D8D6CC;border-radius:8px;background:#fff;min-width:0;flex:1;"><button onclick="waCfgInvRemoveClasse(\''+esc(cl).replace(/'/g,"\\'")+'\')" style="border:none;background:transparent;color:#C62828;cursor:pointer;">✕ classe</button></div>'
+      +'<div style="display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) auto;gap:6px;font-size:10px;color:#888;margin-bottom:3px;"><span>tipo</span><span>indexador</span><span>liquidez</span><span>garantia</span><span>IR</span><span></span></div>';
+    (o.classes[cl]||[]).forEach((t,i)=>{
+      const p=t.preset||{};const st='padding:5px 6px;border:1px solid #D8D6CC;border-radius:8px;font-size:11px;background:#fff;min-width:0;width:100%;';
+      const clE=esc(cl).replace(/'/g,"\\'");
+      h+='<div style="display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) auto;gap:6px;align-items:center;margin-bottom:4px;">'
+        +'<input value="'+esc(t.tipo)+'" onchange="waCfgInvTipo(\''+clE+'\','+i+',\'tipo\',this.value)" style="'+st+'">'
+        +'<select onchange="waCfgInvTipo(\''+clE+'\','+i+',\'indexador\',this.value)" style="'+st+'">'+selOpt(o.indexador,p.indexador)+'</select>'
+        +'<select onchange="waCfgInvTipo(\''+clE+'\','+i+',\'liquidez\',this.value)" style="'+st+'">'+selOpt(o.liquidez,p.liquidez)+'</select>'
+        +'<select onchange="waCfgInvTipo(\''+clE+'\','+i+',\'garantia\',this.value)" style="'+st+'">'+selOpt(o.garantia,p.garantia)+'</select>'
+        +'<select onchange="waCfgInvTipo(\''+clE+'\','+i+',\'ir\',this.value)" style="'+st+'">'+selOpt(o.ir,p.ir)+'</select>'
+        +'<button onclick="waCfgInvRemoveTipo(\''+clE+'\','+i+')" style="border:none;background:transparent;color:#C62828;cursor:pointer;">✕</button></div>';
+    });
+    h+='<div style="display:flex;gap:6px;margin-top:6px;"><input id="cfg-inv-newtipo-'+esc(cl)+'" placeholder="novo tipo nesta classe…" style="flex:1;min-width:0;padding:5px 8px;border:1px dashed #D8D6CC;border-radius:8px;font-size:11px;background:#fff;"><button onclick="waCfgInvAddTipo(\''+esc(cl).replace(/'/g,"\\'")+'\')" style="padding:5px 12px;border-radius:100px;border:1px solid #1a1a1a;background:#1a1a1a;color:#fff;font-size:11px;cursor:pointer;">＋ tipo</button></div></div>';
+  });
+  h+='<div style="display:flex;gap:6px;margin:6px 0 16px;"><input id="cfg-inv-newclasse" placeholder="nova classe…" style="flex:1;min-width:0;padding:6px 8px;border:1px dashed #D8D6CC;border-radius:8px;font-size:11px;background:#fff;"><button onclick="waCfgInvAddClasse()" style="padding:6px 12px;border-radius:100px;border:1px solid #1a1a1a;background:#1a1a1a;color:#fff;font-size:11px;cursor:pointer;">＋ classe</button>'
+    +'<button onclick="if(confirm(\'Voltar às listas e sugestões padrão? Suas edições serão descartadas.\')){invOpts=JSON.parse(JSON.stringify(INV_OPTS_DEFAULT));saveInvOpts();waShowCfg();}" style="padding:6px 12px;border-radius:100px;border:1px solid #D8D6CC;background:transparent;color:#666;font-size:11px;cursor:pointer;">↺ restaurar padrão</button></div>';
+  h+='</div>';
+  root.innerHTML=h;
+}
+function _cfgInvDone(){saveInvOpts();waShowCfg();}
+function waCfgInvAdd(key){const inp=document.getElementById('cfg-inv-new-'+key);const v=(inp&&inp.value||'').trim();if(!v)return;const o=getInvOpts();if(!o[key].includes(v))o[key].push(v);_cfgInvDone();}
+function waCfgInvRename(key,i,v){v=(v||'').trim();if(!v)return;const o=getInvOpts();const old=o[key][i];o[key][i]=v;
+  // renomeia também nas sugestões que usavam o valor antigo
+  Object.values(o.classes||{}).forEach(arr=>arr.forEach(t=>{if(t.preset&&t.preset[key]===old)t.preset[key]=v;}));_cfgInvDone();}
+function waCfgInvRemove(key,i){const o=getInvOpts();if(!confirm('Remover "'+o[key][i]+'"? Ativos já cadastrados com este valor não são alterados.'))return;o[key].splice(i,1);_cfgInvDone();}
+function waCfgInvTipo(cl,i,field,v){const o=getInvOpts();const t=(o.classes[cl]||[])[i];if(!t)return;if(field==='tipo'){v=(v||'').trim();if(v)t.tipo=v;}else{if(!t.preset)t.preset={};t.preset[field]=v;}saveInvOpts();}
+function waCfgInvRemoveTipo(cl,i){const o=getInvOpts();const t=(o.classes[cl]||[])[i];if(!t||!confirm('Remover o tipo "'+t.tipo+'"?'))return;o.classes[cl].splice(i,1);_cfgInvDone();}
+function waCfgInvAddTipo(cl){const inp=document.getElementById('cfg-inv-newtipo-'+cl);const v=(inp&&inp.value||'').trim();if(!v)return;const o=getInvOpts();if(!o.classes[cl])o.classes[cl]=[];o.classes[cl].push({tipo:v,preset:{}});_cfgInvDone();}
+function waCfgInvAddClasse(){const inp=document.getElementById('cfg-inv-newclasse');const v=(inp&&inp.value||'').trim();if(!v)return;const o=getInvOpts();if(!o.classes[v])o.classes[v]=[];_cfgInvDone();}
+function waCfgInvRenameClasse(old,v){v=(v||'').trim();if(!v||v===old)return;const o=getInvOpts();const n={};Object.keys(o.classes).forEach(k=>{n[k===old?v:k]=o.classes[k];});o.classes=n;_cfgInvDone();}
+function waCfgInvRemoveClasse(cl){const o=getInvOpts();if(!confirm('Remover a classe "'+cl+'" e seus tipos?'))return;delete o.classes[cl];_cfgInvDone();}
 
 // ---------- UI ----------
 function waCfgRenderBackup(root){
@@ -10780,6 +10841,63 @@ function waInv2EditLog(li){const r=_i2Sel();if(!r)return;const x=r.a.log[li];if(
 function waInv2SaveLog(li){const r=_i2Ctx();if(!r)return;const x=r.a.log[li];if(!x)return;const v=parseBRNumber(document.getElementById('wi2-lv').value.trim());if(isNaN(v)){toast('Valor inválido','error');return;}x.date=_i2FromISO(document.getElementById('wi2-ld').value.trim())||x.date;x.value=v;x.note=document.getElementById('wi2-ln').value.trim();r.a.log.sort((p,q)=>(parseDate(p.date)||0)-(parseDate(q.date)||0));_i2Close();saveInvestimentos();waInv2Render();toast('✓ Registro atualizado','success');}
 function waInv2DelLog(li){const r=_i2Sel();if(!r)return;const x=r.a.log[li];if(!x)return;
   _i2Modal('<h3>Excluir registro?</h3><div class="m">'+normDateBR(x.date)+' · '+_i2R2(x.value)+' · '+_i2Esc(x.note||'')+'</div><div class="wi2-hint">Remove do cadastro e deste dispositivo; o registro original no InvestimentosLog é preservado.</div><div class="wi2-mf"><button class="wi2-btn" onclick="_i2Close()">Manter</button><button class="wi2-btn danger" onclick="(function(){const r=_i2Ctx();if(!r)return;r.a.log.splice('+li+',1);_i2Close();saveInvestimentos();waInv2Render();toast(\'Registro excluído\',\'\');})()">Excluir</button></div>');}
+// ── Listas de múltipla escolha e SUGESTÕES por tipo (editáveis em Config → Investimentos) ──
+// Persistidas na aba Pastas junto com tiposData (chave invOpts). Sem gravação: usa o padrão abaixo.
+const INV_OPTS_DEFAULT={
+  indexador:['% do CDI','SELIC','Prefixado (% a.a.)','IPCA + taxa','Dólar','Euro','Outro'],
+  liquidez:['Diária (D+0)','D+1','D+2','D+30','No vencimento','Perpétuo','Outro'],
+  garantia:['FGC (até R$ 250 mil/CPF)','Risco Soberano (Tesouro)','Risco Privado (sem FGC)','N/A'],
+  ir:['Isento (PF)','Tabela Regressiva','15% (ganho de capital)','20% (day trade)','Come-cotas','Outro'],
+  // classe → tipos, cada tipo com a sugestão de preenchimento (visão de especialista)
+  classes:{
+    'Renda Fixa':[
+      {tipo:'CDB',preset:{indexador:'% do CDI',liquidez:'Diária (D+0)',garantia:'FGC (até R$ 250 mil/CPF)',ir:'Tabela Regressiva'}},
+      {tipo:'LCI',preset:{indexador:'% do CDI',liquidez:'No vencimento',garantia:'FGC (até R$ 250 mil/CPF)',ir:'Isento (PF)'}},
+      {tipo:'LCA',preset:{indexador:'% do CDI',liquidez:'No vencimento',garantia:'FGC (até R$ 250 mil/CPF)',ir:'Isento (PF)'}},
+      {tipo:'Tesouro Selic',preset:{indexador:'SELIC',liquidez:'D+1',garantia:'Risco Soberano (Tesouro)',ir:'Tabela Regressiva'}},
+      {tipo:'Tesouro IPCA+',preset:{indexador:'IPCA + taxa',liquidez:'D+1',garantia:'Risco Soberano (Tesouro)',ir:'Tabela Regressiva'}},
+      {tipo:'Tesouro Prefixado',preset:{indexador:'Prefixado (% a.a.)',liquidez:'D+1',garantia:'Risco Soberano (Tesouro)',ir:'Tabela Regressiva'}},
+      {tipo:'LC',preset:{indexador:'% do CDI',liquidez:'No vencimento',garantia:'FGC (até R$ 250 mil/CPF)',ir:'Tabela Regressiva'}},
+      {tipo:'LF',preset:{indexador:'% do CDI',liquidez:'No vencimento',garantia:'Risco Privado (sem FGC)',ir:'Tabela Regressiva'}},
+      {tipo:'CRI',preset:{indexador:'IPCA + taxa',liquidez:'No vencimento',garantia:'Risco Privado (sem FGC)',ir:'Isento (PF)'}},
+      {tipo:'CRA',preset:{indexador:'IPCA + taxa',liquidez:'No vencimento',garantia:'Risco Privado (sem FGC)',ir:'Isento (PF)'}},
+      {tipo:'Debênture',preset:{indexador:'IPCA + taxa',liquidez:'No vencimento',garantia:'Risco Privado (sem FGC)',ir:'Tabela Regressiva'}},
+      {tipo:'Debênture Incentivada',preset:{indexador:'IPCA + taxa',liquidez:'No vencimento',garantia:'Risco Privado (sem FGC)',ir:'Isento (PF)'}},
+      {tipo:'Poupança',preset:{indexador:'Outro',liquidez:'Diária (D+0)',garantia:'FGC (até R$ 250 mil/CPF)',ir:'Isento (PF)'}},
+    ],
+    'Renda Variável':[
+      {tipo:'Ação (Brasil)',preset:{indexador:'Outro',liquidez:'D+2',garantia:'N/A',ir:'15% (ganho de capital)'}},
+      {tipo:'Stock (Exterior)',preset:{indexador:'Dólar',liquidez:'D+2',garantia:'N/A',ir:'15% (ganho de capital)'}},
+      {tipo:'FII',preset:{indexador:'Outro',liquidez:'D+2',garantia:'N/A',ir:'Isento (PF)'}},
+      {tipo:'FIAGRO',preset:{indexador:'Outro',liquidez:'D+2',garantia:'N/A',ir:'Isento (PF)'}},
+      {tipo:'ETF',preset:{indexador:'Outro',liquidez:'D+2',garantia:'N/A',ir:'15% (ganho de capital)'}},
+      {tipo:'BDR',preset:{indexador:'Dólar',liquidez:'D+2',garantia:'N/A',ir:'15% (ganho de capital)'}},
+      {tipo:'Opções/Mercado Futuro',preset:{indexador:'Outro',liquidez:'D+1',garantia:'N/A',ir:'20% (day trade)'}},
+    ],
+    'Fundos de Investimento':[
+      {tipo:'Fundo Renda Fixa',preset:{indexador:'% do CDI',liquidez:'D+1',garantia:'N/A',ir:'Come-cotas'}},
+      {tipo:'Fundo Multimercado',preset:{indexador:'% do CDI',liquidez:'D+30',garantia:'N/A',ir:'Come-cotas'}},
+      {tipo:'Fundo de Ações',preset:{indexador:'Outro',liquidez:'D+30',garantia:'N/A',ir:'15% (ganho de capital)'}},
+      {tipo:'Fundo Cambial',preset:{indexador:'Dólar',liquidez:'D+1',garantia:'N/A',ir:'Come-cotas'}},
+    ],
+    'Previdência Privada':[
+      {tipo:'PGBL',preset:{indexador:'Outro',liquidez:'Outro',garantia:'N/A',ir:'Tabela Regressiva'}},
+      {tipo:'VGBL',preset:{indexador:'Outro',liquidez:'Outro',garantia:'N/A',ir:'Tabela Regressiva'}},
+    ],
+  },
+};
+let invOpts=null;
+function getInvOpts(){
+  if(invOpts)return invOpts;
+  try{const s=localStorage.getItem('fluxo_invopts');if(s){invOpts=JSON.parse(s);if(invOpts&&invOpts.classes)return invOpts;}}catch(e){}
+  invOpts=JSON.parse(JSON.stringify(INV_OPTS_DEFAULT));
+  return invOpts;
+}
+function saveInvOpts(){
+  try{localStorage.setItem('fluxo_invopts',JSON.stringify(getInvOpts()));}catch(e){}
+  pushToSheets('pastas'); // grava tiposData + invOpts na aba Pastas
+}
+function invPreset(tipo){const o=getInvOpts();for(const cl of Object.keys(o.classes||{})){const t=(o.classes[cl]||[]).find(x=>x.tipo===tipo);if(t)return t.preset||null;}return null;}
 const WI2_INDEX=['% do CDI','SELIC','Prefixado (% a.a.)','IPCA + taxa','Dólar','Euro','Outro'];
 const WI2_LIQ=['Diária (D+0)','D+1','No vencimento','Perpétuo','Outro'];
 const WI2_GAR=['FGC (até R$ 250 mil/CPF)','Risco Soberano (Tesouro)','Risco Privado (sem FGC)','N/A'];
@@ -10788,20 +10906,28 @@ function _i2ToISO(d){const b=normDateBR(d||'');const p=String(b||'').split('/');
 function _i2FromISO(iso){if(!iso)return '';const p=iso.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:iso;}
 // select com as opções oficiais; valor atual fora da lista entra como opção extra para não se perder
 function _i2SelOpts(id,opts,cur){const list=(cur&&!opts.includes(cur))?[cur,...opts]:opts;return '<select id="'+id+'"><option value="">Selecione…</option>'+list.map(o=>'<option value="'+_i2Esc(o)+'"'+(o===cur?' selected':'')+'>'+_i2Esc(o)+'</option>').join('')+'</select>';}
-function _i2TipoSel(id,classe,cur){const opts=(typeof ATIVO_TIPOS!=='undefined'&&ATIVO_TIPOS[classe])||[];const list=(cur&&!opts.includes(cur))?[cur,...opts]:opts;return '<option value="">'+(opts.length?'Selecione…':'Selecione a classe primeiro')+'</option>'+list.map(o=>'<option value="'+_i2Esc(o)+'"'+(o===cur?' selected':'')+'>'+_i2Esc(o)+'</option>').join('');}
+function _i2TipoSel(id,classe,cur){const opts=((getInvOpts().classes||{})[classe]||[]).map(x=>x.tipo);const list=(cur&&!opts.includes(cur))?[cur,...opts]:opts;return '<option value="">'+(opts.length?'Selecione…':'Selecione a classe primeiro')+'</option>'+list.map(o=>'<option value="'+_i2Esc(o)+'"'+(o===cur?' selected':'')+'>'+_i2Esc(o)+'</option>').join('');}
+function waInv2ApplyPreset(prefix,force){
+  const t=document.getElementById(prefix+'tipo');if(!t)return;
+  const p=invPreset(t.value);
+  if(!p){if(force)toast('Sem sugestão cadastrada para este tipo','');return;}
+  const setSel=(id,val)=>{const el=document.getElementById(id);if(!el||!val)return;if(![...el.options].some(o=>o.value===val)){const o=document.createElement('option');o.value=val;o.textContent=val;el.appendChild(o);}el.value=val;};
+  setSel(prefix+'idx',p.indexador);setSel(prefix+'liq',p.liquidez);setSel(prefix+'gar',p.garantia);setSel(prefix+'ir',p.ir);
+  toast('✨ Sugestão aplicada para '+t.value+' — ajuste livremente se quiser','');
+}
 function waInv2ClasseChange(prefix){const cl=document.getElementById(prefix+'classe').value;const t=document.getElementById(prefix+'tipo');if(t)t.innerHTML=_i2TipoSel(prefix+'tipo',cl,'');}
 function waInv2Edit(){const r=_i2Sel();if(!r)return;const a=r.a;
-  const classes=Object.keys(typeof ATIVO_TIPOS!=='undefined'?ATIVO_TIPOS:{});
+  const classes=Object.keys(getInvOpts().classes||{});
   _i2Modal('<h3>Editar ativo</h3><div class="m">'+_i2Esc(r.inst.name)+'</div>'
     +'<div class="wi2-f"><label>nome</label><input id="wi2-e-nome" value="'+_i2Esc(a.nome)+'"></div>'
     +'<div class="wi2-r2"><div class="wi2-f"><label>instituição</label><select id="wi2-e-inst">'+(instituicoes||[]).map(x=>'<option '+(x.name===r.inst.name?'selected':'')+'>'+_i2Esc(x.name)+'</option>').join('')+'</select></div>'
     +'<div class="wi2-f"><label>classe</label>'+_i2SelOpts('wi2-e-classe',classes,a.classe||'').replace('<select id="wi2-e-classe">','<select id="wi2-e-classe" onchange="waInv2ClasseChange(\'wi2-e-\')">')+'</div></div>'
-    +'<div class="wi2-r2"><div class="wi2-f"><label>tipo</label><select id="wi2-e-tipo">'+_i2TipoSel('wi2-e-tipo',a.classe||'',a.tipo||'')+'</select></div>'
-    +'<div class="wi2-f"><label>indexador</label>'+_i2SelOpts('wi2-e-idx',WI2_INDEX,a.indexador||'')+'</div></div>'
+    +'<div class="wi2-r2"><div class="wi2-f"><label>tipo <span style="color:#1565C0;cursor:pointer;" onclick="waInv2ApplyPreset(\'wi2-e-\',true)" title="Preencher indexador, liquidez, garantia e IR com a sugestão para este tipo">✨ sugerir</span></label><select id="wi2-e-tipo" onchange="waInv2ApplyPreset(\'wi2-e-\')">'+_i2TipoSel('wi2-e-tipo',a.classe||'',a.tipo||'')+'</select></div>'
+    +'<div class="wi2-f"><label>indexador</label>'+_i2SelOpts('wi2-e-idx',getInvOpts().indexador,a.indexador||'')+'</div></div>'
     +'<div class="wi2-r2"><div class="wi2-f"><label>taxa / percentual</label><input id="wi2-e-taxa" value="'+_i2Esc(a.taxa||'')+'" placeholder="Ex: 110% ou 12% a.a."></div>'
     +'<div class="wi2-f"><label>aplicado (R$)</label><input id="wi2-e-ap" class="rt" inputmode="decimal" value="'+Number(a.aplicado||0).toLocaleString('pt-BR',{minimumFractionDigits:2})+'"></div></div>'
     +'<div class="wi2-r2"><div class="wi2-f"><label>data de aplicação</label><input type="date" id="wi2-e-da" value="'+_i2ToISO(a.dataAplic)+'"></div><div class="wi2-f"><label>vencimento</label><input type="date" id="wi2-e-venc" value="'+_i2ToISO(a.vencimento)+'"></div></div>'
-    +'<div class="wi2-r3"><div class="wi2-f"><label>liquidez</label>'+_i2SelOpts('wi2-e-liq',WI2_LIQ,a.liquidez||'')+'</div><div class="wi2-f"><label>garantia</label>'+_i2SelOpts('wi2-e-gar',WI2_GAR,a.garantia||'')+'</div><div class="wi2-f"><label>IR</label>'+_i2SelOpts('wi2-e-ir',WI2_IR,a.ir||'')+'</div></div>'
+    +'<div class="wi2-r3"><div class="wi2-f"><label>liquidez</label>'+_i2SelOpts('wi2-e-liq',getInvOpts().liquidez,a.liquidez||'')+'</div><div class="wi2-f"><label>garantia</label>'+_i2SelOpts('wi2-e-gar',getInvOpts().garantia,a.garantia||'')+'</div><div class="wi2-f"><label>IR</label>'+_i2SelOpts('wi2-e-ir',getInvOpts().ir,a.ir||'')+'</div></div>'
     +'<div class="wi2-f"><label>observações</label><input id="wi2-e-obs" value="'+_i2Esc(a.obs||'')+'" placeholder="Opcional…"></div>'
     +'<div class="wi2-mf"><button class="wi2-btn" onclick="_i2Close()">Cancelar</button><button class="wi2-btn p" onclick="waInv2SaveEdit()">Salvar alterações</button></div>');}
 function waInv2SaveEdit(){const r=_i2Ctx();if(!r)return;const a=r.a;const g=id=>(document.getElementById(id)?.value||'').trim();
@@ -10811,16 +10937,16 @@ function waInv2SaveEdit(){const r=_i2Ctx();if(!r)return;const a=r.a;const g=id=>
   if(newInst&&newInst!==r.inst.name){const dst=(instituicoes||[]).find(i=>i.name===newInst);if(dst){getInstAtivos(r.inst).splice(r.idx,1);getInstAtivos(dst).push(a);waI2().sel={inst:dst.name,id:a.id};}}
   _i2Close();saveInvestimentos();waInv2Render();toast('✓ Ativo salvo','success');}
 function waInv2NewAtivo(){const s=waI2();const insts=instituicoes||[];if(!insts.length){toast('Cadastre uma instituição primeiro','error');return;}
-  const classes=Object.keys(typeof ATIVO_TIPOS!=='undefined'?ATIVO_TIPOS:{});
+  const classes=Object.keys(getInvOpts().classes||{});
   const t=new Date();const iso=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
   _i2Modal('<h3>Novo ativo</h3><div class="m">'+(s.inst!=='*'?'em '+_i2Esc(s.inst):'escolha a instituição')+'</div>'
     +'<div class="wi2-f"><label>nome</label><input id="wi2-n-nome" placeholder="Ex: CDB Safra 110% CDI"></div>'
     +'<div class="wi2-r2"><div class="wi2-f"><label>instituição</label><select id="wi2-n-inst">'+insts.map(x=>'<option '+(x.name===s.inst?'selected':'')+'>'+_i2Esc(x.name)+'</option>').join('')+'</select></div>'
     +'<div class="wi2-f"><label>classe</label>'+_i2SelOpts('wi2-n-classe',classes,'').replace('<select id="wi2-n-classe">','<select id="wi2-n-classe" onchange="waInv2ClasseChange(\'wi2-n-\')">')+'</div></div>'
-    +'<div class="wi2-r2"><div class="wi2-f"><label>tipo</label><select id="wi2-n-tipo">'+_i2TipoSel('wi2-n-tipo','','')+'</select></div><div class="wi2-f"><label>indexador</label>'+_i2SelOpts('wi2-n-idx',WI2_INDEX,'')+'</div></div>'
+    +'<div class="wi2-r2"><div class="wi2-f"><label>tipo <span style="color:#1565C0;cursor:pointer;" onclick="waInv2ApplyPreset(\'wi2-n-\',true)" title="Preencher indexador, liquidez, garantia e IR com a sugestão para este tipo">✨ sugerir</span></label><select id="wi2-n-tipo" onchange="waInv2ApplyPreset(\'wi2-n-\')">'+_i2TipoSel('wi2-n-tipo','','')+'</select></div><div class="wi2-f"><label>indexador</label>'+_i2SelOpts('wi2-n-idx',getInvOpts().indexador,'')+'</div></div>'
     +'<div class="wi2-r2"><div class="wi2-f"><label>taxa / percentual</label><input id="wi2-n-taxa" placeholder="Ex: 110% ou 12% a.a."></div><div class="wi2-f"><label>aplicado (R$)</label><input id="wi2-n-ap" class="rt" inputmode="decimal" placeholder="0,00"></div></div>'
     +'<div class="wi2-r2"><div class="wi2-f"><label>data de aplicação</label><input type="date" id="wi2-n-da" value="'+iso+'"></div><div class="wi2-f"><label>vencimento</label><input type="date" id="wi2-n-venc"></div></div>'
-    +'<div class="wi2-r3"><div class="wi2-f"><label>liquidez</label>'+_i2SelOpts('wi2-n-liq',WI2_LIQ,'')+'</div><div class="wi2-f"><label>garantia</label>'+_i2SelOpts('wi2-n-gar',WI2_GAR,'')+'</div><div class="wi2-f"><label>IR</label>'+_i2SelOpts('wi2-n-ir',WI2_IR,'')+'</div></div>'
+    +'<div class="wi2-r3"><div class="wi2-f"><label>liquidez</label>'+_i2SelOpts('wi2-n-liq',getInvOpts().liquidez,'')+'</div><div class="wi2-f"><label>garantia</label>'+_i2SelOpts('wi2-n-gar',getInvOpts().garantia,'')+'</div><div class="wi2-f"><label>IR</label>'+_i2SelOpts('wi2-n-ir',getInvOpts().ir,'')+'</div></div>'
     +'<div class="wi2-f"><label>observações</label><input id="wi2-n-obs" placeholder="Opcional…"></div>'
     +'<div class="wi2-mf"><button class="wi2-btn" onclick="_i2Close()">Cancelar</button><button class="wi2-btn p" onclick="waInv2SaveNew()">Cadastrar ativo</button></div>');}
 async function waInv2SaveNew(){const g=id=>(document.getElementById(id)?.value||'').trim();const nome=g('wi2-n-nome');const ap=parseBRNumber(g('wi2-n-ap'));
