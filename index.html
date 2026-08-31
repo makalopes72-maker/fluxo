@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0b4d2c,#b8963e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F5ECC9 !important;}
-  #splash .splash-sub{color:rgba(245,236,201,.65) !important;}
-  #splash .splash-version{color:rgba(245,236,201,.35) !important;}
-  #splash .splash-btn{background:#F5ECC9 !important;color:#0b4d2c !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F5ECC9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1a2540,#c98a2e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F7E7C6 !important;}
+  #splash .splash-sub{color:rgba(247,231,198,.65) !important;}
+  #splash .splash-version{color:rgba(247,231,198,.35) !important;}
+  #splash .splash-btn{background:#F7E7C6 !important;color:#1a2540 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F7E7C6 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.55';
+const APP_VERSION='18.57';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6292,6 +6292,7 @@ async function loadInvFromSheets(){
     }
 
     _foldSubAtivos(userAtivos);
+    window._logSeen=new Set(); // dedupe de registros idênticos (data+valor+ativo) nesta carga
 
     // 3. load log
     try{
@@ -6312,6 +6313,7 @@ async function loadInvFromSheets(){
           if(!arr)return;
           const ativo=_findLogTarget(arr,nome);
           if(!ativo)return;
+          if(window._logSeen){const _k=user+'|'+instName+'|'+nome+'|'+String(l[3])+'|'+String(l[4]);if(window._logSeen.has(_k))return;window._logSeen.add(_k);}
           const logVal=parseBRNumber(l[4]);
           const rawDate=String(l[3]||'').trim();
           const logDate=normalizeDate(rawDate)||rawDate;
@@ -10609,6 +10611,14 @@ function _i2Atual(a){
   if(a.composto&&a.updMode==='subs'&&a.subs&&a.subs.length)return a.subs.reduce((s,sb)=>s+((sb.log&&sb.log.length)?sb.log[sb.log.length-1].value:(sb.valor||0)),0);
   return (a.log&&a.log.length)?a.log[a.log.length-1].value:(a.aplicado||0);
 }
+function _i2Final(a){ // para encerrados: último valor não-zero e data do zero
+  const src=(a.composto&&a.updMode==='subs'&&a.subs&&a.subs.length)?a.subs.flatMap(sb=>sb.log||[]):(a.log||[]);
+  const s=[...src].sort((x,y)=>(parseDate(x.date)||0)-(parseDate(y.date)||0));
+  let fin=null,dt='';
+  for(const x of s){if(Number(x.value)>0)fin=Number(x.value);else if(fin!==null&&!dt)dt=x.date;}
+  const z=[...s].reverse().find(x=>Number(x.value)===0);
+  return {valorFinal:fin||0,encerradoEm:z?normDateBR(z.date):(dt?normDateBR(dt):'')};
+}
 function _i2Aplic(a){if(a.composto&&a.subs&&a.subs.length){const s=a.subs.reduce((x,sb)=>x+(sb.valor||0),0);return s||a.aplicado||0;}return a.aplicado||0;}
 function _i2Dias(venc){const v=normDateBR(venc);const d=parseDate(v);if(!d)return null;const t=new Date();t.setHours(0,0,0,0);return Math.ceil((d-t)/86400000);}
 function _i2VencTxt(a){
@@ -10628,7 +10638,7 @@ function _i2Modal(html){const old=document.getElementById('wi2-ov');if(old)old.r
 function _i2Close(){const o=document.getElementById('wi2-ov');if(o)o.remove();}
 function _i2Sel(){const s=waI2();if(!s.sel)return null;const inst=(instituicoes||[]).find(i=>i.name===s.sel.inst);if(!inst)return null;const a=(getInstAtivos(inst)||[]).find(x=>x.id===s.sel.id)||null;return a?{inst,a,idx:getInstAtivos(inst).indexOf(a),ii:instituicoes.indexOf(inst)}:null;}
 function _i2Ctx(){const r=_i2Sel();if(!r)return null;waInvInstIdx=r.ii;return r;} // sincroniza o contexto usado pelas funções legadas
-function waInv2Set(k,v){const s=waI2();s[k]=v;if(k==='reorder'&&v){s.sort='manual';if(s.inst==='*'&&(instituicoes||[]).length)s.inst=instituicoes[0].name;}waInv2Render();}
+function waInv2Set(k,v){const s=waI2();s[k]=v;if(k==='tab')s.sel=null;if(k==='reorder'&&v){s.sort='manual';if(s.inst==='*'&&(instituicoes||[]).length)s.inst=instituicoes[0].name;}waInv2Render();}
 function waInv2Pick(inst,id){const s=waI2();s.sel={inst,id};waInv2Render();}
 function waInv2Q(v){waI2().q=v;waInv2RenderTable();}
 
@@ -10698,6 +10708,8 @@ function _waInv2Render(){
     `;document.head.appendChild(st);
   }
   const s=waI2();const user=currentUser||'ALE';
+  // o ativo selecionado sempre fica na aba onde ele vive (encerrado → Encerrados)
+  const _selR=_i2Sel();if(_selR){s.tab=_selR.a.encerrado?'enc':'ativos';}
   const insts=instituicoes||[];
   const allAtivos=[];insts.forEach(i=>(getInstAtivos(i)||[]).forEach(a=>allAtivos.push({inst:i,a})));
   const vis=allAtivos.filter(x=>!x.a.encerrado);
@@ -10748,16 +10760,16 @@ function waInv2RenderTable(){
   const s=waI2();const l=waInv2List();const el=document.getElementById('wi2-tbl');if(!el)return;
   if(!l.length){el.innerHTML='<div class="wi2-empty">Nenhum ativo aqui. Use <b>+ ativo</b> para cadastrar.</div>';return;}
   let h='<table class="wi2-tbl"><tr><th>ativo</th><th>aplicado</th><th>atual</th><th>rend.</th><th style="padding-right:12px;">vencimento</th></tr>';
-  l.forEach(x=>{const a=x.a;const at=_i2Atual(a),apv=_i2Aplic(a),r=at-apv,p=apv?r/apv*100:0;
+  l.forEach(x=>{const a=x.a;const apv=_i2Aplic(a);const fin=a.encerrado?_i2Final(a):null;const at=a.encerrado?fin.valorFinal:_i2Atual(a);const r=at-apv,p=apv?r/apv*100:0;
     const isSel=s.sel&&s.sel.inst===x.inst.name&&s.sel.id===a.id;
     const nm=_i2Esc(x.inst.name).replace(/'/g,"\\'");
     const dragAttrs=(s.reorder&&s.inst!=='*')?' draggable="true" ondragstart="waInv2DragStart(event,'+x.ai+')" ondragover="event.preventDefault();this.style.outline=\'2px dashed #1565C0\'" ondragleave="this.style.outline=\'\'" ondrop="this.style.outline=\'\';waInv2Drop(event,'+x.ai+')"':'';
     h+='<tr class="r '+(isSel?'sel':'')+'"'+dragAttrs+' onclick="waInv2Pick(\''+nm+'\',\''+_i2Esc(a.id).replace(/'/g,"\\'")+'\')">'
       +'<td>'+((s.reorder&&s.inst!=='*')?'<span style="cursor:grab;color:#B9B7AE;margin-right:6px;font-size:13px;" title="arraste para reordenar">⠿</span>':'')+'<div class="wi2-nm" style="display:inline-block;">'+(a.composto?'🧩 ':'')+_i2Esc(a.nome)+'</div><div class="wi2-sub">'+(s.inst==='*'?_i2Esc(x.inst.name)+' · ':'')+(a.composto?'composto · '+((a.subs||[]).length)+' aportes · '+(a.updMode==='subs'?'por sub':'pelo total'):_i2Esc(a.classe||'')+(a.taxa?' · '+_i2Esc(a.taxa):''))
       +(s.reorder&&s.inst!=='*'?' <span class="wi2-reord"><button onclick="event.stopPropagation();waInv2MoveAtivo(\''+nm+'\','+x.ai+',-1)">▲</button><button onclick="event.stopPropagation();waInv2MoveAtivo(\''+nm+'\','+x.ai+',1)">▼</button></span>':'')+'</div></td>'
-      +'<td class="wi2-mute">'+_i2R(apv).replace('R$ ','')+'</td><td><b>'+_i2R(at).replace('R$ ','')+'</b></td>'
+      +'<td class="wi2-mute">'+_i2R(apv).replace('R$ ','')+'</td><td><b>'+_i2R(at).replace('R$ ','')+'</b>'+(a.encerrado?'<div class="wi2-sub">valor final</div>':'')+'</td>'
       +'<td class="'+(r>=0?'wi2-pos':'wi2-neg')+'">'+(r>=0?'+':'−')+Math.abs(p).toFixed(1)+'%</td>'
-      +'<td class="'+_i2VencCls(a)+'" style="padding-right:12px;">'+_i2VencTxt(a)+'</td></tr>';});
+      +'<td class="'+(a.encerrado?'wi2-mute':_i2VencCls(a))+'" style="padding-right:12px;">'+(a.encerrado?('encerrado'+(fin.encerradoEm?' '+fin.encerradoEm:'')):_i2VencTxt(a))+'</td></tr>';});
   el.innerHTML=h+'</table>';
 }
 function waInv2DragStart(e,ai){window._i2Drag=ai;e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',String(ai));}catch(x){}}
@@ -10780,9 +10792,10 @@ function waInv2RenderDetail(){
   const r=_i2Sel();
   if(!r){d.innerHTML='<div class="wi2-empty">Selecione um ativo na tabela</div>';return;}
   const {a,inst,idx}=r;
-  const at=_i2Atual(a),apv=_i2Aplic(a),rd=at-apv,p=apv?rd/apv*100:0;
+  const fin=a.encerrado?_i2Final(a):null;
+  const at=a.encerrado?fin.valorFinal:_i2Atual(a),apv=_i2Aplic(a),rd=at-apv,p=apv?rd/apv*100:0;
   const n=a.vencimento?_i2Dias(a.vencimento):null;
-  const badge=a.encerrado?'<span class="wi2-badge enc">encerrado</span>':(n!==null&&n>=0?'<span class="wi2-badge">vence em '+n+' dias</span>':'');
+  const badge=a.encerrado?'<span class="wi2-badge enc">encerrado'+(fin.encerradoEm?' em '+fin.encerradoEm:'')+'</span>':(n!==null&&n>=0?'<span class="wi2-badge">vence em '+n+' dias</span>':'');
   const src=(a.composto&&a.updMode==='subs')?(a.subs||[]).flatMap(sb=>sb.log||[]):(a.log||[]);
   const pts=[...src].sort((x,y)=>(parseDate(x.date)||0)-(parseDate(y.date)||0));
   let spark;
@@ -10793,7 +10806,7 @@ function waInv2RenderDetail(){
   let h='<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;"><div style="min-width:0;"><div class="wi2-name">'+(a.composto?'🧩 ':'')+_i2Esc(a.nome)+'</div>'
     +'<div class="wi2-meta">'+_i2Esc(inst.name)+(a.classe?' · '+_i2Esc(a.classe):'')+(a.indexador?' · '+_i2Esc(a.indexador):'')+(a.taxa?' · '+_i2Esc(a.taxa):'')+(a.liquidez?' · liquidez '+_i2Esc(a.liquidez):'')+'</div>'
     +((a.garantia||a.ir||a.obs)?'<div class="wi2-meta">'+[a.garantia?'garantia '+_i2Esc(a.garantia):'',a.ir?'IR '+_i2Esc(a.ir):'',_i2Esc(a.obs||'')].filter(Boolean).join(' · ')+'</div>':'')+'</div>'+badge+'</div>'
-    +'<div class="wi2-nums"><div><div class="l">atual</div><div class="big">'+_i2R(at)+'</div></div><div><div class="l">aplicado</div><div class="md">'+_i2R(apv)+'</div></div><div><div class="l">rendimento</div><div class="md '+(rd>=0?'wi2-pos':'wi2-neg')+'">'+(rd>=0?'+':'−')+_i2R(Math.abs(rd))+' · '+(p>=0?'+':'')+p.toFixed(1)+'%</div></div>'
+    +'<div class="wi2-nums"><div><div class="l">'+(a.encerrado?'valor final (atual = 0)':'atual')+'</div><div class="big">'+_i2R(at)+'</div></div><div><div class="l">aplicado</div><div class="md">'+_i2R(apv)+'</div></div><div><div class="l">rendimento</div><div class="md '+(rd>=0?'wi2-pos':'wi2-neg')+'">'+(rd>=0?'+':'−')+_i2R(Math.abs(rd))+' · '+(p>=0?'+':'')+p.toFixed(1)+'%</div></div>'
     +(a.dataAplic?'<div><div class="l">desde</div><div class="md">'+normDateBR(a.dataAplic)+'</div></div>':'')+'</div>'
     +'<div class="wi2-acts">'
     +(a.encerrado?'':'<button class="wi2-chip wi2-primary" onclick="waInv2Upd()">↑ atualizar valor</button>')
@@ -11112,8 +11125,10 @@ function waInv2ImportPreview(items,errs,encerra,fname){
   window._i2Imp={items,encerra};
   const target=a;
   const existing=(target.log||[]);
-  const dup=x=>existing.some(e=>e.date===x.date&&Math.abs(Number(e.value)-x.value)<0.005);
-  const nDup=items.filter(dup).length;
+  const dup=x=>existing.some(e=>normDateBR(e.date)===x.date&&Math.abs(Number(e.value)-x.value)<0.005);
+  const dupAno=x=>!dup(x)&&existing.some(e=>{const ed=normDateBR(e.date);return ed.slice(0,5)===x.date.slice(0,5)&&ed.slice(6)!==x.date.slice(6)&&Math.abs(Number(e.value)-x.value)<0.005;});
+  const nDup=items.filter(dup).length;const nDupAno=items.filter(dupAno).length;
+  const jaImportado=existing.some(e=>/importad/i.test(e.note||''));
   let h='<h3>Importar histórico — conferência</h3><div class="m">'+_i2Esc(a.nome)+' · arquivo: '+_i2Esc(fname)+' · '+items.length+' linha'+(items.length===1?'':'s')+(errs.length?' · <span style="color:#C62828;">'+errs.length+' ignorada'+(errs.length===1?'':'s')+'</span>':'')+'</div>';
   if(isSubs){
     h+='<div class="wi2-f"><label>aplicar em</label><select id="wi2-imp-target"><option value="-1">'+_i2Esc(a.nome)+' (investimento)</option>'+a.subs.map((sb,i)=>'<option value="'+i+'">'+_i2Esc(sb.nome)+' (aporte)</option>').join('')+'</select></div>';
@@ -11122,6 +11137,7 @@ function waInv2ImportPreview(items,errs,encerra,fname){
     +'<label style="display:flex;gap:5px;align-items:center;cursor:pointer;"><input type="radio" name="wi2-imp-mode" value="add" checked> adicionar ao histórico atual'+(nDup?' <span style="color:#8A8A82;">('+nDup+' duplicada'+(nDup===1?'':'s')+' serão puladas)</span>':'')+'</label>'
     +'<label style="display:flex;gap:5px;align-items:center;cursor:pointer;"><input type="radio" name="wi2-imp-mode" value="replace"> substituir o histórico atual ('+existing.length+' registro'+(existing.length===1?'':'s')+')</label>'
     +'</div>';
+  if(jaImportado||nDupAno)h+='<div class="wi2-hint" style="border-left:3px solid #C62828;">⚠ '+(jaImportado?'Este investimento <b>já recebeu uma importação</b>. ':'')+(nDupAno?nDupAno+' linha'+(nDupAno===1?'':'s')+' têm <b>o mesmo valor em outro ano</b> (possível reimportação com ano errado). ':'')+'Se você está reimportando o mesmo histórico corrigido, prefira <b>substituir o histórico atual</b> — os registros antigos ficam só no InvestimentosLog do Sheets, onde podem ser apagados manualmente.</div>';
   if(encerra)h+='<div class="wi2-hint" style="border-left:3px solid #B45309;">⏹ A última linha contém <b>“encerrado”</b>: o investimento será marcado como <b>encerrado</b> na data '+items[items.length-1].date+', com um registro final de valor 0 logo após — <b>nenhum valor é transferido</b> para conta corrente.</div>';
   const cl='110px 130px minmax(0,1fr) 70px';
   h+='<div style="display:grid;grid-template-columns:'+cl+';gap:6px;font-size:10px;color:var(--muted);margin-bottom:4px;"><span>data</span><span style="text-align:right;">valor R$</span><span>observação</span><span></span></div>'
@@ -11130,7 +11146,7 @@ function waInv2ImportPreview(items,errs,encerra,fname){
     const isDup=dup(x);const isLast=i===items.length-1;
     h+='<div style="display:grid;grid-template-columns:'+cl+';gap:6px;align-items:center;padding:4px 0;border-top:1px solid #EEECE4;font-size:11.5px;'+(isDup?'opacity:.5;':'')+'">'
       +'<span>'+x.date+'</span><span style="text-align:right;font-weight:700;font-variant-numeric:tabular-nums;">'+_i2R2(x.value).replace('R$ ','')+'</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+_i2Esc(x.note)+'">'+_i2Esc(x.note)+'</span>'
-      +'<span style="font-size:10px;color:'+(isDup?'#8A8A82':(isLast&&encerra?'#B45309':'#1565C0'))+';">'+(isDup?'duplicada':(isLast&&encerra?'encerra':'nova'))+'</span></div>';
+      +'<span style="font-size:10px;color:'+(isDup?'#8A8A82':(dupAno(x)?'#C62828':(isLast&&encerra?'#B45309':'#1565C0')))+';">'+(isDup?'duplicada':(dupAno(x)?'ano ≠':(isLast&&encerra?'encerra':'nova')))+'</span></div>';
   });
   h+='</div>';
   if(errs.length)h+='<div style="font-size:10px;color:#C62828;margin-top:6px;">Linhas ignoradas: '+errs.slice(0,3).map(_i2Esc).join(' · ')+(errs.length>3?' …':'')+'</div>';
@@ -13751,6 +13767,7 @@ async function waInvSync(){
           const arr=userAtivos[inst];if(!arr)return;
           const ativo=_findLogTarget(arr,nome);
           if(!ativo)return;
+          if(window._logSeen){const _k=user+'|'+instName+'|'+nome+'|'+String(l[3])+'|'+String(l[4]);if(window._logSeen.has(_k))return;window._logSeen.add(_k);}
           const logVal=parseBRNumber(l[4]);
           const rawDate2=String(l[3]||'').trim();
           const logDate=normalizeDate(rawDate2)||rawDate2;
