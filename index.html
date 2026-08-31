@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#5b3a29,#8fd3e0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E6F6F9 !important;}
-  #splash .splash-sub{color:rgba(230,246,249,.65) !important;}
-  #splash .splash-version{color:rgba(230,246,249,.35) !important;}
-  #splash .splash-btn{background:#E6F6F9 !important;color:#5b3a29 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#E6F6F9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0b4d2c,#b8963e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F5ECC9 !important;}
+  #splash .splash-sub{color:rgba(245,236,201,.65) !important;}
+  #splash .splash-version{color:rgba(245,236,201,.35) !important;}
+  #splash .splash-btn{background:#F5ECC9 !important;color:#0b4d2c !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F5ECC9 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.54';
+const APP_VERSION='18.55';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -10800,6 +10800,7 @@ function waInv2RenderDetail(){
     +'<button class="wi2-chip" onclick="waInv2Edit()">✎ editar</button>'
     +'<button class="wi2-chip" onclick="_i2Ctx();waSubsModal('+idx+')">🧩 '+(a.composto?'aportes':'composto')+'</button>'
     +'<button class="wi2-chip" onclick="_i2Ctx();waInvToggleEnc('+idx+')">'+(a.encerrado?'↩ reabrir':'⏹ encerrar')+'</button>'
+    +'<button class="wi2-chip" onclick="waInv2ImportOpen()" title="Importar histórico de valores de um arquivo Excel/CSV">📥 importar</button>'
     +'<button class="wi2-chip" style="color:#C62828;" onclick="waInv2Del()">🗑</button>'
     +'</div>'+spark;
   if(a.composto&&a.subs&&a.subs.length){
@@ -11042,6 +11043,131 @@ function waInv2SaveEdit(){const r=_i2Ctx();if(!r)return;const a=r.a;const g=id=>
   a.aplicado=parseBRNumber(g('wi2-e-ap'))||a.aplicado;a.dataAplic=_i2FromISO(g('wi2-e-da'));a.vencimento=_i2FromISO(g('wi2-e-venc'));a.liquidez=g('wi2-e-liq');a.garantia=g('wi2-e-gar');a.ir=g('wi2-e-ir');a.obs=g('wi2-e-obs');
   if(newInst&&newInst!==r.inst.name){const dst=(instituicoes||[]).find(i=>i.name===newInst);if(dst){getInstAtivos(r.inst).splice(r.idx,1);getInstAtivos(dst).push(a);waI2().sel={inst:dst.name,id:a.id};}}
   _i2Close();saveInvestimentos();waInv2Render();toast('✓ Ativo salvo','success');}
+// ── IMPORTAÇÃO DE HISTÓRICO (Excel/CSV): colunas data · valor · observação ──
+// A última linha com "encerrado" na observação marca o investimento como encerrado
+// (sem transferir nada para a conta corrente). Sempre mostra a prévia antes de gravar.
+function _i2LoadXLSX(){
+  return new Promise((res,rej)=>{
+    if(window.XLSX)return res(window.XLSX);
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload=()=>res(window.XLSX);s.onerror=()=>rej(new Error('não foi possível carregar o leitor de Excel'));
+    document.head.appendChild(s);
+  });
+}
+function waInv2ImportOpen(){
+  const r=_i2Sel();if(!r)return;
+  let inp=document.getElementById('wi2-imp-file');
+  if(!inp){inp=document.createElement('input');inp.type='file';inp.id='wi2-imp-file';inp.accept='.xlsx,.xls,.csv';inp.style.display='none';document.body.appendChild(inp);}
+  inp.value='';
+  inp.onchange=async()=>{const f=inp.files&&inp.files[0];if(!f)return;try{await waInv2ImportParse(f);}catch(e){toast('✗ '+e.message,'error');}};
+  inp.click();
+}
+function _i2ExcelDate(v){
+  if(v==null||v==='')return '';
+  if(typeof v==='number'){ // serial do Excel
+    const d=new Date(Math.round((v-25569)*86400*1000));
+    return String(d.getUTCDate()).padStart(2,'0')+'/'+String(d.getUTCMonth()+1).padStart(2,'0')+'/'+d.getUTCFullYear();
+  }
+  if(v instanceof Date)return String(v.getDate()).padStart(2,'0')+'/'+String(v.getMonth()+1).padStart(2,'0')+'/'+v.getFullYear();
+  const s=String(v).trim();
+  let m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
+  if(m){const y=m[3].length===2?'20'+m[3]:m[3];return m[1].padStart(2,'0')+'/'+m[2].padStart(2,'0')+'/'+y;}
+  m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m)return m[3]+'/'+m[2]+'/'+m[1];
+  return normDateBR(s);
+}
+async function waInv2ImportParse(file){
+  const XLSX=await _i2LoadXLSX();
+  const buf=await file.arrayBuffer();
+  const wb=XLSX.read(buf,{type:'array',cellDates:false});
+  const ws=wb.Sheets[wb.SheetNames[0]];
+  const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+  if(!rows.length)throw new Error('planilha vazia');
+  // cabeçalho: procura colunas por nome; senão usa A=data, B=valor, C=observação
+  let ci={d:0,v:1,o:2},start=0;
+  const h0=rows[0].map(x=>String(x||'').toLowerCase().trim());
+  const fd=h0.findIndex(x=>x.startsWith('data')),fv=h0.findIndex(x=>x.startsWith('valor')),fo=h0.findIndex(x=>x.startsWith('obs')||x.startsWith('nota')||x.startsWith('desc'));
+  if(fd>=0&&fv>=0){ci={d:fd,v:fv,o:fo>=0?fo:2};start=1;}
+  else if(isNaN(parseFloat(String(rows[0][1]||'').replace(',','.'))))start=1;
+  const items=[];const errs=[];
+  for(let i=start;i<rows.length;i++){
+    const r=rows[i];if(!r||r.every(x=>x===''||x==null))continue;
+    const date=_i2ExcelDate(r[ci.d]);
+    const rawV=r[ci.v];
+    const value=typeof rawV==='number'?rawV:parseBRNumber(String(rawV||'').replace(/[R$\s]/g,''));
+    const note=String(r[ci.o]||'').trim();
+    if(!parseDate(date)||isNaN(value)){errs.push('linha '+(i+1)+': '+JSON.stringify(r.slice(0,3)));continue;}
+    items.push({date,value,note});
+  }
+  if(!items.length)throw new Error('nenhuma linha válida (esperado: data · valor · observação)'+(errs.length?' — '+errs[0]:''));
+  items.sort((a,b)=>(parseDate(a.date)||0)-(parseDate(b.date)||0));
+  const last=items[items.length-1];
+  const encerra=/encerr/i.test(last.note||'');
+  waInv2ImportPreview(items,errs,encerra,file.name);
+}
+function waInv2ImportPreview(items,errs,encerra,fname){
+  const r=_i2Sel();if(!r)return;const a=r.a;
+  const isSubs=a.composto&&a.updMode==='subs'&&a.subs&&a.subs.length;
+  window._i2Imp={items,encerra};
+  const target=a;
+  const existing=(target.log||[]);
+  const dup=x=>existing.some(e=>e.date===x.date&&Math.abs(Number(e.value)-x.value)<0.005);
+  const nDup=items.filter(dup).length;
+  let h='<h3>Importar histórico — conferência</h3><div class="m">'+_i2Esc(a.nome)+' · arquivo: '+_i2Esc(fname)+' · '+items.length+' linha'+(items.length===1?'':'s')+(errs.length?' · <span style="color:#C62828;">'+errs.length+' ignorada'+(errs.length===1?'':'s')+'</span>':'')+'</div>';
+  if(isSubs){
+    h+='<div class="wi2-f"><label>aplicar em</label><select id="wi2-imp-target"><option value="-1">'+_i2Esc(a.nome)+' (investimento)</option>'+a.subs.map((sb,i)=>'<option value="'+i+'">'+_i2Esc(sb.nome)+' (aporte)</option>').join('')+'</select></div>';
+  }
+  h+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px;font-size:11px;">'
+    +'<label style="display:flex;gap:5px;align-items:center;cursor:pointer;"><input type="radio" name="wi2-imp-mode" value="add" checked> adicionar ao histórico atual'+(nDup?' <span style="color:#8A8A82;">('+nDup+' duplicada'+(nDup===1?'':'s')+' serão puladas)</span>':'')+'</label>'
+    +'<label style="display:flex;gap:5px;align-items:center;cursor:pointer;"><input type="radio" name="wi2-imp-mode" value="replace"> substituir o histórico atual ('+existing.length+' registro'+(existing.length===1?'':'s')+')</label>'
+    +'</div>';
+  if(encerra)h+='<div class="wi2-hint" style="border-left:3px solid #B45309;">⏹ A última linha contém <b>“encerrado”</b>: o investimento será marcado como <b>encerrado</b> na data '+items[items.length-1].date+', com um registro final de valor 0 logo após — <b>nenhum valor é transferido</b> para conta corrente.</div>';
+  const cl='110px 130px minmax(0,1fr) 70px';
+  h+='<div style="display:grid;grid-template-columns:'+cl+';gap:6px;font-size:10px;color:var(--muted);margin-bottom:4px;"><span>data</span><span style="text-align:right;">valor R$</span><span>observação</span><span></span></div>'
+    +'<div style="max-height:46vh;overflow-y:auto;border:1px solid #E4E2DA;border-radius:8px;padding:4px 6px;background:#fff;">';
+  items.forEach((x,i)=>{
+    const isDup=dup(x);const isLast=i===items.length-1;
+    h+='<div style="display:grid;grid-template-columns:'+cl+';gap:6px;align-items:center;padding:4px 0;border-top:1px solid #EEECE4;font-size:11.5px;'+(isDup?'opacity:.5;':'')+'">'
+      +'<span>'+x.date+'</span><span style="text-align:right;font-weight:700;font-variant-numeric:tabular-nums;">'+_i2R2(x.value).replace('R$ ','')+'</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+_i2Esc(x.note)+'">'+_i2Esc(x.note)+'</span>'
+      +'<span style="font-size:10px;color:'+(isDup?'#8A8A82':(isLast&&encerra?'#B45309':'#1565C0'))+';">'+(isDup?'duplicada':(isLast&&encerra?'encerra':'nova'))+'</span></div>';
+  });
+  h+='</div>';
+  if(errs.length)h+='<div style="font-size:10px;color:#C62828;margin-top:6px;">Linhas ignoradas: '+errs.slice(0,3).map(_i2Esc).join(' · ')+(errs.length>3?' …':'')+'</div>';
+  h+='<div class="wi2-mf"><button class="wi2-btn" onclick="_i2Close()">Cancelar</button><button class="wi2-btn p" onclick="waInv2ImportApply()">Aplicar '+items.length+' registro'+(items.length===1?'':'s')+'</button></div>';
+  _i2Modal(h);
+  const _mb=document.querySelector('#wi2-ov .wi2-mod');if(_mb)_mb.style.width='min(720px,96vw)';
+}
+async function waInv2ImportApply(){
+  const r=_i2Ctx();if(!r)return;const a=r.a;const imp=window._i2Imp;if(!imp)return;
+  const mode=(document.querySelector('input[name=wi2-imp-mode]:checked')||{}).value||'add';
+  const tSel=document.getElementById('wi2-imp-target');const ti=tSel?parseInt(tSel.value,10):-1;
+  const target=(ti>=0&&a.subs&&a.subs[ti])?a.subs[ti]:a;
+  const nomeLog=(target===a)?a.nome:(a.nome+' » '+target.nome);
+  if(!target.log)target.log=[];
+  if(mode==='replace')target.log=[];
+  const existing=target.log;
+  const toAdd=imp.items.filter(x=>!existing.some(e=>e.date===x.date&&Math.abs(Number(e.value)-x.value)<0.005));
+  toAdd.forEach(x=>target.log.push({date:x.date,value:x.value,note:x.note||'Importado'}));
+  let closing=null;
+  if(imp.encerra){
+    const last=imp.items[imp.items.length-1];
+    closing={date:last.date,value:0,note:'Encerramento (importado, sem transferência)'};
+    target.log.push(closing);
+    if(target===a)a.encerrado=true;
+  }
+  target.log.sort((p,q)=>(parseDate(p.date)||0)-(parseDate(q.date)||0));
+  _i2Close();
+  saveInvestimentos();waInv2Render();
+  toast('✓ '+toAdd.length+' registro'+(toAdd.length===1?'':'s')+' importado'+(toAdd.length===1?'':'s')+(imp.encerra?' · investimento encerrado':'')+' — gravando no log…','success');
+  // grava no InvestimentosLog um a um (append-only), sem bloquear a tela
+  const queue=toAdd.concat(closing?[closing]:[]);let ok=0,fail=0;
+  for(const x of queue){
+    try{const rr=await sheetsAppendLog(currentUser||'ALE',r.inst.name,nomeLog,x.date,x.value,x.note);if(rr&&rr.ok!==false)ok++;else fail++;}catch(e){fail++;}
+    await new Promise(z=>setTimeout(z,150));
+  }
+  toast((fail?'⚠ ':'✓ ')+ok+' gravados no InvestimentosLog'+(fail?' · '+fail+' falharam (dados mantidos no cadastro)':''),fail?'error':'success');
+}
 function waInv2NewAtivo(){const s=waI2();const insts=instituicoes||[];if(!insts.length){toast('Cadastre uma instituição primeiro','error');return;}
   const classes=Object.keys(getInvOpts().classes||{});
   const t=new Date();const iso=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
