@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#5a1a2e,#9fd3e6);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#E6F4FA !important;}
-  #splash .splash-sub{color:rgba(230,244,250,.65) !important;}
-  #splash .splash-version{color:rgba(230,244,250,.35) !important;}
-  #splash .splash-btn{background:#E6F4FA !important;color:#5a1a2e !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#E6F4FA !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#2b3a4a,#f28c28);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFF0E0 !important;}
+  #splash .splash-sub{color:rgba(255,240,224,.65) !important;}
+  #splash .splash-version{color:rgba(255,240,224,.35) !important;}
+  #splash .splash-btn{background:#FFF0E0 !important;color:#2b3a4a !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFF0E0 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.58';
+const APP_VERSION='18.59';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -10796,14 +10796,14 @@ function waInv2RenderTable(){
   const s=waI2();const l=waInv2List();const el=document.getElementById('wi2-tbl');if(!el)return;
   if(!l.length){el.innerHTML='<div class="wi2-empty">Nenhum ativo aqui. Use <b>+ ativo</b> para cadastrar.</div>';return;}
   let h='<table class="wi2-tbl"><tr><th>ativo</th><th>aplicado</th><th>atual</th><th>rend.</th><th style="padding-right:12px;">vencimento</th></tr>';
-  l.forEach(x=>{const a=x.a;const apv=_i2Aplic(a);const fin=a.encerrado?_i2Final(a):null;const at=a.encerrado?fin.valorFinal:_i2Atual(a);const r=at-apv,p=apv?r/apv*100:0;
+  l.forEach(x=>{const a=x.a;const apv=_i2Aplic(a);const fin=a.encerrado?_i2Final(a):null;const at=a.encerrado?0:_i2Atual(a);const base=a.encerrado?fin.valorFinal:at;const r=base-apv,p=apv?r/apv*100:0;
     const isSel=s.sel&&s.sel.inst===x.inst.name&&s.sel.id===a.id;
     const nm=_i2Esc(x.inst.name).replace(/'/g,"\\'");
     const dragAttrs=(s.reorder&&s.inst!=='*')?' draggable="true" ondragstart="waInv2DragStart(event,'+x.ai+')" ondragover="event.preventDefault();this.style.outline=\'2px dashed #1565C0\'" ondragleave="this.style.outline=\'\'" ondrop="this.style.outline=\'\';waInv2Drop(event,'+x.ai+')"':'';
     h+='<tr class="r '+(isSel?'sel':'')+'"'+dragAttrs+' onclick="waInv2Pick(\''+nm+'\',\''+_i2Esc(a.id).replace(/'/g,"\\'")+'\')">'
       +'<td>'+((s.reorder&&s.inst!=='*')?'<span style="cursor:grab;color:#B9B7AE;margin-right:6px;font-size:13px;" title="arraste para reordenar">⠿</span>':'')+'<div class="wi2-nm" style="display:inline-block;">'+(a.composto?'🧩 ':'')+_i2Esc(a.nome)+'</div><div class="wi2-sub">'+(s.inst==='*'?_i2Esc(x.inst.name)+' · ':'')+(a.composto?'composto · '+((a.subs||[]).length)+' aportes · '+(a.updMode==='subs'?'por sub':'pelo total'):_i2Esc(a.classe||'')+(a.taxa?' · '+_i2Esc(a.taxa):''))
       +(s.reorder&&s.inst!=='*'?' <span class="wi2-reord"><button onclick="event.stopPropagation();waInv2MoveAtivo(\''+nm+'\','+x.ai+',-1)">▲</button><button onclick="event.stopPropagation();waInv2MoveAtivo(\''+nm+'\','+x.ai+',1)">▼</button></span>':'')+'</div></td>'
-      +'<td class="wi2-mute">'+_i2R(apv).replace('R$ ','')+'</td><td><b>'+_i2R(at).replace('R$ ','')+'</b>'+(a.encerrado?'<div class="wi2-sub">valor final</div>':'')+'</td>'
+      +'<td class="wi2-mute">'+_i2R(apv).replace('R$ ','')+'</td><td><b>'+_i2R(at).replace('R$ ','')+'</b>'+(a.encerrado?'<div class="wi2-sub">final '+_i2R(fin.valorFinal).replace('R$ ','')+'</div>':'')+'</td>'
       +'<td class="'+(r>=0?'wi2-pos':'wi2-neg')+'">'+(r>=0?'+':'−')+Math.abs(p).toFixed(1)+'%</td>'
       +'<td class="'+(a.encerrado?'wi2-mute':_i2VencCls(a))+'" style="padding-right:12px;">'+(a.encerrado?('encerrado'+(fin.encerradoEm?' '+fin.encerradoEm:'')):_i2VencTxt(a))+'</td></tr>';});
   el.innerHTML=h+'</table>';
@@ -10829,7 +10829,7 @@ function waInv2RenderDetail(){
   if(!r){d.innerHTML='<div class="wi2-empty">Selecione um ativo na tabela</div>';return;}
   const {a,inst,idx}=r;
   const fin=a.encerrado?_i2Final(a):null;
-  const at=a.encerrado?fin.valorFinal:_i2Atual(a),apv=_i2Aplic(a),rd=at-apv,p=apv?rd/apv*100:0;
+  const at=a.encerrado?0:_i2Atual(a),apv=_i2Aplic(a),rd=(a.encerrado?fin.valorFinal:at)-apv,p=apv?rd/apv*100:0;
   const n=a.vencimento?_i2Dias(a.vencimento):null;
   const badge=a.encerrado?'<span class="wi2-badge enc">encerrado'+(fin.encerradoEm?' em '+fin.encerradoEm:'')+'</span>':(n!==null&&n>=0?'<span class="wi2-badge">vence em '+n+' dias</span>':'');
   const src=(a.composto&&a.updMode==='subs')?(a.subs||[]).flatMap(sb=>sb.log||[]):(a.log||[]);
@@ -10842,7 +10842,7 @@ function waInv2RenderDetail(){
   let h='<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;"><div style="min-width:0;"><div class="wi2-name">'+(a.composto?'🧩 ':'')+_i2Esc(a.nome)+'</div>'
     +'<div class="wi2-meta">'+_i2Esc(inst.name)+(a.classe?' · '+_i2Esc(a.classe):'')+(a.indexador?' · '+_i2Esc(a.indexador):'')+(a.taxa?' · '+_i2Esc(a.taxa):'')+(a.liquidez?' · liquidez '+_i2Esc(a.liquidez):'')+'</div>'
     +((a.garantia||a.ir||a.obs)?'<div class="wi2-meta">'+[a.garantia?'garantia '+_i2Esc(a.garantia):'',a.ir?'IR '+_i2Esc(a.ir):'',_i2Esc(a.obs||'')].filter(Boolean).join(' · ')+'</div>':'')+'</div>'+badge+'</div>'
-    +'<div class="wi2-nums"><div><div class="l">'+(a.encerrado?'valor final (atual = 0)':'atual')+'</div><div class="big">'+_i2R(at)+'</div></div><div><div class="l">aplicado</div><div class="md">'+_i2R(apv)+'</div></div><div><div class="l">rendimento</div><div class="md '+(rd>=0?'wi2-pos':'wi2-neg')+'">'+(rd>=0?'+':'−')+_i2R(Math.abs(rd))+' · '+(p>=0?'+':'')+p.toFixed(1)+'%</div></div>'
+    +'<div class="wi2-nums"><div><div class="l">atual</div><div class="big">'+_i2R(at)+'</div></div>'+(a.encerrado?'<div><div class="l">valor final'+(fin.encerradoEm?' em '+fin.encerradoEm:'')+'</div><div class="md">'+_i2R(fin.valorFinal)+'</div></div>':'')+'<div><div class="l">aplicado</div><div class="md">'+_i2R(apv)+'</div></div><div><div class="l">rendimento</div><div class="md '+(rd>=0?'wi2-pos':'wi2-neg')+'">'+(rd>=0?'+':'−')+_i2R(Math.abs(rd))+' · '+(p>=0?'+':'')+p.toFixed(1)+'%</div></div>'
     +(a.dataAplic?'<div><div class="l">desde</div><div class="md">'+normDateBR(a.dataAplic)+'</div></div>':'')+'</div>'
     +'<div class="wi2-acts">'
     +(a.encerrado?'':'<button class="wi2-chip wi2-primary" onclick="waInv2Upd()">↑ atualizar valor</button>')
@@ -10862,7 +10862,7 @@ function waInv2RenderDetail(){
   }
   const logAll=(a.composto&&a.updMode==='subs')?[]:(a.log||[]);
   h+='<div class="wi2-h">Histórico de valores'+((a.composto&&a.updMode==='subs')?' — por aporte (acima)':'')+'</div>';
-  const sorted=[...logAll].sort((x,y)=>(parseDate(y.date)||0)-(parseDate(x.date)||0));
+  const sorted=logAll.map((x,i)=>({x,i})).sort((p,q)=>((parseDate(q.x.date)||0)-(parseDate(p.x.date)||0))||(q.i-p.i)).map(o=>o.x);
   if(!sorted.length)h+='<div class="wi2-mute" style="font-size:11px;padding:6px 0;">'+((a.composto&&a.updMode==='subs')?'Os valores ficam em cada aporte.':'Nenhum registro ainda.')+'</div>';
   sorted.forEach(x=>{const li=a.log.indexOf(x);h+='<div class="wi2-log"><span class="d">'+normDateBR(x.date)+'</span><span class="v">'+_i2R2(x.value)+'</span><span class="n" title="'+_i2Esc(x.note||'')+'">'+_i2Esc(x.note||'')+'</span><span class="ic"><button onclick="waInv2EditLog('+li+')" title="editar">✎</button><button class="del" onclick="waInv2DelLog('+li+')" title="excluir">✕</button></span></div>';});
   d.innerHTML=h;
