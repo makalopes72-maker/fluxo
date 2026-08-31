@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1a2540,#c98a2e);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F7E7C6 !important;}
-  #splash .splash-sub{color:rgba(247,231,198,.65) !important;}
-  #splash .splash-version{color:rgba(247,231,198,.35) !important;}
-  #splash .splash-btn{background:#F7E7C6 !important;color:#1a2540 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F7E7C6 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#5a1a2e,#9fd3e6);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E6F4FA !important;}
+  #splash .splash-sub{color:rgba(230,244,250,.65) !important;}
+  #splash .splash-version{color:rgba(230,244,250,.35) !important;}
+  #splash .splash-btn{background:#E6F4FA !important;color:#5a1a2e !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#E6F4FA !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.57';
+const APP_VERSION='18.58';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4967,7 +4967,40 @@ function seedInvestimentos(){
   saveInvestimentos();
 }
 
-function getAtivoAtual(a){return a.log&&a.log.length?a.log[a.log.length-1].value:a.aplicado;}
+function getAtivoAtual(a){if(a&&a.encerrado)return 0;return a.log&&a.log.length?a.log[a.log.length-1].value:a.aplicado;}
+// REGRA: investimento encerrado termina SEMPRE com um registro de valor 0 na data da última conferência.
+// Se faltar (importação sem linha "encerrado", gravação que falhou, cadastro antigo), cria o registro,
+// grava no InvestimentosLog e salva o cadastro — uma vez por ativo por sessão.
+function _lastLogRec(log){const s=[...(log||[])].sort((x,y)=>(parseDate(x.date)||0)-(parseDate(y.date)||0));return s.length?s[s.length-1]:null;}
+async function healEncerrados(user){
+  user=user||currentUser||'ALE';
+  const data=ativosPorUser[user]||{};window._healedEnc=window._healedEnc||new Set();
+  const todo=[];
+  Object.keys(data).forEach(instName=>{(data[instName]||[]).forEach(a=>{
+    if(!a||!a.encerrado||a._isSubRow)return;
+    const key=user+'|'+instName+'|'+a.nome;if(window._healedEnc.has(key))return;
+    const t=new Date();const hoje=String(t.getDate()).padStart(2,'0')+'/'+String(t.getMonth()+1).padStart(2,'0')+'/'+t.getFullYear();
+    const targets=(a.composto&&a.updMode==='subs'&&a.subs&&a.subs.length)?a.subs.map(sb=>({o:sb,nome:a.nome+' » '+sb.nome})):[{o:a,nome:a.nome}];
+    targets.forEach(tg=>{
+      if(!tg.o.log)tg.o.log=[];
+      const last=_lastLogRec(tg.o.log);
+      if(last&&Number(last.value)===0)return;
+      const date=last?last.date:(a.dataEncerramento||hoje);
+      const rec={date,value:0,note:'Encerramento (registro automático)'};
+      tg.o.log.push(rec);tg.o.log.sort((x,y)=>(parseDate(x.date)||0)-(parseDate(y.date)||0));
+      todo.push({instName,nome:tg.nome,rec});
+    });
+    if(!a.dataEncerramento){const l=_lastLogRec(a.log);if(l)a.dataEncerramento=normDateBR(l.date);}
+    window._healedEnc.add(key);
+  });});
+  if(!todo.length)return 0;
+  saveInvestimentos();
+  if(typeof toast==='function')toast('⏹ '+todo.length+' registro'+(todo.length===1?'':'s')+' de encerramento (valor 0) criado'+(todo.length===1?'':'s')+' — gravando no log…','');
+  let fail=0;
+  for(const x of todo){try{const rr=await sheetsAppendLog(user,x.instName,x.nome,x.rec.date,0,x.rec.note);if(!rr||rr.ok===false)fail++;}catch(e){fail++;}await new Promise(z=>setTimeout(z,150));}
+  if(fail&&typeof toast==='function')toast('⚠ '+fail+' registro'+(fail===1?'':'s')+' de encerramento não gravado'+(fail===1?'':'s')+' no InvestimentosLog','error');
+  return todo.length;
+}
 function getInstAtivos(inst){return getUserAtivos(inst.name||inst.id);}
 function getInstTotal(inst){return getInstAtivos(inst).reduce((s,a)=>s+getAtivoAtual(a),0);}
 function getTotalGeral(){return instituicoes.reduce((s,i)=>s+getInstTotal(i),0);}
@@ -6313,7 +6346,7 @@ async function loadInvFromSheets(){
           if(!arr)return;
           const ativo=_findLogTarget(arr,nome);
           if(!ativo)return;
-          if(window._logSeen){const _k=user+'|'+instName+'|'+nome+'|'+String(l[3])+'|'+String(l[4]);if(window._logSeen.has(_k))return;window._logSeen.add(_k);}
+          if(window._logSeen){const _k=user+'|'+inst+'|'+nome+'|'+String(l[3])+'|'+String(l[4]);if(window._logSeen.has(_k))return;window._logSeen.add(_k);}
           const logVal=parseBRNumber(l[4]);
           const rawDate=String(l[3]||'').trim();
           const logDate=normalizeDate(rawDate)||rawDate;
@@ -6364,6 +6397,7 @@ async function loadInvFromSheets(){
     }
     ativosPorUser[user]=userAtivos;
     localStorage.setItem('fluxo_ativos_'+user,JSON.stringify(userAtivos));
+    try{const nH=await healEncerrados(user);if(nH){if(document.getElementById('wa-center-body')&&typeof waInv2Render==='function')waInv2Render();}}catch(e){console.warn('healEncerrados',e);}
     renderInv();
     // refresh web inv panel if open
     if(document.getElementById('wai-inst-list'))waInvRenderInst();
@@ -10608,6 +10642,7 @@ const _i2R=v=>'R$ '+Math.round(v||0).toLocaleString('pt-BR');
 const _i2R2=v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const _i2K=v=>Math.abs(v)>=1000?(v/1000).toLocaleString('pt-BR',{maximumFractionDigits:0})+'k':String(Math.round(v));
 function _i2Atual(a){
+  if(a.encerrado)return 0;
   if(a.composto&&a.updMode==='subs'&&a.subs&&a.subs.length)return a.subs.reduce((s,sb)=>s+((sb.log&&sb.log.length)?sb.log[sb.log.length-1].value:(sb.valor||0)),0);
   return (a.log&&a.log.length)?a.log[a.log.length-1].value:(a.aplicado||0);
 }
@@ -10644,6 +10679,7 @@ function waInv2Q(v){waI2().q=v;waInv2RenderTable();}
 
 function waInv2Render(){try{_waInv2Render();}catch(e){const el=document.getElementById('wa-center-body');if(el)el.innerHTML='<div style="padding:20px;color:red;font-size:12px;font-family:monospace;white-space:pre-wrap;">ERRO waInv2Render: '+e.message+'\n'+e.stack+'</div>';console.error('[waInv2Render]',e);}}
 function _waInv2Render(){
+  if(!window._i2HealRun){window._i2HealRun=true;healEncerrados().then(n=>{if(n)waInv2Render();}).catch(()=>{}).finally(()=>{window._i2HealRun=false;});}
   if(!document.getElementById('wi2-style')){
     const st=document.createElement('style');st.id='wi2-style';
     st.textContent=`
@@ -11122,7 +11158,7 @@ async function waInv2ImportParse(file){
 function waInv2ImportPreview(items,errs,encerra,fname){
   const r=_i2Sel();if(!r)return;const a=r.a;
   const isSubs=a.composto&&a.updMode==='subs'&&a.subs&&a.subs.length;
-  window._i2Imp={items,encerra};
+  window._i2Imp={items,encerra,lastZero:Number(items[items.length-1].value)===0};
   const target=a;
   const existing=(target.log||[]);
   const dup=x=>existing.some(e=>normDateBR(e.date)===x.date&&Math.abs(Number(e.value)-x.value)<0.005);
@@ -11138,7 +11174,7 @@ function waInv2ImportPreview(items,errs,encerra,fname){
     +'<label style="display:flex;gap:5px;align-items:center;cursor:pointer;"><input type="radio" name="wi2-imp-mode" value="replace"> substituir o histórico atual ('+existing.length+' registro'+(existing.length===1?'':'s')+')</label>'
     +'</div>';
   if(jaImportado||nDupAno)h+='<div class="wi2-hint" style="border-left:3px solid #C62828;">⚠ '+(jaImportado?'Este investimento <b>já recebeu uma importação</b>. ':'')+(nDupAno?nDupAno+' linha'+(nDupAno===1?'':'s')+' têm <b>o mesmo valor em outro ano</b> (possível reimportação com ano errado). ':'')+'Se você está reimportando o mesmo histórico corrigido, prefira <b>substituir o histórico atual</b> — os registros antigos ficam só no InvestimentosLog do Sheets, onde podem ser apagados manualmente.</div>';
-  if(encerra)h+='<div class="wi2-hint" style="border-left:3px solid #B45309;">⏹ A última linha contém <b>“encerrado”</b>: o investimento será marcado como <b>encerrado</b> na data '+items[items.length-1].date+', com um registro final de valor 0 logo após — <b>nenhum valor é transferido</b> para conta corrente.</div>';
+  h+='<div class="wi2-hint" style="border-left:3px solid #B45309;"><label style="display:flex;gap:6px;align-items:flex-start;cursor:pointer;"><input type="checkbox" id="wi2-imp-enc" '+(encerra?'checked':'')+' style="margin-top:2px;"><span>⏹ <b>Encerrar após a última linha</b> ('+items[items.length-1].date+'). '+(encerra?'Detectado “encerrado” na observação. ':'')+'O último valor fica registrado como valor final e, na mesma data, entra um registro de <b>valor 0</b>; o investimento vai para <b>Encerrados</b> zerado. <b>Nenhum valor é transferido</b> para conta corrente — é só registro histórico.</span></label></div>';
   const cl='110px 130px minmax(0,1fr) 70px';
   h+='<div style="display:grid;grid-template-columns:'+cl+';gap:6px;font-size:10px;color:var(--muted);margin-bottom:4px;"><span>data</span><span style="text-align:right;">valor R$</span><span>observação</span><span></span></div>'
     +'<div style="max-height:46vh;overflow-y:auto;border:1px solid #E4E2DA;border-radius:8px;padding:4px 6px;background:#fff;">';
@@ -11166,16 +11202,20 @@ async function waInv2ImportApply(){
   const toAdd=imp.items.filter(x=>!existing.some(e=>e.date===x.date&&Math.abs(Number(e.value)-x.value)<0.005));
   toAdd.forEach(x=>target.log.push({date:x.date,value:x.value,note:x.note||'Importado'}));
   let closing=null;
-  if(imp.encerra){
+  const encChk=document.getElementById('wi2-imp-enc');
+  const encerrar=encChk?encChk.checked:!!imp.encerra;
+  if(encerrar){
     const last=imp.items[imp.items.length-1];
-    closing={date:last.date,value:0,note:'Encerramento (importado, sem transferência)'};
-    target.log.push(closing);
-    if(target===a)a.encerrado=true;
+    if(Number(last.value)!==0){ // se a última linha do arquivo já é 0, ela é o próprio encerramento
+      closing={date:last.date,value:0,note:'Encerramento (importado, sem transferência)'};
+      target.log.push(closing);
+    }
+    if(target===a){a.encerrado=true;a.dataEncerramento=last.date;}
   }
   target.log.sort((p,q)=>(parseDate(p.date)||0)-(parseDate(q.date)||0));
   _i2Close();
   saveInvestimentos();waInv2Render();
-  toast('✓ '+toAdd.length+' registro'+(toAdd.length===1?'':'s')+' importado'+(toAdd.length===1?'':'s')+(imp.encerra?' · investimento encerrado':'')+' — gravando no log…','success');
+  toast('✓ '+toAdd.length+' registro'+(toAdd.length===1?'':'s')+' importado'+(toAdd.length===1?'':'s')+(encerrar?' · investimento encerrado':'')+' — gravando no log…','success');
   // grava no InvestimentosLog um a um (append-only), sem bloquear a tela
   const queue=toAdd.concat(closing?[closing]:[]);let ok=0,fail=0;
   for(const x of queue){
@@ -11963,10 +12003,12 @@ function getAtivoSaldoMes(ativo,m,year){
     });
     return s;
   }
-  if(!ativo.log||!ativo.log.length)return null;
+  if(!ativo.log||!ativo.log.length)return ativo.encerrado?0:null;
   const sorted=[...ativo.log].sort((a,b)=>(parseDate(a.date)||0)-(parseDate(b.date)||0));
   const limit=new Date(year,m+1,0);let last=null;
   for(const l of sorted){const d=parseDate(l.date);if(d&&d<=limit)last=l.value;}
+  // encerrado sem registro 0 (ainda não curado): da última conferência em diante vale 0
+  if(ativo.encerrado&&last!==null&&Number(last)>0){const fin=sorted[sorted.length-1];const fd=parseDate(fin.date);if(fd&&fd<=limit)return 0;}
   return last;
 }
 
@@ -13767,7 +13809,7 @@ async function waInvSync(){
           const arr=userAtivos[inst];if(!arr)return;
           const ativo=_findLogTarget(arr,nome);
           if(!ativo)return;
-          if(window._logSeen){const _k=user+'|'+instName+'|'+nome+'|'+String(l[3])+'|'+String(l[4]);if(window._logSeen.has(_k))return;window._logSeen.add(_k);}
+          if(window._logSeen){const _k=user+'|'+inst+'|'+nome+'|'+String(l[3])+'|'+String(l[4]);if(window._logSeen.has(_k))return;window._logSeen.add(_k);}
           const logVal=parseBRNumber(l[4]);
           const rawDate2=String(l[3]||'').trim();
           const logDate=normalizeDate(rawDate2)||rawDate2;
@@ -13791,6 +13833,7 @@ async function waInvSync(){
     });
     ativosPorUser[user]=userAtivos;
     localStorage.setItem('fluxo_ativos_'+user,JSON.stringify(userAtivos));
+    try{await healEncerrados(user);}catch(e){console.warn('healEncerrados',e);}
     waInvRenderInst();
     const total=Object.values(userAtivos).reduce((s,a)=>s+a.length,0);
     if(status)status.textContent='✓ '+instituicoes.length+' inst · '+total+' ativos';
@@ -14536,7 +14579,7 @@ function waInvToggleEnc(idx){
   if(a.encerrado){
     // Reativar — simples
     a.encerrado=false;
-    a.log=a.log.filter(l=>l.note!=='Investimento encerrado'&&!l.note.startsWith('Encerrado —'));
+    a.log=(a.log||[]).filter(l=>l.note!=='Investimento encerrado'&&!String(l.note||'').startsWith('Encerrado —')&&!String(l.note||'').startsWith('Encerramento'));delete a.dataEncerramento;
     saveInvestimentos();
     waInvRenderAtivos();
     waInvRenderDetail(idx);
