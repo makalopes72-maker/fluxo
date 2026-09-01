@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0e4a4a,#f4b6c2);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FDEFF3 !important;}
-  #splash .splash-sub{color:rgba(253,239,243,.65) !important;}
-  #splash .splash-version{color:rgba(253,239,243,.35) !important;}
-  #splash .splash-btn{background:#FDEFF3 !important;color:#0e4a4a !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FDEFF3 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#3d1f4d,#f2d16b);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FBF3DC !important;}
+  #splash .splash-sub{color:rgba(251,243,220,.65) !important;}
+  #splash .splash-version{color:rgba(251,243,220,.35) !important;}
+  #splash .splash-btn{background:#FBF3DC !important;color:#3d1f4d !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FBF3DC !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.60';
+const APP_VERSION='18.62';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4977,7 +4977,13 @@ async function healEncerrados(user){
   const data=ativosPorUser[user]||{};window._healedEnc=window._healedEnc||new Set();
   const todo=[];
   Object.keys(data).forEach(instName=>{(data[instName]||[]).forEach(a=>{
-    if(!a||!a.encerrado||a._isSubRow)return;
+    if(!a||a._isSubRow)return;
+    if(!a.encerrado){ // aportes encerrados de um investimento ativo
+      (a.subs||[]).forEach(sb=>{if(!sb.encerrado)return;const k2=user+'|'+instName+'|'+a.nome+' » '+sb.nome;if(window._healedEnc.has(k2))return;window._healedEnc.add(k2);
+        if(!sb.log)sb.log=[];const last=_lastLogRec(sb.log);if(last&&Number(last.value)===0)return;
+        const t2=new Date();const rec={date:last?last.date:(sb.dataEncerramento||(String(t2.getDate()).padStart(2,'0')+'/'+String(t2.getMonth()+1).padStart(2,'0')+'/'+t2.getFullYear())),value:0,note:'Encerramento (registro automático)'};
+        sb.log.push(rec);sb.log.sort((x,y)=>(parseDate(x.date)||0)-(parseDate(y.date)||0));todo.push({instName,nome:a.nome+' » '+sb.nome,rec});});
+      return;}
     const key=user+'|'+instName+'|'+a.nome;if(window._healedEnc.has(key))return;
     const t=new Date();const hoje=String(t.getDate()).padStart(2,'0')+'/'+String(t.getMonth()+1).padStart(2,'0')+'/'+t.getFullYear();
     const targets=(a.composto&&a.updMode==='subs'&&a.subs&&a.subs.length)?a.subs.map(sb=>({o:sb,nome:a.nome+' » '+sb.nome})):[{o:a,nome:a.nome}];
@@ -6591,7 +6597,7 @@ async function pushToSheets(dataset){
                   user, inst.name, a.nome+' » '+(sb.nome||''), '', '',
                   sb.valor||0, sCur,
                   '','', sb.dataAplic||'', sb.vencimento||'',
-                  '','','','', 'Não','SUB',''
+                  '','','','', sb.encerrado?'Sim':'Não','SUB',''
                 ]);
               });
             }
@@ -9843,10 +9849,10 @@ function _waDash2Render(){
         // subinvestimentos: SEMPRE aparecem; valores/edição só no modo 'por sub'
         if(a.composto&&a.subs&&a.subs.length){
           a.subs.forEach((sb,si)=>{
-            html+=valRow('↳ '+subLabelAuto(sb,si),
-              isSubMode?(m=>getAtivoSaldoMes({log:sb.log||[]},m,dashYear)):(m=>null),
-              'wd2-sub',vencLastCol(sb.vencimento),
-              (isSubMode&&!a.encerrado)?(m=>'waDash2SubEdit('+ii+','+ai+','+si+','+dashYear+','+m+')'):null,
+            html+=valRow('↳ '+subLabelAuto(sb,si)+(sb.encerrado?' <span style="font-size:8px;color:#999;">(enc.)</span>':''),
+              isSubMode?(m=>getAtivoSaldoMes({log:sb.log||[],encerrado:!!sb.encerrado},m,dashYear)):(m=>null),
+              'wd2-sub',vencLastCol(sb.encerrado?'':sb.vencimento),
+              (isSubMode&&!a.encerrado&&!sb.encerrado)?(m=>'waDash2SubEdit('+ii+','+ai+','+si+','+dashYear+','+m+')'):null,
               undefined, vencNote(sb.vencimento));
           });
         }
@@ -10632,6 +10638,7 @@ function waShowInv2(){
   const actions=document.getElementById('wa-center-actions');
   if(actions)actions.innerHTML='<div style="display:flex;gap:6px;align-items:center;justify-content:flex-end;">'
     +'<button onclick="waInvSync()" class="wi2-chip">↻ sincronizar</button>'
+    +'<button id="wi2-hdr-reorder" onclick="waInv2Set(\'reorder\',!waI2().reorder)" class="wi2-chip '+(s.reorder?'wi2-primary':'')+'" title="Definir a ordem manual dos ativos e das instituições (vale também no Quadro 2.0)">'+(s.reorder?'✓ concluir ordenação':'≡ ordenar lista')+'</button>'
     +'<button onclick="waInvNewInst()" class="wi2-chip">+ instituição</button>'
     +'<button onclick="waInv2NewAtivo()" class="wi2-chip wi2-primary">+ ativo</button>'
     +'</div>';
@@ -10654,10 +10661,12 @@ function _i2Final(a){ // para encerrados: último valor não-zero e data do zero
   const z=[...s].reverse().find(x=>Number(x.value)===0);
   return {valorFinal:fin||0,encerradoEm:z?normDateBR(z.date):(dt?normDateBR(dt):'')};
 }
-function _i2Aplic(a){if(a.composto&&a.subs&&a.subs.length){const s=a.subs.reduce((x,sb)=>x+(sb.valor||0),0);return s||a.aplicado||0;}return a.aplicado||0;}
+function _i2SubsAtivos(a){return (a.subs||[]).filter(sb=>!sb.encerrado);}
+function _i2SubFinal(sb){const s=[...(sb.log||[])].sort((x,y)=>(parseDate(x.date)||0)-(parseDate(y.date)||0));let fin=null;for(const x of s){if(Number(x.value)>0)fin=Number(x.value);}const z=[...s].reverse().find(x=>Number(x.value)===0);return {valorFinal:fin||0,encerradoEm:z?normDateBR(z.date):(sb.dataEncerramento?normDateBR(sb.dataEncerramento):'')};}
+function _i2Aplic(a){if(a.composto&&a.subs&&a.subs.length){const act=_i2SubsAtivos(a);const src=(act.length||a.encerrado)?(act.length?act:a.subs):a.subs;const s=src.reduce((x,sb)=>x+(sb.valor||0),0);return s||a.aplicado||0;}return a.aplicado||0;}
 function _i2Dias(venc){const v=normDateBR(venc);const d=parseDate(v);if(!d)return null;const t=new Date();t.setHours(0,0,0,0);return Math.ceil((d-t)/86400000);}
 function _i2VencTxt(a){
-  if(a.composto&&a.subs&&a.subs.length){const ds=a.subs.map(s=>s.vencimento).filter(Boolean);return ds.length?ds.length+' datas':'—';}
+  if(a.composto&&a.subs&&a.subs.length){const ds=_i2SubsAtivos(a).map(s=>s.vencimento).filter(Boolean);return ds.length?ds.length+' data'+(ds.length>1?'s':''):'—';}
   const v=normDateBR(a.vencimento);
   if(!v||v==='--')return (a.liquidez||'').toLowerCase().includes('diár')?'liquidez diária':'—';
   const n=_i2Dias(v);return v.slice(0,6)+v.slice(8)+(n!==null&&n>=0?' · '+n+'d':'');
@@ -10671,7 +10680,12 @@ function _i2Modal(html){const old=document.getElementById('wi2-ov');if(old)old.r
   ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
   document.body.appendChild(ov);const f=ov.querySelector('input,select');if(f){f.focus();}return ov;}
 function _i2Close(){const o=document.getElementById('wi2-ov');if(o)o.remove();}
-function _i2Sel(){const s=waI2();if(!s.sel)return null;const inst=(instituicoes||[]).find(i=>i.name===s.sel.inst);if(!inst)return null;const a=(getInstAtivos(inst)||[]).find(x=>x.id===s.sel.id)||null;return a?{inst,a,idx:getInstAtivos(inst).indexOf(a),ii:instituicoes.indexOf(inst)}:null;}
+function _i2Sel(){const s=waI2();if(!s.sel)return null;const inst=(instituicoes||[]).find(i=>i.name===s.sel.inst);if(!inst)return null;
+  const parts=String(s.sel.id).split('#sub#');const aid=parts[0];const si=parts.length>1?parseInt(parts[1],10):null;
+  const a=(getInstAtivos(inst)||[]).find(x=>x.id===aid)||null;if(!a)return null;
+  const r={inst,a,idx:getInstAtivos(inst).indexOf(a),ii:instituicoes.indexOf(inst)};
+  if(si!==null&&a.subs&&a.subs[si]){r.sub=a.subs[si];r.si=si;}
+  return r;}
 function _i2Ctx(){const r=_i2Sel();if(!r)return null;waInvInstIdx=r.ii;return r;} // sincroniza o contexto usado pelas funções legadas
 function waInv2Set(k,v){const s=waI2();s[k]=v;if(k==='tab')s.sel=null;if(k==='reorder'&&v)s.sort='manual';if(k==='sort'||(k==='reorder'&&v)){try{localStorage.setItem('fluxo_i2sort_'+(currentUser||'ALE'),s.sort);}catch(e){}}waInv2Render();}
 function waInv2Pick(inst,id){const s=waI2();s.sel={inst,id};waInv2Render();}
@@ -10679,6 +10693,7 @@ function waInv2Q(v){waI2().q=v;waInv2RenderTable();}
 
 function waInv2Render(){try{_waInv2Render();}catch(e){const el=document.getElementById('wa-center-body');if(el)el.innerHTML='<div style="padding:20px;color:red;font-size:12px;font-family:monospace;white-space:pre-wrap;">ERRO waInv2Render: '+e.message+'\n'+e.stack+'</div>';console.error('[waInv2Render]',e);}}
 function _waInv2Render(){
+  {const hb=document.getElementById('wi2-hdr-reorder');if(hb){const on=!!waI2().reorder;hb.textContent=on?'✓ concluir ordenação':'≡ ordenar lista';hb.classList.toggle('wi2-primary',on);}}
   if(!window._i2HealRun){window._i2HealRun=true;healEncerrados().then(n=>{if(n)waInv2Render();}).catch(()=>{}).finally(()=>{window._i2HealRun=false;});}
   if(!document.getElementById('wi2-style')){
     const st=document.createElement('style');st.id='wi2-style';
@@ -10746,13 +10761,13 @@ function _waInv2Render(){
   }
   const s=waI2();const user=currentUser||'ALE';
   // o ativo selecionado sempre fica na aba onde ele vive (encerrado → Encerrados)
-  const _selR=_i2Sel();if(_selR){s.tab=_selR.a.encerrado?'enc':'ativos';}
+  const _selR=_i2Sel();if(_selR){s.tab=(_selR.a.encerrado||(_selR.sub&&_selR.sub.encerrado))?'enc':'ativos';}
   const insts=instituicoes||[];
   const allAtivos=[];insts.forEach(i=>(getInstAtivos(i)||[]).forEach(a=>allAtivos.push({inst:i,a})));
   const vis=allAtivos.filter(x=>!x.a.encerrado);
   const tot=vis.reduce((z,x)=>z+_i2Atual(x.a),0), ap=vis.reduce((z,x)=>z+_i2Aplic(x.a),0);
   const rend=tot-ap, pct=ap?rend/ap*100:0;
-  const prox=vis.flatMap(x=>x.a.composto&&x.a.subs&&x.a.subs.length?x.a.subs.map(sb=>({n:x.a.nome+' » '+sb.nome,v:sb.vencimento})):[{n:x.a.nome,v:x.a.vencimento}]).filter(y=>y.v&&_i2Dias(y.v)!==null&&_i2Dias(y.v)>=0).sort((p,q)=>_i2Dias(p.v)-_i2Dias(q.v))[0];
+  const prox=vis.flatMap(x=>x.a.composto&&x.a.subs&&x.a.subs.length?_i2SubsAtivos(x.a).map(sb=>({n:x.a.nome+' » '+sb.nome,v:sb.vencimento})):[{n:x.a.nome,v:x.a.vencimento}]).filter(y=>y.v&&_i2Dias(y.v)!==null&&_i2Dias(y.v)>=0).sort((p,q)=>_i2Dias(p.v)-_i2Dias(q.v))[0];
   const zoom=window.waDash2Zoom||1;
   let h='<div class="wd2-wrap wi2" style="zoom:'+zoom+';">';
   h+='<div class="wi2-kpis">'
@@ -10767,11 +10782,11 @@ function _waInv2Render(){
     h+='<button class="wi2-chip '+(s.inst===i.name?'on':'')+'" onclick="waInv2Set(\'inst\',\''+_i2Esc(i.name).replace(/'/g,"\\'")+'\')">'+(i.icon||'🏦')+' '+_i2Esc(i.name)+' <span class="n">'+_i2K(t)+'</span><span class="c">· '+mine.length+'</span>'
       +(s.reorder?'<span class="wi2-reord"><button onclick="event.stopPropagation();waInvMoveInst('+idx+',-1);waInv2Render();">▲</button><button onclick="event.stopPropagation();waInvMoveInst('+idx+',1);waInv2Render();">▼</button></span>':'')+'</button>';
   });
-  h+='<button class="wi2-chip wi2-ghost" onclick="waInv2Set(\'reorder\','+(!s.reorder)+')">'+(s.reorder?'✓ concluir':'≡ ordenar')+'</button></div>';
+  h+='<button class="wi2-chip '+(s.reorder?'wi2-primary':'')+'" style="'+(s.reorder?'':'border-color:#1565C0;color:#1565C0;font-weight:600;')+'" onclick="waInv2Set(\'reorder\','+(!s.reorder)+')">'+(s.reorder?'✓ concluir':'≡ ordenar')+'</button></div>';
   // grid
   h+='<div class="wi2-grid"><div class="wi2-panel"><div class="wi2-ph"><div style="display:flex;gap:4px;">'
     +'<button class="wi2-tab '+(s.tab==='ativos'?'on':'')+'" onclick="waInv2Set(\'tab\',\'ativos\')">Ativos · '+allAtivos.filter(x=>!x.a.encerrado&&(s.inst==='*'||x.inst.name===s.inst)).length+'</button>'
-    +'<button class="wi2-tab '+(s.tab==='enc'?'on':'')+'" onclick="waInv2Set(\'tab\',\'enc\')">Encerrados · '+allAtivos.filter(x=>x.a.encerrado&&(s.inst==='*'||x.inst.name===s.inst)).length+'</button></div>'
+    +'<button class="wi2-tab '+(s.tab==='enc'?'on':'')+'" onclick="waInv2Set(\'tab\',\'enc\')">Encerrados · '+allAtivos.filter(x=>(s.inst==='*'||x.inst.name===s.inst)).reduce((z,x)=>z+(x.a.encerrado?1:(x.a.subs||[]).filter(sb=>sb.encerrado).length),0)+'</button></div>'
     +'<div class="wi2-tools"><input id="wi2-q" placeholder="buscar ativo…" value="'+_i2Esc(s.q)+'" oninput="waInv2Q(this.value)">'
     +'<select onchange="waInv2Set(\'sort\',this.value)"><option value="venc"'+(s.sort==='venc'?' selected':'')+'>ordenar: vencimento</option><option value="atual"'+(s.sort==='atual'?' selected':'')+'>ordenar: valor atual</option><option value="rend"'+(s.sort==='rend'?' selected':'')+'>ordenar: rendimento</option><option value="nome"'+(s.sort==='nome'?' selected':'')+'>ordenar: nome</option><option value="manual"'+(s.sort==='manual'?' selected':'')+'>ordem manual</option></select></div></div>'
     +(s.reorder?'<div style="padding:6px 12px;font-size:10.5px;color:#1565C0;background:#EEF3FA;border-bottom:1px solid #E4E2DA;">Modo ordenar: arraste as linhas pelo ⠿ ou use ▲▼ (dentro da mesma instituição; as instituições se ordenam pelos ▲▼ dos chips acima) · a ordem vale aqui e no Quadro 2.0 e é gravada na planilha · clique em “✓ concluir” ao terminar</div>':'')
@@ -10783,26 +10798,42 @@ function _waInv2Render(){
 function waInv2List(){
   const s=waI2();const q=(s.q||'').toLowerCase();
   const l=[];(instituicoes||[]).forEach(i=>{if(s.inst!=='*'&&i.name!==s.inst)return;(getInstAtivos(i)||[]).forEach((a,ai)=>{
+    if(s.tab==='enc'&&!a.encerrado&&a.subs&&a.subs.length){ // aportes encerrados de um investimento ainda ativo
+      a.subs.forEach((sb,si)=>{if(!sb.encerrado)return;const full=a.nome+' » '+sb.nome;if(q&&!full.toLowerCase().includes(q))return;l.push({inst:i,a,ai,sub:sb,si,subId:a.id+'#sub#'+si});});
+    }
     if(!!a.encerrado!==(s.tab==='enc'))return;
     if(q&&!(String(a.nome).toLowerCase().includes(q)||String(a.classe||'').toLowerCase().includes(q)))return;
     l.push({inst:i,a,ai});});});
-  const vk=x=>{const a=x.a;if(a.composto&&a.subs&&a.subs.length){const ds=a.subs.map(sb=>_i2Dias(sb.vencimento)).filter(v=>v!==null&&v>=0);return ds.length?Math.min(...ds):1e9;}const n=a.vencimento?_i2Dias(a.vencimento):null;return (n===null||n<0)?1e9:n;};
+  const AT=x=>x.sub?0:_i2Atual(x.a), AP=x=>x.sub?(x.sub.valor||0):_i2Aplic(x.a), NM=x=>x.sub?x.a.nome+' » '+x.sub.nome:String(x.a.nome);
+  const vk=x=>{if(x.sub)return 1e9;const a=x.a;if(a.composto&&a.subs&&a.subs.length){const ds=_i2SubsAtivos(a).map(sb=>_i2Dias(sb.vencimento)).filter(v=>v!==null&&v>=0);return ds.length?Math.min(...ds):1e9;}const n=a.vencimento?_i2Dias(a.vencimento):null;return (n===null||n<0)?1e9:n;};
   if(s.sort==='venc')l.sort((p,q2)=>vk(p)-vk(q2));
-  else if(s.sort==='atual')l.sort((p,q2)=>_i2Atual(q2.a)-_i2Atual(p.a));
-  else if(s.sort==='rend')l.sort((p,q2)=>((_i2Atual(q2.a)-_i2Aplic(q2.a))/(_i2Aplic(q2.a)||1))-((_i2Atual(p.a)-_i2Aplic(p.a))/(_i2Aplic(p.a)||1)));
-  else if(s.sort==='nome')l.sort((p,q2)=>String(p.a.nome).localeCompare(String(q2.a.nome)));
+  else if(s.sort==='atual')l.sort((p,q2)=>AT(q2)-AT(p));
+  else if(s.sort==='rend')l.sort((p,q2)=>((AT(q2)-AP(q2))/(AP(q2)||1))-((AT(p)-AP(p))/(AP(p)||1)));
+  else if(s.sort==='nome')l.sort((p,q2)=>NM(p).localeCompare(NM(q2)));
   return l; // 'manual' = ordem do cadastro
 }
 function waInv2RenderTable(){
   const s=waI2();const l=waInv2List();const el=document.getElementById('wi2-tbl');if(!el)return;
   if(!l.length){el.innerHTML='<div class="wi2-empty">Nenhum ativo aqui. Use <b>+ ativo</b> para cadastrar.</div>';return;}
   let h='<table class="wi2-tbl"><tr><th>ativo</th><th>aplicado</th><th>atual</th><th>rend.</th><th style="padding-right:12px;">vencimento</th></tr>';
-  l.forEach(x=>{const a=x.a;const apv=_i2Aplic(a);const fin=a.encerrado?_i2Final(a):null;const at=a.encerrado?0:_i2Atual(a);const base=a.encerrado?fin.valorFinal:at;const r=base-apv,p=apv?r/apv*100:0;
+  l.forEach(x=>{const a=x.a;
+    if(x.sub){ // aporte encerrado (investimento pai continua ativo)
+      const sb=x.sub;const sf=_i2SubFinal(sb);const apv=sb.valor||0;const r=sf.valorFinal-apv,p=apv?r/apv*100:0;
+      const isSel=s.sel&&s.sel.inst===x.inst.name&&s.sel.id===x.subId;
+      const nm=_i2Esc(x.inst.name).replace(/'/g,"\\'");
+      h+='<tr class="r '+(isSel?'sel':'')+'" onclick="waInv2Pick(\''+nm+'\',\''+_i2Esc(x.subId).replace(/'/g,"\\'")+'\')">'
+        +'<td><div class="wi2-nm" style="display:inline-block;">↳ '+_i2Esc(a.nome)+' » '+_i2Esc(sb.nome)+'</div><div class="wi2-sub">'+(s.inst==='*'?_i2Esc(x.inst.name)+' · ':'')+'aporte encerrado · o investimento segue ativo'+(sb.dataAplic?' · desde '+normDateBR(sb.dataAplic):'')+'</div></td>'
+        +'<td class="wi2-mute">'+_i2R(apv).replace('R$ ','')+'</td><td><b>0</b><div class="wi2-sub">final '+_i2R(sf.valorFinal).replace('R$ ','')+'</div></td>'
+        +'<td class="'+(r>=0?'wi2-pos':'wi2-neg')+'">'+(r>=0?'+':'−')+Math.abs(p).toFixed(1)+'%</td>'
+        +'<td class="wi2-mute" style="padding-right:12px;">encerrado'+(sf.encerradoEm?' '+sf.encerradoEm:'')+'</td></tr>';
+      return;
+    }
+    const apv=_i2Aplic(a);const fin=a.encerrado?_i2Final(a):null;const at=a.encerrado?0:_i2Atual(a);const base=a.encerrado?fin.valorFinal:at;const r=base-apv,p=apv?r/apv*100:0;
     const isSel=s.sel&&s.sel.inst===x.inst.name&&s.sel.id===a.id;
     const nm=_i2Esc(x.inst.name).replace(/'/g,"\\'");
     const dragAttrs=s.reorder?' draggable="true" ondragstart="waInv2DragStart(event,\''+nm+'\','+x.ai+')" ondragover="event.preventDefault();this.style.outline=\'2px dashed #1565C0\'" ondragleave="this.style.outline=\'\'" ondrop="this.style.outline=\'\';waInv2Drop(event,\''+nm+'\','+x.ai+')"':'';
     h+='<tr class="r '+(isSel?'sel':'')+'"'+dragAttrs+' onclick="waInv2Pick(\''+nm+'\',\''+_i2Esc(a.id).replace(/'/g,"\\'")+'\')">'
-      +'<td>'+(s.reorder?'<span style="cursor:grab;color:#B9B7AE;margin-right:6px;font-size:13px;" title="arraste para reordenar">⠿</span>':'')+'<div class="wi2-nm" style="display:inline-block;">'+(a.composto?'🧩 ':'')+_i2Esc(a.nome)+'</div><div class="wi2-sub">'+(s.inst==='*'?_i2Esc(x.inst.name)+' · ':'')+(a.composto?'composto · '+((a.subs||[]).length)+' aportes · '+(a.updMode==='subs'?'por sub':'pelo total'):_i2Esc(a.classe||'')+(a.taxa?' · '+_i2Esc(a.taxa):''))
+      +'<td>'+(s.reorder?'<span style="cursor:grab;color:#B9B7AE;margin-right:6px;font-size:13px;" title="arraste para reordenar">⠿</span>':'')+'<div class="wi2-nm" style="display:inline-block;">'+(a.composto?'🧩 ':'')+_i2Esc(a.nome)+'</div><div class="wi2-sub">'+(s.inst==='*'?_i2Esc(x.inst.name)+' · ':'')+(a.composto?'composto · '+_i2SubsAtivos(a).length+' aporte'+(_i2SubsAtivos(a).length===1?'':'s')+((a.subs||[]).some(sb=>sb.encerrado)?' ('+(a.subs||[]).filter(sb=>sb.encerrado).length+' encerrado'+((a.subs||[]).filter(sb=>sb.encerrado).length===1?'':'s')+')':'')+' · '+(a.updMode==='subs'?'por sub':'pelo total'):_i2Esc(a.classe||'')+(a.taxa?' · '+_i2Esc(a.taxa):''))
       +(s.reorder?' <span class="wi2-reord"><button onclick="event.stopPropagation();waInv2MoveAtivo(\''+nm+'\','+x.ai+',-1)">▲</button><button onclick="event.stopPropagation();waInv2MoveAtivo(\''+nm+'\','+x.ai+',1)">▼</button></span>':'')+'</div>'
       +(a.obs?'<div class="wi2-sub wi2-obs" title="'+_i2Esc(a.obs)+'">'+_i2Esc(a.obs)+'</div>':'')+'</td>'
       +'<td class="wi2-mute">'+_i2R(apv).replace('R$ ','')+'</td><td><b>'+_i2R(at).replace('R$ ','')+'</b>'+(a.encerrado?'<div class="wi2-sub">final '+_i2R(fin.valorFinal).replace('R$ ','')+'</div>':'')+'</td>'
@@ -10830,6 +10861,7 @@ function waInv2RenderDetail(){
   const d=document.getElementById('wi2-det');if(!d)return;
   const r=_i2Sel();
   if(!r){d.innerHTML='<div class="wi2-empty">Selecione um ativo na tabela</div>';return;}
+  if(r.sub){waInv2RenderSubDetail(r);return;}
   const {a,inst,idx}=r;
   const fin=a.encerrado?_i2Final(a):null;
   const at=a.encerrado?0:_i2Atual(a),apv=_i2Aplic(a),rd=(a.encerrado?fin.valorFinal:at)-apv,p=apv?rd/apv*100:0;
@@ -10858,8 +10890,11 @@ function waInv2RenderDetail(){
   if(a.composto&&a.subs&&a.subs.length){
     h+='<div class="wi2-h">Aportes · atualização '+(a.updMode==='subs'?'por sub':'pelo total')+'</div><div class="wi2-subs"><div class="sr"><div>aporte</div><div class="rt">valor</div><div class="rt">atual</div><div class="rt">vencimento</div></div>';
     a.subs.forEach((sb,si)=>{const sv=(sb.log&&sb.log.length)?sb.log[sb.log.length-1].value:null;const dn=sb.vencimento?_i2Dias(sb.vencimento):null;
+      if(sb.encerrado){const sf=_i2SubFinal(sb);
+        h+='<div class="sr" style="opacity:.6;cursor:pointer;" title="ver o aporte encerrado" onclick="waInv2Pick(\''+_i2Esc(inst.name).replace(/'/g,"\\'")+'\',\''+_i2Esc(a.id+'#sub#'+si).replace(/'/g,"\\'")+'\')"><div style="min-width:0;overflow:hidden;text-overflow:ellipsis;">'+_i2Esc(sb.nome)+'<div class="wi2-sub">encerrado'+(sf.encerradoEm?' em '+sf.encerradoEm:'')+' · final '+_i2R(sf.valorFinal).replace('R$ ','')+'</div></div><div class="rt wi2-mute">'+_i2R(sb.valor||0).replace('R$ ','')+'</div><div class="rt"><b>0</b></div><div class="rt wi2-mute">—</div></div>';return;}
+      const encBtn=a.encerrado?'':' <button class="wi2-chip" style="padding:1px 7px;font-size:10px;" title="encerrar este aporte (resgate parcial para conta corrente)" onclick="event.stopPropagation();waInv2EncerrarSub('+si+')">⏹</button>';
       h+='<div class="sr"><div style="min-width:0;overflow:hidden;text-overflow:ellipsis;">'+_i2Esc(sb.nome)+'<div class="wi2-sub">'+normDateBR(sb.dataAplic||'')+'</div></div><div class="rt wi2-mute">'+_i2R(sb.valor||0).replace('R$ ','')+'</div>'
-        +'<div class="rt">'+(a.updMode==='subs'?'<b>'+(sv!==null?_i2R(sv).replace('R$ ',''):'—')+'</b> <button class="wi2-chip" style="padding:1px 7px;font-size:10px;" onclick="waInv2UpdSub('+si+')">↑</button>':'<span class="wi2-mute">—</span>')+'</div>'
+        +'<div class="rt" style="white-space:nowrap;">'+(a.updMode==='subs'?'<b>'+(sv!==null?_i2R(sv).replace('R$ ',''):'—')+'</b> <button class="wi2-chip" style="padding:1px 7px;font-size:10px;" onclick="waInv2UpdSub('+si+')">↑</button>':'<span class="wi2-mute">—</span>')+encBtn+'</div>'
         +'<div class="rt '+((dn!==null&&dn>=0&&dn<=45)?'wi2-warn':'wi2-mute')+'">'+(sb.vencimento?normDateBR(sb.vencimento):'—')+(dn!==null&&dn>=0?' · '+dn+'d':'')+'</div></div>';});
     h+='</div>';
   }
@@ -10993,6 +11028,92 @@ async function waInv2SaveUpd(){
   }
 }
 function waInv2UpdSub(si){waInv2Upd(si);}
+// ── ENCERRAR APORTE: resgate parcial de um investimento composto ──
+// O aporte registra seu valor final, recebe um registro 0 na data do resgate, gera a transferência
+// (saída do investimento → entrada na CC) e vai para Encerrados. O investimento pai continua ativo
+// com os demais aportes; no modo "pelo total" o valor do pai é reduzido pelo valor resgatado.
+function waInv2EncerrarSub(si){
+  const r=_i2Sel();if(!r)return;const a=r.a;const sb=a.subs&&a.subs[si];if(!sb||sb.encerrado)return;
+  const isSubs=a.updMode==='subs';
+  const sv=(sb.log&&sb.log.length)?sb.log[sb.log.length-1].value:null;
+  const sug=isSubs?(sv!==null?sv:(sb.valor||0)):(sb.valor||0);
+  const user=currentUser||'ALE';
+  const accts=(accounts||[]).filter(ac=>ac.active&&(ac.owner===user||ac.owner==='AMBOS')&&ac.kind!=='credito');
+  const t=new Date();const iso=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+  const paiAt=_i2Atual(a);
+  _i2Modal('<h3>Encerrar aporte</h3><div class="m">'+_i2Esc(a.nome)+' » <b>'+_i2Esc(sb.nome)+'</b> · aplicado '+_i2R2(sb.valor||0)+(sb.vencimento?' · venc. '+normDateBR(sb.vencimento):'')+'</div>'
+    +'<div class="wi2-r2"><div class="wi2-f"><label>data em que caiu na conta</label><input type="date" id="wi2-se-d" value="'+iso+'"></div>'
+    +'<div class="wi2-f"><label>valor resgatado (aporte + rendimento)</label><input id="wi2-se-v" class="rt" inputmode="numeric" value="'+_i2MoneyInit(sug)+'" oninput="_i2Money(this)"></div></div>'
+    +'<div class="wi2-f"><label>conta corrente de destino</label><select id="wi2-se-c">'+accts.map(ac=>'<option value="'+_i2Esc(ac.name)+'">'+_i2Esc(ac.name)+'</option>').join('')+'</select></div>'
+    +'<div class="wi2-hint">'+(isSubs?'O valor sugerido é o último valor registrado do aporte.':'Modo “pelo total”: o valor sugerido é o aplicado — ajuste para o valor efetivamente recebido. O valor atual do investimento ('+_i2R2(paiAt)+') será reduzido pelo resgate.')+' O aporte vai para <b>Encerrados</b> com seu histórico; os demais aportes continuam ativos. É gerada a transferência <b>'+_i2Esc(a.nome)+' → conta escolhida</b> no extrato.</div>'
+    +'<div class="wi2-mf"><button class="wi2-btn" onclick="_i2Close()">Cancelar</button><button class="wi2-btn p" onclick="waInv2EncerrarSubOk('+si+')">✓ Transferir e encerrar aporte</button></div>');
+}
+async function waInv2EncerrarSubOk(si){
+  const r=_i2Ctx();if(!r)return;const a=r.a,inst=r.inst;const sb=a.subs&&a.subs[si];if(!sb||sb.encerrado)return;
+  const g=id=>(document.getElementById(id)?.value||'').trim();
+  const ds=_i2FromISO(g('wi2-se-d'));if(!ds){toast('Informe a data','error');return;}
+  const val=parseBRNumber(g('wi2-se-v'));if(isNaN(val)||val<0){toast('Valor inválido','error');return;}
+  const contaDest=g('wi2-se-c');if(!contaDest){toast('Selecione a conta destino','error');return;}
+  const user=currentUser||'ALE';const isSubs=a.updMode==='subs';
+  const nomeLog=a.nome+' » '+sb.nome;
+  if(!sb.log)sb.log=[];
+  const logs=[]; // {nome,date,value,note}
+  const lastV=sb.log.length?Number(sb.log[sb.log.length-1].value):null;
+  if(lastV!==val){sb.log.push({date:ds,value:val,note:'Valor final — resgate do aporte'});logs.push({nome:nomeLog,date:ds,value:val,note:'Valor final — resgate do aporte'});}
+  const encNote='Encerrado — transferido para '+contaDest;
+  sb.log.push({date:ds,value:0,note:encNote});logs.push({nome:nomeLog,date:ds,value:0,note:encNote});
+  sb.encerrado=true;sb.dataEncerramento=ds;sb.valorFinal=val;
+  // modo "pelo total": o pai perde o valor resgatado
+  if(!isSubs){if(!a.log)a.log=[];const paiAt=(a.log.length?Number(a.log[a.log.length-1].value):(a.aplicado||0));const nv=Math.max(0,Math.round((paiAt-val)*100)/100);const n='Resgate do aporte «'+sb.nome+'» (−'+_i2R2(val)+')';a.log.push({date:ds,value:nv,note:n});logs.push({nome:a.nome,date:ds,value:nv,note:n});}
+  // todos os aportes encerrados ⇒ o investimento também encerra (zerado)
+  let paiEnc=false;
+  if(!_i2SubsAtivos(a).length){a.encerrado=true;a.dataEncerramento=ds;paiEnc=true;if(!isSubs){const n2='Encerrado — todos os aportes resgatados';a.log.push({date:ds,value:0,note:n2});logs.push({nome:a.nome,date:ds,value:0,note:n2});}}
+  // transferência no extrato
+  const desc='Resgate '+a.nome+' » '+sb.nome;const valStr=val.toFixed(2).replace('.',',');const txId=generateTxId();
+  allData.push({_id:txId+'S',date:ds,desc,value:val,cat:'Investimentos',tipo:'Investimentos',account:a.nome,type:'saída',consolidated:true,deleted:false});
+  allData.push({_id:txId+'E',date:ds,desc,value:val,cat:'Investimentos',tipo:'Investimentos',account:contaDest,type:'entrada',consolidated:true,deleted:false});
+  saveInvestimentos();_i2Close();
+  waI2().sel={inst:inst.name,id:a.id+'#sub#'+si};
+  waInv2Render();if(typeof renderDash==='function')try{renderDash();}catch(e){}
+  toast('Aporte encerrado: '+_i2R2(val)+' → '+contaDest+(paiEnc?' · último aporte: investimento encerrado':''),'success');
+  let fail=0;
+  try{await sheetsAppend([ds,desc,valStr,'Investimentos','Investimentos',a.nome,'saída','1','','',txId+'S']);}catch(e){fail++;}
+  try{await sheetsAppend([ds,desc,valStr,'Investimentos','Investimentos',contaDest,'entrada','1','','',txId+'E']);}catch(e){fail++;}
+  for(const x of logs){try{const rr=await sheetsAppendLog(user,inst.name,x.nome,x.date,x.value,x.note);if(!rr||rr.ok===false)fail++;}catch(e){fail++;}await new Promise(z=>setTimeout(z,150));}
+  if(fail)toast('⚠ '+fail+' gravação(ões) falharam — confira o extrato e o InvestimentosLog','error');
+}
+function waInv2ReabrirSub(si){
+  const r=_i2Ctx();if(!r)return;const a=r.a;const sb=a.subs&&a.subs[si];if(!sb||!sb.encerrado)return;
+  _i2Modal('<h3>Reabrir aporte?</h3><div class="m">'+_i2Esc(a.nome)+' » '+_i2Esc(sb.nome)+'</div><div class="wi2-hint">Remove os registros de encerramento do aporte (o valor final volta a ser o último valor). <b>Os lançamentos de resgate no extrato e o ajuste do valor do investimento não são desfeitos</b> — apague-os manualmente se necessário.</div><div class="wi2-mf"><button class="wi2-btn" onclick="_i2Close()">Cancelar</button><button class="wi2-btn p" onclick="waInv2ReabrirSubOk('+si+')">Reabrir</button></div>');
+}
+function waInv2ReabrirSubOk(si){
+  const r=_i2Ctx();if(!r)return;const a=r.a,inst=r.inst;const sb=a.subs&&a.subs[si];if(!sb)return;
+  sb.log=(sb.log||[]).filter(l=>!String(l.note||'').startsWith('Encerrado —')&&!String(l.note||'').startsWith('Valor final — resgate')&&!String(l.note||'').startsWith('Encerramento'));
+  sb.encerrado=false;delete sb.dataEncerramento;delete sb.valorFinal;
+  if(a.encerrado&&(a.log||[]).some(l=>String(l.note||'')==='Encerrado — todos os aportes resgatados')){a.encerrado=false;delete a.dataEncerramento;a.log=a.log.filter(l=>String(l.note||'')!=='Encerrado — todos os aportes resgatados');}
+  saveInvestimentos();_i2Close();waI2().sel={inst:inst.name,id:a.id};waInv2Render();toast('Aporte reaberto','success');
+}
+function waInv2RenderSubDetail(r){
+  const d=document.getElementById('wi2-det');if(!d)return;
+  const {a,inst,sub:sb,si}=r;const sf=_i2SubFinal(sb);const apv=sb.valor||0;const rd=sf.valorFinal-apv,p=apv?rd/apv*100:0;
+  const pts=[...(sb.log||[])].sort((x,y)=>(parseDate(x.date)||0)-(parseDate(y.date)||0));
+  let spark;
+  if(pts.length<2)spark='<div class="wi2-spark" style="cursor:default;display:flex;align-items:center;justify-content:center;color:#8A8A82;font-size:11px;">Gráfico com 2+ registros</div>';
+  else{const W=300,H=70,vals=pts.map(x=>x.value),mn=Math.min(...vals),mx=Math.max(...vals),rg=(mx-mn)||1;
+    const X=i=>8+i*(W-16)/(pts.length-1),Y=v=>8+(H-16)*(1-(v-mn)/rg);
+    spark='<div class="wi2-spark" style="cursor:default;"><svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none"><polygon points="'+X(0)+','+(H-4)+' '+pts.map((x,i)=>X(i)+','+Y(x.value)).join(' ')+' '+X(pts.length-1)+','+(H-4)+'" fill="#1565C0" opacity=".10"/><polyline points="'+pts.map((x,i)=>X(i)+','+Y(x.value)).join(' ')+'" fill="none" stroke="#1565C0" stroke-width="2"/></svg></div>';}
+  const nmI=_i2Esc(inst.name).replace(/'/g,"\\'"),aid=_i2Esc(a.id).replace(/'/g,"\\'");
+  let h='<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;"><div style="min-width:0;"><div class="wi2-name">↳ '+_i2Esc(sb.nome)+'</div>'
+    +'<div class="wi2-meta">aporte de <a href="#" onclick="event.preventDefault();waInv2Pick(\''+nmI+'\',\''+aid+'\')" style="color:#1565C0;">'+_i2Esc(a.nome)+'</a> · '+_i2Esc(inst.name)+(sb.dataAplic?' · aplicado em '+normDateBR(sb.dataAplic):'')+(sb.vencimento?' · venc. '+normDateBR(sb.vencimento):'')+'</div></div>'
+    +'<span class="wi2-badge enc">encerrado'+(sf.encerradoEm?' em '+sf.encerradoEm:'')+'</span></div>'
+    +'<div class="wi2-nums"><div><div class="l">atual</div><div class="big">'+_i2R(0)+'</div></div><div><div class="l">valor final'+(sf.encerradoEm?' em '+sf.encerradoEm:'')+'</div><div class="md">'+_i2R(sf.valorFinal)+'</div></div><div><div class="l">aplicado</div><div class="md">'+_i2R(apv)+'</div></div><div><div class="l">rendimento</div><div class="md '+(rd>=0?'wi2-pos':'wi2-neg')+'">'+(rd>=0?'+':'−')+_i2R(Math.abs(rd))+' · '+(rd>=0?'+':'−')+Math.abs(p).toFixed(1)+'%</div></div></div>'
+    +'<div class="wi2-acts"><button class="wi2-chip" onclick="waInv2Pick(\''+nmI+'\',\''+aid+'\')">← ver o investimento</button><button class="wi2-chip" onclick="waInv2ReabrirSub('+si+')">↩ reabrir aporte</button></div>'
+    +spark+'<div class="wi2-h">Histórico de valores do aporte</div>';
+  const sorted=(sb.log||[]).map((x,i)=>({x,i})).sort((p1,q1)=>((parseDate(q1.x.date)||0)-(parseDate(p1.x.date)||0))||(q1.i-p1.i)).map(o=>o.x);
+  if(!sorted.length)h+='<div class="wi2-mute" style="font-size:11px;padding:6px 0;">Nenhum registro.</div>';
+  sorted.forEach(x=>{h+='<div class="wi2-log"><span class="d">'+normDateBR(x.date)+'</span><span class="v">'+_i2R2(x.value)+'</span><span class="n" title="'+_i2Esc(x.note||'')+'">'+_i2Esc(x.note||'')+'</span><span class="ic"></span></div>';});
+  d.innerHTML=h;
+}
 function waInv2EditLog(li){const r=_i2Sel();if(!r)return;const x=r.a.log[li];if(!x)return;
   _i2Modal('<h3>Editar registro</h3><div class="m">'+_i2Esc(r.a.nome)+'</div><div class="wi2-r2"><div class="wi2-f"><label>data</label><input type="date" id="wi2-ld" value="'+_i2ToISO(x.date)+'"></div><div class="wi2-f"><label>valor (R$)</label><input id="wi2-lv" class="rt" inputmode="decimal" value="'+Number(x.value).toLocaleString('pt-BR',{minimumFractionDigits:2})+'"></div></div><div class="wi2-f"><label>nota</label><input id="wi2-ln" value="'+_i2Esc(x.note||'')+'"></div>'
     +'<div class="wi2-hint">A alteração vale para o cadastro e para este dispositivo; o registro original no InvestimentosLog é preservado.</div>'
@@ -11976,6 +12097,7 @@ function _foldSubAtivos(userAtivos){
         id:'sub_'+instName+'_'+paiNome+'_'+subNome,
         nome:subNome,valor:srow.aplicado||0,
         dataAplic:srow.dataAplic||'',vencimento:srow.vencimento||'',
+        encerrado:!!srow.encerrado,
         log:[],
       });
       if(!pai.composto)pai.composto=true;
