@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#5c0f2b,#c9a227);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FBF5DF !important;}
-  #splash .splash-sub{color:rgba(251,245,223,.65) !important;}
-  #splash .splash-version{color:rgba(251,245,223,.35) !important;}
-  #splash .splash-btn{background:#FBF5DF !important;color:#5c0f2b !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FBF5DF !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1b4965,#cdb4db);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F4ECF7 !important;}
+  #splash .splash-sub{color:rgba(244,236,247,.65) !important;}
+  #splash .splash-version{color:rgba(244,236,247,.35) !important;}
+  #splash .splash-btn{background:#F4ECF7 !important;color:#1b4965 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F4ECF7 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.69';
+const APP_VERSION='18.70';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -11000,18 +11000,19 @@ function _i2Spark(pts,isUSD,onclick){
   const X=i=>8+(times[i]-t0)/tr*(W-16);
   const usdPts=isUSD?pts.filter(x=>x.usd>0&&x.cot>0):[];
   if(isUSD&&usdPts.length>=2){
-    const series=[
-      {k:'R$',col:'#1565C0',v:pts.map(x=>x.value),t:times},
-      {k:'US$',col:'#059669',v:usdPts.map(x=>x.usd),t:usdPts.map(x=>(parseDate(x.date)||new Date(0)).getTime())},
-      {k:'cotação',col:'#E65100',v:usdPts.map(x=>x.cot),t:usdPts.map(x=>(parseDate(x.date)||new Date(0)).getTime())}
-    ].map(s=>{const b=s.v.find(v=>v>0)||1;return Object.assign(s,{n:s.v.map(v=>v/b*100)});});
-    const all=series.flatMap(s=>s.n);const mn=Math.min(...all),mx=Math.max(...all),rg=(mx-mn)||1;
-    const Y=v=>8+(H-16)*(1-(v-mn)/rg);const XT=t=>8+(t-t0)/tr*(W-16);
-    let svg='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none"><line x1="8" y1="'+Y(100)+'" x2="'+(W-8)+'" y2="'+Y(100)+'" stroke="#B9B7AE" stroke-width="1" stroke-dasharray="3,3" vector-effect="non-scaling-stroke"/>';
-    series.forEach(s=>{svg+='<polyline points="'+s.n.map((v,i)=>XT(s.t[i])+','+Y(v)).join(' ')+'" fill="none" stroke="'+s.col+'" stroke-width="'+(s.k==='R$'?2:1.5)+'" '+(s.k!=='R$'?'stroke-dasharray="4,3" ':'')+'vector-effect="non-scaling-stroke"/>';});
-    svg+='</svg>';
-    const leg='<span style="position:absolute;left:8px;top:4px;font-size:9px;display:flex;gap:8px;">'+series.map(s=>'<span style="color:'+s.col+';">'+(s.k==='R$'?'▬':'╌')+' '+s.k+' '+(s.n[s.n.length-1]-100>=0?'+':'')+(s.n[s.n.length-1]-100).toFixed(1)+'%</span>').join('')+'</span>';
-    return '<div class="wi2-spark" '+(onclick?'onclick="'+onclick+'"':'')+' style="position:relative;'+(onclick?'':'cursor:default;')+'" title="variação em base 100'+(onclick?' — clique para ampliar':'')+'">'+svg+leg+(onclick?'<span class="amp">ampliar ⤢</span>':'')+'</div>';
+    const XT=t=>8+(t-t0)/tr*(W-16);
+    const panel=(vals,ts,col,h,area,label,fmt)=>{const mn=Math.min(...vals),mx=Math.max(...vals),rg=(mx-mn)||1;const Y=v=>6+(h-12)*(1-(v-mn)/rg);
+      const pl=vals.map((v,i)=>XT(ts[i])+','+Y(v)).join(' ');
+      const var_=vals[0]?(vals[vals.length-1]/vals[0]-1)*100:0;
+      return '<div style="position:relative;height:'+h+'px;'+(area?'':'border-top:1px dashed #E4E2DA;')+'"><svg viewBox="0 0 '+W+' '+h+'" preserveAspectRatio="none" style="width:100%;height:100%;display:block;">'
+        +(area?'<polygon points="'+XT(ts[0])+','+(h-4)+' '+pl+' '+XT(ts[ts.length-1])+','+(h-4)+'" fill="'+col+'" opacity=".10"/>':'')
+        +'<polyline points="'+pl+'" fill="none" stroke="'+col+'" stroke-width="'+(area?2:1.5)+'" vector-effect="non-scaling-stroke"/></svg>'
+        +'<span style="position:absolute;left:8px;top:3px;font-size:9px;color:'+col+';white-space:nowrap;">'+label+' <b>'+fmt(vals[vals.length-1])+'</b> <span style="color:#8A8A82;">'+(var_>=0?'+':'')+var_.toFixed(1)+'%</span></span></div>';};
+    const uT=usdPts.map(x=>(parseDate(x.date)||new Date(0)).getTime());
+    const html=panel(pts.map(x=>x.value),times,'#1565C0',H,true,'R$',v=>_i2R(v).replace('R$ ',''))
+      +panel(usdPts.map(x=>x.usd),uT,'#059669',40,false,'US$',v=>_i2Usd(v).replace('US$ ',''))
+      +panel(usdPts.map(x=>x.cot),uT,'#E65100',40,false,'cotação',v=>_i2Cot(v));
+    return '<div class="wi2-spark" '+(onclick?'onclick="'+onclick+'"':'')+' style="height:auto;padding:0;'+(onclick?'':'cursor:default;')+'" title="R$ · US$ · cotação, cada um na própria escala'+(onclick?' — clique para ampliar':'')+'">'+html+(onclick?'<span class="amp">ampliar ⤢</span>':'')+'</div>';
   }
   const vals=pts.map(x=>x.value),mn=Math.min(...vals),mx=Math.max(...vals),rg=(mx-mn)||1;const Y=v=>8+(H-16)*(1-(v-mn)/rg);
   return '<div class="wi2-spark" '+(onclick?'onclick="'+onclick+'"':'style="cursor:default;"')+'><svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none"><polygon points="'+X(0)+','+(H-4)+' '+pts.map((x,i)=>X(i)+','+Y(x.value)).join(' ')+' '+X(pts.length-1)+','+(H-4)+'" fill="#1565C0" opacity=".10"/><polyline points="'+pts.map((x,i)=>X(i)+','+Y(x.value)).join(' ')+'" fill="none" stroke="#1565C0" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>'+(onclick?'<span class="amp">ampliar ⤢</span>':'')+'</div>';
@@ -14268,21 +14269,22 @@ function waInvOpenChartModal(idx){
 // Ativo em dólar: painel com a variação (base 100) do valor em R$, do valor em US$ e da cotação
 function waInvBuildUsdPanel(logSorted){
   const u=logSorted.filter(l=>l.usd>0&&l.cot>0);if(u.length<2)return '';
-  const W=860,H=260,padL=52,padR=24,padT=26,padB=34;
+  const W=860,padL=60,padR=80,padT=18,padB=26;
   const T=l=>parseDate(l.date).getTime();const t0=T(logSorted[0]),t1=T(logSorted[logSorted.length-1]),tr=(t1-t0)||1;
   const xOf=t=>padL+(t-t0)/tr*(W-padL-padR);
-  const mk=(k,col,src,get)=>{const b=get(src[0])||1;return {k,col,pts:src.map(l=>({t:T(l),n:get(l)/b*100,raw:get(l)}))};};
-  const S=[mk('valor em R$','#1565C0',logSorted,l=>Number(l.value)),mk('valor em US$','#059669',u,l=>Number(l.usd)),mk('cotação R$/US$','#E65100',u,l=>Number(l.cot))];
-  const all=S.flatMap(s=>s.pts.map(p=>p.n));const mn=Math.min(...all),mx=Math.max(...all),rg=(mx-mn)||1;
-  const yOf=v=>padT+(mx-v)/rg*(H-padT-padB);
-  let g='';[0,.25,.5,.75,1].forEach(f=>{const v=mn+rg*f,y=yOf(v).toFixed(1);g+='<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="rgba(26,26,26,.06)"/><text x="'+(padL-6)+'" y="'+(parseFloat(y)+3)+'" text-anchor="end" font-size="9" fill="rgba(26,26,26,.45)">'+(v-100>=0?'+':'')+(v-100).toFixed(0)+'%</text>';});
-  g+='<line x1="'+padL+'" y1="'+yOf(100).toFixed(1)+'" x2="'+(W-padR)+'" y2="'+yOf(100).toFixed(1)+'" stroke="#8A8A82" stroke-dasharray="4,4"/>';
-  let vl='';logSorted.forEach(l=>{const x=xOf(T(l)).toFixed(1);const dd=String(l.date).split('/');vl+='<line x1="'+x+'" y1="'+padT+'" x2="'+x+'" y2="'+(H-padB)+'" stroke="rgba(0,0,0,.06)" stroke-dasharray="2,2"/><text x="'+x+'" y="'+(H-padB+14)+'" text-anchor="middle" font-size="9" fill="#90A4AE">'+(dd.length===3?dd[1]+'/'+dd[2].slice(2):'')+'</text>';});
-  let lines='';S.forEach(s=>{lines+='<polyline points="'+s.pts.map(p=>xOf(p.t).toFixed(1)+','+yOf(p.n).toFixed(1)).join(' ')+'" fill="none" stroke="'+s.col+'" stroke-width="2" stroke-linejoin="round"/>'+s.pts.map(p=>'<circle cx="'+xOf(p.t).toFixed(1)+'" cy="'+yOf(p.n).toFixed(1)+'" r="3" fill="'+s.col+'" stroke="#fff" stroke-width="1"><title>'+s.k+' · '+(p.n-100>=0?'+':'')+(p.n-100).toFixed(2)+'%</title></circle>').join('');});
-  const leg=S.map(s=>{const l=s.pts[s.pts.length-1];return '<span style="color:'+s.col+';font-weight:700;">▬ '+s.k+' <span style="font-weight:400;">'+(l.n-100>=0?'+':'')+(l.n-100).toFixed(2)+'%</span></span>';}).join('');
-  return '<div style="font-size:.7rem;color:var(--muted);margin-bottom:4px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;"><span style="font-weight:700;color:var(--font);">Variação desde o 1º registro (base 100)</span>'+leg+'</div>'
-    +'<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:260px;margin-bottom:18px;" preserveAspectRatio="none">'+g+vl+lines+'</svg>'
-    +'<div style="font-size:.7rem;color:var(--muted);margin-bottom:6px;font-weight:700;">Valor em R$</div>';
+  const one=(label,col,get,fmt,H)=>{
+    const vals=u.map(get),ts=u.map(T);const mn=Math.min(...vals),mx=Math.max(...vals),rg=(mx-mn)||1;
+    const yOf=v=>padT+(mx-v)/rg*(H-padT-padB);
+    let g='';[0,.5,1].forEach(f=>{const v=mn+rg*f,y=yOf(v).toFixed(1);g+='<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="rgba(26,26,26,.06)"/><text x="'+(padL-6)+'" y="'+(parseFloat(y)+3)+'" text-anchor="end" font-size="9" fill="rgba(26,26,26,.45)">'+fmt(v)+'</text>';});
+    let vl='';u.forEach(l=>{const x=xOf(T(l)).toFixed(1);const dd=String(l.date).split('/');vl+='<line x1="'+x+'" y1="'+padT+'" x2="'+x+'" y2="'+(H-padB)+'" stroke="rgba(0,0,0,.06)" stroke-dasharray="2,2"/><text x="'+x+'" y="'+(H-padB+13)+'" text-anchor="middle" font-size="9" fill="#90A4AE">'+(dd.length===3?dd[1]+'/'+dd[2].slice(2):'')+'</text>';});
+    const pl=vals.map((v,i)=>xOf(ts[i]).toFixed(1)+','+yOf(v).toFixed(1)).join(' ');
+    const dots=vals.map((v,i)=>'<circle cx="'+xOf(ts[i]).toFixed(1)+'" cy="'+yOf(v).toFixed(1)+'" r="3.5" fill="'+col+'" stroke="#fff" stroke-width="1.5"><title>'+normDateBR(u[i].date)+' · '+fmt(v)+'</title></circle>').join('');
+    const var_=vals[0]?(vals[vals.length-1]/vals[0]-1)*100:0;
+    return '<div style="font-size:.7rem;color:var(--muted);margin:14px 0 4px;display:flex;gap:12px;align-items:center;"><span style="font-weight:700;color:'+col+';">'+label+'</span><span>último: <b style="color:var(--font);">'+fmt(vals[vals.length-1])+'</b></span><span style="color:'+(var_>=0?'#059669':'#E53935')+';font-weight:700;">'+(var_>=0?'+':'')+var_.toFixed(2)+'% no período</span></div>'
+      +'<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:'+H+'px;" preserveAspectRatio="none">'+g+vl+'<polyline points="'+pl+'" fill="none" stroke="'+col+'" stroke-width="2" stroke-linejoin="round"/>'+dots+'</svg>';
+  };
+  return one('Valor em US$','#059669',l=>Number(l.usd),v=>'US$ '+Math.round(v).toLocaleString('pt-BR'),170)
+    +one('Cotação R$/US$','#E65100',l=>Number(l.cot),v=>Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}),150);
 }
 function waInvBuildAtivoSvgLarge(a){
   // Same logic as the mini chart but larger dimensions
@@ -14376,13 +14378,13 @@ function waInvBuildAtivoSvgLarge(a){
 
   const svgW=projV!=null?W+80:W;
   const usdPanel=(typeof _i2IsUSD==='function'&&_i2IsUSD(a))?waInvBuildUsdPanel(logSorted):'';
-  return usdPanel+`<svg viewBox="0 0 ${svgW} ${H}" style="width:100%;height:400px;" preserveAspectRatio="none">
+  return (usdPanel?'<div style="font-size:.7rem;color:var(--muted);margin-bottom:6px;font-weight:700;">Valor em R$</div>':'')+`<svg viewBox="0 0 ${svgW} ${H}" style="width:100%;height:400px;" preserveAspectRatio="none">
     ${ylabels}
     <polygon points="${padL},${H-padB} ${pts2} ${(W-padR)},${H-padB}" fill="${fc}"/>
     ${vlines}
     <polyline points="${pts2}" fill="none" stroke="${lc}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
     ${dots}${valLabels}${projSvg}
-  </svg>
+  </svg>${usdPanel}
   <div style="margin-top:10px;display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);">
     <span>Aplicado: <strong style="color:var(--font);">R$${Math.round(vals[0]).toLocaleString('pt-BR')}</strong></span>
     <span>Atual: <strong style="color:var(--font);">R$${Math.round(last).toLocaleString('pt-BR')}</strong></span>
