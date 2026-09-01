@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0a6b4f,#f7e9c8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F9F3E3 !important;}
-  #splash .splash-sub{color:rgba(249,243,227,.65) !important;}
-  #splash .splash-version{color:rgba(249,243,227,.35) !important;}
-  #splash .splash-btn{background:#F9F3E3 !important;color:#0a6b4f !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F9F3E3 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#37474f,#4dd0e1);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#E8FAFC !important;}
+  #splash .splash-sub{color:rgba(232,250,252,.65) !important;}
+  #splash .splash-version{color:rgba(232,250,252,.35) !important;}
+  #splash .splash-btn{background:#E8FAFC !important;color:#37474f !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#E8FAFC !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.67';
+const APP_VERSION='18.68';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -11025,18 +11025,18 @@ function waInv2Upd(subIdx){
   if(isUSD)h+='<div class="wi2-hint">Ativo em dólar: informe o <b>valor em US$</b> e a <b>cotação do dia</b> — o valor em R$ é calculado (e pode ser ajustado). Gráficos e totais usam sempre o valor em reais.</div>';
   h+='<div style="display:grid;grid-template-columns:'+GC+';gap:6px;font-size:10px;color:var(--muted);margin-bottom:4px;"><span>data</span>'+(isUSD?'<span style="text-align:right;">valor US$</span><span style="text-align:right;">cotação</span>':'')+'<span style="text-align:right;">valor R$</span><span>nota</span><span></span></div>';
   // linha nova (topo)
-  h+='<div style="display:grid;grid-template-columns:'+GC+';gap:6px;align-items:center;margin-bottom:6px;background:#EEF3FA;border-radius:8px;padding:4px;">'
+  h+='<div data-newline="1" style="display:grid;grid-template-columns:'+GC+';gap:6px;align-items:center;margin-bottom:6px;background:#EEF3FA;border-radius:8px;padding:4px;">'
     +'<input type="date" id="wi2-new-d" value="'+iso+'" style="'+inp+'">'
-    +(isUSD?'<input id="wi2-usd" inputmode="decimal" placeholder="0,00" oninput="_i2Dec(this);waInv2CalcBRL()" style="'+inp+'text-align:right;"><input id="wi2-cot" inputmode="decimal" placeholder="5,40" oninput="_i2Dec(this);waInv2CalcBRL()" style="'+inp+'text-align:right;">':'')
-    +'<input id="wi2-new-v" inputmode="numeric" placeholder="0,00" oninput="_i2Money(this)" style="'+inp+'text-align:right;font-weight:700;">'
+    +(isUSD?'<input id="wi2-usd" inputmode="decimal" placeholder="0,00" oninput="_i2Dec(this);waInv2UsdRow(this)" style="'+inp+'text-align:right;"><input id="wi2-cot" inputmode="decimal" placeholder="5,40" oninput="_i2Dec(this);waInv2UsdRow(this)" style="'+inp+'text-align:right;">':'')
+    +'<input id="wi2-new-v" inputmode="numeric" placeholder="0,00" oninput="_i2Money(this);'+(isUSD?'waInv2UsdRow(this)':'')+'" style="'+inp+'text-align:right;font-weight:700;">'
     +'<input id="wi2-new-n" value="Atualização" style="'+inp+'">'
     +'<span style="font-size:10px;color:#1565C0;text-align:center;">novo</span></div>';
   // lançamentos existentes (desc), editáveis
   sorted.forEach(({x,idx})=>{
     h+='<div style="display:grid;grid-template-columns:'+GC+';gap:6px;align-items:center;margin-bottom:4px;" data-row="'+idx+'">'
       +'<input type="date" data-f="date" value="'+_i2ToISO(x.date)+'" style="'+inp+'">'
-      +(isUSD?'<input data-f="usd" inputmode="decimal" value="'+(x.usd!==undefined&&x.usd!==null?_i2MoneyInit(x.usd):'')+'" placeholder="US$" oninput="_i2Dec(this)" style="'+inp+'text-align:right;"><input data-f="cot" inputmode="decimal" value="'+(x.cot?_i2Cot(x.cot):'')+'" placeholder="cot." oninput="_i2Dec(this)" style="'+inp+'text-align:right;">':'')
-      +'<input data-f="value" inputmode="numeric" value="'+_i2MoneyInit(x.value)+'" data-raw="'+Number(x.value||0)+'" oninput="_i2Money(this)" style="'+inp+'text-align:right;">'
+      +(isUSD?'<input data-f="usd" inputmode="decimal" value="'+(x.usd!==undefined&&x.usd!==null?_i2MoneyInit(x.usd):'')+'" placeholder="US$" oninput="_i2Dec(this);waInv2UsdRow(this)" style="'+inp+'text-align:right;"><input data-f="cot" inputmode="decimal" value="'+(x.cot?_i2Cot(x.cot):'')+'" placeholder="cot." oninput="_i2Dec(this);waInv2UsdRow(this)" style="'+inp+'text-align:right;">':'')
+      +'<input data-f="value" inputmode="numeric" value="'+_i2MoneyInit(x.value)+'" data-raw="'+Number(x.value||0)+'" oninput="_i2Money(this);'+(isUSD?'waInv2UsdRow(this)':'')+'" style="'+inp+'text-align:right;">'
       +'<input data-f="note" value="'+_i2Esc(x.note||'')+'" style="'+inp+'">'
       +'<button onclick="waInv2UpdDelRow('+idx+')" title="excluir" style="border:none;background:transparent;color:#C62828;cursor:pointer;font-size:13px;">✕</button></div>';
   });
@@ -11046,10 +11046,27 @@ function waInv2Upd(subIdx){
   if(isUSD){const _mb=document.querySelector('#wi2-ov .wi2-mod');if(_mb)_mb.style.width='min(760px,96vw)';}
   const nv=document.getElementById(isUSD?'wi2-usd':'wi2-new-v');if(nv)nv.focus();
 }
-function waInv2CalcBRL(){
-  const u=parseBRNumber((document.getElementById('wi2-usd')||{}).value||''),ct=parseBRNumber((document.getElementById('wi2-cot')||{}).value||'');
-  if(u&&ct){const el=document.getElementById('wi2-new-v');el.value=String(Math.round(u*ct*100));_i2Money(el);}
+// Ativo em dólar: US$ · cotação · R$ — o usuário informa dois, o terceiro é calculado.
+// O campo calculado é o que o usuário NÃO editou (ou o editado há mais tempo, se os três já foram editados).
+function waInv2UsdRow(el){
+  const box=el.closest('[data-row]')||el.closest('[data-newline]');if(!box)return;
+  const f={usd:box.querySelector('[data-f=usd],#wi2-usd'),cot:box.querySelector('[data-f=cot],#wi2-cot'),brl:box.querySelector('[data-f=value],#wi2-new-v')};
+  if(!f.usd||!f.cot||!f.brl)return;
+  const key=el===f.usd?'usd':el===f.cot?'cot':'brl';
+  el.dataset.t=String(Date.now());
+  const others=['usd','cot','brl'].filter(k=>k!==key);
+  // alvo: o que nunca foi editado; senão o editado há mais tempo
+  others.sort((a,b)=>(Number(f[a].dataset.t||0))-(Number(f[b].dataset.t||0)));
+  const target=others[0],src=others[1];
+  const val=k=>k==='brl'?(f.brl.dataset.raw!==undefined&&f.brl.dataset.raw!==''?parseFloat(f.brl.dataset.raw):parseBRNumber(f.brl.value)):parseBRNumber(f[k].value||'');
+  const a=val(key),b=val(src);
+  if(!(a>0)||!(b>0))return;
+  const U=key==='usd'?a:src==='usd'?b:null,C=key==='cot'?a:src==='cot'?b:null,B=key==='brl'?a:src==='brl'?b:null;
+  if(target==='brl'){f.brl.value=String(Math.round(U*C*100));_i2Money(f.brl);}
+  else if(target==='usd'){f.usd.value=(Math.round(B/C*100)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  else if(target==='cot'){f.cot.value=(Math.round(B/U*10000)/10000).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:4});}
 }
+function waInv2CalcBRL(){/* compat */}
 function waInv2UpdDelRow(idx){
   const r=_i2Sel();if(!r)return;const a=r.a;
   const isSubs=a.composto&&a.updMode==='subs'&&a.subs&&a.subs.length;
@@ -11344,8 +11361,10 @@ async function waInv2ImportParse(file){
   let ci=isUSD?{d:0,u:1,c:2,v:3,o:4}:{d:0,v:1,o:2},start=0;
   const h0=rows[0].map(x=>String(x||'').toLowerCase().trim());
   const fd=h0.findIndex(x=>x.startsWith('data'));
-  const fu=h0.findIndex(x=>/\$|usd|d[oó]lar/.test(x)&&!/rea|r\$/.test(x)),fc=h0.findIndex(x=>x.startsWith('cot')),fbr=h0.findIndex(x=>/rea|r\$|brl/.test(x));
-  const fv=fbr>=0?fbr:h0.findIndex(x=>x.startsWith('valor')&&x!==h0[fu]);
+  const fc=h0.findIndex(x=>x.startsWith('cot')||/c[âa]mbio|ptax/.test(x));
+  const fu=h0.findIndex((x,i)=>i!==fc&&i!==fd&&/\$|usd|d[oó]lar/.test(x)&&!/rea|r\$|brl/.test(x));
+  const fbr=h0.findIndex((x,i)=>i!==fc&&i!==fd&&i!==fu&&/rea|r\$|brl/.test(x));
+  const fv=fbr>=0?fbr:h0.findIndex((x,i)=>i!==fc&&i!==fd&&i!==fu&&x.startsWith('valor'));
   const fo=h0.findIndex(x=>x.startsWith('obs')||x.startsWith('nota')||x.startsWith('desc'));
   if(fd>=0&&(fv>=0||fu>=0)){ci={d:fd,v:fv,u:fu,c:fc,o:fo>=0?fo:(isUSD?4:2)};start=1;}
   else if(isNaN(parseFloat(String(rows[0][1]||'').replace(',','.'))))start=1;
@@ -11356,7 +11375,7 @@ async function waInv2ImportParse(file){
     const date=_i2ExcelDate(r[ci.d]);
     let value=(ci.v>=0)?num(r[ci.v]):NaN;
     const usd=(ci.u>=0)?num(r[ci.u]):NaN,cot=(ci.c>=0)?num(r[ci.c]):NaN;
-    if(isNaN(value)&&!isNaN(usd)&&!isNaN(cot))value=Math.round(usd*cot*100)/100;
+    if(!isNaN(usd)&&!isNaN(cot)&&usd>0&&cot>0)value=Math.round(usd*cot*100)/100; // regra: R$ = US$ × cotação
     const note=String(r[ci.o]||'').trim();
     if(!parseDate(date)||isNaN(value)){errs.push('linha '+(i+1)+': '+JSON.stringify(r.slice(0,5)));continue;}
     const it={date,value,note};if(!isNaN(usd)){it.usd=usd;if(!isNaN(cot))it.cot=cot;}
@@ -11414,7 +11433,7 @@ async function waInv2ImportApply(){
   if(mode==='replace')target.log=[];
   const existing=target.log;
   const toAdd=imp.items.filter(x=>!existing.some(e=>e.date===x.date&&Math.abs(Number(e.value)-x.value)<0.005));
-  toAdd.forEach(x=>{const rec={date:x.date,value:x.value,note:x.note||'Importado'};if(x.usd!==undefined){rec.usd=x.usd;if(x.cot!==undefined)rec.cot=x.cot;}target.log.push(rec);});
+  toAdd.forEach(x=>{if(!x.note)x.note='Importado';const rec={date:x.date,value:x.value,note:x.note};if(x.usd!==undefined){rec.usd=x.usd;if(x.cot!==undefined)rec.cot=x.cot;}target.log.push(rec);});
   let closing=null;
   const encChk=document.getElementById('wi2-imp-enc');
   const encerrar=encChk?encChk.checked:!!imp.encerra;
