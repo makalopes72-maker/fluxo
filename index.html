@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4f6d2b,#bde0fe);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#EDF6FF !important;}
-  #splash .splash-sub{color:rgba(237,246,255,.65) !important;}
-  #splash .splash-version{color:rgba(237,246,255,.35) !important;}
-  #splash .splash-btn{background:#EDF6FF !important;color:#4f6d2b !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#EDF6FF !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#3a0f1f,#d9f99d);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F6FCE6 !important;}
+  #splash .splash-sub{color:rgba(246,252,230,.65) !important;}
+  #splash .splash-version{color:rgba(246,252,230,.35) !important;}
+  #splash .splash-btn{background:#F6FCE6 !important;color:#3a0f1f !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F6FCE6 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.73';
+const APP_VERSION='18.74';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4678,7 +4678,7 @@ function getCcSaldoMes(instName, year, month){
   return (entry&&typeof entry.saldo==='number')?entry.saldo:null;
 }
 
-function setCcSaldoMes(instName, year, month, saldo){
+function setCcSaldoMes(instName, year, month, saldo, usd, cot){
   const u=currentUser||'ALE';
   const y=Number(year), m=Number(month);
   if(!ccMensalData[u])ccMensalData[u]={};
@@ -4686,12 +4686,22 @@ function setCcSaldoMes(instName, year, month, saldo){
   if(!ccMensalData[u][instName][y])ccMensalData[u][instName][y]={};
   const now=new Date();
   const pad=n=>n<10?'0'+n:n;
-  const dataAjuste=pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear()+' '+pad(now.getHours())+':'+pad(now.getMinutes());
-  ccMensalData[u][instName][y][m]={saldo:Number(saldo)||0, dataAjuste:dataAjuste};
+  let dataAjuste=pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear()+' '+pad(now.getHours())+':'+pad(now.getMinutes());
+  const entry={saldo:Number(saldo)||0};
+  // conta em moeda estrangeira: US$ e cotação viajam dentro de dataAjuste (coluna de texto já existente na aba ContaCorrente)
+  if(usd!==undefined&&usd!==null&&usd!==''&&!isNaN(usd)&&Number(usd)>0){entry.usd=Number(usd);if(cot!==undefined&&cot!==null&&cot!==''&&!isNaN(cot)&&Number(cot)>0)entry.cot=Number(cot);dataAjuste+=' | USD '+entry.usd+(entry.cot?' @ '+entry.cot:'');}
+  entry.dataAjuste=dataAjuste;
+  ccMensalData[u][instName][y][m]=entry;
   saveCcMensalLocal();
   // Sincroniza com Sheets em background
   syncCcMensalToSheets(u, instName, y, m, saldo, dataAjuste);
 }
+function getCcEntryMes(instName,year,month){const u=currentUser||'ALE';return (((ccMensalData[u]||{})[instName]||{})[Number(year)]||{})[Number(month)]||null;}
+function _ccParseUsd(s){const m=String(s||'').match(/USD\s*([0-9.]+)(?:\s*@\s*([0-9.]+))?/);if(!m)return null;return {usd:parseFloat(m[1]),cot:m[2]?parseFloat(m[2]):undefined};}
+// conta marcada como "moeda estrangeira" (preferência local) ou que já tem algum mês com US$
+function ccIsUsd(instName){const u=currentUser||'ALE';try{const s=JSON.parse(localStorage.getItem('fluxo_cc_usd_'+u)||'[]');if(s.includes(instName))return true;}catch(e){}
+  const d=(ccMensalData[u]||{})[instName]||{};return Object.keys(d).some(y=>Object.keys(d[y]).some(m=>d[y][m]&&d[y][m].usd>0));}
+function ccSetUsd(instName,on){const u=currentUser||'ALE';let s=[];try{s=JSON.parse(localStorage.getItem('fluxo_cc_usd_'+u)||'[]');}catch(e){}s=s.filter(x=>x!==instName);if(on)s.push(instName);try{localStorage.setItem('fluxo_cc_usd_'+u,JSON.stringify(s));}catch(e){}}
 
 function saveCcMensalLocal(){
   try{localStorage.setItem('fluxo_cc_mensal', JSON.stringify(ccMensalData));}catch(e){}
@@ -4730,7 +4740,8 @@ async function loadCcMensalFromSheets(){
       if(!ccMensalData[u])ccMensalData[u]={};
       if(!ccMensalData[u][r.inst])ccMensalData[u][r.inst]={};
       if(!ccMensalData[u][r.inst][r.year])ccMensalData[u][r.inst][r.year]={};
-      ccMensalData[u][r.inst][r.year][r.month]={saldo:Number(r.saldo)||0, dataAjuste:r.dataAjuste||''};
+      const e={saldo:Number(r.saldo)||0, dataAjuste:r.dataAjuste||''};const px=_ccParseUsd(e.dataAjuste);if(px){e.usd=px.usd;if(px.cot)e.cot=px.cot;}
+      ccMensalData[u][r.inst][r.year][r.month]=e;
     });
     saveCcMensalLocal();
     // Atualiza Quadro se estiver visível
@@ -12380,15 +12391,32 @@ function waDashCcRows(dashYear,visMonths,effectiveCurM,isPastYear,MESES,showTota
 }
 
 // Click handler for CC cell — opens a small modal to edit the saldo of that month/inst
+function _ccCalc(el){ // US$ · cotação · R$: preenche o que o usuário não editou (ou editou há mais tempo)
+  const f={usd:document.getElementById('cc-cell-usd'),cot:document.getElementById('cc-cell-cot'),brl:document.getElementById('cc-cell-val')};if(!f.usd||!f.cot||!f.brl)return;
+  const key=el===f.usd?'usd':el===f.cot?'cot':'brl';el.dataset.t=String(Date.now());
+  const others=['usd','cot','brl'].filter(k=>k!==key).sort((a,b)=>Number(f[a].dataset.t||0)-Number(f[b].dataset.t||0));
+  const target=others[0],src=others[1];const v=k=>parseBRNumber((f[k].value||'').trim());const a=v(key),b=v(src);if(!(a>0)||!(b>0))return;
+  const U=key==='usd'?a:src==='usd'?b:null,C=key==='cot'?a:src==='cot'?b:null,B=key==='brl'?a:src==='brl'?b:null;
+  const f2=(x,d)=>Number(x).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:d});
+  if(target==='brl')f.brl.value=f2(U*C,2);else if(target==='usd')f.usd.value=f2(B/C,2);else f.cot.value=f2(B/U,4);
+}
+function waCcCellUsdToggle(){const on=document.getElementById('cc-cell-isusd')?.checked;const b=document.getElementById('cc-cell-usdbox');if(b)b.style.display=on?'grid':'none';}
 function waCcCellClick(instName, year, month){
   const MESES2=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const curVal=getCcSaldoMes(instName, year, month);
+  const curE=getCcEntryMes(instName,year,month)||{};const isUsd=ccIsUsd(instName);
+  const IS='width:100%;padding:7px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--font);font-size:.8rem;font-family:var(--font-body);box-sizing:border-box;';
+  const f2=(x,d)=>Number(x).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:d});
   const html='<div id="cc-cell-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9000;display:flex;align-items:center;justify-content:center;" onclick="if(event.target===this)closeCcCellModal();">'
-    +'<div style="background:var(--bg);border-radius:10px;padding:16px;width:280px;box-shadow:0 8px 24px rgba(0,0,0,.3);">'
+    +'<div style="background:var(--bg);border-radius:10px;padding:16px;width:340px;box-shadow:0 8px 24px rgba(0,0,0,.3);">'
     +'<div style="font-size:.75rem;font-weight:700;color:var(--font);margin-bottom:4px;">'+instName+' · Conta Corrente</div>'
     +'<div style="font-size:.65rem;color:var(--muted);margin-bottom:10px;">'+MESES2[month]+' '+year+(curVal!==null?' · atual: R$ '+Math.round(curVal).toLocaleString("pt-BR"):'')+'</div>'
-    +'<div style="font-size:.6rem;color:var(--muted);margin-bottom:3px;">Saldo em '+MESES2[month]+'/'+year+'</div>'
-    +'<input id="cc-cell-val" type="text" placeholder="Ex: 10000" value="'+(curVal!==null?curVal:'')+'" style="width:100%;padding:7px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--font);font-size:.8rem;font-family:var(--font-body);margin-bottom:10px;">'
+    +'<label style="display:flex;gap:6px;align-items:center;font-size:.62rem;color:var(--muted);margin-bottom:8px;cursor:pointer;"><input type="checkbox" id="cc-cell-isusd" '+(isUsd?'checked':'')+' onchange="waCcCellUsdToggle()"> conta em moeda estrangeira (US$ × cotação = R$)</label>'
+    +'<div id="cc-cell-usdbox" style="display:'+(isUsd?'grid':'none')+';grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;background:#EEF3FA;border-radius:8px;padding:8px;">'
+      +'<div><div style="font-size:.6rem;color:var(--muted);margin-bottom:3px;">saldo em US$</div><input id="cc-cell-usd" type="text" inputmode="decimal" placeholder="0,00" value="'+(curE.usd>0?f2(curE.usd,2):'')+'" oninput="_ccCalc(this)" style="'+IS+'"></div>'
+      +'<div><div style="font-size:.6rem;color:var(--muted);margin-bottom:3px;">cotação R$/US$</div><input id="cc-cell-cot" type="text" inputmode="decimal" placeholder="5,40" value="'+(curE.cot>0?f2(curE.cot,4):'')+'" oninput="_ccCalc(this)" style="'+IS+'"></div></div>'
+    +'<div style="font-size:.6rem;color:var(--muted);margin-bottom:3px;">Saldo em R$ · '+MESES2[month]+'/'+year+'</div>'
+    +'<input id="cc-cell-val" type="text" placeholder="Ex: 10000" value="'+(curVal!==null?curVal:'')+'" oninput="if(document.getElementById(\'cc-cell-isusd\').checked)_ccCalc(this)" style="'+IS+'margin-bottom:10px;">'
     +'<div style="display:flex;gap:8px;">'
     +'<button onclick="closeCcCellModal()" style="flex:1;padding:7px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--font);font-size:.72rem;cursor:pointer;">Cancelar</button>'
     +'<button onclick="waCcCellSave(\''+instName.replace(/\'/g,"\\\\'")+'\','+year+','+month+')" style="flex:1;padding:7px;border-radius:7px;border:none;background:#0F766E;color:#fff;font-size:.72rem;font-weight:700;cursor:pointer;">Salvar</button>'
@@ -12406,7 +12434,8 @@ function waCcImportOpen(instName){
     +'<div style="font-size:.85rem;font-weight:700;color:var(--font);margin-bottom:2px;">Importar saldos · '+instName+'</div>'
     +'<div style="font-size:.68rem;color:var(--muted);margin-bottom:12px;">Conta corrente · usuário '+(currentUser||'ALE')+'</div>'
     +'<div id="cc-imp-body">'
-    +'<div style="font-size:.7rem;color:var(--muted);line-height:1.5;margin-bottom:12px;">Arquivo Excel ou CSV com duas colunas: <b>data</b> e <b>valor</b> (cabeçalho opcional). Cada linha vira o saldo daquele mês no Quadro; se houver mais de uma data no mesmo mês, vale a mais recente. Você confere a prévia antes de gravar.</div>'
+    +'<label style="display:flex;gap:6px;align-items:flex-start;font-size:.7rem;color:var(--font);margin-bottom:10px;cursor:pointer;background:#EEF3FA;border-radius:8px;padding:8px;"><input type="checkbox" id="cc-imp-conv" '+(ccIsUsd(instName)?'checked':'')+' style="margin-top:2px;"><span><b>Conta em moeda estrangeira — importar com conversão.</b><br>Colunas: <b>data · valor em US$ · cotação · valor em R$</b>. O R$ é sempre US$ × cotação quando ambos existem; o Quadro mostra R$.</span></label>'
+    +'<div style="font-size:.7rem;color:var(--muted);line-height:1.5;margin-bottom:12px;">Sem conversão: arquivo Excel ou CSV com duas colunas, <b>data</b> e <b>valor</b> (cabeçalho opcional). Cada linha vira o saldo daquele mês no Quadro; se houver mais de uma data no mesmo mês, vale a mais recente. Você confere a prévia antes de gravar.</div>'
     +'<div style="display:flex;gap:8px;"><button onclick="waCcImportClose()" style="'+S+'flex:1;">Cancelar</button><button onclick="waCcImportPick()" style="'+S+'flex:1;background:#0F766E;color:#fff;border:none;font-weight:700;">Escolher arquivo…</button></div>'
     +'</div></div></div>';
   document.body.insertAdjacentHTML('beforeend',html);
@@ -12414,6 +12443,7 @@ function waCcImportOpen(instName){
 }
 function waCcImportClose(){const o=document.getElementById('cc-imp-overlay');if(o)o.remove();window._ccImp=null;}
 function waCcImportPick(){
+  if(window._ccImp)window._ccImp.conv=!!document.getElementById('cc-imp-conv')?.checked;
   let inp=document.getElementById('cc-imp-file');
   if(!inp){inp=document.createElement('input');inp.type='file';inp.id='cc-imp-file';inp.accept='.xlsx,.xls,.csv';inp.style.display='none';document.body.appendChild(inp);}
   inp.value='';
@@ -12427,20 +12457,28 @@ async function waCcImportParse(file){
   const ws=wb.Sheets[wb.SheetNames[0]];
   const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
   if(!rows.length)throw new Error('planilha vazia');
-  let ci={d:0,v:1},start=0;
+  const conv=!!(window._ccImp&&window._ccImp.conv);
+  let ci=conv?{d:0,u:1,c:2,v:3}:{d:0,v:1},start=0;
   const h0=rows[0].map(x=>String(x||'').toLowerCase().trim());
-  const fd=h0.findIndex(x=>x.startsWith('data')),fv=h0.findIndex(x=>/valor|saldo/.test(x));
-  if(fd>=0&&fv>=0){ci={d:fd,v:fv};start=1;}
+  const fd=h0.findIndex(x=>x.startsWith('data'));
+  const fc=h0.findIndex(x=>x.startsWith('cot')||/c[âa]mbio|ptax/.test(x));
+  const fu=h0.findIndex((x,i)=>i!==fc&&i!==fd&&/\$|usd|d[oó]lar/.test(x)&&!/rea|r\$|brl/.test(x));
+  const fbr=h0.findIndex((x,i)=>i!==fc&&i!==fd&&i!==fu&&/rea|r\$|brl/.test(x));
+  const fv=fbr>=0?fbr:h0.findIndex((x,i)=>i!==fc&&i!==fd&&i!==fu&&/valor|saldo/.test(x));
+  if(fd>=0&&(fv>=0||fu>=0)){ci=conv?{d:fd,u:fu,c:fc,v:fv}:{d:fd,v:fv>=0?fv:1};start=1;}
   else if(isNaN(parseFloat(String(rows[0][1]||'').replace(',','.'))))start=1;
+  const num=x=>{if(x==null||x==='')return NaN;return typeof x==='number'?x:parseBRNumber(String(x).replace(/[US$R\s]/g,''));};
   const byMonth={};const errs=[];let n=0;
   for(let i=start;i<rows.length;i++){
     const r=rows[i];if(!r||r.every(x=>x===''||x==null))continue;
-    const date=_i2ExcelDate(r[ci.d]);const rawV=r[ci.v];
-    const value=typeof rawV==='number'?rawV:parseBRNumber(String(rawV||'').replace(/[R$\s]/g,''));
+    const date=_i2ExcelDate(r[ci.d]);
+    let value=(ci.v>=0)?num(r[ci.v]):NaN;
+    const usd=conv&&ci.u>=0?num(r[ci.u]):NaN,cot=conv&&ci.c>=0?num(r[ci.c]):NaN;
+    if(conv&&usd>0&&cot>0)value=Math.round(usd*cot*100)/100; // regra: R$ = US$ × cotação
     const dt=parseDate(date);
-    if(!dt||isNaN(value)){errs.push('linha '+(i+1)+': '+JSON.stringify(r.slice(0,2)));continue;}
+    if(!dt||isNaN(value)){errs.push('linha '+(i+1)+': '+JSON.stringify(r.slice(0,conv?4:2)));continue;}
     n++;const k=dt.getFullYear()+'-'+dt.getMonth();
-    if(!byMonth[k]||dt>byMonth[k].dt)byMonth[k]={dt,date,value,year:dt.getFullYear(),month:dt.getMonth()};
+    if(!byMonth[k]||dt>byMonth[k].dt){const it={dt,date,value,year:dt.getFullYear(),month:dt.getMonth()};if(conv&&usd>0){it.usd=usd;if(cot>0)it.cot=cot;}byMonth[k]=it;}
   }
   const items=Object.values(byMonth).sort((a,b)=>a.dt-b.dt);
   if(!items.length)throw new Error('nenhuma linha válida (esperado: data · valor)'+(errs.length?' — '+errs[0]:''));
@@ -12453,12 +12491,14 @@ function waCcImportPreview(items,errs,nRows,fname){
   const fmt=v=>Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   let nNew=0,nRep=0;
   let h='<div style="font-size:.7rem;color:var(--muted);margin-bottom:8px;">'+fname+' · '+nRows+' linha'+(nRows===1?'':'s')+' → '+items.length+' mês'+(items.length===1?'':'es')+(errs.length?' · <span style="color:#C62828;">'+errs.length+' ignorada'+(errs.length===1?'':'s')+'</span>':'')+'</div>';
-  h+='<div style="display:grid;grid-template-columns:80px 90px 1fr 1fr 70px;gap:6px;font-size:.6rem;color:var(--muted);margin-bottom:4px;"><span>mês</span><span>data usada</span><span style="text-align:right;">saldo novo</span><span style="text-align:right;">saldo atual</span><span></span></div>'
+  const conv=!!imp.conv;const GC=conv?'70px 80px 1fr 60px 1fr 1fr 62px':'80px 90px 1fr 1fr 70px';
+  h+='<div style="display:grid;grid-template-columns:'+GC+';gap:6px;font-size:.6rem;color:var(--muted);margin-bottom:4px;"><span>mês</span><span>data usada</span>'+(conv?'<span style="text-align:right;">US$</span><span style="text-align:right;">cot.</span>':'')+'<span style="text-align:right;">saldo R$ novo</span><span style="text-align:right;">saldo atual</span><span></span></div>'
     +'<div style="max-height:46vh;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:4px 6px;">';
   items.forEach(x=>{const cur=getCcSaldoMes(imp.inst,x.year,x.month);const rep=cur!==null;if(rep)nRep++;else nNew++;
     const same=rep&&Math.abs(cur-x.value)<0.005;
-    h+='<div style="display:grid;grid-template-columns:80px 90px 1fr 1fr 70px;gap:6px;align-items:center;padding:4px 0;border-top:1px solid var(--border);font-size:.7rem;'+(same?'opacity:.5;':'')+'">'
+    h+='<div style="display:grid;grid-template-columns:'+GC+';gap:6px;align-items:center;padding:4px 0;border-top:1px solid var(--border);font-size:.7rem;'+(same?'opacity:.5;':'')+'">'
       +'<span>'+MESES2[x.month]+'/'+x.year+'</span><span style="color:var(--muted);">'+x.date+'</span>'
+      +(conv?'<span style="text-align:right;font-variant-numeric:tabular-nums;">'+(x.usd>0?fmt(x.usd):'—')+'</span><span style="text-align:right;font-variant-numeric:tabular-nums;color:var(--muted);">'+(x.cot>0?Number(x.cot).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:4}):'—')+'</span>':'')
       +'<span style="text-align:right;font-weight:700;font-variant-numeric:tabular-nums;">'+fmt(x.value)+'</span>'
       +'<span style="text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;">'+(rep?fmt(cur):'—')+'</span>'
       +'<span style="font-size:.6rem;color:'+(same?'#8A8A82':(rep?'#B45309':'#1565C0'))+';">'+(same?'igual':(rep?'substitui':'novo'))+'</span></div>';});
@@ -12473,7 +12513,8 @@ async function waCcImportApply(){
   const items=imp.items,inst=imp.inst;
   const btns=document.querySelectorAll('#cc-imp-body button');btns.forEach(b=>b.disabled=true);
   // grava mês a mês: local + ccUpsert em sequência (mesmo caminho da edição pela célula)
-  for(const x of items){setCcSaldoMes(inst,x.year,x.month,x.value);await new Promise(z=>setTimeout(z,180));}
+  if(imp.conv)ccSetUsd(inst,true);
+  for(const x of items){setCcSaldoMes(inst,x.year,x.month,x.value,x.usd,x.cot);await new Promise(z=>setTimeout(z,180));}
   waCcImportClose();
   if(typeof waDash2Render==='function')try{waDash2Render();}catch(e){}
   toast('✓ '+items.length+' saldo'+(items.length===1?'':'s')+' de '+inst+' gravado'+(items.length===1?'':'s')+' (conta corrente)','success');
@@ -12486,7 +12527,9 @@ function closeCcCellModal(){
 function waCcCellSave(instName, year, month){
   const val=parseBRNumber((document.getElementById('cc-cell-val')?.value||'').trim());
   if(isNaN(val)||val<0){alert('Valor inválido');return;}
-  setCcSaldoMes(instName, year, month, val);
+  const isUsd=!!document.getElementById('cc-cell-isusd')?.checked;ccSetUsd(instName,isUsd);
+  const usd=isUsd?parseBRNumber((document.getElementById('cc-cell-usd')?.value||'').trim()):NaN,cot=isUsd?parseBRNumber((document.getElementById('cc-cell-cot')?.value||'').trim()):NaN;
+  setCcSaldoMes(instName, year, month, val, (isUsd&&usd>0)?usd:undefined, (isUsd&&cot>0)?cot:undefined);
   closeCcCellModal();
   waActiveDashRender();
   toast('Saldo de '+instName+' atualizado','success');
