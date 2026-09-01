@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#3d1f4d,#f2d16b);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FBF3DC !important;}
-  #splash .splash-sub{color:rgba(251,243,220,.65) !important;}
-  #splash .splash-version{color:rgba(251,243,220,.35) !important;}
-  #splash .splash-btn{background:#FBF3DC !important;color:#3d1f4d !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FBF3DC !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0b3d91,#ffb99a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFF1EA !important;}
+  #splash .splash-sub{color:rgba(255,241,234,.65) !important;}
+  #splash .splash-version{color:rgba(255,241,234,.35) !important;}
+  #splash .splash-btn{background:#FFF1EA !important;color:#0b3d91 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFF1EA !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.62';
+const APP_VERSION='18.64';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -10688,10 +10688,26 @@ function _i2Sel(){const s=waI2();if(!s.sel)return null;const inst=(instituicoes|
   return r;}
 function _i2Ctx(){const r=_i2Sel();if(!r)return null;waInvInstIdx=r.ii;return r;} // sincroniza o contexto usado pelas funções legadas
 function waInv2Set(k,v){const s=waI2();s[k]=v;if(k==='tab')s.sel=null;if(k==='reorder'&&v)s.sort='manual';if(k==='sort'||(k==='reorder'&&v)){try{localStorage.setItem('fluxo_i2sort_'+(currentUser||'ALE'),s.sort);}catch(e){}}waInv2Render();}
-function waInv2Pick(inst,id){const s=waI2();s.sel={inst,id};waInv2Render();}
+function _i2GrpKey(){return 'fluxo_i2grp_'+(currentUser||'ALE');}
+function _i2GrpCollapsed(){try{return new Set(JSON.parse(localStorage.getItem(_i2GrpKey())||'[]'));}catch(e){return new Set();}}
+function _i2GrpName(a){return String(a.classe||'').trim()||'Sem classe';}
+function waInv2ToggleGrp(name){const s=_i2GrpCollapsed();if(s.has(name))s.delete(name);else s.add(name);try{localStorage.setItem(_i2GrpKey(),JSON.stringify([...s]));}catch(e){}waInv2RenderTable();}
+function waInv2Pick(inst,id){const s=waI2();s.sel={inst,id};window._i2ScrollSel=true;
+  // se o selecionado está num grupo recolhido, abre o grupo
+  try{const r=(()=>{const i=(instituicoes||[]).find(x=>x.name===inst);if(!i)return null;const aid=String(id).split('#sub#')[0];return (getInstAtivos(i)||[]).find(x=>x.id===aid)||null;})();
+    if(r){const g=_i2GrpCollapsed();const gn=_i2GrpName(r);if(g.has(gn)){g.delete(gn);localStorage.setItem(_i2GrpKey(),JSON.stringify([...g]));}}}catch(e){}
+  waInv2Render();}
 function waInv2Q(v){waI2().q=v;waInv2RenderTable();}
 
-function waInv2Render(){try{_waInv2Render();}catch(e){const el=document.getElementById('wa-center-body');if(el)el.innerHTML='<div style="padding:20px;color:red;font-size:12px;font-family:monospace;white-space:pre-wrap;">ERRO waInv2Render: '+e.message+'\n'+e.stack+'</div>';console.error('[waInv2Render]',e);}}
+function waInv2Render(){try{
+    const _t=document.getElementById('wi2-tbl'),_d=document.getElementById('wi2-det');const _st=_t?_t.scrollTop:0,_sd=_d?_d.scrollTop:0;
+    _waInv2Render();
+    const t2=document.getElementById('wi2-tbl'),d2=document.getElementById('wi2-det');
+    if(window._i2ScrollSel){window._i2ScrollSel=false;
+      if(t2){const row=t2.querySelector('tr.r.sel');const th=t2.querySelector('th');if(row)t2.scrollTop=Math.max(0,row.offsetTop-(th?th.offsetHeight:0));}
+      if(d2)d2.scrollTop=0;
+    }else{if(t2)t2.scrollTop=_st;if(d2)d2.scrollTop=_sd;}
+  }catch(e){const el=document.getElementById('wa-center-body');if(el)el.innerHTML='<div style="padding:20px;color:red;font-size:12px;font-family:monospace;white-space:pre-wrap;">ERRO waInv2Render: '+e.message+'\n'+e.stack+'</div>';console.error('[waInv2Render]',e);}}
 function _waInv2Render(){
   {const hb=document.getElementById('wi2-hdr-reorder');if(hb){const on=!!waI2().reorder;hb.textContent=on?'✓ concluir ordenação':'≡ ordenar lista';hb.classList.toggle('wi2-primary',on);}}
   if(!window._i2HealRun){window._i2HealRun=true;healEncerrados().then(n=>{if(n)waInv2Render();}).catch(()=>{}).finally(()=>{window._i2HealRun=false;});}
@@ -10709,8 +10725,18 @@ function _waInv2Render(){
       .wi2-kpi .l{font-size:10px;color:#8A8A82;} .wi2-kpi .v{font-size:17px;font-weight:650;letter-spacing:-.2px;} .wi2-kpi .s{font-size:10px;color:#8A8A82;}
       .wi2-insts{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px;}
       .wi2-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:12px;}
-      @media (max-width:1100px){.wi2-grid{grid-template-columns:minmax(0,1fr);}}
       .wi2-panel{background:#fff;border:1px solid #E4E2DA;border-radius:10px;overflow:hidden;min-width:0;}
+      /* rolagens independentes: a página não rola; lista e painel rolam cada um por si */
+      .wd2-wrap.wi2{height:100%;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;padding-bottom:0;}
+      .wd2-wrap.wi2 .wi2-kpis,.wd2-wrap.wi2 .wi2-insts{flex:none;}
+      .wd2-wrap.wi2 .wi2-grid{flex:1;min-height:0;}
+      .wd2-wrap.wi2 .wi2-panel{display:flex;flex-direction:column;min-height:0;}
+      .wd2-wrap.wi2 .wi2-ph{flex:none;}
+      .wd2-wrap.wi2 #wi2-tbl{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;}
+      .wd2-wrap.wi2 .wi2-det{flex:1;min-height:0;overflow-y:auto;}
+      .wd2-wrap.wi2 .wi2-tbl th{position:sticky;top:0;background:#fff;z-index:1;}
+      #wi2-tbl::-webkit-scrollbar,.wi2-det::-webkit-scrollbar{width:6px;} #wi2-tbl::-webkit-scrollbar-thumb,.wi2-det::-webkit-scrollbar-thumb{background:#D8D6CC;border-radius:3px;}
+      @media (max-width:1100px){.wi2-grid{grid-template-columns:minmax(0,1fr);} .wd2-wrap.wi2{height:auto;display:block;overflow:visible;padding-bottom:20px;} .wd2-wrap.wi2 .wi2-panel{display:block;} .wd2-wrap.wi2 #wi2-tbl,.wd2-wrap.wi2 .wi2-det{overflow:visible;}}
       .wi2-ph{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #E4E2DA;flex-wrap:wrap;}
       .wi2-tab{padding:4px 11px;border-radius:100px;border:1px solid #D8D6CC;background:transparent;color:#8A8A82;font-family:var(--font-body);font-size:11px;cursor:pointer;}
       .wi2-tab.on{background:#1a1a1a;border-color:#1a1a1a;color:#fff;}
@@ -10724,6 +10750,9 @@ function _waInv2Render(){
       .wi2-tbl tr.r{cursor:pointer;} .wi2-tbl tr.r:hover td{background:#FAF8F2;} .wi2-tbl tr.r.sel td{background:#EEF3FA;}
       .wi2-nm{font-weight:650;} .wi2-obs{font-style:italic;color:#7A7A72;max-width:520px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .wi2-sub{font-size:10px;color:#8A8A82;margin-top:1px;}
+      .wi2-tbl tr.wi2-grp td{background:#F4F3EE;text-align:left;padding:5px 12px;font-size:11px;color:#3a3a36;cursor:pointer;border-bottom:1px solid #E4E2DA;user-select:none;}
+      .wi2-tbl tr.wi2-grp:hover td{background:#EDEBE3;} .wi2-tbl tr.wi2-grp .chev{display:inline-block;width:14px;color:#8A8A82;} .wi2-tbl tr.wi2-grp .cnt{margin-left:8px;color:#8A8A82;font-size:10px;} .wi2-tbl tr.wi2-grp .tot{float:right;font-variant-numeric:tabular-nums;color:#8A8A82;font-size:10px;}
+      .wi2-tbl tr.wi2-grp.closed td{color:#8A8A82;}
       .wi2-pos{color:#1565C0;} .wi2-neg{color:#C62828;} .wi2-warn{color:#B45309;font-weight:650;} .wi2-mute{color:#8A8A82;}
       .wi2-empty{padding:26px;text-align:center;color:#8A8A82;font-size:12px;}
       .wi2-det{padding:12px 14px;min-width:0;}
@@ -10816,7 +10845,18 @@ function waInv2RenderTable(){
   const s=waI2();const l=waInv2List();const el=document.getElementById('wi2-tbl');if(!el)return;
   if(!l.length){el.innerHTML='<div class="wi2-empty">Nenhum ativo aqui. Use <b>+ ativo</b> para cadastrar.</div>';return;}
   let h='<table class="wi2-tbl"><tr><th>ativo</th><th>aplicado</th><th>atual</th><th>rend.</th><th style="padding-right:12px;">vencimento</th></tr>';
-  l.forEach(x=>{const a=x.a;
+  const collapsed=_i2GrpCollapsed();const groups=[];const byG={};
+  l.forEach(x=>{const g=_i2GrpName(x.a);if(!byG[g]){byG[g]=[];groups.push(g);}byG[g].push(x);});
+  groups.forEach(g=>{const items=byG[g];const isC=collapsed.has(g);
+    const tot=items.reduce((z,x)=>z+(x.sub?0:(x.a.encerrado?0:_i2Atual(x.a))),0);
+    const totF=items.reduce((z,x)=>z+(x.sub?_i2SubFinal(x.sub).valorFinal:(x.a.encerrado?_i2Final(x.a).valorFinal:0)),0);
+    h+='<tr class="wi2-grp'+(isC?' closed':'')+'" onclick="waInv2ToggleGrp(\''+_i2Esc(g).replace(/'/g,"\\'")+'\')"><td colspan="5"><span class="chev">'+(isC?'▸':'▾')+'</span><b>'+_i2Esc(g)+'</b><span class="cnt">'+items.length+' '+(s.tab==='enc'?'encerrado':'ativo')+(items.length===1?'':'s')+'</span>'
+      +(s.tab==='enc'?'<span class="tot">final '+_i2R(totF)+'</span>':'<span class="tot">'+_i2R(tot)+'</span>')+'</td></tr>';
+    if(isC)return;
+    items.forEach(x=>{h+=_i2RowHtml(x,s);});});
+  el.innerHTML=h+'</table>';
+}
+function _i2RowHtml(x,s){let h='';{const a=x.a;
     if(x.sub){ // aporte encerrado (investimento pai continua ativo)
       const sb=x.sub;const sf=_i2SubFinal(sb);const apv=sb.valor||0;const r=sf.valorFinal-apv,p=apv?r/apv*100:0;
       const isSel=s.sel&&s.sel.inst===x.inst.name&&s.sel.id===x.subId;
@@ -10826,7 +10866,7 @@ function waInv2RenderTable(){
         +'<td class="wi2-mute">'+_i2R(apv).replace('R$ ','')+'</td><td><b>0</b><div class="wi2-sub">final '+_i2R(sf.valorFinal).replace('R$ ','')+'</div></td>'
         +'<td class="'+(r>=0?'wi2-pos':'wi2-neg')+'">'+(r>=0?'+':'−')+Math.abs(p).toFixed(1)+'%</td>'
         +'<td class="wi2-mute" style="padding-right:12px;">encerrado'+(sf.encerradoEm?' '+sf.encerradoEm:'')+'</td></tr>';
-      return;
+      return h;
     }
     const apv=_i2Aplic(a);const fin=a.encerrado?_i2Final(a):null;const at=a.encerrado?0:_i2Atual(a);const base=a.encerrado?fin.valorFinal:at;const r=base-apv,p=apv?r/apv*100:0;
     const isSel=s.sel&&s.sel.inst===x.inst.name&&s.sel.id===a.id;
@@ -10838,8 +10878,8 @@ function waInv2RenderTable(){
       +(a.obs?'<div class="wi2-sub wi2-obs" title="'+_i2Esc(a.obs)+'">'+_i2Esc(a.obs)+'</div>':'')+'</td>'
       +'<td class="wi2-mute">'+_i2R(apv).replace('R$ ','')+'</td><td><b>'+_i2R(at).replace('R$ ','')+'</b>'+(a.encerrado?'<div class="wi2-sub">final '+_i2R(fin.valorFinal).replace('R$ ','')+'</div>':'')+'</td>'
       +'<td class="'+(r>=0?'wi2-pos':'wi2-neg')+'">'+(r>=0?'+':'−')+Math.abs(p).toFixed(1)+'%</td>'
-      +'<td class="'+(a.encerrado?'wi2-mute':_i2VencCls(a))+'" style="padding-right:12px;">'+(a.encerrado?('encerrado'+(fin.encerradoEm?' '+fin.encerradoEm:'')):_i2VencTxt(a))+'</td></tr>';});
-  el.innerHTML=h+'</table>';
+      +'<td class="'+(a.encerrado?'wi2-mute':_i2VencCls(a))+'" style="padding-right:12px;">'+(a.encerrado?('encerrado'+(fin.encerradoEm?' '+fin.encerradoEm:'')):_i2VencTxt(a))+'</td></tr>';}
+  return h;
 }
 function waInv2DragStart(e,instName,ai){window._i2Drag={inst:instName,ai};e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',String(ai));}catch(x){}}
 function waInv2Drop(e,instName,toIdx){
