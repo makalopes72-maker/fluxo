@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#3a0f1f,#d9f99d);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F6FCE6 !important;}
-  #splash .splash-sub{color:rgba(246,252,230,.65) !important;}
-  #splash .splash-version{color:rgba(246,252,230,.35) !important;}
-  #splash .splash-btn{background:#F6FCE6 !important;color:#3a0f1f !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F6FCE6 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#2c5282,#fff3b0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFFBE6 !important;}
+  #splash .splash-sub{color:rgba(255,251,230,.65) !important;}
+  #splash .splash-version{color:rgba(255,251,230,.35) !important;}
+  #splash .splash-btn{background:#FFFBE6 !important;color:#2c5282 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFFBE6 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.74';
+const APP_VERSION='18.75';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6734,7 +6734,7 @@ const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+A
       <button id="wa-collapse-btn" onclick="waToggleCollapse()" title="Recolher menu">‹</button>
     </div>
     <div class="wa-nav">
-      <button class="wa-nav-item" id="wanav-dash" onclick="waGo('dash')">
+      <button class="wa-nav-item" id="wanav-dash" onclick="waGo('dash')" style="display:none;">
         <span class="wa-ic">◎</span><span class="wa-lbl">Início</span>
       </button>
       <button class="wa-nav-item" id="wanav-dash2" onclick="waGo('dash2')">
@@ -6834,6 +6834,7 @@ function waApply(){
 }
 
 function waGo(screen){
+  if(screen==='dash')screen='dash2'; // Início desativado (v18.75): tudo vai para o Quadro 2.0
   // update nav
   document.querySelectorAll('.wa-nav-item').forEach(b=>b.classList.remove('active'));
   const nav=document.getElementById('wanav-'+screen);
@@ -9346,6 +9347,8 @@ function waDash2TogglePasta(t){
   window.waDash2Collapsed[t]=!window.waDash2Collapsed[t];
   waDash2Render();
 }
+function _q2CcAll(){try{return localStorage.getItem('fluxo_q2ccall_'+(currentUser||'ALE'))==='1';}catch(e){return false;}}
+function waDash2CcAll(on){try{localStorage.setItem('fluxo_q2ccall_'+(currentUser||'ALE'),on?'1':'0');}catch(e){}waDash2Render();}
 function _q2EncOpen(){try{return new Set(JSON.parse(localStorage.getItem('fluxo_q2enc_'+(currentUser||'ALE'))||'[]'));}catch(e){return new Set();}}
 function _q2EncSave(s){try{localStorage.setItem('fluxo_q2enc_'+(currentUser||'ALE'),JSON.stringify([...s]));}catch(e){}}
 function waDash2TogEnc(instName){const s=_q2EncOpen();if(s.has(instName))s.delete(instName);else s.add(instName);_q2EncSave(s);waDash2Render();}
@@ -9789,6 +9792,11 @@ function _waDash2Render(){
   const secHead=(key,lbl)=>{
     const col=(window.waDash2Sec||{})[key];
     const extra=k=>{
+      if(k==='cc'){
+        const all=_q2CcAll();const nHid=(instituicoes||[]).filter(inst=>{for(let m=0;m<12;m++){if(getCcSaldoMes(inst.name,dashYear,m)!==null)return false;}return true;}).length;
+        if(!nHid&&!all)return'';
+        return ' <span onclick="event.stopPropagation();waDash2CcAll('+(all?'false':'true')+');" title="'+(all?'mostrar só as instituições com saldo no ano':'mostrar todas as instituições, inclusive sem saldo (para lançar o primeiro saldo)')+'" style="cursor:pointer;font-size:8px;font-weight:600;padding:1px 7px;border-radius:100px;border:1px solid #8FA98F;background:'+(all?'#0F766E':'transparent')+';color:'+(all?'#fff':'#0F766E')+';margin-left:6px;">'+(all?'só com saldo':'todas ('+nHid+' sem saldo)')+'</span>';
+      }
       if(k!=='inv')return'';
       const nEnc=(instituicoes||[]).reduce((s,i)=>s+(getInstAtivos(i)||[]).filter(a=>a.encerrado).length,0);
       if(!nEnc)return'';
@@ -9837,9 +9845,10 @@ function _waDash2Render(){
     html+=secHead('cc','Conta corrente');
     if(!(window.waDash2Sec||{}).cc){
       let ccTot=0;
+      const ccAll=_q2CcAll();
       (instituicoes||[]).forEach(inst=>{
         let has=false;for(let m=0;m<12;m++){if(getCcSaldoMes(inst.name,dashYear,m)!==null){has=true;break;}}
-        if(!has)return;
+        if(!has&&!ccAll)return;
         let last=null;for(let m=11;m>=0;m--){const v=getCcSaldoMes(inst.name,dashYear,m);if(v!==null){last=v;break;}}
         ccTot+=(last||0);
         const instE=esc(inst.name);
@@ -9895,16 +9904,16 @@ function _waDash2Render(){
 
   // Bens
   const bens=(bensData&&bensData[user])||[];
-  if(bens.length){
+  {
     html+=secHead('bens','Bens');
     if(!(window.waDash2Sec||{}).bens){
-      const bensTot=bens.reduce((s,b)=>{const v=b.log&&b.log.length?b.log[b.log.length-1].value:0;return s+(v||0);},0);
       bens.forEach((b,bi)=>{
         html+=valRow(b.nome+' <span onclick="event.stopPropagation();waBemEdit('+bi+')" title="Reavaliar / histórico" style="cursor:pointer;color:#90A4AE;">✎</span>',
           m=>getBensSaldoMes(b,dashYear,m),'wd2-ind','',
           m=>'waBemEdit('+bi+')');
       });
-      html+=valRow('<b>Total bens</b>',m=>bens.reduce((s,b)=>{const v=getBensSaldoMes(b,dashYear,m);return s+(v||0);},0),'wd2-tot-row','',null,'wd2-tot-row');
+      html+='<tr><td class="wd2-lbl wd2-ind" colspan="'+nCols+'" style="padding:3px 8px 3px 34px;"><span onclick="event.stopPropagation();waBemCreate()" style="cursor:pointer;font-size:9px;color:#607D8B;border:1px dashed #90A4AE;border-radius:4px;padding:1px 8px;">+ adicionar bem</span></td></tr>';
+      if(bens.length)html+=valRow('<b>Total bens</b>',m=>bens.reduce((s,b)=>{const v=getBensSaldoMes(b,dashYear,m);return s+(v||0);},0),'wd2-tot-row','',null,'wd2-tot-row');
     }
   }
 
@@ -12872,6 +12881,7 @@ function waBemSaveNew(){
   saveBens();
   closeBemModal();
   renderDash();
+  if(typeof waActiveDashRender==='function')try{waActiveDashRender();}catch(e){}
 }
 function waBemEdit(bi){
   const u=currentUser||'ALE';
