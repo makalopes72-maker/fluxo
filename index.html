@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0b3d91,#ffb99a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFF1EA !important;}
-  #splash .splash-sub{color:rgba(255,241,234,.65) !important;}
-  #splash .splash-version{color:rgba(255,241,234,.35) !important;}
-  #splash .splash-btn{background:#FFF1EA !important;color:#0b3d91 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFF1EA !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#8c3b2a,#bfe6d2);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#EEF8F2 !important;}
+  #splash .splash-sub{color:rgba(238,248,242,.65) !important;}
+  #splash .splash-version{color:rgba(238,248,242,.35) !important;}
+  #splash .splash-btn{background:#EEF8F2 !important;color:#8c3b2a !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#EEF8F2 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.64';
+const APP_VERSION='18.65';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -9328,6 +9328,10 @@ function waDash2TogglePasta(t){
   window.waDash2Collapsed[t]=!window.waDash2Collapsed[t];
   waDash2Render();
 }
+function _q2EncOpen(){try{return new Set(JSON.parse(localStorage.getItem('fluxo_q2enc_'+(currentUser||'ALE'))||'[]'));}catch(e){return new Set();}}
+function _q2EncSave(s){try{localStorage.setItem('fluxo_q2enc_'+(currentUser||'ALE'),JSON.stringify([...s]));}catch(e){}}
+function waDash2TogEnc(instName){const s=_q2EncOpen();if(s.has(instName))s.delete(instName);else s.add(instName);_q2EncSave(s);waDash2Render();}
+function waDash2EncAll(open){const s=new Set();if(open)(instituicoes||[]).forEach(i=>{if((getInstAtivos(i)||[]).some(a=>a.encerrado))s.add(i.name);});_q2EncSave(s);waDash2Render();}
 function waDash2TogSec(s){
   if(!window.waDash2Sec)window.waDash2Sec={};
   window.waDash2Sec[s]=!window.waDash2Sec[s];
@@ -9485,6 +9489,7 @@ function _waDash2Render(){
       .wd2-h.cur{color:#7A5D00;font-weight:700;}
       .wd2-tot{background:#F7F6F1;border-left:2px solid #DDD9CC;}
       .wd2-ind{padding-left:34px;color:#777;}
+      tr.wd2-encgrp td{background:#F4F3EE !important;color:#8A8A82 !important;font-style:italic;}
       .wd2-sub{padding-left:52px !important;color:#8A8A82 !important;font-size:calc(var(--wad-size-geral) - 1px);}
       .wd2-instrow td{background:#EBE7DA;font-weight:700;}
       .wd2-instrow td.wd2-cur{background-color:#EBE7DA;}
@@ -9769,8 +9774,9 @@ function _waDash2Render(){
       if(k!=='inv')return'';
       const nEnc=(instituicoes||[]).reduce((s,i)=>s+(getInstAtivos(i)||[]).filter(a=>a.encerrado).length,0);
       if(!nEnc)return'';
-      const on=!!window.waDash2ShowEnc;
-      return ' <span onclick="event.stopPropagation();window.waDash2ShowEnc=!window.waDash2ShowEnc;waDash2Render();" style="cursor:pointer;font-size:8px;font-weight:600;padding:1px 7px;border-radius:100px;border:1px solid #8FA98F;background:'+(on?'#1F4429':'transparent')+';color:'+(on?'#fff':'#1F4429')+';margin-left:6px;">'+(on?'ocultar':'mostrar')+' encerrados ('+nEnc+')</span>';
+      const st=_q2EncOpen();const instsEnc=(instituicoes||[]).filter(i=>(getInstAtivos(i)||[]).some(a=>a.encerrado)).map(i=>i.name);
+      const on=instsEnc.length>0&&instsEnc.every(n=>st.has(n));
+      return ' <span onclick="event.stopPropagation();waDash2EncAll('+(on?'false':'true')+');" title="abre ou fecha os grupos «encerrados» de todas as instituições" style="cursor:pointer;font-size:8px;font-weight:600;padding:1px 7px;border-radius:100px;border:1px solid #8FA98F;background:'+(on?'#1F4429':'transparent')+';color:'+(on?'#fff':'#1F4429')+';margin-left:6px;">'+(on?'fechar':'abrir')+' encerrados ('+nEnc+')</span>';
     };
     return '<tr><td colspan="'+nCols+'" style="height:28px;border:none;background:transparent;"></td></tr>'
       +'<tr class="wd2-sec" onclick="waDash2TogSec(\''+key+'\')"><td class="wd2-lbl" style="background:#CFDCCF;color:#1F4429;">'+(col?'▸':'▾')+' '+lbl+extra(key)+'</td><td colspan="'+(nCols-1)+'" style="background:#CFDCCF;border-top:3px solid #8FA98F;"></td></tr>';
@@ -9830,14 +9836,14 @@ function _waDash2Render(){
   // Investimentos (encerrados incluídos — histórico preservado)
   html+=secHead('inv','Investimentos');
   if(!(window.waDash2Sec||{}).inv){
-    const showEnc=!!window.waDash2ShowEnc;
+    const encOpen=_q2EncOpen();
     (instituicoes||[]).forEach((inst,ii)=>{
       const ativos=getInstAtivos(inst)||[];
       if(!ativos.length)return;
-      const visAtivos=showEnc?ativos:ativos.filter(a=>!a.encerrado);
-      if(!visAtivos.length&&!showEnc)return;
+      const vivos=ativos.filter(a=>!a.encerrado),mortos=ativos.filter(a=>a.encerrado);
+      // soma da instituição: inalterada (inclui encerrados — zerados após o encerramento)
       html+=valRow('<b>'+(inst.icon||'🏦')+' '+inst.name+'</b>',m=>ativos.reduce((s,a)=>{const v=getAtivoSaldoMes(a,m,dashYear);return s+(v||0);},0),'wd2-instrow','',null,'wd2-instrow');
-      visAtivos.forEach(a=>{
+      const renderAtivo=a=>{
         const ai=ativos.indexOf(a);
         const isSubMode=a.composto&&a.updMode==='subs';
         // pai: em modo 'subs' a linha é a soma (não editável); em modo 'total' edita como sempre
@@ -9856,7 +9862,14 @@ function _waDash2Render(){
               undefined, vencNote(sb.vencimento));
           });
         }
-      });
+      };
+      vivos.forEach(renderAtivo);
+      if(mortos.length){
+        const isOpen=encOpen.has(inst.name);const nmE=inst.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        html+=valRow('<span onclick="event.stopPropagation();waDash2TogEnc(\''+nmE+'\')" style="cursor:pointer;user-select:none;">'+(isOpen?'▾':'▸')+' <b>encerrados</b> <span style="font-size:8px;color:#999;">('+mortos.length+')</span></span>',
+          m=>mortos.reduce((s,a)=>{const v=getAtivoSaldoMes(a,m,dashYear);return s+(v||0);},0),'wd2-ind wd2-encgrp','',null,'wd2-encgrp');
+        if(isOpen)mortos.forEach(renderAtivo);
+      }
     });
     html+=valRow('<b>Total investido</b>',m=>(instituicoes||[]).reduce((s,inst)=>s+(getInstAtivos(inst)||[]).reduce((ss,a)=>{const v=getAtivoSaldoMes(a,m,dashYear);return ss+(v||0);},0),0),'wd2-tot-row','',null,'wd2-tot-row');
   }
