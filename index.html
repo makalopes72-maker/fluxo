@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4a2c2a,#a8e6cf);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#EAF9F2 !important;}
-  #splash .splash-sub{color:rgba(234,249,242,.65) !important;}
-  #splash .splash-version{color:rgba(234,249,242,.35) !important;}
-  #splash .splash-btn{background:#EAF9F2 !important;color:#4a2c2a !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#EAF9F2 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0d1b2a,#ffcdb2);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFF3EC !important;}
+  #splash .splash-sub{color:rgba(255,243,236,.65) !important;}
+  #splash .splash-version{color:rgba(255,243,236,.35) !important;}
+  #splash .splash-btn{background:#FFF3EC !important;color:#0d1b2a !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFF3EC !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.71';
+const APP_VERSION='18.72';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -14277,7 +14277,7 @@ function waInvOpenChartModal(idx){
         <div style="font-family:var(--font-display);font-size:1rem;color:var(--font);">${nome}</div>
         <button onclick="document.getElementById('inv-chart-modal').remove()" style="width:28px;height:28px;border:none;background:var(--kp);border-radius:50%;font-size:1rem;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;">✕</button>
       </div>
-      <div style="padding:24px 28px;overflow-y:auto;flex:1;">
+      <div style="padding:20px 28px 16px;overflow:hidden;flex:1;">
         ${svgLarge}
       </div>
     </div>`;
@@ -14286,24 +14286,38 @@ function waInvOpenChartModal(idx){
 }
 
 // Ativo em dólar: painel com a variação (base 100) do valor em R$, do valor em US$ e da cotação
-function waInvBuildUsdPanel(logSorted){
+function _invChartHover(e,box){
+  let pts;try{pts=JSON.parse(box.dataset.pts||'null');}catch(x){}if(!pts||!pts.length)return;
+  const r=box.getBoundingClientRect();const pct=(e.clientX-r.left)/r.width*100;
+  let best=null,bd=1e9;pts.forEach(p=>{const d=Math.abs(p.p-pct);if(d<bd){bd=d;best=p;}});if(!best)return;
+  let ln=box.querySelector('.inv-ch-line'),tip=box.querySelector('.inv-ch-tip');
+  if(!ln){ln=document.createElement('div');ln.className='inv-ch-line';ln.style.cssText='position:absolute;top:0;bottom:0;width:0;border-left:1.5px dashed #6b6b64;pointer-events:none;';box.appendChild(ln);
+    tip=document.createElement('div');tip.className='inv-ch-tip';tip.style.cssText='position:absolute;top:6px;display:flex;flex-direction:column;gap:2px;background:rgba(255,255,255,.97);border:1px solid #D8D6CC;border-radius:8px;padding:6px 10px;font-size:12px;line-height:1.35;white-space:nowrap;pointer-events:none;z-index:2;font-variant-numeric:tabular-nums;box-shadow:0 2px 8px rgba(0,0,0,.08);';box.appendChild(tip);}
+  ln.style.left=best.p+'%';ln.style.display='block';
+  const f2=v=>Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  tip.innerHTML='<b>'+best.d+'</b><span style="color:#1565C0;">R$ '+f2(best.v)+'</span>'+(best.u!==undefined?'<span style="color:#059669;">US$ '+f2(best.u)+'</span>':'')+(best.c!==undefined?'<span style="color:#E65100;">cotação '+Number(best.c).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:4})+'</span>':'');
+  tip.style.display='flex';tip.style.left='';tip.style.right='';
+  if(best.p>60)tip.style.right=(100-best.p+1)+'%';else tip.style.left=(best.p+1)+'%';
+}
+function _invChartOut(box){const ln=box.querySelector('.inv-ch-line'),tip=box.querySelector('.inv-ch-tip');if(ln)ln.style.display='none';if(tip)tip.style.display='none';}
+function waInvBuildUsdPanel(logSorted,xOfMain,svgW,hU,hC){
   const u=logSorted.filter(l=>l.usd>0&&l.cot>0);if(u.length<2)return '';
-  const W=860,padL=60,padR=80,padT=18,padB=26;
-  const T=l=>parseDate(l.date).getTime();const t0=T(logSorted[0]),t1=T(logSorted[logSorted.length-1]),tr=(t1-t0)||1;
-  const xOf=t=>padL+(t-t0)/tr*(W-padL-padR);
+  const W=svgW||860,padL=60,padR=80,padT=18,padB=26;
+  const T=l=>parseDate(l.date).getTime();
+  const xOf=xOfMain||(t=>{const t0=T(logSorted[0]),t1=T(logSorted[logSorted.length-1]),tr=(t1-t0)||1;return padL+(t-t0)/tr*(W-padL-padR);});
   const one=(label,col,get,fmt,H)=>{
     const vals=u.map(get),ts=u.map(T);const mn=Math.min(...vals),mx=Math.max(...vals),rg=(mx-mn)||1;
     const yOf=v=>padT+(mx-v)/rg*(H-padT-padB);
-    let g='';[0,.5,1].forEach(f=>{const v=mn+rg*f,y=yOf(v).toFixed(1);g+='<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="rgba(26,26,26,.06)"/><text x="'+(padL-6)+'" y="'+(parseFloat(y)+3)+'" text-anchor="end" font-size="9" fill="rgba(26,26,26,.45)">'+fmt(v)+'</text>';});
+    let g='';[0,.5,1].forEach(f=>{const v=mn+rg*f,y=yOf(v).toFixed(1);g+='<line x1="'+padL+'" y1="'+y+'" x2="'+(W-80)+'" y2="'+y+'" stroke="rgba(26,26,26,.06)"/><text x="'+(padL-6)+'" y="'+(parseFloat(y)+3)+'" text-anchor="end" font-size="9" fill="rgba(26,26,26,.45)">'+fmt(v)+'</text>';});
     let vl='';u.forEach(l=>{const x=xOf(T(l)).toFixed(1);const dd=String(l.date).split('/');vl+='<line x1="'+x+'" y1="'+padT+'" x2="'+x+'" y2="'+(H-padB)+'" stroke="rgba(0,0,0,.06)" stroke-dasharray="2,2"/><text x="'+x+'" y="'+(H-padB+13)+'" text-anchor="middle" font-size="9" fill="#90A4AE">'+(dd.length===3?dd[1]+'/'+dd[2].slice(2):'')+'</text>';});
     const pl=vals.map((v,i)=>xOf(ts[i]).toFixed(1)+','+yOf(v).toFixed(1)).join(' ');
     const dots=vals.map((v,i)=>'<circle cx="'+xOf(ts[i]).toFixed(1)+'" cy="'+yOf(v).toFixed(1)+'" r="3.5" fill="'+col+'" stroke="#fff" stroke-width="1.5"><title>'+normDateBR(u[i].date)+' · '+fmt(v)+'</title></circle>').join('');
     const var_=vals[0]?(vals[vals.length-1]/vals[0]-1)*100:0;
-    return '<div style="font-size:.7rem;color:var(--muted);margin:14px 0 4px;display:flex;gap:12px;align-items:center;"><span style="font-weight:700;color:'+col+';">'+label+'</span><span>último: <b style="color:var(--font);">'+fmt(vals[vals.length-1])+'</b></span><span style="color:'+(var_>=0?'#059669':'#E53935')+';font-weight:700;">'+(var_>=0?'+':'')+var_.toFixed(2)+'% no período</span></div>'
-      +'<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:'+H+'px;" preserveAspectRatio="none">'+g+vl+'<polyline points="'+pl+'" fill="none" stroke="'+col+'" stroke-width="2" stroke-linejoin="round"/>'+dots+'</svg>';
+    return '<div style="font-size:.7rem;color:var(--muted);margin:8px 0 2px;display:flex;gap:12px;align-items:center;"><span style="font-weight:700;color:'+col+';">'+label+'</span><span>último: <b style="color:var(--font);">'+fmt(vals[vals.length-1])+'</b></span><span style="color:'+(var_>=0?'#059669':'#E53935')+';font-weight:700;">'+(var_>=0?'+':'')+var_.toFixed(2)+'% no período</span></div>'
+      +'<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:'+H+'px;display:block;" preserveAspectRatio="none">'+g+vl+'<polyline points="'+pl+'" fill="none" stroke="'+col+'" stroke-width="2" stroke-linejoin="round"/>'+dots+'</svg>';
   };
-  return one('Valor em US$','#059669',l=>Number(l.usd),v=>'US$ '+Math.round(v).toLocaleString('pt-BR'),170)
-    +one('Cotação R$/US$','#E65100',l=>Number(l.cot),v=>Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}),150);
+  return one('Valor em US$','#059669',l=>Number(l.usd),v=>'US$ '+Math.round(v).toLocaleString('pt-BR'),hU||170)
+    +one('Cotação R$/US$','#E65100',l=>Number(l.cot),v=>Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}),hC||150);
 }
 function waInvBuildAtivoSvgLarge(a){
   // Same logic as the mini chart but larger dimensions
@@ -14317,7 +14331,11 @@ function waInvBuildAtivoSvgLarge(a){
   const rendSign=rend>=0?'+':'';
   const lc=rend>=0?'#059669':'#E53935';
   const fc=rend>=0?'rgba(5,150,105,.12)':'rgba(229,57,53,.12)';
-  const W=860,H=400,padL=60,padR=80,padT=24,padB=36;
+  const isUSDa=(typeof _i2IsUSD==='function'&&_i2IsUSD(a))&&logSorted.filter(l=>l.usd>0&&l.cot>0).length>=2;
+  // altura útil do modal (96vh − cabeçalho − padding − rodapé); com painéis USD, divide R$ 50% / US$ 27% / cotação 23%
+  const availH=Math.max(380,Math.round((window.innerHeight||900)*0.96-61-48-44));
+  const mainH=isUSDa?Math.max(200,Math.round(availH*0.5)-22):Math.min(400,availH);
+  const W=860,H=mainH,padL=60,padR=80,padT=24,padB=36;
   const mn=Math.min(...vals),mx=Math.max(...vals),range=mx-mn||1;
   const tMin=times[0],tMax=times[times.length-1],tRange=tMax-tMin||1;
   const xOf=t=>padL+((t-tMin)/tRange)*(W-padL-padR);
@@ -14396,14 +14414,17 @@ function waInvBuildAtivoSvgLarge(a){
   }).join('');
 
   const svgW=projV!=null?W+80:W;
-  const usdPanel=(typeof _i2IsUSD==='function'&&_i2IsUSD(a))?waInvBuildUsdPanel(logSorted):'';
-  return (usdPanel?'<div style="font-size:.7rem;color:var(--muted);margin-bottom:6px;font-weight:700;">Valor em R$</div>':'')+`<svg viewBox="0 0 ${svgW} ${H}" style="width:100%;height:400px;" preserveAspectRatio="none">
+  const usdPanel=isUSDa?waInvBuildUsdPanel(logSorted,xOf2,svgW,Math.max(110,Math.round(availH*0.27)-22),Math.max(100,Math.round(availH*0.23)-22)):'';
+  // dados do hover: linha vertical + registro (data, R$, US$, cotação) alinhado nos três painéis
+  const hovPts=logSorted.map((l,i)=>({p:Math.round(xOf2(times[i])/svgW*10000)/100,d:normDateBR(l.date),v:vals[i],u:(l.usd>0?Number(l.usd):undefined),c:(l.cot>0?Number(l.cot):undefined)}));
+  const hovAttr=' data-pts="'+_i2Esc(JSON.stringify(hovPts))+'" onmousemove="_invChartHover(event,this)" onmouseleave="_invChartOut(this)"';
+  return '<div style="position:relative;"'+hovAttr+'>'+(usdPanel?'<div style="font-size:.7rem;color:var(--muted);margin-bottom:6px;font-weight:700;">Valor em R$</div>':'')+`<svg viewBox="0 0 ${svgW} ${H}" style="width:100%;height:${H}px;display:block;" preserveAspectRatio="none">
     ${ylabels}
     <polygon points="${padL},${H-padB} ${pts2} ${(W-padR)},${H-padB}" fill="${fc}"/>
     ${vlines}
     <polyline points="${pts2}" fill="none" stroke="${lc}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
     ${dots}${valLabels}${projSvg}
-  </svg>${usdPanel}
+  </svg>${usdPanel}</div>
   <div style="margin-top:10px;display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);">
     <span>Aplicado: <strong style="color:var(--font);">R$${Math.round(vals[0]).toLocaleString('pt-BR')}</strong></span>
     <span>Atual: <strong style="color:var(--font);">R$${Math.round(last).toLocaleString('pt-BR')}</strong></span>
