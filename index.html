@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#2b3a4a,#f28c28);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFF0E0 !important;}
-  #splash .splash-sub{color:rgba(255,240,224,.65) !important;}
-  #splash .splash-version{color:rgba(255,240,224,.35) !important;}
-  #splash .splash-btn{background:#FFF0E0 !important;color:#2b3a4a !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFF0E0 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0e4a4a,#f4b6c2);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FDEFF3 !important;}
+  #splash .splash-sub{color:rgba(253,239,243,.65) !important;}
+  #splash .splash-version{color:rgba(253,239,243,.35) !important;}
+  #splash .splash-btn{background:#FDEFF3 !important;color:#0e4a4a !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FDEFF3 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.59';
+const APP_VERSION='18.60';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -10618,7 +10618,7 @@ function _waCharts2Render(){
 // Chips de instituições + tabela de ativos + painel do ativo com todas as ações.
 // ══════════════════════════════════════════════════════════════════════
 function waInv2Active(){const n=document.getElementById('wanav-inv2');return !!(n&&n.classList.contains('active'));}
-function waI2(){if(!window.waI2S)window.waI2S={inst:'*',tab:'ativos',sel:null,q:'',sort:'venc',reorder:false};return window.waI2S;}
+function waI2(){if(!window.waI2S){let so='manual';try{so=localStorage.getItem('fluxo_i2sort_'+(currentUser||'ALE'))||'manual';}catch(e){}window.waI2S={inst:'*',tab:'ativos',sel:null,q:'',sort:so,reorder:false};}return window.waI2S;}
 function waShowInv2(){
   document.getElementById('wa-center-title').textContent='Investimentos 2.0';
   document.getElementById('wa-right-title').textContent='--';
@@ -10673,7 +10673,7 @@ function _i2Modal(html){const old=document.getElementById('wi2-ov');if(old)old.r
 function _i2Close(){const o=document.getElementById('wi2-ov');if(o)o.remove();}
 function _i2Sel(){const s=waI2();if(!s.sel)return null;const inst=(instituicoes||[]).find(i=>i.name===s.sel.inst);if(!inst)return null;const a=(getInstAtivos(inst)||[]).find(x=>x.id===s.sel.id)||null;return a?{inst,a,idx:getInstAtivos(inst).indexOf(a),ii:instituicoes.indexOf(inst)}:null;}
 function _i2Ctx(){const r=_i2Sel();if(!r)return null;waInvInstIdx=r.ii;return r;} // sincroniza o contexto usado pelas funções legadas
-function waInv2Set(k,v){const s=waI2();s[k]=v;if(k==='tab')s.sel=null;if(k==='reorder'&&v){s.sort='manual';if(s.inst==='*'&&(instituicoes||[]).length)s.inst=instituicoes[0].name;}waInv2Render();}
+function waInv2Set(k,v){const s=waI2();s[k]=v;if(k==='tab')s.sel=null;if(k==='reorder'&&v)s.sort='manual';if(k==='sort'||(k==='reorder'&&v)){try{localStorage.setItem('fluxo_i2sort_'+(currentUser||'ALE'),s.sort);}catch(e){}}waInv2Render();}
 function waInv2Pick(inst,id){const s=waI2();s.sel={inst,id};waInv2Render();}
 function waInv2Q(v){waI2().q=v;waInv2RenderTable();}
 
@@ -10707,7 +10707,8 @@ function _waInv2Render(){
       .wi2-tbl th:first-child,.wi2-tbl td:first-child{text-align:left;padding-left:12px;}
       .wi2-tbl td{padding:8px 10px;border-bottom:1px solid #EEECE4;text-align:right;vertical-align:middle;font-variant-numeric:tabular-nums;}
       .wi2-tbl tr.r{cursor:pointer;} .wi2-tbl tr.r:hover td{background:#FAF8F2;} .wi2-tbl tr.r.sel td{background:#EEF3FA;}
-      .wi2-nm{font-weight:650;} .wi2-sub{font-size:10px;color:#8A8A82;margin-top:1px;}
+      .wi2-nm{font-weight:650;} .wi2-obs{font-style:italic;color:#7A7A72;max-width:520px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.wi2-sub{font-size:10px;color:#8A8A82;margin-top:1px;}
       .wi2-pos{color:#1565C0;} .wi2-neg{color:#C62828;} .wi2-warn{color:#B45309;font-weight:650;} .wi2-mute{color:#8A8A82;}
       .wi2-empty{padding:26px;text-align:center;color:#8A8A82;font-size:12px;}
       .wi2-det{padding:12px 14px;min-width:0;}
@@ -10773,7 +10774,7 @@ function _waInv2Render(){
     +'<button class="wi2-tab '+(s.tab==='enc'?'on':'')+'" onclick="waInv2Set(\'tab\',\'enc\')">Encerrados · '+allAtivos.filter(x=>x.a.encerrado&&(s.inst==='*'||x.inst.name===s.inst)).length+'</button></div>'
     +'<div class="wi2-tools"><input id="wi2-q" placeholder="buscar ativo…" value="'+_i2Esc(s.q)+'" oninput="waInv2Q(this.value)">'
     +'<select onchange="waInv2Set(\'sort\',this.value)"><option value="venc"'+(s.sort==='venc'?' selected':'')+'>ordenar: vencimento</option><option value="atual"'+(s.sort==='atual'?' selected':'')+'>ordenar: valor atual</option><option value="rend"'+(s.sort==='rend'?' selected':'')+'>ordenar: rendimento</option><option value="nome"'+(s.sort==='nome'?' selected':'')+'>ordenar: nome</option><option value="manual"'+(s.sort==='manual'?' selected':'')+'>ordem manual</option></select></div></div>'
-    +(s.reorder?'<div style="padding:6px 12px;font-size:10.5px;color:#1565C0;background:#EEF3FA;border-bottom:1px solid #E4E2DA;">Modo ordenar: arraste as linhas pelo ⠿ ou use ▲▼ · a ordem é gravada na planilha · clique em “✓ concluir” ao terminar</div>':'')
+    +(s.reorder?'<div style="padding:6px 12px;font-size:10.5px;color:#1565C0;background:#EEF3FA;border-bottom:1px solid #E4E2DA;">Modo ordenar: arraste as linhas pelo ⠿ ou use ▲▼ (dentro da mesma instituição; as instituições se ordenam pelos ▲▼ dos chips acima) · a ordem vale aqui e no Quadro 2.0 e é gravada na planilha · clique em “✓ concluir” ao terminar</div>':'')
     +'<div id="wi2-tbl"></div></div>'
     +'<div class="wi2-panel"><div id="wi2-det" class="wi2-det"></div></div></div></div>';
   const body=document.getElementById('wa-center-body');if(body)body.innerHTML=h;
@@ -10799,22 +10800,24 @@ function waInv2RenderTable(){
   l.forEach(x=>{const a=x.a;const apv=_i2Aplic(a);const fin=a.encerrado?_i2Final(a):null;const at=a.encerrado?0:_i2Atual(a);const base=a.encerrado?fin.valorFinal:at;const r=base-apv,p=apv?r/apv*100:0;
     const isSel=s.sel&&s.sel.inst===x.inst.name&&s.sel.id===a.id;
     const nm=_i2Esc(x.inst.name).replace(/'/g,"\\'");
-    const dragAttrs=(s.reorder&&s.inst!=='*')?' draggable="true" ondragstart="waInv2DragStart(event,'+x.ai+')" ondragover="event.preventDefault();this.style.outline=\'2px dashed #1565C0\'" ondragleave="this.style.outline=\'\'" ondrop="this.style.outline=\'\';waInv2Drop(event,'+x.ai+')"':'';
+    const dragAttrs=s.reorder?' draggable="true" ondragstart="waInv2DragStart(event,\''+nm+'\','+x.ai+')" ondragover="event.preventDefault();this.style.outline=\'2px dashed #1565C0\'" ondragleave="this.style.outline=\'\'" ondrop="this.style.outline=\'\';waInv2Drop(event,\''+nm+'\','+x.ai+')"':'';
     h+='<tr class="r '+(isSel?'sel':'')+'"'+dragAttrs+' onclick="waInv2Pick(\''+nm+'\',\''+_i2Esc(a.id).replace(/'/g,"\\'")+'\')">'
-      +'<td>'+((s.reorder&&s.inst!=='*')?'<span style="cursor:grab;color:#B9B7AE;margin-right:6px;font-size:13px;" title="arraste para reordenar">⠿</span>':'')+'<div class="wi2-nm" style="display:inline-block;">'+(a.composto?'🧩 ':'')+_i2Esc(a.nome)+'</div><div class="wi2-sub">'+(s.inst==='*'?_i2Esc(x.inst.name)+' · ':'')+(a.composto?'composto · '+((a.subs||[]).length)+' aportes · '+(a.updMode==='subs'?'por sub':'pelo total'):_i2Esc(a.classe||'')+(a.taxa?' · '+_i2Esc(a.taxa):''))
-      +(s.reorder&&s.inst!=='*'?' <span class="wi2-reord"><button onclick="event.stopPropagation();waInv2MoveAtivo(\''+nm+'\','+x.ai+',-1)">▲</button><button onclick="event.stopPropagation();waInv2MoveAtivo(\''+nm+'\','+x.ai+',1)">▼</button></span>':'')+'</div></td>'
+      +'<td>'+(s.reorder?'<span style="cursor:grab;color:#B9B7AE;margin-right:6px;font-size:13px;" title="arraste para reordenar">⠿</span>':'')+'<div class="wi2-nm" style="display:inline-block;">'+(a.composto?'🧩 ':'')+_i2Esc(a.nome)+'</div><div class="wi2-sub">'+(s.inst==='*'?_i2Esc(x.inst.name)+' · ':'')+(a.composto?'composto · '+((a.subs||[]).length)+' aportes · '+(a.updMode==='subs'?'por sub':'pelo total'):_i2Esc(a.classe||'')+(a.taxa?' · '+_i2Esc(a.taxa):''))
+      +(s.reorder?' <span class="wi2-reord"><button onclick="event.stopPropagation();waInv2MoveAtivo(\''+nm+'\','+x.ai+',-1)">▲</button><button onclick="event.stopPropagation();waInv2MoveAtivo(\''+nm+'\','+x.ai+',1)">▼</button></span>':'')+'</div>'
+      +(a.obs?'<div class="wi2-sub wi2-obs" title="'+_i2Esc(a.obs)+'">'+_i2Esc(a.obs)+'</div>':'')+'</td>'
       +'<td class="wi2-mute">'+_i2R(apv).replace('R$ ','')+'</td><td><b>'+_i2R(at).replace('R$ ','')+'</b>'+(a.encerrado?'<div class="wi2-sub">final '+_i2R(fin.valorFinal).replace('R$ ','')+'</div>':'')+'</td>'
       +'<td class="'+(r>=0?'wi2-pos':'wi2-neg')+'">'+(r>=0?'+':'−')+Math.abs(p).toFixed(1)+'%</td>'
       +'<td class="'+(a.encerrado?'wi2-mute':_i2VencCls(a))+'" style="padding-right:12px;">'+(a.encerrado?('encerrado'+(fin.encerradoEm?' '+fin.encerradoEm:'')):_i2VencTxt(a))+'</td></tr>';});
   el.innerHTML=h+'</table>';
 }
-function waInv2DragStart(e,ai){window._i2Drag=ai;e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',String(ai));}catch(x){}}
-function waInv2Drop(e,toIdx){
-  e.preventDefault();const from=window._i2Drag;window._i2Drag=null;
-  if(from===null||from===undefined||from===toIdx)return;
-  const s=waI2();const inst=(instituicoes||[]).find(i=>i.name===s.inst);if(!inst)return;
-  const arr=getInstAtivos(inst);const item=arr.splice(from,1)[0];arr.splice(toIdx,0,item);
-  s.sort='manual';saveInvestimentos();waInv2Render();
+function waInv2DragStart(e,instName,ai){window._i2Drag={inst:instName,ai};e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',String(ai));}catch(x){}}
+function waInv2Drop(e,instName,toIdx){
+  e.preventDefault();const dg=window._i2Drag;window._i2Drag=null;
+  if(!dg||dg.ai===toIdx)return;
+  if(dg.inst!==instName){if(typeof toast==='function')toast('Só dá para reordenar dentro da mesma instituição — a ordem das instituições é pelos ▲▼ dos chips','');return;}
+  const inst=(instituicoes||[]).find(i=>i.name===instName);if(!inst)return;
+  const arr=getInstAtivos(inst);const item=arr.splice(dg.ai,1)[0];arr.splice(toIdx,0,item);
+  waI2().sort='manual';saveInvestimentos();waInv2Render();
 }
 function waInv2MoveAtivo(instName,ai,dir){
   const inst=(instituicoes||[]).find(i=>i.name===instName);if(!inst)return;
