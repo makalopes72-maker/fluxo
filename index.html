@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#2c5282,#fff3b0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFFBE6 !important;}
-  #splash .splash-sub{color:rgba(255,251,230,.65) !important;}
-  #splash .splash-version{color:rgba(255,251,230,.35) !important;}
-  #splash .splash-btn{background:#FFFBE6 !important;color:#2c5282 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFFBE6 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4a1d5e,#c7f2d8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#EEFBF3 !important;}
+  #splash .splash-sub{color:rgba(238,251,243,.65) !important;}
+  #splash .splash-version{color:rgba(238,251,243,.35) !important;}
+  #splash .splash-btn{background:#EEFBF3 !important;color:#4a1d5e !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#EEFBF3 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -954,6 +954,13 @@
   #wa-sidebar.collapsed #wa-brand-text{display:none;}
   #wa-sidebar.collapsed #wa-collapse-btn{transform:translateY(-50%) rotate(180deg);}
   #wa-sidebar.collapsed .wa-lbl{display:none;}
+  #wa-side-qdate{margin:2px 10px 10px;padding:8px 10px 9px;border:1px solid var(--border);border-radius:12px;cursor:pointer;text-align:center;background:var(--surface,rgba(0,0,0,.03));}
+  #wa-side-qdate:hover{border-color:#0F766E;}
+  #wa-side-qdate .qd-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1px;}
+  #wa-side-qdate .qd-big{font-size:26px;font-weight:800;color:var(--font);line-height:1.05;font-variant-numeric:tabular-nums;letter-spacing:-.02em;}
+  #wa-side-qdate .qd-big.old{color:#C62828;}
+  #wa-side-qdate input{display:none;width:100%;margin-top:4px;font-size:12px;border:1px solid var(--border);border-radius:6px;padding:3px;background:var(--bg);color:var(--font);box-sizing:border-box;}
+  #wa-sidebar.collapsed #wa-side-qdate{display:none;}
   #wa-sidebar.collapsed .wa-nav-item{justify-content:center;padding:9px 0;gap:0;}
   #wa-sidebar.collapsed .wa-brand{justify-content:center;padding:10px 0;}
   /* sidebar transition */
@@ -2099,7 +2106,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.75';
+const APP_VERSION='18.76';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6734,11 +6741,19 @@ const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+A
       <button id="wa-collapse-btn" onclick="waToggleCollapse()" title="Recolher menu">‹</button>
     </div>
     <div class="wa-nav">
-      <button class="wa-nav-item" id="wanav-dash" onclick="waGo('dash')" style="display:none;">
-        <span class="wa-ic">◎</span><span class="wa-lbl">Início</span>
-      </button>
+      <div id="wa-side-qdate" onclick="waSideQDateEdit()" title="Data de atualização dos dados — clique para editar">
+        <div class="qd-lbl">dados até</div>
+        <div class="qd-big" id="wa-side-qdate-v">--</div>
+        <input type="date" id="wa-side-qdate-i" onchange="waSideQDateSave()" onblur="waSideQDateSave()" onclick="event.stopPropagation()">
+      </div>
       <button class="wa-nav-item" id="wanav-dash2" onclick="waGo('dash2')">
         <span class="wa-ic">▦</span><span class="wa-lbl">Quadro 2.0</span>
+      </button>
+      <button class="wa-nav-item" id="wanav-add" onclick="waGo('add')">
+        <span class="wa-ic">＋≡</span><span class="wa-lbl">Lançar / Extrato</span>
+      </button>
+      <button class="wa-nav-item" id="wanav-inv2" onclick="waGo('inv2')">
+        <span class="wa-ic">◆</span><span class="wa-lbl">Investimentos 2.0</span>
       </button>
       <button class="wa-nav-item" id="wanav-orc2" onclick="waGo('orc2')">
         <span class="wa-ic">✎</span><span class="wa-lbl">Orçamento 2.0</span>
@@ -6746,28 +6761,22 @@ const _sv=document.getElementById('splash-version');if(_sv)_sv.textContent='v'+A
       <button class="wa-nav-item" id="wanav-chart2" onclick="waGo('chart2')">
         <span class="wa-ic">◔</span><span class="wa-lbl">Gráficos 2.0</span>
       </button>
-      <button class="wa-nav-item" id="wanav-add" onclick="waGo('add')">
-        <span class="wa-ic">＋≡</span><span class="wa-lbl">Lançar / Extrato</span>
+      <div style="margin:6px 16px;border-top:1px solid var(--border);"></div>
+      <button class="wa-nav-item" id="wanav-cfg" onclick="waGo('cfg')">
+        <span class="wa-ic">⚙</span><span class="wa-lbl">Config.</span>
       </button>
-      <button class="wa-nav-item" id="wanav-inv" onclick="waGo('inv')">
-        <span class="wa-ic">📈</span><span class="wa-lbl">Investimentos</span>
-      </button>
-      <button class="wa-nav-item" id="wanav-inv2" onclick="waGo('inv2')">
-        <span class="wa-ic">◆</span><span class="wa-lbl">Investimentos 2.0</span>
-      </button>
+      <div style="margin:6px 16px;border-top:1px solid var(--border);"></div>
       <button class="wa-nav-item" id="wanav-analytics" onclick="waGo('analytics')">
         <span class="wa-ic">◈</span><span class="wa-lbl">Análises</span>
       </button>
       <button class="wa-nav-item" id="wanav-graficos" onclick="waGo('graficos')">
         <span class="wa-ic">◉</span><span class="wa-lbl">Gráficos</span>
       </button>
-      <div style="margin:6px 16px;border-top:1px solid var(--border);"></div>
       <button class="wa-nav-item" id="wanav-orc" onclick="waGo('orc')">
         <span class="wa-ic">🎯</span><span class="wa-lbl">Orçamento</span>
       </button>
-      <button class="wa-nav-item" id="wanav-cfg" onclick="waGo('cfg')">
-        <span class="wa-ic">⚙</span><span class="wa-lbl">Config.</span>
-      </button>
+      <button class="wa-nav-item" id="wanav-dash" onclick="waGo('dash')" style="display:none;"><span class="wa-ic">◎</span><span class="wa-lbl">Início</span></button>
+      <button class="wa-nav-item" id="wanav-inv" onclick="waGo('inv')" style="display:none;"><span class="wa-ic">📈</span><span class="wa-lbl">Investimentos</span></button>
     </div>
     <div class="wa-footer">
       <button class="wa-nav-item" onclick="waSyncFull()">
@@ -6835,6 +6844,7 @@ function waApply(){
 
 function waGo(screen){
   if(screen==='dash')screen='dash2'; // Início desativado (v18.75): tudo vai para o Quadro 2.0
+  if(screen==='inv')screen='inv2';   // Investimentos antigo desativado (v18.76)
   // update nav
   document.querySelectorAll('.wa-nav-item').forEach(b=>b.classList.remove('active'));
   const nav=document.getElementById('wanav-'+screen);
@@ -9384,12 +9394,7 @@ function waDash2SaveQDate(){
   }
   inp.style.display='none';
   if(disp){disp.textContent=_quadroDates[u]||'--';disp.style.display='';}
-  // mesmo armazenamento do Quadro original: aba Preferencias + localStorage
-  sheetsPost({action:'appendLog',sheet:'Preferencias',row:[u,'quadro_date',_quadroDates[u]||'']})
-    .then(r=>{if(!(r&&r.ok!==false))toast('✗ Falha ao salvar a data no Sheets','error');})
-    .catch(e=>toast('✗ Erro ao salvar a data: '+e.message,'error'));
-  localStorage.setItem('fluxo_quadro_dates',JSON.stringify(_quadroDates));
-  if(typeof waRenderQuadroDate==='function')waRenderQuadroDate();
+  waQDateSet(_quadroDates[u]||'');
 }
 function waDash2ZoomStep(dir){
   let z=window.waDash2Zoom||parseFloat(localStorage.getItem('fluxo_wd2_zoom')||'1')||1;
@@ -11550,6 +11555,58 @@ function waRenderQuadroDate(){
   const u = currentUser||'ALE';
   const el = document.getElementById('wa-quadro-date-display');
   if(el) el.textContent = _quadroDates[u] || '--';
+  // data grande no menu lateral: dd/mm em destaque, ano no title; vermelha quando desatualizada
+  const sv=document.getElementById('wa-side-qdate-v');
+  if(sv){const d=_quadroDates[u]||'';const p=d.split('/');
+    sv.textContent=p.length===3?(p[0]+'/'+p[1]):'--';
+    const wrap=document.getElementById('wa-side-qdate');if(wrap)wrap.title='Dados até '+(d||'—')+' · usuário '+u+' — clique para editar';
+    sv.classList.toggle('old',!!(d&&_qdParse(d)&&_qdParse(d)<_qdToday()));}
+}
+function _qdParse(s){const p=String(s||'').split('/');if(p.length!==3)return null;const d=new Date(+p[2],+p[1]-1,+p[0]);return isNaN(d)?null:d;}
+function _qdToday(){const t=new Date();return new Date(t.getFullYear(),t.getMonth(),t.getDate());}
+// setter central: memória + localStorage + Preferencias (Sheets) + todos os displays
+function waQDateSet(val){
+  const u=currentUser||'ALE';
+  _quadroDates[u]=val;
+  localStorage.setItem('fluxo_quadro_dates',JSON.stringify(_quadroDates));
+  sheetsPost({action:'appendLog',sheet:'Preferencias',row:[u,'quadro_date',val||'']})
+    .then(r=>{if(!(r&&r.ok!==false))toast('✗ Falha ao salvar a data no Sheets','error');})
+    .catch(e=>toast('✗ Erro ao salvar a data: '+e.message,'error'));
+  waRenderQuadroDate();
+  if(typeof waDash2RenderHeader==='function')try{waDash2RenderHeader();}catch(e){}
+}
+function waSideQDateEdit(){
+  const u=currentUser||'ALE';const i=document.getElementById('wa-side-qdate-i');if(!i)return;
+  const cur=_quadroDates[u]||'';const p=cur.split('/');
+  if(p.length===3)i.value=p[2]+'-'+p[1]+'-'+p[0];
+  i.style.display='block';i.focus();
+}
+function waSideQDateSave(){
+  const i=document.getElementById('wa-side-qdate-i');if(!i)return;
+  const iso=i.value;i.style.display='none';
+  if(!iso)return;
+  const [y,m,d]=iso.split('-');
+  waQDateSet(d+'/'+m+'/'+y);
+}
+// entrada do dia: se a data de atualização é anterior a hoje, pergunta o que fazer
+function waQDateCheckEntry(){
+  const u=currentUser||'ALE';
+  window._qdAsked=window._qdAsked||{};if(window._qdAsked[u])return;
+  const cur=_quadroDates[u]||'';const d=_qdParse(cur);if(!d)return;
+  const today=_qdToday();if(d>=today)return;
+  window._qdAsked[u]=true;
+  const pad=n=>n<10?'0'+n:n;const hoje=pad(today.getDate())+'/'+pad(today.getMonth()+1)+'/'+today.getFullYear();
+  const S='flex:1;padding:10px;border-radius:8px;font-size:.75rem;font-family:var(--font-body);cursor:pointer;';
+  const html='<div id="qd-entry-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9500;display:flex;align-items:center;justify-content:center;">'
+    +'<div style="background:var(--bg);border-radius:12px;padding:20px 22px;width:min(420px,92vw);box-shadow:0 8px 24px rgba(0,0,0,.35);">'
+    +'<div style="font-size:.9rem;font-weight:700;color:var(--font);margin-bottom:6px;">📅 Data de atualização</div>'
+    +'<div style="font-size:.75rem;color:var(--font);line-height:1.5;margin-bottom:4px;">A data de atualização dos dados de <b>'+u+'</b> é <b>'+cur+'</b>, mas hoje é <b>'+hoje+'</b>.</div>'
+    +'<div style="font-size:.68rem;color:var(--muted);line-height:1.5;margin-bottom:14px;">Se você vai lançar e atualizar valores agora, atualize a data. Se vai só consultar, mantenha.</div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px;">'
+    +'<button onclick="waQDateSet(\''+hoje+'\');document.getElementById(\'qd-entry-overlay\').remove();toast(\'📅 Data de atualização: hoje (\'+\''+hoje+'\'+\')\',\'success\');" style="'+S+'background:#0F766E;color:#fff;border:none;font-weight:700;">1 · Atualizar a data de atualização para hoje</button>'
+    +'<button onclick="document.getElementById(\'qd-entry-overlay\').remove();" style="'+S+'background:var(--bg);color:var(--font);border:1px solid var(--border);">2 · Apenas consulta — manter '+cur+'</button>'
+    +'</div></div></div>';
+  document.body.insertAdjacentHTML('beforeend',html);
 }
 
 function waEditQuadroDate(){
@@ -15356,6 +15413,8 @@ function waOnLogin(){
   waResetLaunch();
   waGo('dash2');
   waSyncIndicator('✓ '+new Date().getFullYear()+' carregado','#059669',false);
+  if(typeof waRenderQuadroDate==='function')waRenderQuadroDate();
+  setTimeout(()=>{try{waQDateCheckEntry();}catch(e){console.warn('qdate entry',e);}},900);
 }
 
 function waSyncIndicator(msg,color,pulse){
