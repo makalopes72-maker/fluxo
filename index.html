@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#8c3b2a,#bfe6d2);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#EEF8F2 !important;}
-  #splash .splash-sub{color:rgba(238,248,242,.65) !important;}
-  #splash .splash-version{color:rgba(238,248,242,.35) !important;}
-  #splash .splash-btn{background:#EEF8F2 !important;color:#8c3b2a !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#EEF8F2 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0a6b4f,#f7e9c8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F9F3E3 !important;}
+  #splash .splash-sub{color:rgba(249,243,227,.65) !important;}
+  #splash .splash-version{color:rgba(249,243,227,.35) !important;}
+  #splash .splash-btn{background:#F9F3E3 !important;color:#0a6b4f !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F9F3E3 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2099,7 +2099,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.65';
+const APP_VERSION='18.67';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6219,9 +6219,11 @@ async function sheetsAppend(row){
   await sheetsPost({action:'append',row,sheet:SHEET_NAME});
 }
 // Append a single investment log entry
-async function sheetsAppendLog(user,instName,ativoNome,date,value,note){
+async function sheetsAppendLog(user,instName,ativoNome,date,value,note,usd,cot){
   try{
-    const r=await sheetsPost({action:'appendLog',sheet:'InvestimentosLog',row:[user,instName,ativoNome,date,value,note||'']});
+    const row=[user,instName,ativoNome,date,value,note||''];
+    if(usd!==undefined&&usd!==null&&usd!==''&&!isNaN(usd)){row.push(Number(usd));row.push((cot!==undefined&&cot!==null&&cot!==''&&!isNaN(cot))?Number(cot):'');}
+    const r=await sheetsPost({action:'appendLog',sheet:'InvestimentosLog',row});
     if(r&&r.ok){
       if(typeof toast==='function')toast('✓ Log salvo no banco','success');
       if(typeof waSyncIndicator==='function')waSyncIndicator('✓ Log salvo','#059669',false);
@@ -6323,6 +6325,7 @@ async function loadInvFromSheets(){
           encerrado:String(r[15]||'')==='Sim',
           composto:String(r[16]||'')==='Sim',
           updMode:String(r[17]||'')||'total',
+          aplicadoUsd:_i2Num(r[18]),cotAplic:_i2Num(r[19]),
           _isSubRow:String(r[16]||'')==='SUB'||nome.includes(' » '),
           subs:[],
           log:[],  // filled from InvestimentosLog
@@ -6358,7 +6361,7 @@ async function loadInvFromSheets(){
           const logDate=normalizeDate(rawDate)||rawDate;
           // Allow logVal >= 0 (including zero for transfers that zero out)
           if(logDate&&!isNaN(logVal)&&logVal>=0)
-            ativo.log.push({date:logDate,value:logVal,note:String(l[5]||'')});
+            {const rec={date:logDate,value:logVal,note:String(l[5]||'')};const u=_i2Num(l[6]),ct=_i2Num(l[7]);if(u!==null){rec.usd=u;if(ct!==null)rec.cot=ct;}ativo.log.push(rec);}
         });
         Object.values(userAtivos).forEach(arr=>arr.forEach(a=>
           a.log.sort((x,y)=>(parseDate(x.date)||0)-(parseDate(y.date)||0))
@@ -6558,7 +6561,7 @@ async function pushToSheets(dataset){
       // Se a leitura falhar, NÃO grava nada (proteção contra apagar a carteira alheia).
       // InvestimentosLog NUNCA é tocado aqui — logs via sheetsAppendLog (doc §5.4).
       const user=currentUser||'ALE';
-      const header=['Usuário','Instituição','Nome','Classe','Tipo','Aplicado','Atual','Indexador','Taxa','DataAplic','Vencimento','Liquidez','Garantia','IR','Obs','Encerrado','Composto','ModoAtualiza'];
+      const header=['Usuário','Instituição','Nome','Classe','Tipo','Aplicado','Atual','Indexador','Taxa','DataAplic','Vencimento','Liquidez','Garantia','IR','Obs','Encerrado','Composto','ModoAtualiza','AplicadoUSD','CotAplic'];
       let others=null;
       try{
         const cur=await sheetsRead(SHEETS.investimentos); // retorna ARRAY de linhas; lança em falha
@@ -6587,7 +6590,8 @@ async function pushToSheets(dataset){
               a.liquidez||'', a.garantia||'',
               a.ir||'', a.obs||'',
               a.encerrado?'Sim':'Não',
-              a.composto?'Sim':'', a.composto?(a.updMode||'total'):''
+              a.composto?'Sim':'', a.composto?(a.updMode||'total'):'',
+              (a.aplicadoUsd!==undefined&&a.aplicadoUsd!==null&&a.aplicadoUsd!=='')?Number(a.aplicadoUsd):'', (a.cotAplic!==undefined&&a.cotAplic!==null&&a.cotAplic!=='')?Number(a.cotAplic):''
             ]);
             // subinvestimentos: uma linha por aporte, nome "Pai » Sub"
             if(a.composto&&a.subs&&a.subs.length){
@@ -6597,12 +6601,15 @@ async function pushToSheets(dataset){
                   user, inst.name, a.nome+' » '+(sb.nome||''), '', '',
                   sb.valor||0, sCur,
                   '','', sb.dataAplic||'', sb.vencimento||'',
-                  '','','','', sb.encerrado?'Sim':'Não','SUB',''
+                  '','','','', sb.encerrado?'Sim':'Não','SUB','',
+                  (sb.valorUsd!==undefined&&sb.valorUsd!==null&&sb.valorUsd!=='')?Number(sb.valorUsd):'', (sb.cotAplic!==undefined&&sb.cotAplic!==null&&sb.cotAplic!=='')?Number(sb.cotAplic):''
                 ]);
               });
             }
           });
         });
+        // todas as linhas com a largura do cabeçalho (setValues exige matriz retangular)
+        rows.forEach(rw=>{while(rw.length<header.length)rw.push('');if(rw.length>header.length)rw.length=header.length;});
         res=await sheetsWriteSafe(SHEETS.investimentos, rows);
       }
     } else if(dataset==='accounts'){
@@ -9795,12 +9802,13 @@ function _waDash2Render(){
     return '<span style="font-size:9px;color:#B45309;font-weight:600;">vence '+String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getFullYear()).slice(2)+'</span>';
   };
   // lastCol: número → formata; string → imprime como veio ('' = vazio); undefined → último valor
-  const valRow=(lbl,fn,cls,lastCol,cellClick,rowCls,notes)=>{
+  const valRow=(lbl,fn,cls,lastCol,cellClick,rowCls,notes,hideZero)=>{
     let r='<tr'+(rowCls?' class="'+rowCls+'"':'')+'><td class="wd2-lbl '+(cls||'')+'">'+lbl+'</td>';
     let lastV=null;
     visMonths.forEach(m=>{
       const isP=isPastYear||(m<effectiveCurM),isC=!isPastYear&&m===effectiveCurM;
-      const v=(isP||isC)?fn(m):null;
+      let v=(isP||isC)?fn(m):null;
+      if(hideZero&&v!==null&&v!==undefined&&Math.abs(v)<0.005)v=null; // linhas de investimento: 0,00 fica vazio
       if(v!==null&&v!==undefined)lastV=v;
       const clickable=cellClick&&(isP||isC);
       const note=(notes&&notes.m===m)?'<div style="font-size:8px;color:#B45309;font-weight:700;white-space:nowrap;">'+notes.txt+'</div>':'';
@@ -9808,7 +9816,7 @@ function _waDash2Render(){
         +(clickable?' onclick="'+cellClick(m)+'" title="Clique para atualizar o valor"':'')
         +' style="color:#1a1a1a;font-weight:700;font-family:var(--wad-font-valor);font-size:var(--wad-size-valor);'+(clickable?'cursor:pointer;':'')+'">'+((isP||isC)&&v!==null&&v!==undefined?fmtN(v):'')+note+'</td>';
     });
-    const lastHtml=(typeof lastCol==='string')?lastCol:(lastCol!==undefined?fmtN(lastCol):(lastV!==null?fmtN(lastV):''));
+    const lastHtml=(typeof lastCol==='string')?lastCol:(lastCol!==undefined?fmtN(lastCol):(lastV!==null&&!(hideZero&&Math.abs(lastV)<0.005)?fmtN(lastV):''));
     r+='<td class="wd2-num wd2-tot" colspan="3" style="font-weight:600;">'+lastHtml+'</td></tr>';
     return r;
   };
@@ -9851,7 +9859,7 @@ function _waDash2Render(){
           (a.composto?'🧩 ':'')+a.nome+(a.encerrado?' <span style="font-size:8px;color:#999;">(enc.)</span>':''),
           m=>getAtivoSaldoMes(a,m,dashYear),'wd2-ind',vencLastCol(a.vencimento),
           (a.encerrado||isSubMode)?null:(m=>'waDashAtivoEditCell('+ii+','+ai+','+dashYear+','+m+')'),
-          undefined, vencNote(a.vencimento));
+          undefined, vencNote(a.vencimento), true);
         // subinvestimentos: SEMPRE aparecem; valores/edição só no modo 'por sub'
         if(a.composto&&a.subs&&a.subs.length){
           a.subs.forEach((sb,si)=>{
@@ -9859,7 +9867,7 @@ function _waDash2Render(){
               isSubMode?(m=>getAtivoSaldoMes({log:sb.log||[],encerrado:!!sb.encerrado},m,dashYear)):(m=>null),
               'wd2-sub',vencLastCol(sb.encerrado?'':sb.vencimento),
               (isSubMode&&!a.encerrado&&!sb.encerrado)?(m=>'waDash2SubEdit('+ii+','+ai+','+si+','+dashYear+','+m+')'):null,
-              undefined, vencNote(sb.vencimento));
+              undefined, vencNote(sb.vencimento), true);
           });
         }
       };
@@ -9867,7 +9875,7 @@ function _waDash2Render(){
       if(mortos.length){
         const isOpen=encOpen.has(inst.name);const nmE=inst.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
         html+=valRow('<span onclick="event.stopPropagation();waDash2TogEnc(\''+nmE+'\')" style="cursor:pointer;user-select:none;">'+(isOpen?'▾':'▸')+' <b>encerrados</b> <span style="font-size:8px;color:#999;">('+mortos.length+')</span></span>',
-          m=>mortos.reduce((s,a)=>{const v=getAtivoSaldoMes(a,m,dashYear);return s+(v||0);},0),'wd2-ind wd2-encgrp','',null,'wd2-encgrp');
+          m=>mortos.reduce((s,a)=>{const v=getAtivoSaldoMes(a,m,dashYear);return s+(v||0);},0),'wd2-ind wd2-encgrp','',null,'wd2-encgrp',undefined,true);
         if(isOpen)mortos.forEach(renderAtivo);
       }
     });
@@ -10930,7 +10938,7 @@ function waInv2RenderDetail(){
   let h='<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;"><div style="min-width:0;"><div class="wi2-name">'+(a.composto?'🧩 ':'')+_i2Esc(a.nome)+'</div>'
     +'<div class="wi2-meta">'+_i2Esc(inst.name)+(a.classe?' · '+_i2Esc(a.classe):'')+(a.indexador?' · '+_i2Esc(a.indexador):'')+(a.taxa?' · '+_i2Esc(a.taxa):'')+(a.liquidez?' · liquidez '+_i2Esc(a.liquidez):'')+'</div>'
     +((a.garantia||a.ir||a.obs)?'<div class="wi2-meta">'+[a.garantia?'garantia '+_i2Esc(a.garantia):'',a.ir?'IR '+_i2Esc(a.ir):'',_i2Esc(a.obs||'')].filter(Boolean).join(' · ')+'</div>':'')+'</div>'+badge+'</div>'
-    +'<div class="wi2-nums"><div><div class="l">atual</div><div class="big">'+_i2R(at)+'</div></div>'+(a.encerrado?'<div><div class="l">valor final'+(fin.encerradoEm?' em '+fin.encerradoEm:'')+'</div><div class="md">'+_i2R(fin.valorFinal)+'</div></div>':'')+'<div><div class="l">aplicado</div><div class="md">'+_i2R(apv)+'</div></div><div><div class="l">rendimento</div><div class="md '+(rd>=0?'wi2-pos':'wi2-neg')+'">'+(rd>=0?'+':'−')+_i2R(Math.abs(rd))+' · '+(p>=0?'+':'')+p.toFixed(1)+'%</div></div>'
+    +'<div class="wi2-nums"><div><div class="l">atual</div><div class="big">'+_i2R(at)+'</div></div>'+(a.encerrado?'<div><div class="l">valor final'+(fin.encerradoEm?' em '+fin.encerradoEm:'')+'</div><div class="md">'+_i2R(fin.valorFinal)+'</div></div>':'')+'<div><div class="l">aplicado</div><div class="md">'+_i2R(apv)+'</div>'+(a.aplicadoUsd?'<div class="wi2-sub">'+_i2Usd(a.aplicadoUsd)+(a.cotAplic?' @ '+_i2Cot(a.cotAplic):'')+'</div>':'')+'</div><div><div class="l">rendimento</div><div class="md '+(rd>=0?'wi2-pos':'wi2-neg')+'">'+(rd>=0?'+':'−')+_i2R(Math.abs(rd))+' · '+(p>=0?'+':'')+p.toFixed(1)+'%</div></div>'
     +(a.dataAplic?'<div><div class="l">desde</div><div class="md">'+normDateBR(a.dataAplic)+'</div></div>':'')+'</div>'
     +'<div class="wi2-acts">'
     +(a.encerrado?'':'<button class="wi2-chip wi2-primary" onclick="waInv2Upd()">↑ atualizar valor</button>')
@@ -10955,7 +10963,7 @@ function waInv2RenderDetail(){
   h+='<div class="wi2-h">Histórico de valores'+((a.composto&&a.updMode==='subs')?' — por aporte (acima)':'')+'</div>';
   const sorted=logAll.map((x,i)=>({x,i})).sort((p,q)=>((parseDate(q.x.date)||0)-(parseDate(p.x.date)||0))||(q.i-p.i)).map(o=>o.x);
   if(!sorted.length)h+='<div class="wi2-mute" style="font-size:11px;padding:6px 0;">'+((a.composto&&a.updMode==='subs')?'Os valores ficam em cada aporte.':'Nenhum registro ainda.')+'</div>';
-  sorted.forEach(x=>{const li=a.log.indexOf(x);h+='<div class="wi2-log"><span class="d">'+normDateBR(x.date)+'</span><span class="v">'+_i2R2(x.value)+'</span><span class="n" title="'+_i2Esc(x.note||'')+'">'+_i2Esc(x.note||'')+'</span><span class="ic"><button onclick="waInv2EditLog('+li+')" title="editar">✎</button><button class="del" onclick="waInv2DelLog('+li+')" title="excluir">✕</button></span></div>';});
+  sorted.forEach(x=>{const li=a.log.indexOf(x);h+='<div class="wi2-log"><span class="d">'+normDateBR(x.date)+'</span><span class="v">'+_i2R2(x.value)+'</span><span class="n" title="'+_i2Esc(x.note||'')+'">'+_i2UsdTag(x)+_i2Esc(x.note||'')+'</span><span class="ic"><button onclick="waInv2EditLog('+li+')" title="editar">✎</button><button class="del" onclick="waInv2DelLog('+li+')" title="excluir">✕</button></span></div>';});
   d.innerHTML=h;
 }
 // ── ações ──
@@ -10987,6 +10995,16 @@ function _i2Money(el){ // digitação "centavos primeiro": 123456 → 1.234,56
   el.dataset.raw=d?String(parseInt(d,10)/100):'';
   el.value=d?(parseInt(d,10)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
 }
+function _i2Num(v){if(v===undefined||v===null||v==='')return null;if(typeof v==='number')return isNaN(v)?null:v;const n=parseBRNumber(String(v).replace(/[US$R\s]/g,''));return isNaN(n)?null:n;}
+function _i2IsUSD(a){return /d[oó]lar|usd/i.test(String((a&&a.indexador)||''));}
+function _i2Usd(v){return 'US$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function _i2Cot(v){return Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:4});}
+function _i2UsdTag(x){return (x&&x.usd!==undefined&&x.usd!==null)?'<span style="color:#6b6b64;font-size:10px;white-space:nowrap;">'+_i2Usd(x.usd)+(x.cot?' @ '+_i2Cot(x.cot):'')+'</span> ':'';}
+function _i2Dec(el){el.value=el.value.replace(/[^0-9.,]/g,'');}
+// cadastro/edição: bloco USD aparece quando o indexador é Dólar; R$ = US$ × cotação
+function waInv2UsdToggle(p){const idx=(document.getElementById(p+'idx')||{}).value||'';const b=document.getElementById(p+'usdbox');if(b)b.style.display=/d[oó]lar|usd/i.test(idx)?'':'none';}
+function waInv2UsdCalc(p){const u=parseBRNumber((document.getElementById(p+'usd')||{}).value||''),ct=parseBRNumber((document.getElementById(p+'cot')||{}).value||'');if(u>0&&ct>0){const el=document.getElementById(p+'ap');if(el)el.value=(Math.round(u*ct*100)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}}
+function _i2UsdBox(p,usd,cot,show){return '<div id="'+p+'usdbox" class="wi2-r2" style="'+(show?'':'display:none;')+'background:#EEF3FA;border-radius:8px;padding:6px 8px 0;margin-bottom:8px;"><div class="wi2-f"><label>aplicado em US$</label><input id="'+p+'usd" class="rt" inputmode="decimal" placeholder="0,00" value="'+(usd!==null&&usd!==undefined?_i2MoneyInit(usd):'')+'" oninput="_i2Dec(this);waInv2UsdCalc(\''+p+'\')"></div><div class="wi2-f"><label>cotação R$/US$ na aplicação</label><input id="'+p+'cot" class="rt" inputmode="decimal" placeholder="5,40" value="'+(cot?_i2Cot(cot):'')+'" oninput="_i2Dec(this);waInv2UsdCalc(\''+p+'\')"></div></div>';}
 function _i2MoneyInit(v){const n=Math.round(Number(v||0)*100);return n?(n/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'';}
 function waInv2Upd(subIdx){
   const r=_i2Sel();if(!r)return;const a=r.a;
@@ -10995,30 +11013,29 @@ function waInv2Upd(subIdx){
   window._i2UpdTab=si||0;
   const target=isSubs?a.subs[si]:a;
   if(!target.log)target.log=[];
-  const isUSD=/d[oó]lar|usd/i.test((a.indexador||'')+' '+(a.obs||'')+' '+(a.classe||''));
+  const isUSD=_i2IsUSD(a);
   const t=new Date();const iso=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+  const GC=isUSD?'118px minmax(0,.9fr) 80px minmax(0,1fr) minmax(0,1fr) 24px':'130px minmax(0,1fr) minmax(0,1.2fr) 24px';
   const sorted=[...target.log].map((x,idx)=>({x,idx})).sort((p,q)=>(parseDate(q.x.date)||0)-(parseDate(p.x.date)||0));
   const inp='padding:6px 8px;border:1px solid #D8D6CC;border-radius:8px;font-size:12px;background:#fff;color:var(--font);font-family:var(--font-body);width:100%;min-width:0;box-sizing:border-box;';
   let h='<h3>Atualizar valores</h3><div class="m">'+_i2Esc(a.nome)+(isSubs?' · '+_i2Esc(a.subs[si].nome):'')+' · último: '+_i2R2((target.log.length?target.log[target.log.length-1].value:(target.valor||target.aplicado||0)))+'</div>';
   if(isSubs){
     h+='<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;">'+a.subs.map((sb,k)=>'<button class="wi2-tab '+(k===si?'on':'')+'" onclick="waInv2Upd('+k+')">'+_i2Esc(sb.nome)+'</button>').join('')+'</div>';
   }
-  if(isUSD){
-    h+='<div class="wi2-hint" style="display:flex;gap:8px;align-items:end;flex-wrap:wrap;"><span style="flex:1 1 100%;">Ativo em dólar: informe USD e cotação para preencher o valor da nova linha em reais.</span>'
-      +'<div class="wi2-f" style="flex:1;margin:0;"><label>saldo em USD</label><input id="wi2-usd" class="rt" inputmode="decimal" placeholder="0,00" oninput="waInv2CalcBRL()"></div>'
-      +'<div class="wi2-f" style="flex:1;margin:0;"><label>cotação R$/USD</label><input id="wi2-cot" class="rt" inputmode="decimal" placeholder="5,40" oninput="waInv2CalcBRL()"></div></div>';
-  }
-  h+='<div style="display:grid;grid-template-columns:130px minmax(0,1fr) minmax(0,1.2fr) 24px;gap:6px;font-size:10px;color:var(--muted);margin-bottom:4px;"><span>data</span><span style="text-align:right;">valor R$</span><span>nota</span><span></span></div>';
+  if(isUSD)h+='<div class="wi2-hint">Ativo em dólar: informe o <b>valor em US$</b> e a <b>cotação do dia</b> — o valor em R$ é calculado (e pode ser ajustado). Gráficos e totais usam sempre o valor em reais.</div>';
+  h+='<div style="display:grid;grid-template-columns:'+GC+';gap:6px;font-size:10px;color:var(--muted);margin-bottom:4px;"><span>data</span>'+(isUSD?'<span style="text-align:right;">valor US$</span><span style="text-align:right;">cotação</span>':'')+'<span style="text-align:right;">valor R$</span><span>nota</span><span></span></div>';
   // linha nova (topo)
-  h+='<div style="display:grid;grid-template-columns:130px minmax(0,1fr) minmax(0,1.2fr) 24px;gap:6px;align-items:center;margin-bottom:6px;background:#EEF3FA;border-radius:8px;padding:4px;">'
+  h+='<div style="display:grid;grid-template-columns:'+GC+';gap:6px;align-items:center;margin-bottom:6px;background:#EEF3FA;border-radius:8px;padding:4px;">'
     +'<input type="date" id="wi2-new-d" value="'+iso+'" style="'+inp+'">'
+    +(isUSD?'<input id="wi2-usd" inputmode="decimal" placeholder="0,00" oninput="_i2Dec(this);waInv2CalcBRL()" style="'+inp+'text-align:right;"><input id="wi2-cot" inputmode="decimal" placeholder="5,40" oninput="_i2Dec(this);waInv2CalcBRL()" style="'+inp+'text-align:right;">':'')
     +'<input id="wi2-new-v" inputmode="numeric" placeholder="0,00" oninput="_i2Money(this)" style="'+inp+'text-align:right;font-weight:700;">'
     +'<input id="wi2-new-n" value="Atualização" style="'+inp+'">'
     +'<span style="font-size:10px;color:#1565C0;text-align:center;">novo</span></div>';
   // lançamentos existentes (desc), editáveis
   sorted.forEach(({x,idx})=>{
-    h+='<div style="display:grid;grid-template-columns:130px minmax(0,1fr) minmax(0,1.2fr) 24px;gap:6px;align-items:center;margin-bottom:4px;" data-row="'+idx+'">'
+    h+='<div style="display:grid;grid-template-columns:'+GC+';gap:6px;align-items:center;margin-bottom:4px;" data-row="'+idx+'">'
       +'<input type="date" data-f="date" value="'+_i2ToISO(x.date)+'" style="'+inp+'">'
+      +(isUSD?'<input data-f="usd" inputmode="decimal" value="'+(x.usd!==undefined&&x.usd!==null?_i2MoneyInit(x.usd):'')+'" placeholder="US$" oninput="_i2Dec(this)" style="'+inp+'text-align:right;"><input data-f="cot" inputmode="decimal" value="'+(x.cot?_i2Cot(x.cot):'')+'" placeholder="cot." oninput="_i2Dec(this)" style="'+inp+'text-align:right;">':'')
       +'<input data-f="value" inputmode="numeric" value="'+_i2MoneyInit(x.value)+'" data-raw="'+Number(x.value||0)+'" oninput="_i2Money(this)" style="'+inp+'text-align:right;">'
       +'<input data-f="note" value="'+_i2Esc(x.note||'')+'" style="'+inp+'">'
       +'<button onclick="waInv2UpdDelRow('+idx+')" title="excluir" style="border:none;background:transparent;color:#C62828;cursor:pointer;font-size:13px;">✕</button></div>';
@@ -11026,7 +11043,8 @@ function waInv2Upd(subIdx){
   if(!sorted.length)h+='<div class="wi2-mute" style="font-size:11px;padding:4px 0 8px;">Nenhum lançamento ainda.</div>';
   h+='<div class="wi2-mf"><button class="wi2-btn" onclick="_i2Close()">Cancelar</button><button class="wi2-btn p" onclick="waInv2SaveUpd()">Salvar</button></div>';
   _i2Modal(h);
-  const nv=document.getElementById('wi2-new-v');if(nv)nv.focus();
+  if(isUSD){const _mb=document.querySelector('#wi2-ov .wi2-mod');if(_mb)_mb.style.width='min(760px,96vw)';}
+  const nv=document.getElementById(isUSD?'wi2-usd':'wi2-new-v');if(nv)nv.focus();
 }
 function waInv2CalcBRL(){
   const u=parseBRNumber((document.getElementById('wi2-usd')||{}).value||''),ct=parseBRNumber((document.getElementById('wi2-cot')||{}).value||'');
@@ -11055,6 +11073,11 @@ async function waInv2SaveUpd(){
     const d=_i2FromISO(row.querySelector('[data-f=date]').value.trim());
     const vEl=row.querySelector('[data-f=value]');const v=vEl.dataset.raw!==undefined&&vEl.dataset.raw!==''?parseFloat(vEl.dataset.raw):parseBRNumber(vEl.value.trim());
     const n=row.querySelector('[data-f=note]').value.trim();
+    const uEl=row.querySelector('[data-f=usd]'),cEl=row.querySelector('[data-f=cot]');
+    if(uEl){const u=parseBRNumber(uEl.value.trim()),ct=cEl?parseBRNumber(cEl.value.trim()):NaN;
+      const nu=(!isNaN(u)&&u>0)?u:null,nc=(!isNaN(ct)&&ct>0)?ct:null;
+      if(nu!==(x.usd!==undefined?x.usd:null)){if(nu===null)delete x.usd;else x.usd=nu;changed=true;}
+      if(nc!==(x.cot!==undefined?x.cot:null)){if(nc===null)delete x.cot;else x.cot=nc;changed=true;}}
     if(d&&d!==x.date){x.date=d;changed=true;}
     if(!isNaN(v)&&v!==x.value){x.value=v;changed=true;}
     if(n!==(x.note||'')){x.note=n;changed=true;}
@@ -11067,7 +11090,10 @@ async function waInv2SaveUpd(){
     const nd=_i2FromISO(document.getElementById('wi2-new-d').value.trim());
     const nn=(document.getElementById('wi2-new-n').value||'').trim()||'Atualização';
     if(!nd){toast('Informe a data da nova linha','error');return;}
-    added={date:nd,value:nv,note:nn};target.log.push(added);
+    added={date:nd,value:nv,note:nn};
+    const uEl=document.getElementById('wi2-usd'),cEl=document.getElementById('wi2-cot');
+    if(uEl){const u=parseBRNumber(uEl.value.trim()),ct=cEl?parseBRNumber(cEl.value.trim()):NaN;if(!isNaN(u)&&u>0){added.usd=u;if(!isNaN(ct)&&ct>0)added.cot=ct;}}
+    target.log.push(added);
   }
   if(!added&&!changed){_i2Close();return;}
   target.log.sort((p,q)=>(parseDate(p.date)||0)-(parseDate(q.date)||0));
@@ -11077,7 +11103,7 @@ async function waInv2SaveUpd(){
   toast(added?'✓ Valor registrado: '+_i2R2(added.value):'✓ Lançamentos atualizados','success');
   if(added){
     const nomeLog=isSubs?(a.nome+' » '+(target.nome||'Aporte '+(si+1))):a.nome;
-    try{const rr=await sheetsAppendLog(currentUser||'ALE',r.inst.name,nomeLog,added.date,added.value,added.note);if(!(rr&&rr.ok!==false))toast('✗ Falha ao gravar no log do Sheets','error');}catch(e){toast('✗ Erro no log: '+e.message,'error');}
+    try{const rr=await sheetsAppendLog(currentUser||'ALE',r.inst.name,nomeLog,added.date,added.value,added.note,added.usd,added.cot);if(!(rr&&rr.ok!==false))toast('✗ Falha ao gravar no log do Sheets','error');}catch(e){toast('✗ Erro no log: '+e.message,'error');}
   }
 }
 function waInv2UpdSub(si){waInv2Upd(si);}
@@ -11164,7 +11190,7 @@ function waInv2RenderSubDetail(r){
     +spark+'<div class="wi2-h">Histórico de valores do aporte</div>';
   const sorted=(sb.log||[]).map((x,i)=>({x,i})).sort((p1,q1)=>((parseDate(q1.x.date)||0)-(parseDate(p1.x.date)||0))||(q1.i-p1.i)).map(o=>o.x);
   if(!sorted.length)h+='<div class="wi2-mute" style="font-size:11px;padding:6px 0;">Nenhum registro.</div>';
-  sorted.forEach(x=>{h+='<div class="wi2-log"><span class="d">'+normDateBR(x.date)+'</span><span class="v">'+_i2R2(x.value)+'</span><span class="n" title="'+_i2Esc(x.note||'')+'">'+_i2Esc(x.note||'')+'</span><span class="ic"></span></div>';});
+  sorted.forEach(x=>{h+='<div class="wi2-log"><span class="d">'+normDateBR(x.date)+'</span><span class="v">'+_i2R2(x.value)+'</span><span class="n" title="'+_i2Esc(x.note||'')+'">'+_i2UsdTag(x)+_i2Esc(x.note||'')+'</span><span class="ic"></span></div>';});
   d.innerHTML=h;
 }
 function waInv2EditLog(li){const r=_i2Sel();if(!r)return;const x=r.a.log[li];if(!x)return;
@@ -11256,7 +11282,8 @@ function waInv2Edit(){const r=_i2Sel();if(!r)return;const a=r.a;
     +'<div class="wi2-r2"><div class="wi2-f"><label>instituição</label><select id="wi2-e-inst">'+(instituicoes||[]).map(x=>'<option '+(x.name===r.inst.name?'selected':'')+'>'+_i2Esc(x.name)+'</option>').join('')+'</select></div>'
     +'<div class="wi2-f"><label>classe</label>'+_i2SelOpts('wi2-e-classe',classes,a.classe||'').replace('<select id="wi2-e-classe">','<select id="wi2-e-classe" onchange="waInv2ClasseChange(\'wi2-e-\')">')+'</div></div>'
     +'<div class="wi2-r2"><div class="wi2-f"><label>tipo <span style="color:#1565C0;cursor:pointer;" onclick="waInv2ApplyPreset(\'wi2-e-\',true)" title="Preencher indexador, liquidez, garantia e IR com a sugestão para este tipo">✨ sugerir</span></label><select id="wi2-e-tipo" onchange="waInv2ApplyPreset(\'wi2-e-\')">'+_i2TipoSel('wi2-e-tipo',a.classe||'',a.tipo||'')+'</select></div>'
-    +'<div class="wi2-f"><label>indexador</label>'+_i2SelOpts('wi2-e-idx',getInvOpts().indexador,a.indexador||'')+'</div></div>'
+    +'<div class="wi2-f"><label>indexador</label>'+_i2SelOpts('wi2-e-idx',getInvOpts().indexador,a.indexador||'').replace('<select id="wi2-e-idx">','<select id="wi2-e-idx" onchange="waInv2UsdToggle(\'wi2-e-\')">')+'</div></div>'
+    +_i2UsdBox('wi2-e-',a.aplicadoUsd,a.cotAplic,_i2IsUSD(a))
     +'<div class="wi2-r2"><div class="wi2-f"><label>taxa / percentual</label><input id="wi2-e-taxa" value="'+_i2Esc(a.taxa||'')+'" placeholder="Ex: 110% ou 12% a.a."></div>'
     +'<div class="wi2-f"><label>aplicado (R$)</label><input id="wi2-e-ap" class="rt" inputmode="decimal" value="'+Number(a.aplicado||0).toLocaleString('pt-BR',{minimumFractionDigits:2})+'"></div></div>'
     +'<div class="wi2-r2"><div class="wi2-f"><label>data de aplicação</label><input type="date" id="wi2-e-da" value="'+_i2ToISO(a.dataAplic)+'"></div><div class="wi2-f"><label>vencimento</label><input type="date" id="wi2-e-venc" value="'+_i2ToISO(a.vencimento)+'"></div></div>'
@@ -11266,7 +11293,8 @@ function waInv2Edit(){const r=_i2Sel();if(!r)return;const a=r.a;
 function waInv2SaveEdit(){const r=_i2Ctx();if(!r)return;const a=r.a;const g=id=>(document.getElementById(id)?.value||'').trim();
   const newInst=g('wi2-e-inst');
   a.nome=g('wi2-e-nome')||a.nome;a.classe=g('wi2-e-classe');a.tipo=g('wi2-e-tipo');a.indexador=g('wi2-e-idx');a.taxa=g('wi2-e-taxa');
-  a.aplicado=parseBRNumber(g('wi2-e-ap'))||a.aplicado;a.dataAplic=_i2FromISO(g('wi2-e-da'));a.vencimento=_i2FromISO(g('wi2-e-venc'));a.liquidez=g('wi2-e-liq');a.garantia=g('wi2-e-gar');a.ir=g('wi2-e-ir');a.obs=g('wi2-e-obs');
+  a.aplicado=parseBRNumber(g('wi2-e-ap'))||a.aplicado;a.dataAplic=_i2FromISO(g('wi2-e-da'));
+  if(_i2IsUSD(a)){const uV=parseBRNumber(g('wi2-e-usd')),cV=parseBRNumber(g('wi2-e-cot'));a.aplicadoUsd=uV>0?uV:null;a.cotAplic=cV>0?cV:null;}else{a.aplicadoUsd=null;a.cotAplic=null;}a.vencimento=_i2FromISO(g('wi2-e-venc'));a.liquidez=g('wi2-e-liq');a.garantia=g('wi2-e-gar');a.ir=g('wi2-e-ir');a.obs=g('wi2-e-obs');
   if(newInst&&newInst!==r.inst.name){const dst=(instituicoes||[]).find(i=>i.name===newInst);if(dst){getInstAtivos(r.inst).splice(r.idx,1);getInstAtivos(dst).push(a);waI2().sel={inst:dst.name,id:a.id};}}
   _i2Close();saveInvestimentos();waInv2Render();toast('✓ Ativo salvo','success');}
 // ── IMPORTAÇÃO DE HISTÓRICO (Excel/CSV): colunas data · valor · observação ──
@@ -11311,22 +11339,30 @@ async function waInv2ImportParse(file){
   const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
   if(!rows.length)throw new Error('planilha vazia');
   // cabeçalho: procura colunas por nome; senão usa A=data, B=valor, C=observação
-  let ci={d:0,v:1,o:2},start=0;
+  // ativo em dólar: data · valor em $ · cotação · valor em reais · observação (R$ vazio ⇒ US$ × cotação)
+  const selR=_i2Sel();const isUSD=!!(selR&&_i2IsUSD(selR.a));
+  let ci=isUSD?{d:0,u:1,c:2,v:3,o:4}:{d:0,v:1,o:2},start=0;
   const h0=rows[0].map(x=>String(x||'').toLowerCase().trim());
-  const fd=h0.findIndex(x=>x.startsWith('data')),fv=h0.findIndex(x=>x.startsWith('valor')),fo=h0.findIndex(x=>x.startsWith('obs')||x.startsWith('nota')||x.startsWith('desc'));
-  if(fd>=0&&fv>=0){ci={d:fd,v:fv,o:fo>=0?fo:2};start=1;}
+  const fd=h0.findIndex(x=>x.startsWith('data'));
+  const fu=h0.findIndex(x=>/\$|usd|d[oó]lar/.test(x)&&!/rea|r\$/.test(x)),fc=h0.findIndex(x=>x.startsWith('cot')),fbr=h0.findIndex(x=>/rea|r\$|brl/.test(x));
+  const fv=fbr>=0?fbr:h0.findIndex(x=>x.startsWith('valor')&&x!==h0[fu]);
+  const fo=h0.findIndex(x=>x.startsWith('obs')||x.startsWith('nota')||x.startsWith('desc'));
+  if(fd>=0&&(fv>=0||fu>=0)){ci={d:fd,v:fv,u:fu,c:fc,o:fo>=0?fo:(isUSD?4:2)};start=1;}
   else if(isNaN(parseFloat(String(rows[0][1]||'').replace(',','.'))))start=1;
+  const num=x=>{if(x==null||x==='')return NaN;return typeof x==='number'?x:parseBRNumber(String(x).replace(/[US$R\s]/g,''));};
   const items=[];const errs=[];
   for(let i=start;i<rows.length;i++){
     const r=rows[i];if(!r||r.every(x=>x===''||x==null))continue;
     const date=_i2ExcelDate(r[ci.d]);
-    const rawV=r[ci.v];
-    const value=typeof rawV==='number'?rawV:parseBRNumber(String(rawV||'').replace(/[R$\s]/g,''));
+    let value=(ci.v>=0)?num(r[ci.v]):NaN;
+    const usd=(ci.u>=0)?num(r[ci.u]):NaN,cot=(ci.c>=0)?num(r[ci.c]):NaN;
+    if(isNaN(value)&&!isNaN(usd)&&!isNaN(cot))value=Math.round(usd*cot*100)/100;
     const note=String(r[ci.o]||'').trim();
-    if(!parseDate(date)||isNaN(value)){errs.push('linha '+(i+1)+': '+JSON.stringify(r.slice(0,3)));continue;}
-    items.push({date,value,note});
+    if(!parseDate(date)||isNaN(value)){errs.push('linha '+(i+1)+': '+JSON.stringify(r.slice(0,5)));continue;}
+    const it={date,value,note};if(!isNaN(usd)){it.usd=usd;if(!isNaN(cot))it.cot=cot;}
+    items.push(it);
   }
-  if(!items.length)throw new Error('nenhuma linha válida (esperado: data · valor · observação)'+(errs.length?' — '+errs[0]:''));
+  if(!items.length)throw new Error('nenhuma linha válida (esperado: '+(isUSD?'data · valor em $ · cotação · valor em reais · observação':'data · valor · observação')+')'+(errs.length?' — '+errs[0]:''));
   items.sort((a,b)=>(parseDate(a.date)||0)-(parseDate(b.date)||0));
   const last=items[items.length-1];
   const encerra=/encerr/i.test(last.note||'');
@@ -11352,13 +11388,14 @@ function waInv2ImportPreview(items,errs,encerra,fname){
     +'</div>';
   if(jaImportado||nDupAno)h+='<div class="wi2-hint" style="border-left:3px solid #C62828;">⚠ '+(jaImportado?'Este investimento <b>já recebeu uma importação</b>. ':'')+(nDupAno?nDupAno+' linha'+(nDupAno===1?'':'s')+' têm <b>o mesmo valor em outro ano</b> (possível reimportação com ano errado). ':'')+'Se você está reimportando o mesmo histórico corrigido, prefira <b>substituir o histórico atual</b> — os registros antigos ficam só no InvestimentosLog do Sheets, onde podem ser apagados manualmente.</div>';
   h+='<div class="wi2-hint" style="border-left:3px solid #B45309;"><label style="display:flex;gap:6px;align-items:flex-start;cursor:pointer;"><input type="checkbox" id="wi2-imp-enc" '+(encerra?'checked':'')+' style="margin-top:2px;"><span>⏹ <b>Encerrar após a última linha</b> ('+items[items.length-1].date+'). '+(encerra?'Detectado “encerrado” na observação. ':'')+'O último valor fica registrado como valor final e, na mesma data, entra um registro de <b>valor 0</b>; o investimento vai para <b>Encerrados</b> zerado. <b>Nenhum valor é transferido</b> para conta corrente — é só registro histórico.</span></label></div>';
-  const cl='110px 130px minmax(0,1fr) 70px';
-  h+='<div style="display:grid;grid-template-columns:'+cl+';gap:6px;font-size:10px;color:var(--muted);margin-bottom:4px;"><span>data</span><span style="text-align:right;">valor R$</span><span>observação</span><span></span></div>'
+  const isUSD=_i2IsUSD(a);
+  const cl=isUSD?'96px 110px 70px 120px minmax(0,1fr) 70px':'110px 130px minmax(0,1fr) 70px';
+  h+='<div style="display:grid;grid-template-columns:'+cl+';gap:6px;font-size:10px;color:var(--muted);margin-bottom:4px;"><span>data</span>'+(isUSD?'<span style="text-align:right;">valor US$</span><span style="text-align:right;">cotação</span>':'')+'<span style="text-align:right;">valor R$</span><span>observação</span><span></span></div>'
     +'<div style="max-height:46vh;overflow-y:auto;border:1px solid #E4E2DA;border-radius:8px;padding:4px 6px;background:#fff;">';
   items.forEach((x,i)=>{
     const isDup=dup(x);const isLast=i===items.length-1;
     h+='<div style="display:grid;grid-template-columns:'+cl+';gap:6px;align-items:center;padding:4px 0;border-top:1px solid #EEECE4;font-size:11.5px;'+(isDup?'opacity:.5;':'')+'">'
-      +'<span>'+x.date+'</span><span style="text-align:right;font-weight:700;font-variant-numeric:tabular-nums;">'+_i2R2(x.value).replace('R$ ','')+'</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+_i2Esc(x.note)+'">'+_i2Esc(x.note)+'</span>'
+      +'<span>'+x.date+'</span>'+(isUSD?'<span style="text-align:right;font-variant-numeric:tabular-nums;">'+(x.usd!==undefined?_i2Usd(x.usd).replace('US$ ',''):'—')+'</span><span style="text-align:right;font-variant-numeric:tabular-nums;">'+(x.cot?_i2Cot(x.cot):'—')+'</span>':'')+'<span style="text-align:right;font-weight:700;font-variant-numeric:tabular-nums;">'+_i2R2(x.value).replace('R$ ','')+'</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+_i2Esc(x.note)+'">'+_i2Esc(x.note)+'</span>'
       +'<span style="font-size:10px;color:'+(isDup?'#8A8A82':(dupAno(x)?'#C62828':(isLast&&encerra?'#B45309':'#1565C0')))+';">'+(isDup?'duplicada':(dupAno(x)?'ano ≠':(isLast&&encerra?'encerra':'nova')))+'</span></div>';
   });
   h+='</div>';
@@ -11377,7 +11414,7 @@ async function waInv2ImportApply(){
   if(mode==='replace')target.log=[];
   const existing=target.log;
   const toAdd=imp.items.filter(x=>!existing.some(e=>e.date===x.date&&Math.abs(Number(e.value)-x.value)<0.005));
-  toAdd.forEach(x=>target.log.push({date:x.date,value:x.value,note:x.note||'Importado'}));
+  toAdd.forEach(x=>{const rec={date:x.date,value:x.value,note:x.note||'Importado'};if(x.usd!==undefined){rec.usd=x.usd;if(x.cot!==undefined)rec.cot=x.cot;}target.log.push(rec);});
   let closing=null;
   const encChk=document.getElementById('wi2-imp-enc');
   const encerrar=encChk?encChk.checked:!!imp.encerra;
@@ -11396,7 +11433,7 @@ async function waInv2ImportApply(){
   // grava no InvestimentosLog um a um (append-only), sem bloquear a tela
   const queue=toAdd.concat(closing?[closing]:[]);let ok=0,fail=0;
   for(const x of queue){
-    try{const rr=await sheetsAppendLog(currentUser||'ALE',r.inst.name,nomeLog,x.date,x.value,x.note);if(rr&&rr.ok!==false)ok++;else fail++;}catch(e){fail++;}
+    try{const rr=await sheetsAppendLog(currentUser||'ALE',r.inst.name,nomeLog,x.date,x.value,x.note,x.usd,x.cot);if(rr&&rr.ok!==false)ok++;else fail++;}catch(e){fail++;}
     await new Promise(z=>setTimeout(z,150));
   }
   toast((fail?'⚠ ':'✓ ')+ok+' gravados no InvestimentosLog'+(fail?' · '+fail+' falharam (dados mantidos no cadastro)':''),fail?'error':'success');
@@ -11408,7 +11445,8 @@ function waInv2NewAtivo(){const s=waI2();const insts=instituicoes||[];if(!insts.
     +'<div class="wi2-f"><label>nome</label><input id="wi2-n-nome" placeholder="Ex: CDB Safra 110% CDI"></div>'
     +'<div class="wi2-r2"><div class="wi2-f"><label>instituição</label><select id="wi2-n-inst">'+insts.map(x=>'<option '+(x.name===s.inst?'selected':'')+'>'+_i2Esc(x.name)+'</option>').join('')+'</select></div>'
     +'<div class="wi2-f"><label>classe</label>'+_i2SelOpts('wi2-n-classe',classes,'').replace('<select id="wi2-n-classe">','<select id="wi2-n-classe" onchange="waInv2ClasseChange(\'wi2-n-\')">')+'</div></div>'
-    +'<div class="wi2-r2"><div class="wi2-f"><label>tipo <span style="color:#1565C0;cursor:pointer;" onclick="waInv2ApplyPreset(\'wi2-n-\',true)" title="Preencher indexador, liquidez, garantia e IR com a sugestão para este tipo">✨ sugerir</span></label><select id="wi2-n-tipo" onchange="waInv2ApplyPreset(\'wi2-n-\')">'+_i2TipoSel('wi2-n-tipo','','')+'</select></div><div class="wi2-f"><label>indexador</label>'+_i2SelOpts('wi2-n-idx',getInvOpts().indexador,'')+'</div></div>'
+    +'<div class="wi2-r2"><div class="wi2-f"><label>tipo <span style="color:#1565C0;cursor:pointer;" onclick="waInv2ApplyPreset(\'wi2-n-\',true)" title="Preencher indexador, liquidez, garantia e IR com a sugestão para este tipo">✨ sugerir</span></label><select id="wi2-n-tipo" onchange="waInv2ApplyPreset(\'wi2-n-\')">'+_i2TipoSel('wi2-n-tipo','','')+'</select></div><div class="wi2-f"><label>indexador</label>'+_i2SelOpts('wi2-n-idx',getInvOpts().indexador,'').replace('<select id="wi2-n-idx">','<select id="wi2-n-idx" onchange="waInv2UsdToggle(\'wi2-n-\')">')+'</div></div>'
+    +_i2UsdBox('wi2-n-',null,null,false)
     +'<div class="wi2-r2"><div class="wi2-f"><label>taxa / percentual</label><input id="wi2-n-taxa" placeholder="Ex: 110% ou 12% a.a."></div><div class="wi2-f"><label>aplicado (R$)</label><input id="wi2-n-ap" class="rt" inputmode="decimal" placeholder="0,00"></div></div>'
     +'<div class="wi2-r2"><div class="wi2-f"><label>data de aplicação</label><input type="date" id="wi2-n-da" value="'+iso+'"></div><div class="wi2-f"><label>vencimento</label><input type="date" id="wi2-n-venc"></div></div>'
     +'<div class="wi2-r3"><div class="wi2-f"><label>liquidez</label>'+_i2SelOpts('wi2-n-liq',getInvOpts().liquidez,'')+'</div><div class="wi2-f"><label>garantia</label>'+_i2SelOpts('wi2-n-gar',getInvOpts().garantia,'')+'</div><div class="wi2-f"><label>IR</label>'+_i2SelOpts('wi2-n-ir',getInvOpts().ir,'')+'</div></div>'
@@ -11418,11 +11456,13 @@ async function waInv2SaveNew(){const g=id=>(document.getElementById(id)?.value||
   if(!nome||!(ap>0)){toast('Informe nome e valor aplicado','error');return;}
   const inst=(instituicoes||[]).find(i=>i.name===g('wi2-n-inst'));if(!inst)return;
   const da=_i2FromISO(g('wi2-n-da'));
-  const novo={id:'atv_'+inst.name+'_'+nome,nome,classe:g('wi2-n-classe'),tipo:g('wi2-n-tipo'),aplicado:ap,indexador:g('wi2-n-idx'),taxa:g('wi2-n-taxa'),dataAplic:da,vencimento:_i2FromISO(g('wi2-n-venc')),liquidez:g('wi2-n-liq'),garantia:g('wi2-n-gar'),ir:g('wi2-n-ir'),obs:g('wi2-n-obs'),encerrado:false,composto:false,updMode:'total',subs:[],log:[{date:da,value:ap,note:'Aplicação inicial'}]};
+  const usdOn=/d[oó]lar|usd/i.test(g('wi2-n-idx'));const uV=usdOn?parseBRNumber(g('wi2-n-usd')):NaN,cV=usdOn?parseBRNumber(g('wi2-n-cot')):NaN;
+  const rec0={date:da,value:ap,note:'Aplicação inicial'};if(usdOn&&uV>0){rec0.usd=uV;if(cV>0)rec0.cot=cV;}
+  const novo={id:'atv_'+inst.name+'_'+nome,nome,classe:g('wi2-n-classe'),tipo:g('wi2-n-tipo'),aplicado:ap,indexador:g('wi2-n-idx'),taxa:g('wi2-n-taxa'),dataAplic:da,vencimento:_i2FromISO(g('wi2-n-venc')),liquidez:g('wi2-n-liq'),garantia:g('wi2-n-gar'),ir:g('wi2-n-ir'),obs:g('wi2-n-obs'),encerrado:false,composto:false,updMode:'total',subs:[],log:[rec0],aplicadoUsd:(usdOn&&uV>0)?uV:null,cotAplic:(usdOn&&cV>0)?cV:null};
   getInstAtivos(inst).push(novo);
   waI2().inst=inst.name;waI2().tab='ativos';waI2().sel={inst:inst.name,id:novo.id};
   _i2Close();
-  try{await sheetsAppendLog(currentUser||'ALE',inst.name,nome,da,ap,'Aplicação inicial');}catch(e){console.warn('log inicial',e);}
+  try{await sheetsAppendLog(currentUser||'ALE',inst.name,nome,da,ap,'Aplicação inicial',rec0.usd,rec0.cot);}catch(e){console.warn('log inicial',e);}
   saveInvestimentos();waInv2Render();toast('✓ Ativo cadastrado: '+nome,'success');}
 
 // --- Quadro last-update date ---
@@ -12151,6 +12191,7 @@ function _foldSubAtivos(userAtivos){
         nome:subNome,valor:srow.aplicado||0,
         dataAplic:srow.dataAplic||'',vencimento:srow.vencimento||'',
         encerrado:!!srow.encerrado,
+        valorUsd:srow.aplicadoUsd,cotAplic:srow.cotAplic,
         log:[],
       });
       if(!pai.composto)pai.composto=true;
@@ -13970,6 +14011,7 @@ async function waInvSync(){
         encerrado:String(r[15]||'')==='Sim',
         composto:String(r[16]||'')==='Sim',
         updMode:String(r[17]||'')||'total',
+        aplicadoUsd:_i2Num(r[18]),cotAplic:_i2Num(r[19]),
         _isSubRow:String(r[16]||'')==='SUB'||nome.includes(' » '),
         subs:[],
         log:[],  // will be filled from InvestimentosLog
@@ -13992,7 +14034,7 @@ async function waInvSync(){
           const rawDate2=String(l[3]||'').trim();
           const logDate=normalizeDate(rawDate2)||rawDate2;
           if(logDate&&!isNaN(logVal)&&logVal>=0)
-            ativo.log.push({date:logDate,value:logVal,note:String(l[5]||'')});
+            {const rec={date:logDate,value:logVal,note:String(l[5]||'')};const u=_i2Num(l[6]),ct=_i2Num(l[7]);if(u!==null){rec.usd=u;if(ct!==null)rec.cot=ct;}ativo.log.push(rec);}
         });
         Object.values(userAtivos).forEach(arr=>arr.forEach(a=>
           a.log.sort((x,y)=>(parseDate(x.date)||0)-(parseDate(y.date)||0))
