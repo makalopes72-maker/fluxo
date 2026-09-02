@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0f5c4c,#ffe0c7);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFF4E9 !important;}
-  #splash .splash-sub{color:rgba(255,244,233,.65) !important;}
-  #splash .splash-version{color:rgba(255,244,233,.35) !important;}
-  #splash .splash-btn{background:#FFF4E9 !important;color:#0f5c4c !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFF4E9 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#134e5e,#f5e6a8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FCF8E8 !important;}
+  #splash .splash-sub{color:rgba(252,248,232,.65) !important;}
+  #splash .splash-version{color:rgba(252,248,232,.35) !important;}
+  #splash .splash-btn{background:#FCF8E8 !important;color:#134e5e !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FCF8E8 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2107,7 +2107,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.80';
+const APP_VERSION='18.82';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -10332,9 +10332,13 @@ function _waCharts2Render(){
     const sign=t.type==='entrada'?1:-1;
     saldoArr[i]+=Math.abs(t.value)*sign;
     if(t.type!=='transferência'&&!t._transferId&&!t._isAdjust){
-      if(t.type==='entrada')inArr[i]+=Math.abs(t.value);
-      else{outArr[i]+=Math.abs(t.value);
-        if(_fvOf(tp,t.cat||t.tipo||'Outros')==='F')outFixArr[i]+=Math.abs(t.value);else outVarArr[i]+=Math.abs(t.value);}
+      // convenção LÍQUIDA (igual ao Quadro 2.0): entrada em pasta de despesa é reembolso e
+      // abate a barra de despesas na categoria (F/V) em que foi lançada; saída em pasta de
+      // receita (estorno) abate as receitas. Reembolso não é receita nova.
+      const v=Math.abs(t.value),ent=t.type==='entrada';
+      if(receitaTipos.includes(tp)){inArr[i]+=ent?v:-v;}
+      else{const sg=ent?-1:1;outArr[i]+=sg*v;
+        if(_fvOf(tp,t.cat||t.tipo||'Outros')==='F')outFixArr[i]+=sg*v;else outVarArr[i]+=sg*v;}
     }
     if(!receitaTipos.includes(tp)&&!t._isAdjust){
       if(!pastaMes[tp])pastaMes[tp]=meses.map(()=>0);
@@ -10386,9 +10390,9 @@ function _waCharts2Render(){
     const showMeta=s.showMeta!==false;
     // meta mensal: soma das metas das categorias ativas das pastas consideradas
     const metaArr=meses.map(mm=>{let m2=0;Object.keys(tiposData||{}).filter(t=>(tiposData[t]||{}).active!==false&&!receitaTipos.includes(t)&&pastaOk(t)).forEach(tp=>{((tiposData[tp]||{}).cats||[]).filter(cc=>cc.active!==false).forEach(cc=>{const cat=cc.name||cc;const cd=(orcData[user]&&orcData[user][tp]&&orcData[user][tp][cat])||null;m2+=cd?orc2GetMeta(cd,mm.y,mm.m):0;});});return m2;});
-    title='Fluxo mensal';sub='receitas × despesas (fixas + variáveis, empilhadas) · linha preta = saldo (régua à direita)'+(showMeta?' · tracejado âmbar = meta':'')+' · '+periodLbl+' · '+pastaLbl+' · clique numa barra para listar os lançamentos';
+    title='Fluxo mensal';sub='receitas × despesas LÍQUIDAS, como no Quadro 2.0 (reembolso abate a categoria; estorno abate a receita) · fixas + variáveis empilhadas · linha preta = saldo (régua à direita)'+(showMeta?' · tracejado âmbar = meta':'')+' · '+periodLbl+' · '+pastaLbl+' · clique numa barra para listar os lançamentos';
     const cw=cwN(meses.length);
-    const maxV=Math.max(...inArr,...outArr,...(showMeta?metaArr:[0]),1);
+    const maxV=Math.max(...inArr.map(v=>Math.max(0,v)),...outArr.map(v=>Math.max(0,v)),...(showMeta?metaArr:[0]),1);
     // zeros coincidentes: o zero das barras e o zero do saldo ficam na MESMA linha.
     // Havendo saldo negativo, abre-se área abaixo do zero (usada só pela linha do saldo, em vermelho).
     const sMin=Math.min(...saldoArr,0),sMax=Math.max(...saldoArr,1);
@@ -10413,10 +10417,11 @@ function _waCharts2Render(){
     meses.forEach((mm,i)=>{
       const x=pL+i*cw,bw=cw*0.30;
       if(s.drill&&s.drill.y===mm.y&&s.drill.m===mm.m)svg+='<rect x="'+(x+1)+'" y="'+pT+'" width="'+(cw-2)+'" height="'+(H-pT-pB)+'" fill="#1565C0" opacity=".07"/>';
-      svg+='<rect x="'+(x+cw*0.14)+'" y="'+yF(inArr[i])+'" width="'+bw+'" height="'+(y0-yF(inArr[i]))+'" rx="2" fill="'+POS+'" opacity=".85"/>';
-      const xO=x+cw*0.14+bw+2; // despesas empilhadas: fixas embaixo, variáveis em cima
-      svg+='<rect x="'+xO+'" y="'+yF(outFixArr[i])+'" width="'+bw+'" height="'+(y0-yF(outFixArr[i]))+'" fill="'+FIX+'" opacity=".9"/>';
-      svg+='<rect x="'+xO+'" y="'+yF(outFixArr[i]+outVarArr[i])+'" width="'+bw+'" height="'+(yF(outFixArr[i])-yF(outFixArr[i]+outVarArr[i]))+'" rx="2" fill="'+VAR+'" opacity=".8"/>';
+      const inV=Math.max(0,inArr[i]),fxV=Math.max(0,outFixArr[i]),vrV=Math.max(0,outVarArr[i]);
+      svg+='<rect x="'+(x+cw*0.14)+'" y="'+yF(inV)+'" width="'+bw+'" height="'+(y0-yF(inV))+'" rx="2" fill="'+POS+'" opacity=".85"/>';
+      const xO=x+cw*0.14+bw+2; // despesas líquidas empilhadas: fixas embaixo, variáveis em cima
+      svg+='<rect x="'+xO+'" y="'+yF(fxV)+'" width="'+bw+'" height="'+(y0-yF(fxV))+'" fill="'+FIX+'" opacity=".9"/>';
+      svg+='<rect x="'+xO+'" y="'+yF(fxV+vrV)+'" width="'+bw+'" height="'+(yF(fxV)-yF(fxV+vrV))+'" rx="2" fill="'+VAR+'" opacity=".8"/>';
     });
     if(showMeta)svg+='<polyline points="'+metaArr.map((v,i)=>(pL+i*cw+cw/2)+','+yF(v)).join(' ')+'" fill="none" stroke="#D97706" stroke-width="1.8" stroke-dasharray="6 3"/>';
     { // linha do saldo: preta acima do zero, vermelha abaixo (segmentos cortados na travessia)
@@ -10432,7 +10437,7 @@ function _waCharts2Render(){
       saldoArr.forEach((v,i)=>{svg+='<circle cx="'+X(i)+'" cy="'+yS(v)+'" r="2.4" fill="'+(v<0?'#C62828':'#1a1a1a')+'"/>';});
     }
     meses.forEach((mm,i)=>{const cw2=(W-pL-pR)/Math.max(meses.length,1);
-      const tip='<b>'+MESES[mm.m]+' '+mm.y+'</b><br>Receitas: '+fmtR(inArr[i])+'<br>Despesas: '+fmtR(outArr[i])+'<br>· fixas: '+fmtR(outFixArr[i])+'<br>· variáveis: '+fmtR(outVarArr[i])+(showMeta?'<br>Meta: '+fmtR(metaArr[i]):'')+'<br>Saldo: <b>'+fmtR(saldoArr[i])+'</b>';
+      const tip='<b>'+MESES[mm.m]+' '+mm.y+'</b><br>Receitas líq.: '+fmtR(inArr[i])+'<br>Despesas líq.: '+fmtR(outArr[i])+'<br>· fixas: '+fmtR(outFixArr[i])+'<br>· variáveis: '+fmtR(outVarArr[i])+(showMeta?'<br>Meta: '+fmtR(metaArr[i]):'')+'<br>Saldo: <b>'+fmtR(saldoArr[i])+'</b>';
       svg+='<rect x="'+(pL+i*cw2)+'" y="'+pT+'" width="'+cw2+'" height="'+(H-pT-pB)+'" fill="transparent" onclick="waC2Drill('+mm.y+','+mm.m+')"'+tipA(tip)+'/>';});
     svg+=mLabels()+'</svg>';
     extra='<span><span style="display:inline-block;width:10px;height:8px;background:'+POS+';border-radius:2px;"></span> receitas</span><span><span style="display:inline-block;width:10px;height:8px;background:#7F1D1D;border-radius:2px;"></span> desp. fixas</span><span><span style="display:inline-block;width:10px;height:8px;background:#DC2626;border-radius:2px;"></span> desp. variáveis</span>'+(s.showMeta!==false?'<span><span style="display:inline-block;width:12px;height:2px;background:#D97706;vertical-align:middle;"></span> meta</span>':'')+'<span><span style="display:inline-block;width:12px;height:2px;background:#C62828;vertical-align:middle;"></span> saldo negativo</span>'+'<span><span style="display:inline-block;width:12px;height:2px;background:#1a1a1a;vertical-align:middle;"></span> saldo (escala própria)</span>';
@@ -12428,16 +12433,16 @@ function _findLogTarget(arr,nome){
     return null;
   }
   // ativo renomeado: registros antigos do log ainda trazem o nome anterior.
-  // Casa por prefixo (nome do log começa com o nome do cadastro, ou o contrário),
-  // exigindo prefixo mínimo de 10 caracteres e escolhendo o candidato mais específico.
+  // Casa quando um nome CONTÉM o outro (ex.: "TRUE Sec. CRI MRV…" ⊃ "CRI MRV Eng 3a série",
+  // ou "CRI Assaí (13,30%…)" ⊃ "CRI Assaí"), com o nome mais curto tendo 8+ caracteres.
+  // Só casa com candidato ÚNICO — dois possíveis = ambíguo, não casa nada.
   const n=nome.toLowerCase().trim();
   const cands=arr.filter(a=>{
     const an=String(a.nome||'').toLowerCase().trim();
-    const min=Math.min(an.length,n.length);
-    if(min<10)return false;
-    return n.startsWith(an)||an.startsWith(n);
+    if(Math.min(an.length,n.length)<8)return false;
+    return n.includes(an)||an.includes(n);
   });
-  if(cands.length===1)return cands[0]; // 2+ candidatos = ambíguo, melhor não casar
+  if(cands.length===1)return cands[0];
   return null;
 }
 function getAtivoSaldoMes(ativo,m,year){
