@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0c4a6e,#fed7aa);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFF7ED !important;}
-  #splash .splash-sub{color:rgba(255,247,237,.65) !important;}
-  #splash .splash-version{color:rgba(255,247,237,.35) !important;}
-  #splash .splash-btn{background:#FFF7ED !important;color:#0c4a6e !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFF7ED !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#365314,#fbcfe8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FDF2F8 !important;}
+  #splash .splash-sub{color:rgba(253,242,248,.65) !important;}
+  #splash .splash-version{color:rgba(253,242,248,.35) !important;}
+  #splash .splash-btn{background:#FDF2F8 !important;color:#365314 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FDF2F8 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2108,7 +2108,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.89';
+const APP_VERSION='18.90';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -10378,7 +10378,12 @@ function waC2Go(dir){
   s.chart=WAC2_CHARTS[n].id;waCharts2Render();
 }
 function waC2Set(k,v){const s=waC2State();s[k]=v;if(k!=='showMeta')delete s.drill;waCharts2Render();}
-function waC2Drill(y,m){const s=waC2State();s.drill=(s.drill&&s.drill.y===y&&s.drill.m===m)?null:{y,m};waCharts2Render();}
+function waC2Drill(y,m){const s=waC2State();s.drill=(s.drill&&s.drill.y===y&&s.drill.m===m)?null:{y,m};s.drillCats=null;waCharts2Render();}
+function waC2DrillCat(key){const s=waC2State();if(!s.drill)return;
+  if(!s.drillCats){s.drillCats=(window._c2DrillAllCats||[]).slice();} // sai do "todas" implícito
+  const i=s.drillCats.indexOf(key);if(i>=0)s.drillCats.splice(i,1);else s.drillCats.push(key);
+  waCharts2Render();}
+function waC2DrillCatsAll(on){const s=waC2State();if(!s.drill)return;s.drillCats=on?null:[];waCharts2Render();}
 function waC2Year(d){const s=waC2State();s.year=Math.min(s.year+d,new Date().getFullYear());waCharts2Render();}
 function waC2PastasModal(){
   const s=waC2State();
@@ -10830,17 +10835,32 @@ function _waCharts2Render(){
       if(t.type==='transferência'||t._transferId||t._isAdjust)return false;
       return pastaOk(getTipoPasta(t));
     }).sort((a,b)=>(parseDate(a.date)||0)-(parseDate(b.date)||0));
-    let tIn=0,tOut=0;txs.forEach(t=>{if(t.type==='entrada')tIn+=Math.abs(t.value);else tOut+=Math.abs(t.value);});
+    // filtro de categorias da tabela (padrão: todas as categorias que o gráfico considera)
+    const catKey=t=>getTipoPasta(t)+'›'+(t.cat||'—');
+    const catAgg={};txs.forEach(t=>{const k=catKey(t);if(!catAgg[k])catAgg[k]={n:0,tot:0,cat:(t.cat||'—')};catAgg[k].n++;catAgg[k].tot+=Math.abs(t.value)*(t.type==='entrada'?1:-1);});
+    const allCatKeys=Object.keys(catAgg).sort((a,b)=>Math.abs(catAgg[b].tot)-Math.abs(catAgg[a].tot));
+    window._c2DrillAllCats=allCatKeys;
+    const selCats=s.drillCats===null||s.drillCats===undefined?null:new Set(s.drillCats);
+    const catOn=k=>!selCats||selCats.has(k);
+    const txsF=txs.filter(t=>catOn(catKey(t)));
+    let tIn=0,tOut=0;txsF.forEach(t=>{if(t.type==='entrada')tIn+=Math.abs(t.value);else tOut+=Math.abs(t.value);});
     // tabela do mês clicado: renderizada no PAINEL LATERAL DIREITO (cores no tema do painel)
     window._c2DrillTitle='Lançamentos · '+MESES[dm]+' '+dy;
     drillHtml='<div style="display:flex;flex-direction:column;height:100%;font-family:var(--wad-font-geral);">'
       +'<div style="flex:none;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--font);padding:8px 10px 6px;border-bottom:1px solid var(--border);">'
-      +'<span style="color:var(--muted);font-size:11px;">'+txs.length+' lançamento'+(txs.length===1?'':'s')+'</span>'
+      +'<span style="color:var(--muted);font-size:11px;">'+txsF.length+(txsF.length!==txs.length?' de '+txs.length:'')+' lançamento'+(txs.length===1?'':'s')+'</span>'
       +'<span style="margin-left:auto;color:'+POS+';font-variant-numeric:tabular-nums;">+ '+fmtR(tIn)+'</span><span style="color:'+NEG+';font-variant-numeric:tabular-nums;">− '+fmtR(tOut)+'</span>'
       +'<span style="font-weight:700;font-variant-numeric:tabular-nums;">= '+fmtR(tIn-tOut)+'</span></div>'
+      +'<div style="flex:none;padding:7px 10px;border-bottom:1px solid var(--border);">'
+      +'<div style="display:flex;align-items:center;gap:8px;font-size:9.5px;color:var(--muted);margin-bottom:5px;"><b style="text-transform:uppercase;letter-spacing:.05em;">categorias</b>'
+      +'<a href="#" onclick="event.preventDefault();waC2DrillCatsAll(true)" style="color:var(--font);">todas</a>·<a href="#" onclick="event.preventDefault();waC2DrillCatsAll(false)" style="color:var(--font);">nenhuma</a></div>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:4px;max-height:96px;overflow-y:auto;">'
+      +allCatKeys.map(k=>{const on=catOn(k);const a2=catAgg[k];
+        return '<button onclick="waC2DrillCat(\''+k.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')" title="'+k.replace('›',' › ')+' · '+a2.n+' lançamento'+(a2.n===1?'':'s')+'" style="border:1px solid var(--border);border-radius:100px;padding:2px 9px;font-size:9.5px;cursor:pointer;font-family:inherit;'+(on?'background:var(--font);color:var(--bg);border-color:var(--font);':'background:transparent;color:var(--muted);')+'">'+a2.cat+' <span style="opacity:.6;">'+a2.n+'</span></button>';}).join('')
+      +'</div></div>'
       +'<div style="flex:1;min-height:0;overflow-y:auto;padding:0 10px 10px;">';
-    if(!txs.length)drillHtml+='<div style="font-size:11px;color:var(--muted);padding:10px 0;">Nenhum lançamento no mês com os filtros atuais.</div>';
-    txs.forEach(t=>{
+    if(!txsF.length)drillHtml+='<div style="font-size:11px;color:var(--muted);padding:10px 0;">Nenhum lançamento com os filtros atuais.</div>';
+    txsF.forEach(t=>{
       const neg=t.type!=='entrada';const fv=neg?_fvOf(getTipoPasta(t),t.cat||t.tipo||'Outros'):'';
       drillHtml+='<div style="display:grid;grid-template-columns:34px minmax(0,1fr) 92px;column-gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:11.5px;color:var(--font);">'
         +'<span style="color:var(--muted);font-size:10.5px;font-variant-numeric:tabular-nums;">'+String(normDateBR(t.date)).slice(0,5)+'</span>'
