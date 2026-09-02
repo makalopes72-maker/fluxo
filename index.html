@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#556b2f,#d8d0e3);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F1EDF6 !important;}
-  #splash .splash-sub{color:rgba(241,237,246,.65) !important;}
-  #splash .splash-version{color:rgba(241,237,246,.35) !important;}
-  #splash .splash-btn{background:#F1EDF6 !important;color:#556b2f !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F1EDF6 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0e7490,#fbe4d8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FDF1EA !important;}
+  #splash .splash-sub{color:rgba(253,241,234,.65) !important;}
+  #splash .splash-version{color:rgba(253,241,234,.35) !important;}
+  #splash .splash-btn{background:#FDF1EA !important;color:#0e7490 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FDF1EA !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2108,7 +2108,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.84';
+const APP_VERSION='18.85';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -9547,7 +9547,9 @@ function _waDash2Render(){
   //   proporcional ao % do mês decorrido (±10% = cinza).
   // META AUSENTE = ZERO: gasto em célula sem meta → vermelho (sem exibir a meta).
   // RECEITAS/INVESTIMENTOS: invertido — verde quando o valor SUPERA a meta.
+  const anoSemOrc=!orc2YearHasData(user,dashYear);
   const wd2Farol=(isPos,modo,realV,metaV,pctArg)=>{
+    if(anoSemOrc)return null; // orçamento é anual: ano sem orçamento não tem farol
     const mt=Math.abs(metaV||0);
     const r=isPos?Math.max(0,realV||0):Math.max(0,-(realV||0));
     if(isPos){
@@ -9976,9 +9978,12 @@ function waShowOrc2(){
   const fb=document.getElementById('wa-filter-bar');if(fb)fb.remove();
   const actions=document.getElementById('wa-center-actions');
   if(actions){
-    const yr=new Date().getFullYear();
+    const yr=window.waOrc2Year||new Date().getFullYear();
     actions.innerHTML='<div style="display:flex;align-items:center;gap:10px;justify-content:flex-end;">'
-      +'<span style="font-size:10px;color:#999;">metas de <b style="color:#1a1a1a;">'+(currentUser||'ALE')+'</b> · ano <b style="color:#1a1a1a;">'+yr+'</b></span>'
+      +'<span style="font-size:10px;color:#999;">metas de <b style="color:#1a1a1a;">'+(currentUser||'ALE')+'</b> · orçamento anual de</span>'
+      +'<span style="display:flex;align-items:center;gap:4px;"><button onclick="waOrc2SetYear('+(yr-1)+')" style="border:1px solid #D8D6CC;background:#fff;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;">&#8249;</button>'
+      +'<b style="font-size:13px;color:#1a1a1a;">'+yr+'</b>'
+      +'<button onclick="waOrc2SetYear('+(yr+1)+')" style="border:1px solid #D8D6CC;background:#fff;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;">&#8250;</button></span>'
       +'</div>';
   }
   waOrc2Render();
@@ -9994,12 +9999,34 @@ function orc2GetCd(tipo,cat,create){
   return orcData[user][tipo][cat];
 }
 function orc2Key(yr,m){return yr+'-'+(m+1<10?'0':'')+(m+1);}
+const ORC2_LEGACY_YEAR=2026; // o cd.default legado (sem ano) pertence ao orçamento de 2026
 function orc2GetMeta(cd,yr,m){
   if(!cd)return 0;
   const key=orc2Key(yr,m);
   if(cd.months&&cd.months[key]!=null)return cd.months[key];
   if(cd.defaults&&cd.defaults[String(yr)]!=null)return cd.defaults[String(yr)];
-  return cd.default||0;
+  return Number(yr)===ORC2_LEGACY_YEAR?(cd.default||0):0; // orçamento é ANUAL: outro ano sem config = 0
+}
+function orc2YearDefault(cd,yr){ // valor-padrão anual resolvido (sem os pontuais)
+  if(!cd)return null;
+  if(cd.defaults&&cd.defaults[String(yr)]!=null)return cd.defaults[String(yr)];
+  return Number(yr)===ORC2_LEGACY_YEAR&&cd.default!=null?cd.default:null;
+}
+function orc2YearHasData(user,yr){ // o ano tem orçamento configurado?
+  const ud=orcData[user]||{};const sy=String(yr);
+  return Object.keys(ud).some(tp=>Object.keys(ud[tp]||{}).some(cat=>{const cd=ud[tp][cat];
+    if(!cd)return false;
+    if(cd.defaults&&cd.defaults[sy]!=null)return true;
+    if(cd.months&&Object.keys(cd.months).some(k=>k.startsWith(sy+'-')))return true;
+    return Number(yr)===ORC2_LEGACY_YEAR&&cd.default!=null;}));
+}
+function orc2CopyYear(user,fromYr,toYr){ // cria o orçamento de toYr a partir dos padrões anuais de fromYr (pontuais não copiam)
+  const ud=orcData[user]||{};let n=0;
+  Object.keys(ud).forEach(tp=>Object.keys(ud[tp]||{}).forEach(cat=>{const cd=ud[tp][cat];
+    const v=orc2YearDefault(cd,fromYr);
+    if(v!=null){if(!cd.defaults)cd.defaults={};cd.defaults[String(toYr)]=v;n++;}}));
+  if(n)orc2Save();
+  return n;
 }
 function orc2HasOverride(cd,yr,m){return !!(cd&&cd.months&&cd.months[orc2Key(yr,m)]!=null);}
 function orc2Save(){
@@ -10022,8 +10049,15 @@ function orc2ToggleFarol(tipo,cat){
   cd.farol=((cd.farol||((cd.tipo==='F')?'A':'R'))==='A')?'R':'A';
   orc2Save();waOrc2Render();
 }
+function waOrc2CopyAsk(src,yr){
+  if(!confirm('Copiar os valores-padrão anuais de '+src+' para '+yr+'? (metas pontuais de meses não são copiadas)'))return;
+  const n=orc2CopyYear(currentUser||'ALE',src,yr);
+  toast('📋 '+n+' metas copiadas de '+src+' para '+yr,'success');
+  waOrc2Render();
+}
+function waOrc2SetYear(y){window.waOrc2Year=y;if(typeof waShowOrc2==='function')waShowOrc2();else waOrc2Render();}
 function orc2EditDefault(td,tipo,cat){
-  const yr=new Date().getFullYear();
+  const yr=window.waOrc2Year||new Date().getFullYear();
   const cd=orc2GetCd(tipo,cat,true);
   const cur=(cd.defaults&&cd.defaults[String(yr)]!=null)?cd.defaults[String(yr)]:(cd.default||0);
   orc2InlineInput(td,cur,v=>{
@@ -10033,7 +10067,7 @@ function orc2EditDefault(td,tipo,cat){
   },()=>waOrc2Render());
 }
 function orc2EditMonth(td,tipo,cat,m){
-  const yr=new Date().getFullYear();
+  const yr=window.waOrc2Year||new Date().getFullYear();
   const cd=orc2GetCd(tipo,cat,true);
   const cur=orc2HasOverride(cd,yr,m)?cd.months[orc2Key(yr,m)]:'';
   orc2InlineInput(td,cur,v=>{
@@ -10079,10 +10113,21 @@ function _waOrc2Render(){
   // garante o CSS compartilhado do Quadro 2.0
   if(!document.getElementById('wd2-style')){try{_waDash2Render();}catch(e){}}
   const user=currentUser||'ALE';
-  const yr=new Date().getFullYear();
-  const curM=new Date().getMonth();
+  const yr=window.waOrc2Year||new Date().getFullYear();
+  const curM=(yr===new Date().getFullYear())?new Date().getMonth():-1;
   const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const fmtM=n=>{if(!n&&n!==0)return'';return Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});};
+  // ano sem orçamento: oferta de criação (copiar do último ano configurado, ou começar em branco)
+  window._wo2Banner='';
+  if(!orc2YearHasData(user,yr)){
+    let src=null;for(let y2=yr-1;y2>=yr-5;y2--){if(orc2YearHasData(user,y2)){src=y2;break;}}
+    window._wo2Banner='<div style="margin:0 0 10px;padding:12px 14px;border:1px dashed #B45309;border-radius:10px;background:#FFF7ED;font-size:11.5px;color:#7C2D12;">'
+      +'<b>O orçamento é anual — '+yr+' ainda não tem orçamento configurado.</b> As metas de '+yr+' ficam zeradas no Quadro e nos gráficos até você configurá-las aqui.'
+      +'<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">'
+      +(src?'<button onclick="waOrc2CopyAsk('+src+','+yr+')" style="border:none;background:#B45309;color:#fff;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;">&#128203; Copiar do orçamento de '+src+'</button>':'')
+      +'<span style="align-self:center;color:#9A3412;">ou preencha os valores direto na tabela (começar em branco).</span>'
+      +'</div></div>';
+  }
   const esc=s=>String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
   const receitaTipos=['Receita','Investimentos'];
 
@@ -10100,7 +10145,7 @@ function _waOrc2Render(){
   const sY=bEl?bEl.scrollTop:0;
 
   const zoom=window.waDash2Zoom||1;
-  let html='<div class="wd2-wrap" id="wo2-wrap" style="zoom:'+zoom+';">';
+  let html=(window._wo2Banner||'')+'<div class="wd2-wrap" id="wo2-wrap" style="zoom:'+zoom+';">';
 
   // legenda
   html+='<div style="display:flex;gap:14px;align-items:center;margin:0 0 8px;font-size:10px;color:#888;flex-wrap:wrap;">'
@@ -11920,8 +11965,8 @@ function waDashGetMeta(user,tipo,cat,mIdx){
   if(cd.months&&cd.months[key]!=null)return cd.months[key];
   // year-specific default
   if(cd.defaults&&cd.defaults[yr]!=null)return cd.defaults[yr];
-  // fallback to legacy global default
-  return cd.default||0;
+  // orçamento é ANUAL: o legado cd.default vale só para 2026; outros anos sem config = 0
+  return Number(yr)===ORC2_LEGACY_YEAR?(cd.default||0):0;
 }
 
 function waDashSetMeta(user,tipo,cat,mIdx,val){
