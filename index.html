@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#064e3b,#fde2e4);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFF0F1 !important;}
-  #splash .splash-sub{color:rgba(255,240,241,.65) !important;}
-  #splash .splash-version{color:rgba(255,240,241,.35) !important;}
-  #splash .splash-btn{background:#FFF0F1 !important;color:#064e3b !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFF0F1 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#701a75,#bbf7d0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F0FDF4 !important;}
+  #splash .splash-sub{color:rgba(240,253,244,.65) !important;}
+  #splash .splash-version{color:rgba(240,253,244,.35) !important;}
+  #splash .splash-btn{background:#F0FDF4 !important;color:#701a75 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F0FDF4 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2118,7 +2118,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='19.02';
+const APP_VERSION='19.03';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -10524,7 +10524,8 @@ function _waCharts2Render(){
   const outFixArr=meses.map(()=>0),outVarArr=meses.map(()=>0);
   const _fvOf=(tp,cat)=>{const cd=(orcData[user]&&orcData[user][tp]&&orcData[user][tp][cat])||null;return cd&&cd.tipo==='F'?'F':'V';};
   const pastaMes={}; // pasta -> array por mês (despesa líquida)
-  const catWin={};   // 'tipo||cat' -> {real}
+  const catWin={};   // 'tipo||cat' -> real somado na janela
+  const catMes={};   // 'tipo||cat' -> real por mês (índices de meses)
   allData.forEach(t=>{
     if(!t.consolidated)return;
     if(!acctOk(t.account))return;
@@ -10549,6 +10550,8 @@ function _waCharts2Render(){
       const k=tp+'||'+(t.cat||t.tipo||'Outros');
       if(!catWin[k])catWin[k]=0;
       catWin[k]-=Math.abs(t.value)*sign;
+      if(!catMes[k])catMes[k]=meses.map(()=>0);
+      catMes[k][i]-=Math.abs(t.value)*sign;
     }
   });
 
@@ -10708,38 +10711,50 @@ function _waCharts2Render(){
     svg+='</svg>';
   }
   else if(s.chart==='meta'){
-    title='Real × Meta por categoria';sub='% da meta consumida no período · '+periodLbl+' · '+pastaLbl+' · cores do farol';
-    // metas somadas na janela por categoria
+    // janela JUSTA: real e meta somam os MESMOS meses — do início do período até o mês
+    // atual, e apenas em anos que têm orçamento (orçamento é anual; ano sem orçamento não compara).
+    const _nowM=new Date();
+    const validIdx=meses.map((mm,i)=>i).filter(i=>{const mm=meses[i];
+      const past=mm.y<_nowM.getFullYear()||(mm.y===_nowM.getFullYear()&&mm.m<=_nowM.getMonth());
+      return past&&orc2YearHasData(user,mm.y);});
+    const nVal=validIdx.length;
+    title='Real × Meta por categoria';sub='% da meta consumida · real e meta somados nos mesmos meses ('+nVal+' mês'+(nVal===1?'':'es')+': até o mês atual, só anos com orçamento) · '+periodLbl+' · '+pastaLbl+' · cores do farol';
     const items=[];
     Object.keys(tiposData||{}).filter(t=>(tiposData[t]||{}).active!==false&&!receitaTipos.includes(t)&&pastaOk(t)).forEach(tp=>{
       ((tiposData[tp]||{}).cats||[]).filter(cc=>cc.active!==false).forEach(cc=>{
         const cat=cc.name||cc;
         const cd=(orcData[user]&&orcData[user][tp]&&orcData[user][tp][cat])||null;
-        let meta=0;meses.forEach(mm=>{meta+=cd?orc2GetMeta(cd,mm.y,mm.m):0;});
-        const real=Math.max(catWin[tp+'||'+cat]||0,0);
+        let meta=0;validIdx.forEach(i=>{const mm=meses[i];meta+=cd?orc2GetMeta(cd,mm.y,mm.m):0;});
+        const cm=catMes[tp+'||'+cat]||[];
+        const real=Math.max(validIdx.reduce((s2,i)=>s2+(cm[i]||0),0),0);
         if(meta<=0&&real<=0)return;
-        items.push({cat,tp,real,meta,pct:meta>0?real/meta:9.99});
+        items.push({cat,tp,real,meta,pct:meta>0?real/meta:null});
       });
     });
-    items.sort((a,b)=>b.pct-a.pct);
-    const top=items.slice(0,18);
+    // com meta primeiro (por % desc); "sem meta" no fim (por real desc)
+    items.sort((a,b)=>{
+      if(a.pct===null&&b.pct===null)return b.real-a.real;
+      if(a.pct===null)return 1;if(b.pct===null)return -1;
+      return b.pct-a.pct;});
+    const top=items.slice(0,22);
     const Hh=Math.max(top.length*26+20,110);
     svg='<svg viewBox="0 0 '+W+' '+Hh+'" preserveAspectRatio="xMidYMin meet" style="width:100%;height:100%;display:block;">';
     const bx=210,bwMax=W-bx-90;
     top.forEach((it,i)=>{
       const yy=8+i*26;
-      const pct=Math.min(it.pct,2);
+      const pct=Math.min(it.pct===null?2:it.pct,2);
       const wB=bwMax*pct/2;
-      const col=it.meta<=0?FC.vermelho:(it.pct<=0.9?FC.verde:it.pct<=1.1?FC.cinza:FC.vermelho);
+      const col=it.pct===null?FC.vermelho:(it.pct<=0.9?FC.verde:it.pct<=1.1?FC.cinza:FC.vermelho);
       svg+='<text x="'+(bx-8)+'" y="'+(yy+11)+'" text-anchor="end" font-size="9.5" fill="#3A3A36">'+it.cat+'</text>';
       svg+='<rect x="'+bx+'" y="'+yy+'" width="'+bwMax+'" height="12" rx="2" fill="#F1EFE8"/>';
       svg+='<rect x="'+bx+'" y="'+yy+'" width="'+Math.max(wB,1)+'" height="12" rx="2" fill="'+col+'"/>';
       svg+='<line x1="'+(bx+bwMax/2)+'" y1="'+(yy-1)+'" x2="'+(bx+bwMax/2)+'" y2="'+(yy+13)+'" stroke="#1a1a1a" stroke-width="1"/>';
-      svg+='<text x="'+(bx+bwMax+6)+'" y="'+(yy+10)+'" font-size="8.5" fill="#666">'+(it.meta>0?Math.round(it.pct*100)+'%':'sem meta')+' <tspan fill="#AAA">'+fmtK(it.real)+'/'+fmtK(it.meta)+'</tspan></text>';
+      svg+='<text x="'+(bx+bwMax+6)+'" y="'+(yy+10)+'" font-size="8.5" fill="#666">'+(it.pct!==null?Math.round(it.pct*100)+'%':'sem meta')+' <tspan fill="#AAA">'+fmtK(it.real)+'/'+fmtK(it.meta)+'</tspan></text>';
       svg+='<rect x="0" y="'+(yy-2)+'" width="'+W+'" height="18" fill="transparent"'+tipA('<b>'+it.cat+'</b> · '+it.tp+'<br>Real: '+fmtR(it.real)+'<br>Meta do período: '+(it.meta>0?fmtR(it.meta)+'<br>Consumo: <b>'+Math.round(it.pct*100)+'%</b>':'<b>sem meta</b>'))+'/>';
     });
+    if(items.length>top.length)svg+='<text x="'+(W/2)+'" y="'+(8+top.length*26+8)+'" text-anchor="middle" font-size="8.5" fill="#AAA">+'+(items.length-top.length)+' categorias não exibidas</text>';
     svg+='</svg>';
-    extra='<span>barra até a marca central = 100% da meta · <span style="color:'+FC.vermelho+';">sem meta = vermelho</span></span>';
+    extra='<span>barra até a marca central = 100% da meta · verde ≤90% · cinza 90–110% · vermelho >110% · <span style="color:'+FC.vermelho+';">sem meta no fim da lista</span></span>'+(nVal===0?'<span style="color:'+FC.vermelho+';font-weight:700;">nenhum mês comparável no período (anos sem orçamento) — troque o período para «ano»</span>':'');
   }
   else if(s.chart==='intra'){
     title='Curva intra-mês · '+MESES[now.getMonth()]+' '+curYear;sub='gasto acumulado dia a dia × meta pró-rata × mês anterior · '+pastaLbl;
