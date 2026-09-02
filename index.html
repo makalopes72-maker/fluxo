@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#155e75,#fecdd3);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFF1F2 !important;}
-  #splash .splash-sub{color:rgba(255,241,242,.65) !important;}
-  #splash .splash-version{color:rgba(255,241,242,.35) !important;}
-  #splash .splash-btn{background:#FFF1F2 !important;color:#155e75 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFF1F2 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#3b0764,#d9f99d);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F7FEE7 !important;}
+  #splash .splash-sub{color:rgba(247,254,231,.65) !important;}
+  #splash .splash-version{color:rgba(247,254,231,.35) !important;}
+  #splash .splash-btn{background:#F7FEE7 !important;color:#3b0764 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F7FEE7 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2108,7 +2108,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.92';
+const APP_VERSION='18.93';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -13392,10 +13392,17 @@ function waActiveDashFullRender(){
   waDashRenderHeader();waDashRender();
 }
 function waActiveDashRender(){
+  // re-renderiza APENAS a tela ativa; nunca troca de tela nem desenha por cima
+  // (o "else waDashRender()" antigo pintava o Início sobre qualquer outra tela
+  //  a cada etapa da carga silenciosa)
   if(typeof waInv2Active==='function'&&waInv2Active()){waInv2Render();return;}
-  const n2=document.getElementById('wanav-dash2');
-  if(n2&&n2.classList.contains('active')&&typeof waDash2Render==='function')waDash2Render();
-  else waDashRender();
+  const act=k=>{const n=document.getElementById('wanav-'+k);return !!(n&&n.classList.contains('active'));};
+  if(act('dash2')&&typeof waDash2Render==='function'){waDash2Render();return;}
+  if(act('chart2')&&typeof waCharts2Render==='function'){waCharts2Render();return;}
+  if(act('orc2')&&typeof waOrc2Render==='function'){waOrc2Render();return;}
+  if(act('add')&&typeof waRenderExtrato==='function'){try{waRenderExtrato();}catch(e){}return;}
+  if(act('dash')&&typeof waDashRender==='function'){waDashRender();return;}
+  // demais telas (Config, Análises, Gráficos antigos, Orçamento antigo): não mexe
 }
 function waDashEditMeta(td,tipo,cat,mIdx,curVal){
   const inp=document.createElement('input');
