@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1f2937,#fca5a5);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FEF2F2 !important;}
-  #splash .splash-sub{color:rgba(254,242,242,.65) !important;}
-  #splash .splash-version{color:rgba(254,242,242,.35) !important;}
-  #splash .splash-btn{background:#FEF2F2 !important;color:#1f2937 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FEF2F2 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0c4a6e,#fed7aa);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFF7ED !important;}
+  #splash .splash-sub{color:rgba(255,247,237,.65) !important;}
+  #splash .splash-version{color:rgba(255,247,237,.35) !important;}
+  #splash .splash-btn{background:#FFF7ED !important;color:#0c4a6e !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFF7ED !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2108,7 +2108,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.88';
+const APP_VERSION='18.89';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -10831,22 +10831,22 @@ function _waCharts2Render(){
       return pastaOk(getTipoPasta(t));
     }).sort((a,b)=>(parseDate(a.date)||0)-(parseDate(b.date)||0));
     let tIn=0,tOut=0;txs.forEach(t=>{if(t.type==='entrada')tIn+=Math.abs(t.value);else tOut+=Math.abs(t.value);});
-    // tabela enxuta, centralizada: data · descrição+categoria · valor (largura contida, colunas próximas)
-    drillHtml='<div style="flex:1;min-height:0;overflow-y:auto;border-top:1px solid #E4E2DA;margin-top:8px;">'
-      +'<div style="max-width:640px;margin:0 auto;font-family:var(--font-body);">'
-      +'<div style="display:flex;align-items:baseline;gap:12px;font-size:12px;position:sticky;top:0;background:#fff;padding:8px 0 6px;z-index:1;border-bottom:1px solid #E4E2DA;">'
-      +'<b style="font-size:13px;">'+MESES[dm]+' '+dy+'</b><span style="color:#999;font-size:11px;">'+txs.length+' lançamento'+(txs.length===1?'':'s')+'</span>'
+    // tabela do mês clicado: renderizada no PAINEL LATERAL DIREITO (cores no tema do painel)
+    window._c2DrillTitle='Lançamentos · '+MESES[dm]+' '+dy;
+    drillHtml='<div style="display:flex;flex-direction:column;height:100%;font-family:var(--wad-font-geral);">'
+      +'<div style="flex:none;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--font);padding:8px 10px 6px;border-bottom:1px solid var(--border);">'
+      +'<span style="color:var(--muted);font-size:11px;">'+txs.length+' lançamento'+(txs.length===1?'':'s')+'</span>'
       +'<span style="margin-left:auto;color:'+POS+';font-variant-numeric:tabular-nums;">+ '+fmtR(tIn)+'</span><span style="color:'+NEG+';font-variant-numeric:tabular-nums;">− '+fmtR(tOut)+'</span>'
-      +'<span style="color:#1a1a1a;font-weight:700;font-variant-numeric:tabular-nums;">= '+fmtR(tIn-tOut)+'</span>'
-      +'<button onclick="waC2Drill('+dy+','+dm+')" style="border:none;background:transparent;color:#999;cursor:pointer;font-size:13px;padding:0 0 0 6px;">✕</button></div>';
-    if(!txs.length)drillHtml+='<div style="font-size:11px;color:#999;padding:10px 0;">Nenhum lançamento no mês com os filtros atuais.</div>';
+      +'<span style="font-weight:700;font-variant-numeric:tabular-nums;">= '+fmtR(tIn-tOut)+'</span></div>'
+      +'<div style="flex:1;min-height:0;overflow-y:auto;padding:0 10px 10px;">';
+    if(!txs.length)drillHtml+='<div style="font-size:11px;color:var(--muted);padding:10px 0;">Nenhum lançamento no mês com os filtros atuais.</div>';
     txs.forEach(t=>{
       const neg=t.type!=='entrada';const fv=neg?_fvOf(getTipoPasta(t),t.cat||t.tipo||'Outros'):'';
-      drillHtml+='<div style="display:grid;grid-template-columns:40px minmax(0,1fr) 108px;column-gap:12px;align-items:center;padding:5px 0;border-bottom:1px solid #F2F1EA;font-size:12px;color:#1a1a1a;">'
-        +'<span style="color:#999;font-size:11px;font-variant-numeric:tabular-nums;">'+String(normDateBR(t.date)).slice(0,5)+'</span>'
+      drillHtml+='<div style="display:grid;grid-template-columns:34px minmax(0,1fr) 92px;column-gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:11.5px;color:var(--font);">'
+        +'<span style="color:var(--muted);font-size:10.5px;font-variant-numeric:tabular-nums;">'+String(normDateBR(t.date)).slice(0,5)+'</span>'
         +'<span style="min-width:0;"><span style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+String(t.desc||'').replace(/"/g,'&quot;')+'">'+(t.desc||'—')+'</span>'
-          +'<span style="display:block;color:#999;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+getTipoPasta(t)+' · '+(t.cat||'—')+(fv?' · <b style="color:'+(fv==='F'?'#7F1D1D':'#DC2626')+';">'+fv+'</b>':'')+' · '+(t.account||'')+'</span></span>'
-        +'<span style="text-align:right;font-variant-numeric:tabular-nums;font-weight:700;font-size:12.5px;color:'+(neg?NEG:POS)+';">'+(neg?'−':'+')+' '+fmtR(Math.abs(t.value))+'</span></div>';});
+          +'<span style="display:block;color:var(--muted);font-size:9.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+getTipoPasta(t)+' · '+(t.cat||'—')+(fv?' · <b style="color:'+(fv==='F'?'#B45309':'#DC2626')+';">'+fv+'</b>':'')+' · '+(t.account||'')+'</span></span>'
+        +'<span style="text-align:right;font-variant-numeric:tabular-nums;font-weight:700;font-size:12px;color:'+(neg?NEG:POS)+';">'+(neg?'−':'+')+' '+fmtR(Math.abs(t.value))+'</span></div>';});
     drillHtml+='</div></div>';
   }
 
@@ -10883,16 +10883,24 @@ function _waCharts2Render(){
   }
   if(s.chart==='fluxo')html+='<button onclick="waC2Set(\'showMeta\','+(s.showMeta===false)+')" title="mostrar/ocultar a curva da meta" style="'+(s.showMeta!==false?chipOn:chipS)+'">◈ meta</button>';
   html+='</div>';
-  // cartão do gráfico: ocupa o resto da tela; com a lista aberta, o gráfico segura ~44% e a lista rola
-  const hasDrill=!!drillHtml;
+  // cartão do gráfico (altura cheia); a tabela do mês clicado abre no painel lateral direito
   html+='<div style="background:#fff;border:1px solid #E4E2DA;border-radius:12px;padding:14px 18px;flex:1;min-height:0;display:flex;flex-direction:column;">'
     +'<div style="flex:none;font-size:13px;font-weight:700;color:#1a1a1a;">'+title+'</div>'
     +'<div style="flex:none;font-size:9.5px;color:'+MUT+';margin-bottom:8px;">'+sub+'</div>'
-    +'<div style="'+(hasDrill?'height:44%;flex:none;':'flex:1;')+'min-height:0;">'+svg+'</div>'
+    +'<div style="flex:1;min-height:0;">'+svg+'</div>'
     +(extra?'<div style="flex:none;display:flex;gap:14px;font-size:9px;color:'+MUT+';margin-top:6px;flex-wrap:wrap;">'+extra+'</div>':'')
-    +drillHtml
     +'</div>';
   html+='</div>';
+  // painel direito: abre com a tabela quando há mês selecionado; recolhe ao fechar (clique na mesma barra ou ✕)
+  {const onC2=document.getElementById('wanav-chart2')&&document.getElementById('wanav-chart2').classList.contains('active');
+   if(onC2){
+     const rp=document.getElementById('wa-right'),rb=document.getElementById('wa-right-body'),rt=document.getElementById('wa-right-title'),tb=document.getElementById('wa-toggle-btn');
+     if(rb&&rp){
+       if(drillHtml){rt.textContent=window._c2DrillTitle||'Lançamentos';rb.innerHTML=drillHtml;rp.classList.remove('collapsed');if(tb)tb.textContent='›';}
+       else if(window._c2DrillOpen){rt.textContent='--';rb.innerHTML='<div class="wa-empty">--</div>';rp.classList.add('collapsed');if(tb)tb.textContent='‹';}
+       window._c2DrillOpen=!!drillHtml;
+     }
+   }}
   const body=document.getElementById('wa-center-body');
   if(body)body.innerHTML=html;
 }
