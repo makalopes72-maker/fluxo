@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#5b21b6,#fef08a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FEFCE8 !important;}
-  #splash .splash-sub{color:rgba(254,252,232,.65) !important;}
-  #splash .splash-version{color:rgba(254,252,232,.35) !important;}
-  #splash .splash-btn{background:#FEFCE8 !important;color:#5b21b6 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FEFCE8 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#9d174d,#a7f3d0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECFDF5 !important;}
+  #splash .splash-sub{color:rgba(236,253,245,.65) !important;}
+  #splash .splash-version{color:rgba(236,253,245,.35) !important;}
+  #splash .splash-btn{background:#ECFDF5 !important;color:#9d174d !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#ECFDF5 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2108,7 +2108,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.86';
+const APP_VERSION='18.87';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3412,6 +3412,8 @@ function login(u){
     waSyncIndicator('Carregando '+new Date().getFullYear()+'…','var(--muted)',true);
   }
   // Sincronização completa em segundo plano ao fazer login
+  // CACHE-FIRST (v18.87): abre com as transações da última sessão na hora
+  try{if(!allData.length&&waTxCacheLoad()){renderDash();renderHistory();}}catch(e){}
   // ESCALONADO (v18.86): o Apps Script atende UMA requisição por vez por usuário —
   // 4 GETs simultâneos enfileiravam e estouravam timeout ("dados que não carregam").
   // Transações primeiro (a tela principal depende delas); o resto em fila com respiro.
@@ -3929,6 +3931,26 @@ function parseBRNumber(v){
   // if only dot or plain number: "1018.62"
   return parseFloat(s)||0;
 }
+// cache local de transações: o app abre instantâneo com os dados da última sessão;
+// o ano corrente é substituído pela leitura do Sheets logo em seguida, e os anos
+// anteriores NÃO são baixados de novo (estão no cache) — era o maior peso da carga.
+function waTxCacheSave(){
+  try{
+    const rows=allData.map(t=>[t.date,t.desc,t.value,t.cat,t.tipo,t.account,t.type,t.consolidated?1:0,t._transferId||'',t._isAdjust?1:0,t._id||'',t._row||0]);
+    const s=JSON.stringify({v:1,ts:Date.now(),rows});
+    if(s.length>4500000)return; // não estoura a cota do localStorage
+    localStorage.setItem('fluxo_txcache',s);
+  }catch(e){}
+}
+function waTxCacheLoad(){
+  try{
+    const s=localStorage.getItem('fluxo_txcache');if(!s)return false;
+    const j=JSON.parse(s);if(!j||j.v!==1||!Array.isArray(j.rows)||!j.rows.length)return false;
+    allData=j.rows.map(r=>({date:r[0],desc:r[1],value:r[2],cat:r[3],tipo:r[4],account:r[5],type:r[6],consolidated:r[7]===1,_transferId:r[8]||'',_isAdjust:r[9]===1,_id:r[10]||'',_row:r[11]||0}));
+    waLoadMark('txcache','Transações (cache local)','ok',allData.length+' lançamentos · atualizando do Sheets…');
+    return true;
+  }catch(e){return false;}
+}
 async function loadData(){
   const _bgY=window._bgYearLoad?(Array.isArray(syncYears)&&syncYears[0]):null;
   const _txKey=_bgY?('bg'+_bgY):'tx';
@@ -3971,6 +3993,7 @@ async function loadData(){
     })).filter(r=>r.date);
     allData=[...allData,...newRows];
     waLoadMark(_txKey,_txLbl,'ok',newRows.length+' lançamentos');
+    waTxCacheSave();
     if(!allData.length)seedDemo();
     // carga silenciosa dos anos anteriores em segundo plano (não bloqueia o uso).
     // Começa 20s após o boot (deixa os syncs iniciais terminarem) — cada ano é uma
@@ -11381,7 +11404,7 @@ async function waInv2SaveUpd(){
   const nvEl=document.getElementById('wi2-new-v');
   const nv=nvEl&&nvEl.dataset.raw?parseFloat(nvEl.dataset.raw):NaN;
   let added=null;
-  if(!isNaN(nv)&&nv>=0){
+  if(!isNaN(nv)&&nv>0){
     const nd=_i2FromISO(document.getElementById('wi2-new-d').value.trim());
     const nn=(document.getElementById('wi2-new-n').value||'').trim()||'Atualização';
     if(!nd){toast('Informe a data da nova linha','error');return;}
@@ -11987,6 +12010,7 @@ async function waBgLoadPrevYears(){
     loadedAny=true;
     await new Promise(r=>setTimeout(r,4000)); // respiro maior entre anos (cada um é uma leitura pesada)
   }
+  if(loadedAny)waTxCacheSave();
   if(loadedAny){
     // re-render suave da tela ativa preservando a rolagem
     try{
