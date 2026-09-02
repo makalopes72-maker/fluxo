@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#3f4d2b,#e8b4b8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FBEDEE !important;}
-  #splash .splash-sub{color:rgba(251,237,238,.65) !important;}
-  #splash .splash-version{color:rgba(251,237,238,.35) !important;}
-  #splash .splash-btn{background:#FBEDEE !important;color:#3f4d2b !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FBEDEE !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1e3a8a,#fde68a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFFBEB !important;}
+  #splash .splash-sub{color:rgba(255,251,235,.65) !important;}
+  #splash .splash-version{color:rgba(255,251,235,.35) !important;}
+  #splash .splash-btn{background:#FFFBEB !important;color:#1e3a8a !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFFBEB !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2107,7 +2107,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.78';
+const APP_VERSION='18.79';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -10300,7 +10300,11 @@ function _waCharts2Render(){
   const FC={verde:'#A3E635',cinza:'#B0B0B0',vermelho:'#B91C1C'};
   const receitaTipos=['Receita','Investimentos'];
   const fmtK=v=>{const a=Math.abs(v);return (v<0?'-':'')+(a>=1000?(a/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})+'k':Math.round(a).toLocaleString('pt-BR'));};
+  // SÓ o usuário ativo: contas do usuário (ou AMBOS), e nunca contas prefixadas com o outro usuário
   let uAccts=accounts.filter(a=>a.active&&(a.owner===user||a.owner==='AMBOS')).map(a=>normalizeAcct(a.name));
+  const _othPfx=String(user)==='ALE'?'si ':'ale ';
+  uAccts=uAccts.filter(a=>!a.startsWith(_othPfx));
+  const acctOk=acc=>{const a=normalizeAcct(acc);if(a.startsWith(_othPfx))return false;return !uAccts.length||uAccts.includes(a);};
   const pastaOk=tp=>!s.pastas||s.pastas.includes(tp);
 
   // janela de meses conforme período
@@ -10320,7 +10324,7 @@ function _waCharts2Render(){
   const catWin={};   // 'tipo||cat' -> {real}
   allData.forEach(t=>{
     if(!t.consolidated)return;
-    if(uAccts.length&&!uAccts.includes(normalizeAcct(t.account)))return;
+    if(!acctOk(t.account))return;
     const d=parseDate(t.date);if(!d)return;
     const i=idxOf(d.getFullYear(),d.getMonth());if(i<0)return;
     const tp=getTipoPasta(t);
@@ -10669,7 +10673,7 @@ function _waCharts2Render(){
     const dy=s.drill.y,dm=s.drill.m;
     const txs=allData.filter(t=>{
       if(!t.consolidated||t.deleted)return false;
-      if(uAccts.length&&!uAccts.includes(normalizeAcct(t.account)))return false;
+      if(!acctOk(t.account))return false;
       const d=parseDate(t.date);if(!d||d.getFullYear()!==dy||d.getMonth()!==dm)return false;
       if(t.type==='transferência'||t._transferId||t._isAdjust)return false;
       return pastaOk(getTipoPasta(t));
