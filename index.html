@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0e7490,#fbe4d8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FDF1EA !important;}
-  #splash .splash-sub{color:rgba(253,241,234,.65) !important;}
-  #splash .splash-version{color:rgba(253,241,234,.35) !important;}
-  #splash .splash-btn{background:#FDF1EA !important;color:#0e7490 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FDF1EA !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#5b21b6,#fef08a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FEFCE8 !important;}
+  #splash .splash-sub{color:rgba(254,252,232,.65) !important;}
+  #splash .splash-version{color:rgba(254,252,232,.35) !important;}
+  #splash .splash-btn{background:#FEFCE8 !important;color:#5b21b6 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FEFCE8 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2108,7 +2108,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.85';
+const APP_VERSION='18.86';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3412,12 +3412,14 @@ function login(u){
     waSyncIndicator('Carregando '+new Date().getFullYear()+'…','var(--muted)',true);
   }
   // Sincronização completa em segundo plano ao fazer login
-  Promise.all([
-    loadData().catch(()=>{}),
-    loadCcMensalFromSheets().catch(()=>{}),
-    loadInvFromSheets().catch(()=>{}),
-    loadBensFromSheets().catch(()=>{})
-  ]).then(()=>{
+  // ESCALONADO (v18.86): o Apps Script atende UMA requisição por vez por usuário —
+  // 4 GETs simultâneos enfileiravam e estouravam timeout ("dados que não carregam").
+  // Transações primeiro (a tela principal depende delas); o resto em fila com respiro.
+  (async()=>{
+    try{await loadData();}catch(e){}
+    const rest=[loadCcMensalFromSheets,loadInvFromSheets,loadBensFromSheets];
+    for(const f of rest){try{await f();}catch(e){}await new Promise(r=>setTimeout(r,300));}
+  })().then(()=>{
     if(window.innerWidth>window.innerHeight) waOnLogin();
     // Atualiza o dashboard mobile após carregar tudo
     try{renderDash();}catch(e){}
@@ -3928,6 +3930,10 @@ function parseBRNumber(v){
   return parseFloat(s)||0;
 }
 async function loadData(){
+  const _bgY=window._bgYearLoad?(Array.isArray(syncYears)&&syncYears[0]):null;
+  const _txKey=_bgY?('bg'+_bgY):'tx';
+  const _txLbl=_bgY?('Transações '+_bgY+' (2º plano)'):('Transações '+new Date().getFullYear());
+  waLoadMark(_txKey,_txLbl,'pend');
   try{
     // Use Apps Script GET to read all 10 columns
     const rows=await sheetsRead(SHEET_NAME);
@@ -3964,6 +3970,7 @@ async function loadData(){
       _isAdjust:String(r[9]||'')==='1',
     })).filter(r=>r.date);
     allData=[...allData,...newRows];
+    waLoadMark(_txKey,_txLbl,'ok',newRows.length+' lançamentos');
     if(!allData.length)seedDemo();
     // carga silenciosa dos anos anteriores em segundo plano (não bloqueia o uso).
     // Começa 20s após o boot (deixa os syncs iniciais terminarem) — cada ano é uma
@@ -3974,7 +3981,9 @@ async function loadData(){
     }
     // Load preferences from Sheets
     try{
+      waLoadMark('prefs','Preferências','pend');
       const prefRows=await sheetsRead(SHEETS.preferencias);
+      waLoadMark('prefs','Preferências','ok',(prefRows?prefRows.length:0)+' linhas');
       if(prefRows&&prefRows.length>0){
         const obj=deserializeKV(prefRows);
         if(Object.keys(obj).length>0){
@@ -3990,9 +3999,10 @@ async function loadData(){
           applyLayout();
         }
       }
-    }catch(e){console.warn('prefs load fail',e);}
+    }catch(e){waLoadMark('prefs','Preferências','fail',e.message);console.warn('prefs load fail',e);}
     renderDash();renderHistory();
   }catch(e){
+    waLoadMark(_txKey,_txLbl,'fail',e.message);
     console.warn('loadData error, using cache or demo',e);
     if(!allData.length)seedDemo();
     renderDash();renderHistory();
@@ -4744,13 +4754,15 @@ async function syncCcMensalToSheets(user, inst, year, month, saldo, dataAjuste){
 }
 
 async function loadCcMensalFromSheets(){
+  waLoadMark('cc','Conta corrente (mensal)','pend');
   try{
     const payload={action:'ccRead'};
     const url=APPS_SCRIPT_URL+'?data='+encodeURIComponent(JSON.stringify(payload));
     const res=await fetch(url,{cache:'no-store'});
     const txt=await res.text();
     const json=JSON.parse(txt);
-    if(!json.ok||!Array.isArray(json.data))return false;
+    if(!json.ok||!Array.isArray(json.data)){waLoadMark('cc','Conta corrente (mensal)','fail',json.error||'resposta inválida');return false;}
+    waLoadMark('cc','Conta corrente (mensal)','ok',json.data.length+' saldos');
     // Zera e reconstrói a partir dos dados do Sheets (Sheets é a fonte da verdade)
     ccMensalData={ALE:{},SI:{}};
     json.data.forEach(r=>{
@@ -6101,6 +6113,7 @@ function loadBens(){
   (bensData[u]||[]).forEach(b=>{(b.log||[]).forEach(l=>{l.date=normDateBR(l.date);});});
 }
 async function loadBensFromSheets(){
+  waLoadMark('bens','Bens','pend');
   try{
     const res=await fetch(APPS_SCRIPT_URL+'?sheet='+encodeURIComponent('Bens')+'&_='+Date.now(),{cache:'no-store'});
     const json=await res.json();
@@ -6123,9 +6136,10 @@ async function loadBensFromSheets(){
     // Only update if we got data
     Object.keys(newBens).forEach(user=>{
       bensData[user]=newBens[user];
-      try{localStorage.setItem('fluxo_bens_'+user,JSON.stringify(bensData[user]));}catch(e){}
+      try{localStorage.setItem('fluxo_bens_'+user,JSON.stringify(bensData[user]));}catch(e){waLoadMark('bens','Bens','fail',e.message);}
     });
     return true;
+    waLoadMark('bens','Bens','ok',(bensData[currentUser||'ALE']||[]).length+' bens');
   }catch(e){console.warn('loadBensFromSheets failed',e);return false;}
 }
 function saveBens(){
@@ -6181,6 +6195,49 @@ function syncError(msg){
 }
 
 // -- READ from Sheets via GET --
+// ── STATUS DE CARGA ─────────────────────────────────────────────────────────
+// Cada fonte de dados marca início/fim/erro aqui; o indicador do menu lateral
+// vira um botão que abre o painel com o detalhe e "tentar de novo" por item.
+window.waLoad={};
+const WA_LOAD_ORDER=['tx','prefs','orc','inv','invlog','cc','contas','pastas','kw','bens','bg'];
+function waLoadMark(key,label,state,info){
+  waLoad[key]={label,state,info:info||'',ts:Date.now()};
+  const anyFail=Object.values(waLoad).some(x=>x.state==='fail');
+  const anyPend=Object.values(waLoad).some(x=>x.state==='pend');
+  const ind=document.getElementById('wa-sync-ind');
+  if(ind&&!anyPend){ind.style.cursor='pointer';}
+  if(state==='fail'&&typeof waSyncIndicator==='function')waSyncIndicator('⚠ falha: '+label+' — clique para detalhes','#C62828',false);
+  waLoadPanelRender();
+}
+function waLoadRetry(key){
+  const fns={tx:()=>loadData(),prefs:()=>loadData(),cc:()=>loadCcMensalFromSheets(),inv:()=>loadInvFromSheets(),invlog:()=>loadInvFromSheets(),bens:()=>loadBensFromSheets(),bg:()=>waBgLoadPrevYears(),orc:()=>syncAll(true),contas:()=>syncAll(true),pastas:()=>syncAll(true),kw:()=>syncAll(true)};
+  const f=fns[key];if(!f)return;toast('↻ recarregando '+(waLoad[key]?waLoad[key].label:key)+'…','');
+  Promise.resolve(f()).catch(e=>toast('✗ '+e.message,'error'));
+}
+function waLoadPanelToggle(){
+  const p=document.getElementById('wa-load-panel');
+  if(p){p.remove();return;}
+  const d=document.createElement('div');d.id='wa-load-panel';
+  d.style.cssText='position:fixed;left:14px;bottom:14px;z-index:9600;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.25);padding:12px 14px;width:320px;max-height:70vh;overflow-y:auto;font-family:var(--font-body);';
+  document.body.appendChild(d);
+  waLoadPanelRender();
+}
+function waLoadPanelRender(){
+  const d=document.getElementById('wa-load-panel');if(!d)return;
+  const ic={pend:'⏳',ok:'✓',fail:'✗'};const col={pend:'#B45309',ok:'#059669',fail:'#C62828'};
+  let h='<div style="display:flex;align-items:center;margin-bottom:8px;"><b style="font-size:12px;color:var(--font);">Cargas de dados</b><button onclick="document.getElementById(\'wa-load-panel\').remove()" style="margin-left:auto;border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:13px;">✕</button></div>';
+  const keys=[...WA_LOAD_ORDER.filter(k=>waLoad[k]),...Object.keys(waLoad).filter(k=>!WA_LOAD_ORDER.includes(k))];
+  if(!keys.length)h+='<div style="font-size:11px;color:var(--muted);">Nenhuma carga registrada ainda.</div>';
+  keys.forEach(k=>{const x=waLoad[k];const t=new Date(x.ts);
+    h+='<div style="display:flex;align-items:baseline;gap:8px;padding:5px 0;border-top:1px solid var(--border);font-size:11.5px;color:var(--font);">'
+      +'<span style="color:'+col[x.state]+';font-weight:800;width:14px;">'+ic[x.state]+'</span>'
+      +'<span style="flex:1;min-width:0;"><b>'+x.label+'</b>'+(x.info?'<span style="color:var(--muted);"> · '+x.info+'</span>':'')+'</span>'
+      +'<span style="color:var(--muted);font-size:10px;">'+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0')+':'+String(t.getSeconds()).padStart(2,'0')+'</span>'
+      +(x.state==='fail'?'<button onclick="waLoadRetry(\''+k+'\')" style="border:1px solid var(--border);background:transparent;color:var(--font);border-radius:6px;padding:1px 7px;font-size:10px;cursor:pointer;">↻</button>':'')
+      +'</div>';});
+  h+='<div style="margin-top:8px;font-size:9.5px;color:var(--muted);line-height:1.5;">Sequência: Transações do ano → Preferências (junto) e, em paralelo escalonado, Conta corrente, Investimentos + histórico e Bens. No ↻ sincronizar: tudo em sequência (+ Orçamento, Contas, Pastas, Palavras-chave). Anos anteriores carregam em segundo plano ~20s após o boot.</div>';
+  d.innerHTML=h;
+}
 async function sheetsRead(sheetName){
   // encode manually to ensure mobile compatibility
   const encoded=encodeURIComponent(sheetName);
@@ -6324,6 +6381,7 @@ async function loadInstituicoesFromSheets(){
   if(!instituicoes.length)seedInstituicoes();
 }
 async function loadInvFromSheets(){
+  waLoadMark('inv','Investimentos (cadastro)','pend');waLoadMark('invlog','Histórico de investimentos','pend');
   if(typeof toast==='function')toast('Carregando investimentos…','');
   try{
     const user=currentUser||'ALE';
@@ -6363,6 +6421,7 @@ async function loadInvFromSheets(){
     }
 
     _foldSubAtivos(userAtivos);
+    waLoadMark('inv','Investimentos (cadastro)','ok',Object.values(userAtivos).reduce((s,a)=>s+a.length,0)+' ativos');
     window._logSeen=new Set(); // dedupe de registros idênticos (data+valor+ativo) nesta carga
 
     // 3. load log
@@ -6370,6 +6429,7 @@ async function loadInvFromSheets(){
       const logRes=await fetch(APPS_SCRIPT_URL+'?sheet='+encodeURIComponent('InvestimentosLog')+'&_='+Date.now(),{cache:'no-store'});
       const logJson=await logRes.json();
       if(logJson.ok&&logJson.data&&logJson.data.length>1){
+        waLoadMark('invlog','Histórico de investimentos','ok',(logJson.data.length-1)+' registros no log');
         logJson.data.slice(1).forEach(l=>{
           if(String(l[0]||'').trim()!==user)return;
           const inst=String(l[1]||'').trim();
@@ -6396,7 +6456,7 @@ async function loadInvFromSheets(){
           a.log.sort((x,y)=>(parseDate(x.date)||0)-(parseDate(y.date)||0))
         ));
       }
-    }catch(e){console.warn('log fetch fail',e);}
+    }catch(e){waLoadMark('invlog','Histórico de investimentos','fail',e.message);console.warn('log fetch fail',e);}
 
     // 4. CC: modelo mensal via ccRead (aba ContaCorrente / ccMensalData).
     // A leitura legada da aba fantasma "ContasCorrente" foi removida —
@@ -6442,6 +6502,7 @@ async function loadInvFromSheets(){
     const total=Object.values(userAtivos).reduce((s,a)=>s+a.length,0);
     if(typeof toast==='function')toast(instituicoes.length+' instituições · '+total+' ativos','success');
   }catch(e){
+    waLoadMark('inv','Investimentos (cadastro)','fail',e.message);
     if(typeof toast==='function')toast('Erro: '+e.message,'error');
     console.error('[INV] loadInvFromSheets error:',e);
   }
@@ -6462,7 +6523,9 @@ async function syncAll(manual=false){
 
     // 2. Orçamento
     try{
+      waLoadMark('orc','Orçamento','pend');
       const rows=await sheetsRead(SHEETS.orcamento);
+      waLoadMark('orc','Orçamento','ok',(rows?rows.length:0)+' linhas');
       if(rows&&rows.length>0){
         const obj=deserializeKV(rows);
         if(Object.keys(obj).length>0){
@@ -6471,7 +6534,7 @@ async function syncAll(manual=false){
           localStorage.setItem('fluxo_orc',JSON.stringify(orcData));
         }
       }
-    }catch(e){console.warn('orc read fail',e);}
+    }catch(e){waLoadMark('orc','Orçamento','fail',e.message);console.warn('orc read fail',e);}
 
     // 3. Investimentos
     try{await loadInvFromSheets();}catch(e){console.warn('inv read fail',e);}
@@ -6481,7 +6544,9 @@ async function syncAll(manual=false){
 
     // 4. Contas
     try{
+      waLoadMark('contas','Contas','pend');
       const rows=await sheetsRead(SHEETS.contas);
+      waLoadMark('contas','Contas','ok');
       if(rows&&rows.length>0){
         const obj=deserializeKV(rows);
         if(obj.accounts){
@@ -6489,11 +6554,13 @@ async function syncAll(manual=false){
           localStorage.setItem('fluxo_accounts2',JSON.stringify(accounts));
         }
       }
-    }catch(e){console.warn('accounts read fail',e);}
+    }catch(e){waLoadMark('contas','Contas','fail',e.message);console.warn('accounts read fail',e);}
 
     // 5. Pastas
     try{
+      waLoadMark('pastas','Pastas / Categorias','pend');
       const rows=await sheetsRead(SHEETS.pastas);
+      waLoadMark('pastas','Pastas / Categorias','ok');
       if(rows&&rows.length>0){
         const obj=deserializeKV(rows);
         if(obj.invOpts&&obj.invOpts.classes){invOpts=obj.invOpts;try{localStorage.setItem('fluxo_invopts',JSON.stringify(invOpts));}catch(e){}}
@@ -6507,11 +6574,13 @@ async function syncAll(manual=false){
       } else {
         pushToSheets('pastas');
       }
-    }catch(e){console.warn('pastas read fail',e);}
+    }catch(e){waLoadMark('pastas','Pastas / Categorias','fail',e.message);console.warn('pastas read fail',e);}
 
     // 6. Palavras-chave
     try{
+      waLoadMark('kw','Palavras-chave','pend');
       const rows=await sheetsRead(SHEETS.keywords);
+      waLoadMark('kw','Palavras-chave','ok');
       if(rows&&rows.length>0){
         const obj=deserializeKV(rows);
         if(obj.keywords&&Object.keys(obj.keywords).length>0){
@@ -6530,7 +6599,7 @@ async function syncAll(manual=false){
       } else {
         pushToSheets('kw');
       }
-    }catch(e){console.warn('kw read fail',e);}
+    }catch(e){waLoadMark('kw','Palavras-chave','fail',e.message);console.warn('kw read fail',e);}
 
     // 6. Preferencias
     try{
@@ -15584,6 +15653,9 @@ function waSyncIndicator(msg,color,pulse){
   if(!ind){
     ind=document.createElement('div');
     ind.id='wa-sync-ind';
+    ind.title='clique para ver o status das cargas de dados';
+    ind.style.cursor='pointer';
+    ind.onclick=()=>{try{waLoadPanelToggle();}catch(e){}};
     // insert inside sidebar, above .wa-brand
     const sidebar=document.getElementById('wa-sidebar');
     const brand=sidebar?sidebar.querySelector('.wa-brand'):null;
