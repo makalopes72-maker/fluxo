@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#b45309,#dbeafe);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#EFF6FF !important;}
-  #splash .splash-sub{color:rgba(239,246,255,.65) !important;}
-  #splash .splash-version{color:rgba(239,246,255,.35) !important;}
-  #splash .splash-btn{background:#EFF6FF !important;color:#b45309 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#EFF6FF !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#3f4d2b,#e8b4b8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FBEDEE !important;}
+  #splash .splash-sub{color:rgba(251,237,238,.65) !important;}
+  #splash .splash-version{color:rgba(251,237,238,.35) !important;}
+  #splash .splash-btn{background:#FBEDEE !important;color:#3f4d2b !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FBEDEE !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2107,7 +2107,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.77';
+const APP_VERSION='18.78';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -10385,32 +10385,53 @@ function _waCharts2Render(){
     title='Fluxo mensal';sub='receitas × despesas (fixas + variáveis, empilhadas) · linha preta = saldo (régua à direita)'+(showMeta?' · tracejado âmbar = meta':'')+' · '+periodLbl+' · '+pastaLbl+' · clique numa barra para listar os lançamentos';
     const cw=cwN(meses.length);
     const maxV=Math.max(...inArr,...outArr,...(showMeta?metaArr:[0]),1);
-    const yF=v=>pT+(H-pT-pB)*(1-v/maxV);
-    svg='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMin meet" style="width:100%;height:100%;display:block;">'+axes(maxV,0);
+    // zeros coincidentes: o zero das barras e o zero do saldo ficam na MESMA linha.
+    // Havendo saldo negativo, abre-se área abaixo do zero (usada só pela linha do saldo, em vermelho).
+    const sMin=Math.min(...saldoArr,0),sMax=Math.max(...saldoArr,1);
+    const y0=pT+(H-pT-pB)*(sMax/(sMax-sMin)); // linha do zero compartilhada
+    const yF=v=>y0-(v/maxV)*(y0-pT);                        // escala das barras/meta (só ≥0)
+    const yS=v=>pT+(sMax-v)/((sMax-sMin)||1)*(H-pT-pB);     // escala do saldo (régua direita)
+    svg='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMin meet" style="width:100%;height:100%;display:block;">';
+    // grade + rótulos: esquerda (barras, acima do zero) e direita (saldo, altura toda)
+    if(sMin<0)svg+='<rect x="'+pL+'" y="'+y0+'" width="'+(W-pL-pR)+'" height="'+(H-pB-y0)+'" fill="#C62828" opacity=".045"/>';
+    for(let g=0;g<=4;g++){
+      const gy=pT+(H-pT-pB)*g/4;
+      svg+='<line x1="'+pL+'" y1="'+gy+'" x2="'+(W-pR)+'" y2="'+gy+'" stroke="'+GRID+'"/>';
+      if(gy<=y0+0.5){const lv=(y0-gy)/((y0-pT)||1)*maxV;svg+='<text x="'+(pL-6)+'" y="'+(gy+3)+'" text-anchor="end" font-size="8.5" fill="'+MUT+'">'+fmtK(lv)+'</text>';}
+      const sv2=sMax-(sMax-sMin)*g/4;
+      svg+='<line x1="'+(W-pR)+'" y1="'+gy+'" x2="'+(W-pR+4)+'" y2="'+gy+'" stroke="#1a1a1a" stroke-width=".8"/>';
+      svg+='<text x="'+(W-pR+7)+'" y="'+(gy+3)+'" text-anchor="start" font-size="8.5" fill="'+(sv2<0?'#C62828':'#1a1a1a')+'">'+fmtK(sv2)+'</text>';
+    }
+    svg+='<line x1="'+pL+'" y1="'+y0+'" x2="'+(W-pR+4)+'" y2="'+y0+'" stroke="#8A8A82" stroke-width="1.2"/>';
+    svg+='<text x="'+(pL-6)+'" y="'+(y0+3)+'" text-anchor="end" font-size="8.5" fill="#1a1a1a" font-weight="700">0</text>';
+    svg+='<text x="'+(W-4)+'" y="'+(pT-5)+'" text-anchor="end" font-size="7.5" fill="'+MUT+'">saldo</text>';
     const FIX='#7F1D1D',VAR='#DC2626';
     meses.forEach((mm,i)=>{
       const x=pL+i*cw,bw=cw*0.30;
       if(s.drill&&s.drill.y===mm.y&&s.drill.m===mm.m)svg+='<rect x="'+(x+1)+'" y="'+pT+'" width="'+(cw-2)+'" height="'+(H-pT-pB)+'" fill="#1565C0" opacity=".07"/>';
-      svg+='<rect x="'+(x+cw*0.14)+'" y="'+yF(inArr[i])+'" width="'+bw+'" height="'+((H-pB)-yF(inArr[i]))+'" rx="2" fill="'+POS+'" opacity=".85"/>';
+      svg+='<rect x="'+(x+cw*0.14)+'" y="'+yF(inArr[i])+'" width="'+bw+'" height="'+(y0-yF(inArr[i]))+'" rx="2" fill="'+POS+'" opacity=".85"/>';
       const xO=x+cw*0.14+bw+2; // despesas empilhadas: fixas embaixo, variáveis em cima
-      svg+='<rect x="'+xO+'" y="'+yF(outFixArr[i])+'" width="'+bw+'" height="'+((H-pB)-yF(outFixArr[i]))+'" fill="'+FIX+'" opacity=".9"/>';
+      svg+='<rect x="'+xO+'" y="'+yF(outFixArr[i])+'" width="'+bw+'" height="'+(y0-yF(outFixArr[i]))+'" fill="'+FIX+'" opacity=".9"/>';
       svg+='<rect x="'+xO+'" y="'+yF(outFixArr[i]+outVarArr[i])+'" width="'+bw+'" height="'+(yF(outFixArr[i])-yF(outFixArr[i]+outVarArr[i]))+'" rx="2" fill="'+VAR+'" opacity=".8"/>';
     });
     if(showMeta)svg+='<polyline points="'+metaArr.map((v,i)=>(pL+i*cw+cw/2)+','+yF(v)).join(' ')+'" fill="none" stroke="#D97706" stroke-width="1.8" stroke-dasharray="6 3"/>';
-    const mn=Math.min(...saldoArr,0),mx=Math.max(...saldoArr,1);
-    svg+=line(saldoArr,'#1a1a1a',mn,mx);
-    { // régua do saldo (eixo direito, nas mesmas alturas da grade)
-      const rng2=(mx-mn)||1;
-      for(let g=0;g<=4;g++){const gv=mn+rng2*g/4,gy=pT+(H-pT-pB)*(1-g/4);
-        svg+='<line x1="'+(W-pR)+'" y1="'+gy+'" x2="'+(W-pR+4)+'" y2="'+gy+'" stroke="#1a1a1a" stroke-width=".8"/>';
-        svg+='<text x="'+(W-pR+7)+'" y="'+(gy+3)+'" text-anchor="start" font-size="8.5" fill="#1a1a1a">'+fmtK(gv)+'</text>';}
-      svg+='<text x="'+(W-4)+'" y="'+(pT-5)+'" text-anchor="end" font-size="7.5" fill="'+MUT+'">saldo</text>';
+    { // linha do saldo: preta acima do zero, vermelha abaixo (segmentos cortados na travessia)
+      const X=i=>pL+i*cw+cw/2;
+      for(let i=0;i<saldoArr.length-1;i++){
+        const a=saldoArr[i],b=saldoArr[i+1];
+        const x1=X(i),x2=X(i+1);
+        if(a>=0===(b>=0)){svg+='<line x1="'+x1+'" y1="'+yS(a)+'" x2="'+x2+'" y2="'+yS(b)+'" stroke="'+(a<0||b<0?'#C62828':'#1a1a1a')+'" stroke-width="2"/>';}
+        else{const f=a/(a-b);const xc=x1+(x2-x1)*f;
+          svg+='<line x1="'+x1+'" y1="'+yS(a)+'" x2="'+xc+'" y2="'+y0+'" stroke="'+(a<0?'#C62828':'#1a1a1a')+'" stroke-width="2"/>';
+          svg+='<line x1="'+xc+'" y1="'+y0+'" x2="'+x2+'" y2="'+yS(b)+'" stroke="'+(b<0?'#C62828':'#1a1a1a')+'" stroke-width="2"/>';}
+      }
+      saldoArr.forEach((v,i)=>{svg+='<circle cx="'+X(i)+'" cy="'+yS(v)+'" r="2.4" fill="'+(v<0?'#C62828':'#1a1a1a')+'"/>';});
     }
     meses.forEach((mm,i)=>{const cw2=(W-pL-pR)/Math.max(meses.length,1);
       const tip='<b>'+MESES[mm.m]+' '+mm.y+'</b><br>Receitas: '+fmtR(inArr[i])+'<br>Despesas: '+fmtR(outArr[i])+'<br>· fixas: '+fmtR(outFixArr[i])+'<br>· variáveis: '+fmtR(outVarArr[i])+(showMeta?'<br>Meta: '+fmtR(metaArr[i]):'')+'<br>Saldo: <b>'+fmtR(saldoArr[i])+'</b>';
       svg+='<rect x="'+(pL+i*cw2)+'" y="'+pT+'" width="'+cw2+'" height="'+(H-pT-pB)+'" fill="transparent" onclick="waC2Drill('+mm.y+','+mm.m+')"'+tipA(tip)+'/>';});
     svg+=mLabels()+'</svg>';
-    extra='<span><span style="display:inline-block;width:10px;height:8px;background:'+POS+';border-radius:2px;"></span> receitas</span><span><span style="display:inline-block;width:10px;height:8px;background:#7F1D1D;border-radius:2px;"></span> desp. fixas</span><span><span style="display:inline-block;width:10px;height:8px;background:#DC2626;border-radius:2px;"></span> desp. variáveis</span>'+(s.showMeta!==false?'<span><span style="display:inline-block;width:12px;height:2px;background:#D97706;vertical-align:middle;"></span> meta</span>':'')+'<span><span style="display:inline-block;width:12px;height:2px;background:#1a1a1a;vertical-align:middle;"></span> saldo (escala própria)</span>';
+    extra='<span><span style="display:inline-block;width:10px;height:8px;background:'+POS+';border-radius:2px;"></span> receitas</span><span><span style="display:inline-block;width:10px;height:8px;background:#7F1D1D;border-radius:2px;"></span> desp. fixas</span><span><span style="display:inline-block;width:10px;height:8px;background:#DC2626;border-radius:2px;"></span> desp. variáveis</span>'+(s.showMeta!==false?'<span><span style="display:inline-block;width:12px;height:2px;background:#D97706;vertical-align:middle;"></span> meta</span>':'')+'<span><span style="display:inline-block;width:12px;height:2px;background:#C62828;vertical-align:middle;"></span> saldo negativo</span>'+'<span><span style="display:inline-block;width:12px;height:2px;background:#1a1a1a;vertical-align:middle;"></span> saldo (escala própria)</span>';
   }
   else if(s.chart==='acum'){
     title='Acumulado';sub='soma corrente do saldo líquido · '+periodLbl+' · '+pastaLbl;
