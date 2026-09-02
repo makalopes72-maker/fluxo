@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#9d174d,#a7f3d0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#ECFDF5 !important;}
-  #splash .splash-sub{color:rgba(236,253,245,.65) !important;}
-  #splash .splash-version{color:rgba(236,253,245,.35) !important;}
-  #splash .splash-btn{background:#ECFDF5 !important;color:#9d174d !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#ECFDF5 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1f2937,#fca5a5);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FEF2F2 !important;}
+  #splash .splash-sub{color:rgba(254,242,242,.65) !important;}
+  #splash .splash-version{color:rgba(254,242,242,.35) !important;}
+  #splash .splash-btn{background:#FEF2F2 !important;color:#1f2937 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FEF2F2 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2108,7 +2108,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.87';
+const APP_VERSION='18.88';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -11017,6 +11017,9 @@ function _waInv2Render(){
       .wd2-wrap.wi2 .wi2-det{flex:1;min-height:0;overflow-y:auto;}
       .wd2-wrap.wi2 .wi2-tbl th{position:sticky;top:0;background:#fff;z-index:1;}
       #wi2-tbl::-webkit-scrollbar,.wi2-det::-webkit-scrollbar{width:6px;} #wi2-tbl::-webkit-scrollbar-thumb,.wi2-det::-webkit-scrollbar-thumb{background:#D8D6CC;border-radius:3px;}
+      /* fonte: a mesma do Quadro 2.0 (--wad-font-geral), em toda a tela e nos modais */
+      .wd2-wrap.wi2,.wd2-wrap.wi2 button,.wd2-wrap.wi2 input,.wd2-wrap.wi2 select,.wd2-wrap.wi2 textarea,
+      #wi2-ov,#wi2-ov button,#wi2-ov input,#wi2-ov select,#wi2-ov textarea{font-family:var(--wad-font-geral) !important;}
       @media (max-width:1100px){.wi2-grid{grid-template-columns:minmax(0,1fr);} .wd2-wrap.wi2{height:auto;display:block;overflow:visible;padding-bottom:20px;} .wd2-wrap.wi2 .wi2-panel{display:block;} .wd2-wrap.wi2 #wi2-tbl,.wd2-wrap.wi2 .wi2-det{overflow:visible;}}
       .wi2-ph{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #E4E2DA;flex-wrap:wrap;}
       .wi2-tab{padding:4px 11px;border-radius:100px;border:1px solid #D8D6CC;background:transparent;color:#8A8A82;font-family:var(--font-body);font-size:11px;cursor:pointer;}
