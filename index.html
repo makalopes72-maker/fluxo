@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#3b0764,#d9f99d);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F7FEE7 !important;}
-  #splash .splash-sub{color:rgba(247,254,231,.65) !important;}
-  #splash .splash-version{color:rgba(247,254,231,.35) !important;}
-  #splash .splash-btn{background:#F7FEE7 !important;color:#3b0764 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F7FEE7 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#020617,#22d3ee);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECFEFF !important;}
+  #splash .splash-sub{color:rgba(236,254,255,.65) !important;}
+  #splash .splash-version{color:rgba(236,254,255,.35) !important;}
+  #splash .splash-btn{background:#ECFEFF !important;color:#020617 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#ECFEFF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -106,7 +106,7 @@
   .add-save-bar{flex-shrink:0;padding:10px 12px 20px;background:var(--bg);border-top:1px solid var(--border);display:flex;gap:8px;}
   .btn-save-sync{flex:1;padding:14px 8px;border-radius:12px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.78rem;cursor:pointer;}
   .btn-save-main{flex:1;padding:14px 8px;border-radius:12px;border:none;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.88rem;font-weight:800;letter-spacing:.04em;cursor:pointer;text-transform:uppercase;}
-  .btn-save-main.saving{opacity:.6;pointer-events:none;}
+  .btn-save-main.saving,.btn-save-sync.saving{opacity:.7;pointer-events:none;animation:waBlink .8s ease-in-out infinite;}
   .btn-save-main.saved{background:#22c55e !important;}
   #screen-dash.active{display:flex;flex-direction:column;}
   @keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
@@ -1250,6 +1250,7 @@
     <button class="menu-item" id="mitem-orc" onclick="goScreen('orc');closeMenu()"><span class="menu-item-icon">🎯</span><span class="menu-item-label">Orçamento</span></button>
     <button class="menu-item" id="mitem-cfg" onclick="goScreen('cfg');closeMenu()"><span class="menu-item-icon">⚙</span><span class="menu-item-label">Configurações</span></button>
     <div class="menu-divider"></div>
+    <button class="menu-item" onclick="waLoadPanelToggle();closeMenu()"><span class="menu-item-icon">⏱</span><span class="menu-item-label">Status de carga</span></button>
     <button class="menu-item" onclick="syncAll(true);closeMenu()"><span class="menu-item-icon">↻</span><span class="menu-item-label">Sincronizar tudo</span></button>
   </div>
   <!-- footer -- logo + user + logout sempre visível no fundo -->
@@ -1730,6 +1731,15 @@
   <div id="upd-modal">
     <div class="upd-sheet">
       <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px;" id="upd-modal-title">Declarar saldo atual</div><div style="font-size:.62rem;color:var(--muted);margin-bottom:8px;">O sistema calculará a variação automaticamente.</div>
+      <div id="upd-usd-box" style="display:none;margin-bottom:10px;background:rgba(21,101,192,.08);border-radius:10px;padding:8px;">
+        <div style="font-size:.62rem;color:var(--muted);margin-bottom:5px;">Ativo em dólar — informe US$ e cotação; o R$ é calculado (US$ × cotação)</div>
+        <div style="display:flex;gap:8px;">
+          <div style="flex:1;"><label style="font-size:.62rem;color:var(--muted);display:block;margin-bottom:2px;">saldo em US$</label>
+            <input type="text" inputmode="decimal" id="upd-usd-input" placeholder="0,00" oninput="updUsdCalc()" style="width:100%;padding:7px 9px;border-radius:8px;border:1px solid var(--border);font-size:.85rem;font-family:var(--font-body);background:var(--bg);color:var(--font);box-sizing:border-box;"></div>
+          <div style="flex:1;"><label style="font-size:.62rem;color:var(--muted);display:block;margin-bottom:2px;">cotação R$/US$</label>
+            <input type="text" inputmode="decimal" id="upd-cot-input" placeholder="5,40" oninput="updUsdCalc()" style="width:100%;padding:7px 9px;border-radius:8px;border:1px solid var(--border);font-size:.85rem;font-family:var(--font-body);background:var(--bg);color:var(--font);box-sizing:border-box;"></div>
+        </div>
+      </div>
       <div style="margin-bottom:10px;">
         <label style="font-size:.7rem;color:var(--muted);display:block;margin-bottom:4px;">Data do saldo</label>
         <input type="date" id="upd-date-input" style="width:100%;padding:8px 12px;border-radius:10px;border:1px solid var(--border);font-size:.85rem;font-family:var(--font-body);background:var(--bg);color:var(--font);">
@@ -2108,7 +2118,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.93';
+const APP_VERSION='19.00';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -5634,6 +5644,22 @@ function openUpdModal(){
   if(obs)obs.value='';
   const title=document.getElementById('upd-modal-title');
   if(title)title.textContent='Saldo atual — '+a.nome;
+  // ativo em dólar: mostra US$ + cotação pré-preenchidos com o último registro
+  const ub=document.getElementById('upd-usd-box');
+  const isU=(typeof _i2IsUSD==='function')&&_i2IsUSD(a);
+  if(ub)ub.style.display=isU?'block':'none';
+  if(isU){
+    const last=[...(a.log||[])].reverse().find(l=>l.usd>0);
+    const f2=(v,d)=>Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:d});
+    const ui=document.getElementById('upd-usd-input'),ci=document.getElementById('upd-cot-input');
+    if(ui)ui.value=last&&last.usd>0?f2(last.usd,2):'';
+    if(ci)ci.value=last&&last.cot>0?f2(last.cot,4):'';
+  }
+}
+function updUsdCalc(){ // R$ = US$ × cotação (regra do app)
+  const u=parseBRNumber((document.getElementById('upd-usd-input')?.value||'').trim());
+  const ct=parseBRNumber((document.getElementById('upd-cot-input')?.value||'').trim());
+  if(u>0&&ct>0){updCents=Math.round(u*ct*100);updVal2();}
 }
 
 function closeUpdModal(){
@@ -5677,10 +5703,16 @@ async function saveUpdVal(){
   const deltaMob=(updCents/100)-prevMob;
   const noteMob=obs||'Atualização de saldo';
   const valMob=updCents/100;
-  a.log.push({date:dateStr,value:valMob,note:noteMob});
+  // ativo em dólar: registra US$ e cotação junto (mesmas colunas do web)
+  const _isU=(typeof _i2IsUSD==='function')&&_i2IsUSD(a);
+  const _u=_isU?parseBRNumber((document.getElementById('upd-usd-input')?.value||'').trim()):NaN;
+  const _ct=_isU?parseBRNumber((document.getElementById('upd-cot-input')?.value||'').trim()):NaN;
+  const entry={date:dateStr,value:valMob,note:noteMob};
+  if(_isU&&_u>0){entry.usd=_u;if(_ct>0)entry.cot=_ct;}
+  a.log.push(entry);
   const _userM=currentUser||'ALE';
   const _instM=instituicoes[currentInstIdx];
-  if(_instM)await sheetsAppendLog(_userM,_instM.name,a.nome,dateStr,valMob,noteMob);
+  if(_instM)await sheetsAppendLog(_userM,_instM.name,a.nome,dateStr,valMob,noteMob,(_isU&&_u>0)?_u:undefined,(_isU&&_ct>0)?_ct:undefined);
   saveInvestimentos();
   openAtivo(currentAtivoIdx);
   closeUpdModal();
@@ -5803,7 +5835,7 @@ function getOrcValForMonth(tipo,cat,year,month){
   if(o.months&&o.months[key]!==undefined)return o.months[key];
   // year-specific default
   const yr=String(year);
-  const def=(o.defaults&&o.defaults[yr]!=null)?o.defaults[yr]:(o.default||0);
+  const def=(o.defaults&&o.defaults[yr]!=null)?o.defaults[yr]:(Number(yr)===ORC2_LEGACY_YEAR?(o.default||0):0);
   if(o.period==='semanal')return def*(52/12);
   if(o.period==='anual')return def/12;
   return def;
@@ -5943,7 +5975,8 @@ function openOrcEdit(tipo,cat){
   // mobile mode: original behavior
   const t=document.getElementById('orc-edit-title');if(t)t.textContent='Orçamento: '+cat;
   const inp=document.getElementById('orc-edit-default');
-  if(inp)inp.value=o.default>0?o.default.toFixed(2).replace('.',','):'';
+  const _dv0=(typeof orc2YearDefault==='function'?orc2YearDefault(o,orcYear||new Date().getFullYear()):o.default)||0;
+  if(inp)inp.value=_dv0>0?_dv0.toFixed(2).replace('.',','):'';
   document.querySelectorAll('#orc-edit-modal .orc-edit-seg-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('#orc-edit-modal .orc-edit-seg').forEach((seg,i)=>{
     const vals=[['mensal','semanal','anual'],['F','V'],['A','R']];
@@ -6030,8 +6063,8 @@ function waOrcSave(){
   const yr=String((window.waDashYear)||new Date().getFullYear());
   if(!o.defaults)o.defaults={};
   o.defaults[yr]=n;
-  // also update legacy default for mobile compatibility
-  o.default=n;
+  // legado cd.default pertence ao orçamento de 2026 — só espelha nesse ano
+  if(Number(yr)===ORC2_LEGACY_YEAR)o.default=n;
   o.period=_orcEditPeriod;o.tipo=_orcEditTipoFC;o.farol=_orcEditFarol;
   saveOrc();
   pushToSheets('orc');
@@ -6065,7 +6098,8 @@ function saveOrcEdit(){
   if(!o.defaults)o.defaults={};
   const _saveYr=String(orcYear||new Date().getFullYear());
   o.defaults[_saveYr]=n;
-  o.default=n;o.period=_orcEditPeriod;o.tipo=_orcEditTipoFC;o.farol=_orcEditFarol;
+  if(Number(_saveYr)===ORC2_LEGACY_YEAR)o.default=n; // legado = orçamento de 2026
+  o.period=_orcEditPeriod;o.tipo=_orcEditTipoFC;o.farol=_orcEditFarol;
   saveOrc();closeOrcEdit();renderOrc();renderDashFarois();
   // re-renderiza a TELA ATIVA (permanece no Quadro 2.0 / Orçamento 2.0; não volta ao Início)
   if(typeof waActiveDashFullRender==='function')waActiveDashFullRender();
@@ -6084,7 +6118,8 @@ function renderDashFarois(){
     (tiposData[tipo]?.cats||[]).filter(c=>c.active).forEach(c=>{
       const cat=c.name;
       const o=getOrcCat(tipo,cat);
-      if(o.default<=0)return;
+      const _dA=(typeof orc2YearDefault==='function'?orc2YearDefault(o,year):o.default)||0;
+      if(_dA<=0)return;
       const farol=getFarol(tipo,cat,year,month);
       if(farol&&farol!=='verde'){
         const prev=getOrcValForMonth(tipo,cat,year,month);
@@ -6247,7 +6282,7 @@ function waLoadPanelToggle(){
   const p=document.getElementById('wa-load-panel');
   if(p){p.remove();return;}
   const d=document.createElement('div');d.id='wa-load-panel';
-  d.style.cssText='position:fixed;left:14px;bottom:14px;z-index:9600;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.25);padding:12px 14px;width:320px;max-height:70vh;overflow-y:auto;font-family:var(--font-body);';
+  d.style.cssText='position:fixed;left:14px;bottom:14px;z-index:9600;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.25);padding:12px 14px;width:min(320px,92vw);max-height:70vh;overflow-y:auto;font-family:var(--font-body);';
   document.body.appendChild(d);
   waLoadPanelRender();
 }
