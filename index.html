@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#134e5e,#f5e6a8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FCF8E8 !important;}
-  #splash .splash-sub{color:rgba(252,248,232,.65) !important;}
-  #splash .splash-version{color:rgba(252,248,232,.35) !important;}
-  #splash .splash-btn{background:#FCF8E8 !important;color:#134e5e !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FCF8E8 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#556b2f,#d8d0e3);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F1EDF6 !important;}
+  #splash .splash-sub{color:rgba(241,237,246,.65) !important;}
+  #splash .splash-version{color:rgba(241,237,246,.35) !important;}
+  #splash .splash-btn{background:#F1EDF6 !important;color:#556b2f !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F1EDF6 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -961,6 +961,7 @@
   #wa-side-qdate .qd-big.old{color:#C62828;}
   #wa-side-qdate input{display:none;width:100%;margin-top:4px;font-size:12px;border:1px solid var(--border);border-radius:6px;padding:3px;background:var(--bg);color:var(--font);box-sizing:border-box;}
   #wa-sidebar.collapsed #wa-side-qdate{display:none;}
+  @keyframes waBlink{0%,100%{opacity:1;}50%{opacity:.35;}}
   .wd2-wrap.wc2{height:100%;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;padding-bottom:0;}
   #wa-sidebar.collapsed .wa-nav-item{justify-content:center;padding:9px 0;gap:0;}
   #wa-sidebar.collapsed .wa-brand{justify-content:center;padding:10px 0;}
@@ -2107,7 +2108,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.82';
+const APP_VERSION='18.84';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3444,6 +3445,15 @@ function logout(){
 
 // -- NAV --
 function goScreen(name){
+  // No modo web, chamadas herdadas do fluxo mobile (ex.: pós-salvar → 'dash') iam parar
+  // em telas antigas/inativas. Redireciona para a tela web equivalente.
+  if(typeof waIsWeb==='function'&&waIsWeb()){
+    const wapp=document.getElementById('web-app');
+    if(wapp&&wapp.style.display!=='none'){
+      const map={dash:'dash2',hist:'add',add:'add',inv:'inv2',cart:'inv2',ativo:'inv2',orc:'orc2'};
+      if(map[name]){try{waGo(map[name]);}catch(e){}return;}
+    }
+  }
   try{exitFieldsMode();}catch(e){}
   // hide all special screens
   const _sh=document.getElementById('screen-hist');if(_sh)_sh.style.display='none';
@@ -8527,72 +8537,72 @@ function waRenderLaunchForm(){
   body.innerHTML=`
     <div style="display:flex;flex-shrink:0;border-bottom:1px solid var(--border);">
       ${['saída','entrada','transferência'].map(t=>`
-        <button onclick="waSetType('${t}')" style="flex:1;padding:8px 2px;border:none;cursor:pointer;font-family:var(--font-body);font-size:.6rem;font-weight:700;text-transform:uppercase;background:${s.type===t?typeColor:'var(--bg)'};color:${s.type===t?'#fff':'var(--muted)'};">
+        <button onclick="waSetType('${t}')" style="flex:1;padding:10px 2px;border:none;cursor:pointer;font-family:var(--font-body);font-size:.74rem;font-weight:800;text-transform:uppercase;background:${s.type===t?typeColor:'var(--bg)'};color:${s.type===t?'#fff':'var(--muted)'};">
           ${t==='saída'?'↓ Saída':t==='entrada'?'↑ Entrada':'⇄ Transf.'}
         </button>`).join('')}
       <div onclick="waToggleConsol()" title="${s.consolidated?'Efetivada — clique para marcar como prevista':'Prevista — clique para efetivar'}" style="width:54px;flex-shrink:0;display:flex;flex-direction:column;gap:1px;align-items:center;justify-content:center;border-left:1px solid var(--border);cursor:pointer;background:${s.consolidated?'var(--font)':'transparent'};">
-        <span style="font-size:.72rem;font-weight:900;color:${s.consolidated?'var(--bg)':'var(--muted)'};">${s.consolidated?'✓':'○'}</span>
-        <span style="font-size:.44rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:${s.consolidated?'var(--bg)':'var(--muted)'};">${s.consolidated?'Efetivada':'Prevista'}</span>
+        <span style="font-size:.82rem;font-weight:900;color:${s.consolidated?'var(--bg)':'var(--muted)'};">${s.consolidated?'✓':'○'}</span>
+        <span style="font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:${s.consolidated?'var(--bg)':'var(--muted)'};">${s.consolidated?'Efetivada':'Prevista'}</span>
       </div>
     </div>
     <div style="background:${typeColor};padding:7px 12px;flex-shrink:0;display:flex;align-items:center;gap:8px;">
       <div style="flex:1;">
-        <div style="font-size:.58rem;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.08em;margin-bottom:1px;">${typeLabel}</div>
+        <div style="font-size:.66rem;color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.08em;margin-bottom:1px;">${typeLabel}</div>
         <input id="wa-val-input" type="text" inputmode="decimal" value="${valDisplay}"
           onfocus="waValInputFocus(this)" onblur="waValInputBlur(this)"
           onkeydown="if(!/[0-9,\.\+\-\*\/\=\,\b]/.test(event.key)&&event.key!='Backspace'&&event.key!='Tab')event.preventDefault();"
-          style="font-family:var(--font-display);font-size:1.5rem;color:#fff;letter-spacing:-1px;background:transparent;border:none;outline:none;width:100%;">
+          style="font-family:var(--font-display);font-size:1.9rem;color:#fff;letter-spacing:-1px;background:transparent;border:none;outline:none;width:100%;">
       </div>
       <button onclick="waKp('del')" style="color:rgba(255,255,255,.7);background:transparent;border:none;font-size:1rem;cursor:pointer;padding:4px;">⌫</button>
     </div>
     <div id="wa-kp" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);flex-shrink:0;">
       ${[['7','8','9','÷'],['4','5','6','×'],['1','2','3','−'],[',00','0','=','+']].map(row=>
-        row.map((k,i)=>`<div onclick="waKp('${k}')" style="background:${k==='='?'var(--btn)':i===3?'var(--kp-dark)':'var(--kp)'};display:flex;align-items:center;justify-content:center;padding:7px 0;font-family:var(--font-body);font-size:${i===3||k===',00'?'.78rem':'.9rem'};font-weight:700;color:${k==='='?'#0f0f11':i===3?'var(--muted)':'var(--font)'};cursor:pointer;user-select:none;">${k}</div>`).join('')
+        row.map((k,i)=>`<div onclick="waKp('${k}')" style="background:${k==='='?'var(--btn)':i===3?'var(--kp-dark)':'var(--kp)'};display:flex;align-items:center;justify-content:center;padding:9px 0;font-family:var(--font-body);font-size:${i===3||k===',00'?'.85rem':'1rem'};font-weight:700;color:${k==='='?'#0f0f11':i===3?'var(--muted)':'var(--font)'};cursor:pointer;user-select:none;">${k}</div>`).join('')
       ).join('')}
     </div>
     <div style="flex-shrink:0;padding:6px 8px;display:flex;flex-direction:column;gap:5px;border-top:1px solid var(--border);">
       <div style="background:var(--card);border-radius:8px;display:flex;align-items:center;gap:6px;padding:6px 8px;position:relative;">
-        <span style="font-size:.75rem;flex-shrink:0;">📝</span>
+        <span style="font-size:.9rem;flex-shrink:0;">📝</span>
         <input id="wa-desc" value="${s.desc}" placeholder="Descrição" oninput="waDescInput(this.value)" autocomplete="off"
           onkeydown="if(event.key==='Tab'){const ac=document.getElementById('wa-ac');if(ac&&ac.style.display!=='none'&&ac._matches&&ac._matches.length){event.preventDefault();const m=ac._matches[0];waPickKw(m.kwOrig,m.tipo,m.cat);}}"
           onblur="setTimeout(()=>waCloseAc(),200)"
-          style="flex:1;border:none;background:transparent;font-family:var(--font-body);font-size:.75rem;color:var(--font);outline:none;min-width:0;">
+          style="flex:1;border:none;background:transparent;font-family:var(--font-body);font-size:.95rem;color:var(--font);outline:none;min-width:0;">
       </div>
       <div id="wa-ac" style="display:none;position:fixed;z-index:999;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.18);max-height:200px;overflow-y:auto;min-width:200px;"></div>
       <div style="display:flex;gap:5px;">
-        <div onclick="waOpenPicker('tipo')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:5px;padding:6px 8px;cursor:pointer;min-width:0;">
-          <span style="font-size:.7rem;flex-shrink:0;">📂</span>
-          <span style="font-size:.68rem;color:${s.tipo?'var(--font)':'var(--muted)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.tipo||(s.tipo?'':'Pasta')}</span>
+        <div onclick="waOpenPicker('tipo')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:7px;padding:9px 10px;cursor:pointer;min-width:0;">
+          <span style="font-size:.88rem;flex-shrink:0;">📂</span>
+          <span style="font-size:.86rem;font-weight:600;color:${s.tipo?'var(--font)':'var(--muted)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.tipo||(s.tipo?'':'Pasta')}</span>
         </div>
-        <div onclick="waOpenPicker('cat')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:5px;padding:6px 8px;cursor:pointer;min-width:0;">
-          <span style="font-size:.7rem;flex-shrink:0;">🏷</span>
-          <span style="font-size:.68rem;color:${s.cat?'var(--font)':'var(--muted)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.cat||'Categoria'}</span>
+        <div onclick="waOpenPicker('cat')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:7px;padding:9px 10px;cursor:pointer;min-width:0;">
+          <span style="font-size:.88rem;flex-shrink:0;">🏷</span>
+          <span style="font-size:.86rem;font-weight:600;color:${s.cat?'var(--font)':'var(--muted)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.cat||'Categoria'}</span>
         </div>
       </div>
       <div style="display:flex;gap:5px;">
-        <div onclick="waOpenDatePicker()" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:5px;padding:6px 8px;cursor:pointer;">
-          <span style="font-size:.7rem;flex-shrink:0;">📅</span>
-          <span style="font-size:.68rem;color:var(--font);">${s.date}</span>
+        <div onclick="waOpenDatePicker()" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:7px;padding:9px 10px;cursor:pointer;">
+          <span style="font-size:.88rem;flex-shrink:0;">📅</span>
+          <span style="font-size:.86rem;font-weight:600;color:var(--font);">${s.date}</span>
         </div>
         ${s.type!=='transferência'?`
-        <div onclick="waOpenPicker('conta')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:5px;padding:6px 8px;cursor:pointer;min-width:0;">
-          <span style="font-size:.7rem;flex-shrink:0;">🏦</span>
-          <span style="font-size:.68rem;color:${s.conta?'var(--font)':'var(--muted)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.conta||'Conta'}</span>
+        <div onclick="waOpenPicker('conta')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:7px;padding:9px 10px;cursor:pointer;min-width:0;">
+          <span style="font-size:.88rem;flex-shrink:0;">🏦</span>
+          <span style="font-size:.86rem;font-weight:600;color:${s.conta?'var(--font)':'var(--muted)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.conta||'Conta'}</span>
         </div>`:''}
       </div>
       ${s.type==='transferência'?`
       <div style="display:flex;gap:5px;">
-        <div onclick="waOpenTransfPicker('origem')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:5px;padding:6px 8px;cursor:pointer;min-width:0;border-left:3px solid #E53935;">
-          <span style="font-size:.7rem;flex-shrink:0;">↑</span>
-          <span style="font-size:.68rem;color:${waTransfOrigem?'var(--font)':'var(--muted)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${waTransfOrigemLabel||waTransfOrigem||'Conta / Investimento'}</span>
+        <div onclick="waOpenTransfPicker('origem')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:7px;padding:9px 10px;cursor:pointer;min-width:0;border-left:3px solid #E53935;">
+          <span style="font-size:.88rem;flex-shrink:0;">↑</span>
+          <span style="font-size:.86rem;font-weight:600;color:${waTransfOrigem?'var(--font)':'var(--muted)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${waTransfOrigemLabel||waTransfOrigem||'Conta / Investimento'}</span>
         </div>
-        <div onclick="waOpenTransfPicker('destino')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:5px;padding:6px 8px;cursor:pointer;min-width:0;border-left:3px solid #059669;">
-          <span style="font-size:.7rem;flex-shrink:0;">↓</span>
-          <span style="font-size:.68rem;color:${waTransfDestino?'var(--font)':'var(--muted)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${waTransfDestinoLabel||waTransfDestino||'Conta / Investimento'}</span>
+        <div onclick="waOpenTransfPicker('destino')" style="flex:1;background:var(--card);border-radius:8px;display:flex;align-items:center;gap:7px;padding:9px 10px;cursor:pointer;min-width:0;border-left:3px solid #059669;">
+          <span style="font-size:.88rem;flex-shrink:0;">↓</span>
+          <span style="font-size:.86rem;font-weight:600;color:${waTransfDestino?'var(--font)':'var(--muted)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${waTransfDestinoLabel||waTransfDestino||'Conta / Investimento'}</span>
         </div>
       </div>`:''}
       ${s.type!=='transferência'?`<div style="display:flex;background:var(--kp);border-radius:8px;padding:2px;gap:2px;flex-shrink:0;">
-        ${['normal','parcelar','avancado'].map(m=>`<button onclick="waSetMode('${m}')" style="flex:1;padding:5px 2px;border-radius:6px;border:none;font-family:var(--font-body);font-size:.6rem;font-weight:600;cursor:pointer;background:${s.mode===m?'var(--bg)':'transparent'};color:${s.mode===m?'var(--font)':'var(--muted)'};">${m==='normal'?'Normal':m==='parcelar'?'Parcelar':'Avançado'}</button>`).join('')}
+        ${['normal','parcelar','avancado'].map(m=>`<button onclick="waSetMode('${m}')" style="flex:1;padding:7px 2px;border-radius:6px;border:none;font-family:var(--font-body);font-size:.7rem;font-weight:700;cursor:pointer;background:${s.mode===m?'var(--bg)':'transparent'};color:${s.mode===m?'var(--font)':'var(--muted)'};">${m==='normal'?'Normal':m==='parcelar'?'Parcelar':'Avançado'}</button>`).join('')}
       </div>`:''}
       ${s.mode==='parcelar'?`<div style="background:var(--card);border-radius:8px;padding:7px 10px;display:flex;flex-direction:column;gap:5px;">
         <div style="display:flex;gap:8px;align-items:center;">
@@ -8613,10 +8623,10 @@ function waRenderLaunchForm(){
           <div style="flex:1;"><div style="font-size:.58rem;color:var(--muted);">Até</div><input type="number" value="${s.advParcFim||''}" min="2" placeholder="Ex:12" inputmode="numeric" oninput="waLaunchState.advParcFim=parseInt(this.value)||null;waRenderLaunchForm();" style="width:100%;padding:4px;border-radius:6px;border:1px solid var(--border);background:var(--kp);color:var(--font);font-family:var(--font-body);font-size:.8rem;text-align:center;outline:none;margin-top:2px;"></div>
         </div>
       </div>`:''}
-      ${s.editingIdx!==null?`<button onclick="waDelTx(${s.editingIdx})" style="padding:6px;border-radius:8px;border:1px solid var(--red);background:transparent;color:var(--red);font-family:var(--font-body);font-size:.65rem;cursor:pointer;">🗑 Excluir</button>`:''}
+      ${s.editingIdx!==null?`<button onclick="waDelTx(${s.editingIdx})" style="padding:6px;border-radius:8px;border:1px solid var(--red);background:transparent;color:var(--red);font-family:var(--font-body);font-size:.78rem;cursor:pointer;">🗑 Excluir</button>`:''}
       <div style="display:flex;gap:5px;">
-        <button onclick="waResetLaunch()" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.68rem;cursor:pointer;">✕ Cancelar</button>
-        <button onclick="waSave()" style="flex:1;padding:8px;border-radius:8px;border:none;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.72rem;font-weight:800;cursor:pointer;">${s.editingIdx!==null?'ATUALIZAR':'SALVAR'}</button>
+        <button onclick="waResetLaunch()" style="flex:1;padding:11px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:.8rem;cursor:pointer;">✕ Cancelar</button>
+        <button onclick="waSave()" style="flex:1;padding:12px;border-radius:8px;border:none;background:var(--btn);color:#0f0f11;font-family:var(--font-body);font-size:.9rem;font-weight:800;letter-spacing:.03em;cursor:pointer;">${s.editingIdx!==null?'ATUALIZAR':'SALVAR'}</button>
       </div>
     </div>
   `;
@@ -9013,8 +9023,8 @@ async function waSave(){
 
   // disable save button immediately
   const _saveBtn=document.querySelector('#wa-right-body button[onclick="waSave()"]');
-  if(_saveBtn){_saveBtn.disabled=true;_saveBtn.textContent='SALVANDO…';}
-  const _restoreBtn=()=>{if(_saveBtn){_saveBtn.disabled=false;_saveBtn.textContent=s.editingIdx!==null?'ATUALIZAR':'SALVAR';}};
+  if(_saveBtn){_saveBtn.disabled=true;_saveBtn.textContent='SALVANDO…';_saveBtn.style.animation='waBlink .8s ease-in-out infinite';}
+  const _restoreBtn=()=>{if(_saveBtn){_saveBtn.disabled=false;_saveBtn.textContent=s.editingIdx!==null?'ATUALIZAR':'SALVAR';_saveBtn.style.animation='';}};
 
   // keyword check vars — declared here so accessible after if block
   let _kwDesc=null,_kwTipo=null,_kwCat=null;
@@ -10684,21 +10694,23 @@ function _waCharts2Render(){
       return pastaOk(getTipoPasta(t));
     }).sort((a,b)=>(parseDate(a.date)||0)-(parseDate(b.date)||0));
     let tIn=0,tOut=0;txs.forEach(t=>{if(t.type==='entrada')tIn+=Math.abs(t.value);else tOut+=Math.abs(t.value);});
-    drillHtml='<div style="flex:1;min-height:0;overflow-y:auto;border-top:1px solid #E4E2DA;margin-top:8px;padding-top:2px;">'
-      +'<div style="display:flex;align-items:center;gap:10px;font-size:10.5px;margin-bottom:4px;position:sticky;top:0;background:#fff;padding:4px 0;z-index:1;">'
-      +'<b>'+MESES[dm]+' '+dy+'</b><span style="color:#999;">'+txs.length+' lançamento'+(txs.length===1?'':'s')+'</span>'
-      +'<span style="color:'+POS+';">+ '+fmtR(tIn)+'</span><span style="color:'+NEG+';">− '+fmtR(tOut)+'</span>'
-      +'<span style="color:#1a1a1a;font-weight:700;">= '+fmtR(tIn-tOut)+'</span>'
-      +'<button onclick="waC2Drill('+dy+','+dm+')" style="margin-left:auto;border:none;background:transparent;color:#999;cursor:pointer;font-size:12px;">✕ fechar</button></div>';
-    if(!txs.length)drillHtml+='<div style="font-size:10px;color:#999;padding:8px 0;">Nenhum lançamento no mês com os filtros atuais.</div>';
+    // tabela enxuta, centralizada: data · descrição+categoria · valor (largura contida, colunas próximas)
+    drillHtml='<div style="flex:1;min-height:0;overflow-y:auto;border-top:1px solid #E4E2DA;margin-top:8px;">'
+      +'<div style="max-width:640px;margin:0 auto;font-family:var(--font-body);">'
+      +'<div style="display:flex;align-items:baseline;gap:12px;font-size:12px;position:sticky;top:0;background:#fff;padding:8px 0 6px;z-index:1;border-bottom:1px solid #E4E2DA;">'
+      +'<b style="font-size:13px;">'+MESES[dm]+' '+dy+'</b><span style="color:#999;font-size:11px;">'+txs.length+' lançamento'+(txs.length===1?'':'s')+'</span>'
+      +'<span style="margin-left:auto;color:'+POS+';font-variant-numeric:tabular-nums;">+ '+fmtR(tIn)+'</span><span style="color:'+NEG+';font-variant-numeric:tabular-nums;">− '+fmtR(tOut)+'</span>'
+      +'<span style="color:#1a1a1a;font-weight:700;font-variant-numeric:tabular-nums;">= '+fmtR(tIn-tOut)+'</span>'
+      +'<button onclick="waC2Drill('+dy+','+dm+')" style="border:none;background:transparent;color:#999;cursor:pointer;font-size:13px;padding:0 0 0 6px;">✕</button></div>';
+    if(!txs.length)drillHtml+='<div style="font-size:11px;color:#999;padding:10px 0;">Nenhum lançamento no mês com os filtros atuais.</div>';
     txs.forEach(t=>{
       const neg=t.type!=='entrada';const fv=neg?_fvOf(getTipoPasta(t),t.cat||t.tipo||'Outros'):'';
-      drillHtml+='<div style="display:grid;grid-template-columns:44px minmax(0,1fr) minmax(0,230px) 100px;gap:8px;align-items:center;padding:3px 0;border-top:1px solid #F2F1EA;font-size:10.5px;">'
-        +'<span style="color:#999;">'+String(normDateBR(t.date)).slice(0,5)+'</span>'
-        +'<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+String(t.desc||'').replace(/"/g,'&quot;')+'">'+(t.desc||'—')+'</span>'
-        +'<span style="color:#999;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+getTipoPasta(t)+' · '+(t.cat||'—')+(fv?' <b style="color:'+(fv==='F'?'#7F1D1D':'#DC2626')+';">'+fv+'</b>':'')+' · '+(t.account||'')+'</span>'
-        +'<span style="text-align:right;font-variant-numeric:tabular-nums;font-weight:700;color:'+(neg?NEG:POS)+';">'+(neg?'−':'+')+' '+fmtR(Math.abs(t.value))+'</span></div>';});
-    drillHtml+='</div>';
+      drillHtml+='<div style="display:grid;grid-template-columns:40px minmax(0,1fr) 108px;column-gap:12px;align-items:center;padding:5px 0;border-bottom:1px solid #F2F1EA;font-size:12px;color:#1a1a1a;">'
+        +'<span style="color:#999;font-size:11px;font-variant-numeric:tabular-nums;">'+String(normDateBR(t.date)).slice(0,5)+'</span>'
+        +'<span style="min-width:0;"><span style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+String(t.desc||'').replace(/"/g,'&quot;')+'">'+(t.desc||'—')+'</span>'
+          +'<span style="display:block;color:#999;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+getTipoPasta(t)+' · '+(t.cat||'—')+(fv?' · <b style="color:'+(fv==='F'?'#7F1D1D':'#DC2626')+';">'+fv+'</b>':'')+' · '+(t.account||'')+'</span></span>'
+        +'<span style="text-align:right;font-variant-numeric:tabular-nums;font-weight:700;font-size:12.5px;color:'+(neg?NEG:POS)+';">'+(neg?'−':'+')+' '+fmtR(Math.abs(t.value))+'</span></div>';});
+    drillHtml+='</div></div>';
   }
 
   // ── montagem da página ──
