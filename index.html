@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4a1d5e,#c7f2d8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#EEFBF3 !important;}
-  #splash .splash-sub{color:rgba(238,251,243,.65) !important;}
-  #splash .splash-version{color:rgba(238,251,243,.35) !important;}
-  #splash .splash-btn{background:#EEFBF3 !important;color:#4a1d5e !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#EEFBF3 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#b45309,#dbeafe);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#EFF6FF !important;}
+  #splash .splash-sub{color:rgba(239,246,255,.65) !important;}
+  #splash .splash-version{color:rgba(239,246,255,.35) !important;}
+  #splash .splash-btn{background:#EFF6FF !important;color:#b45309 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#EFF6FF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -961,6 +961,7 @@
   #wa-side-qdate .qd-big.old{color:#C62828;}
   #wa-side-qdate input{display:none;width:100%;margin-top:4px;font-size:12px;border:1px solid var(--border);border-radius:6px;padding:3px;background:var(--bg);color:var(--font);box-sizing:border-box;}
   #wa-sidebar.collapsed #wa-side-qdate{display:none;}
+  .wd2-wrap.wc2{height:100%;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;padding-bottom:0;}
   #wa-sidebar.collapsed .wa-nav-item{justify-content:center;padding:9px 0;gap:0;}
   #wa-sidebar.collapsed .wa-brand{justify-content:center;padding:10px 0;}
   /* sidebar transition */
@@ -2106,7 +2107,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.76';
+const APP_VERSION='18.77';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -10229,7 +10230,8 @@ function waC2Go(dir){
   const n=(i+dir+WAC2_CHARTS.length)%WAC2_CHARTS.length;
   s.chart=WAC2_CHARTS[n].id;waCharts2Render();
 }
-function waC2Set(k,v){const s=waC2State();s[k]=v;waCharts2Render();}
+function waC2Set(k,v){const s=waC2State();s[k]=v;if(k!=='showMeta')delete s.drill;waCharts2Render();}
+function waC2Drill(y,m){const s=waC2State();s.drill=(s.drill&&s.drill.y===y&&s.drill.m===m)?null:{y,m};waCharts2Render();}
 function waC2Year(d){const s=waC2State();s.year=Math.min(s.year+d,new Date().getFullYear());waCharts2Render();}
 function waC2PastasModal(){
   const s=waC2State();
@@ -10243,7 +10245,8 @@ function waC2PastasModal(){
   const box=document.createElement('div');
   box.style.cssText='background:var(--bg);border-radius:14px;padding:18px 20px;width:min(360px,92vw);box-shadow:0 12px 40px rgba(0,0,0,.25);';
   const render=()=>{
-    box.innerHTML='<div style="font-size:.8rem;font-weight:700;color:var(--font);margin-bottom:8px;">Pastas consideradas</div>'
+    box.innerHTML='<div style="font-size:.8rem;font-weight:700;color:var(--font);margin-bottom:2px;">Pastas consideradas</div>'
+      +'<div style="font-size:.62rem;color:var(--muted);margin-bottom:8px;">o gráfico atualiza a cada clique</div>'
       +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">'
       +all.map(p=>{
         const on=sel.has(p);
@@ -10252,17 +10255,14 @@ function waC2PastasModal(){
       +'</div>'
       +'<div style="display:flex;gap:8px;justify-content:space-between;">'
       +'<button id="wa-c2p-all" style="font-size:.62rem;padding:4px 10px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;">todas</button>'
-      +'<button id="wa-c2p-ok" style="font-size:.68rem;padding:6px 16px;border-radius:8px;border:none;background:var(--font);color:var(--bg);font-weight:700;cursor:pointer;">Aplicar</button>'
+      +'<button id="wa-c2p-ok" style="font-size:.68rem;padding:6px 16px;border-radius:8px;border:none;background:var(--font);color:var(--bg);font-weight:700;cursor:pointer;">Fechar</button>'
       +'</div>';
+    const apply=()=>{const s2=waC2State();s2.pastas=(sel.size===0||sel.size===all.length)?null:[...sel];delete s2.drill;waCharts2Render();};
     box.querySelectorAll('button[data-p]').forEach(b=>{
-      b.addEventListener('click',()=>{const p=b.dataset.p;sel.has(p)?sel.delete(p):sel.add(p);render();});
+      b.addEventListener('click',()=>{const p=b.dataset.p;sel.has(p)?sel.delete(p):sel.add(p);apply();render();});
     });
-    box.querySelector('#wa-c2p-all').addEventListener('click',()=>{sel=sel.size===all.length?new Set():new Set(all);render();});
-    box.querySelector('#wa-c2p-ok').addEventListener('click',()=>{
-      const s2=waC2State();
-      s2.pastas=(sel.size===0||sel.size===all.length)?null:[...sel];
-      ov.remove();waCharts2Render();
-    });
+    box.querySelector('#wa-c2p-all').addEventListener('click',()=>{sel=sel.size===all.length?new Set():new Set(all);apply();render();});
+    box.querySelector('#wa-c2p-ok').addEventListener('click',()=>{ov.remove();});
   };
   render();ov.appendChild(box);document.body.appendChild(ov);
 }
@@ -10288,6 +10288,10 @@ function waCharts2Render(){
 }
 function _waCharts2Render(){
   const s=waC2State();
+  // padrão: todas as pastas exceto Investimentos (aplicado uma vez; o usuário muda no filtro)
+  if(!s._pInit){s._pInit=true;
+    if(!s.pastas){const all0=Object.keys(tiposData||{}).filter(t=>(tiposData[t]||{}).active!==false);
+      if(all0.includes('Investimentos'))s.pastas=all0.filter(p=>p!=='Investimentos');}}
   const user=currentUser||'ALE';
   const now=new Date();
   const curYear=now.getFullYear();
@@ -10310,6 +10314,8 @@ function _waCharts2Render(){
 
   // varredura única das transações da janela
   const inArr=meses.map(()=>0),outArr=meses.map(()=>0),saldoArr=meses.map(()=>0);
+  const outFixArr=meses.map(()=>0),outVarArr=meses.map(()=>0);
+  const _fvOf=(tp,cat)=>{const cd=(orcData[user]&&orcData[user][tp]&&orcData[user][tp][cat])||null;return cd&&cd.tipo==='F'?'F':'V';};
   const pastaMes={}; // pasta -> array por mês (despesa líquida)
   const catWin={};   // 'tipo||cat' -> {real}
   allData.forEach(t=>{
@@ -10322,7 +10328,9 @@ function _waCharts2Render(){
     const sign=t.type==='entrada'?1:-1;
     saldoArr[i]+=Math.abs(t.value)*sign;
     if(t.type!=='transferência'&&!t._transferId&&!t._isAdjust){
-      if(t.type==='entrada')inArr[i]+=Math.abs(t.value);else outArr[i]+=Math.abs(t.value);
+      if(t.type==='entrada')inArr[i]+=Math.abs(t.value);
+      else{outArr[i]+=Math.abs(t.value);
+        if(_fvOf(tp,t.cat||t.tipo||'Outros')==='F')outFixArr[i]+=Math.abs(t.value);else outVarArr[i]+=Math.abs(t.value);}
     }
     if(!receitaTipos.includes(tp)&&!t._isAdjust){
       if(!pastaMes[tp])pastaMes[tp]=meses.map(()=>0);
@@ -10334,7 +10342,7 @@ function _waCharts2Render(){
   });
 
   // ── helpers SVG ──
-  const W=640,H=270,pL=54,pB=32,pT=16,pR=12;
+  const W=640,H=270,pL=54,pB=32,pT=16,pR=46;
   const cwN=n=>(W-pL-pR)/Math.max(n,1);
   const axes=(maxV,minV)=>{
     let sv='';const range=maxV-minV||1;
@@ -10371,21 +10379,38 @@ function _waCharts2Render(){
   // ── gráficos ──
   let title='',sub='',svg='',extra='';
   if(s.chart==='fluxo'){
-    title='Fluxo mensal';sub='receitas × despesas (sem transf./ajustes) · linha = saldo líquido · '+periodLbl+' · '+pastaLbl;
+    const showMeta=s.showMeta!==false;
+    // meta mensal: soma das metas das categorias ativas das pastas consideradas
+    const metaArr=meses.map(mm=>{let m2=0;Object.keys(tiposData||{}).filter(t=>(tiposData[t]||{}).active!==false&&!receitaTipos.includes(t)&&pastaOk(t)).forEach(tp=>{((tiposData[tp]||{}).cats||[]).filter(cc=>cc.active!==false).forEach(cc=>{const cat=cc.name||cc;const cd=(orcData[user]&&orcData[user][tp]&&orcData[user][tp][cat])||null;m2+=cd?orc2GetMeta(cd,mm.y,mm.m):0;});});return m2;});
+    title='Fluxo mensal';sub='receitas × despesas (fixas + variáveis, empilhadas) · linha preta = saldo (régua à direita)'+(showMeta?' · tracejado âmbar = meta':'')+' · '+periodLbl+' · '+pastaLbl+' · clique numa barra para listar os lançamentos';
     const cw=cwN(meses.length);
-    const maxV=Math.max(...inArr,...outArr,1);
+    const maxV=Math.max(...inArr,...outArr,...(showMeta?metaArr:[0]),1);
     const yF=v=>pT+(H-pT-pB)*(1-v/maxV);
-    svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;">'+axes(maxV,0);
+    svg='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMin meet" style="width:100%;height:100%;display:block;">'+axes(maxV,0);
+    const FIX='#7F1D1D',VAR='#DC2626';
     meses.forEach((mm,i)=>{
       const x=pL+i*cw,bw=cw*0.30;
+      if(s.drill&&s.drill.y===mm.y&&s.drill.m===mm.m)svg+='<rect x="'+(x+1)+'" y="'+pT+'" width="'+(cw-2)+'" height="'+(H-pT-pB)+'" fill="#1565C0" opacity=".07"/>';
       svg+='<rect x="'+(x+cw*0.14)+'" y="'+yF(inArr[i])+'" width="'+bw+'" height="'+((H-pB)-yF(inArr[i]))+'" rx="2" fill="'+POS+'" opacity=".85"/>';
-      svg+='<rect x="'+(x+cw*0.14+bw+2)+'" y="'+yF(outArr[i])+'" width="'+bw+'" height="'+((H-pB)-yF(outArr[i]))+'" rx="2" fill="'+NEG+'" opacity=".8"/>';
+      const xO=x+cw*0.14+bw+2; // despesas empilhadas: fixas embaixo, variáveis em cima
+      svg+='<rect x="'+xO+'" y="'+yF(outFixArr[i])+'" width="'+bw+'" height="'+((H-pB)-yF(outFixArr[i]))+'" fill="'+FIX+'" opacity=".9"/>';
+      svg+='<rect x="'+xO+'" y="'+yF(outFixArr[i]+outVarArr[i])+'" width="'+bw+'" height="'+(yF(outFixArr[i])-yF(outFixArr[i]+outVarArr[i]))+'" rx="2" fill="'+VAR+'" opacity=".8"/>';
     });
+    if(showMeta)svg+='<polyline points="'+metaArr.map((v,i)=>(pL+i*cw+cw/2)+','+yF(v)).join(' ')+'" fill="none" stroke="#D97706" stroke-width="1.8" stroke-dasharray="6 3"/>';
     const mn=Math.min(...saldoArr,0),mx=Math.max(...saldoArr,1);
     svg+=line(saldoArr,'#1a1a1a',mn,mx);
-    svg+=hitCols(meses.length,meses.map((mm,i)=>'<b>'+MESES[mm.m]+' '+mm.y+'</b><br>Receitas: '+fmtR(inArr[i])+'<br>Despesas: '+fmtR(outArr[i])+'<br>Saldo: <b>'+fmtR(saldoArr[i])+'</b>'));
+    { // régua do saldo (eixo direito, nas mesmas alturas da grade)
+      const rng2=(mx-mn)||1;
+      for(let g=0;g<=4;g++){const gv=mn+rng2*g/4,gy=pT+(H-pT-pB)*(1-g/4);
+        svg+='<line x1="'+(W-pR)+'" y1="'+gy+'" x2="'+(W-pR+4)+'" y2="'+gy+'" stroke="#1a1a1a" stroke-width=".8"/>';
+        svg+='<text x="'+(W-pR+7)+'" y="'+(gy+3)+'" text-anchor="start" font-size="8.5" fill="#1a1a1a">'+fmtK(gv)+'</text>';}
+      svg+='<text x="'+(W-4)+'" y="'+(pT-5)+'" text-anchor="end" font-size="7.5" fill="'+MUT+'">saldo</text>';
+    }
+    meses.forEach((mm,i)=>{const cw2=(W-pL-pR)/Math.max(meses.length,1);
+      const tip='<b>'+MESES[mm.m]+' '+mm.y+'</b><br>Receitas: '+fmtR(inArr[i])+'<br>Despesas: '+fmtR(outArr[i])+'<br>· fixas: '+fmtR(outFixArr[i])+'<br>· variáveis: '+fmtR(outVarArr[i])+(showMeta?'<br>Meta: '+fmtR(metaArr[i]):'')+'<br>Saldo: <b>'+fmtR(saldoArr[i])+'</b>';
+      svg+='<rect x="'+(pL+i*cw2)+'" y="'+pT+'" width="'+cw2+'" height="'+(H-pT-pB)+'" fill="transparent" onclick="waC2Drill('+mm.y+','+mm.m+')"'+tipA(tip)+'/>';});
     svg+=mLabels()+'</svg>';
-    extra='<span><span style="display:inline-block;width:10px;height:8px;background:'+POS+';border-radius:2px;"></span> receitas</span><span><span style="display:inline-block;width:10px;height:8px;background:'+NEG+';border-radius:2px;"></span> despesas</span><span><span style="display:inline-block;width:12px;height:2px;background:#1a1a1a;vertical-align:middle;"></span> saldo (escala própria)</span>';
+    extra='<span><span style="display:inline-block;width:10px;height:8px;background:'+POS+';border-radius:2px;"></span> receitas</span><span><span style="display:inline-block;width:10px;height:8px;background:#7F1D1D;border-radius:2px;"></span> desp. fixas</span><span><span style="display:inline-block;width:10px;height:8px;background:#DC2626;border-radius:2px;"></span> desp. variáveis</span>'+(s.showMeta!==false?'<span><span style="display:inline-block;width:12px;height:2px;background:#D97706;vertical-align:middle;"></span> meta</span>':'')+'<span><span style="display:inline-block;width:12px;height:2px;background:#1a1a1a;vertical-align:middle;"></span> saldo (escala própria)</span>';
   }
   else if(s.chart==='acum'){
     title='Acumulado';sub='soma corrente do saldo líquido · '+periodLbl+' · '+pastaLbl;
@@ -10393,7 +10418,7 @@ function _waCharts2Render(){
     const mn=Math.min(...acum,0),mx=Math.max(...acum,1);
     const cw=cwN(meses.length);const rng=(mx-mn)||1;
     const yF=v=>pT+(H-pT-pB)*(1-(v-mn)/rng);
-    svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;">'+axes(mx,mn);
+    svg='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMin meet" style="width:100%;height:100%;display:block;">'+axes(mx,mn);
     const pts=acum.map((v,i)=>(pL+i*cw+cw/2)+','+yF(v));
     svg+='<polygon points="'+pL+','+yF(Math.max(mn,0))+' '+pts.join(' ')+' '+(W-pR)+','+yF(Math.max(mn,0))+'" fill="'+POS+'" opacity=".10"/>';
     svg+=line(acum,POS,mn,mx);
@@ -10406,7 +10431,7 @@ function _waCharts2Render(){
     const ps=Object.keys(pastaMes).sort((a,b)=>pastaMes[b].reduce((x,y)=>x+y,0)-pastaMes[a].reduce((x,y)=>x+y,0));
     const Hh=Math.max(ps.length*34+20,110);
     const maxT=Math.max(...ps.map(p=>Math.max(pastaMes[p].reduce((x,y)=>x+y,0),0)),1);
-    svg='<svg viewBox="0 0 '+W+' '+Hh+'" style="width:100%;height:auto;">';
+    svg='<svg viewBox="0 0 '+W+' '+Hh+'" preserveAspectRatio="xMidYMin meet" style="width:100%;height:100%;display:block;">';
     ps.forEach((p,i)=>{
       const yy=10+i*34;
       const tot=Math.max(pastaMes[p].reduce((x,y)=>x+y,0),0);
@@ -10436,7 +10461,7 @@ function _waCharts2Render(){
     items.sort((a,b)=>b.pct-a.pct);
     const top=items.slice(0,18);
     const Hh=Math.max(top.length*26+20,110);
-    svg='<svg viewBox="0 0 '+W+' '+Hh+'" style="width:100%;height:auto;">';
+    svg='<svg viewBox="0 0 '+W+' '+Hh+'" preserveAspectRatio="xMidYMin meet" style="width:100%;height:100%;display:block;">';
     const bx=210,bwMax=W-bx-90;
     top.forEach((it,i)=>{
       const yy=8+i*26;
@@ -10484,7 +10509,7 @@ function _waCharts2Render(){
     const mx=Math.max(...cum,...metaLine,...cumPrev,1);
     const cw=(W-pL-pR)/dim;
     const yF=v=>pT+(H-pT-pB)*(1-v/mx);
-    svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;">'+axes(mx,0);
+    svg='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMin meet" style="width:100%;height:100%;display:block;">'+axes(mx,0);
     svg+='<polyline points="'+cumPrev.map((v,i)=>(pL+i*cw+cw/2)+','+yF(v)).join(' ')+'" fill="none" stroke="#B0AB9C" stroke-width="1.5"/>';
     if(metaTot>0)svg+='<polyline points="'+metaLine.map((v,i)=>(pL+i*cw+cw/2)+','+yF(v)).join(' ')+'" fill="none" stroke="'+FC.vermelho+'" stroke-width="1.6" stroke-dasharray="5 3"/>';
     const ptsC=cum.slice(0,today).map((v,i)=>(pL+i*cw+cw/2)+','+yF(v));
@@ -10522,7 +10547,7 @@ function _waCharts2Render(){
     rows.sort((a,b)=>b.proj-a.proj);
     const Hh=Math.max(rows.length*34+20,110);
     const mx=Math.max(...rows.map(r=>Math.max(r.proj,r.meta)),1);
-    svg='<svg viewBox="0 0 '+W+' '+Hh+'" style="width:100%;height:auto;">';
+    svg='<svg viewBox="0 0 '+W+' '+Hh+'" preserveAspectRatio="xMidYMin meet" style="width:100%;height:100%;display:block;">';
     rows.forEach((r,i)=>{
       const yy=10+i*34;
       const wS=(W-150-90)*r.spent/mx, wP=(W-150-90)*r.proj/mx, xM=150+(W-150-90)*r.meta/mx;
@@ -10555,7 +10580,7 @@ function _waCharts2Render(){
     const mx=Math.max(...cur,...prev,1);
     const cw=(W-pL-pR)/12;
     const yF=v=>pT+(H-pT-pB)*(1-v/mx);
-    svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;">'+axes(mx,0);
+    svg='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMin meet" style="width:100%;height:100%;display:block;">'+axes(mx,0);
     svg+='<polyline points="'+prev.map((v,i)=>(pL+i*cw+cw/2)+','+yF(v)).join(' ')+'" fill="none" stroke="#B0AB9C" stroke-width="1.8"/>';
     prev.forEach((v,i)=>{svg+='<circle cx="'+(pL+i*cw+cw/2)+'" cy="'+yF(v)+'" r="2.2" fill="#B0AB9C"/>';});
     svg+='<polyline points="'+cur.map((v,i)=>(pL+i*cw+cw/2)+','+yF(v)).join(' ')+'" fill="none" stroke="'+NEG+'" stroke-width="2.2"/>';
@@ -10582,7 +10607,7 @@ function _waCharts2Render(){
     const mx=Math.max(...grid.flat(),1);
     const cellW=(W-160-10)/12, cellH=26;
     const Hh=ps.length*cellH+40;
-    svg='<svg viewBox="0 0 '+W+' '+Hh+'" style="width:100%;height:auto;">';
+    svg='<svg viewBox="0 0 '+W+' '+Hh+'" preserveAspectRatio="xMidYMin meet" style="width:100%;height:100%;display:block;">';
     for(let m=0;m<12;m++)svg+='<text x="'+(160+m*cellW+cellW/2)+'" y="12" text-anchor="middle" font-size="8" fill="'+MUT+'">'+MESES[m].toLowerCase()+'</text>';
     ps.forEach((p,i)=>{
       const yy=20+i*cellH;
@@ -10608,7 +10633,7 @@ function _waCharts2Render(){
     const mn=Math.min(...patri),mx=Math.max(...patri,1);
     const cw=cwN(meses.length);const rng=(mx-mn)||1;
     const yF=v=>pT+(H-pT-pB)*(1-(v-mn)/rng);
-    svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;">'+axes(mx,mn);
+    svg='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMin meet" style="width:100%;height:100%;display:block;">'+axes(mx,mn);
     const pts=patri.map((v,i)=>(pL+i*cw+cw/2)+','+yF(v));
     svg+='<polygon points="'+pL+','+(H-pB)+' '+pts.join(' ')+' '+(W-pR)+','+(H-pB)+'" fill="#1B4D2A" opacity=".08"/>';
     svg+=line(patri,'#1B4D2A',mn,mx);
@@ -10617,11 +10642,40 @@ function _waCharts2Render(){
     svg+=mLabels()+'</svg>';
   }
 
+  // ── lista de lançamentos do mês clicado (fluxo mensal) ──
+  let drillHtml='';
+  if(s.chart==='fluxo'&&s.drill&&idxOf(s.drill.y,s.drill.m)>=0){
+    const dy=s.drill.y,dm=s.drill.m;
+    const txs=allData.filter(t=>{
+      if(!t.consolidated||t.deleted)return false;
+      if(uAccts.length&&!uAccts.includes(normalizeAcct(t.account)))return false;
+      const d=parseDate(t.date);if(!d||d.getFullYear()!==dy||d.getMonth()!==dm)return false;
+      if(t.type==='transferência'||t._transferId||t._isAdjust)return false;
+      return pastaOk(getTipoPasta(t));
+    }).sort((a,b)=>(parseDate(a.date)||0)-(parseDate(b.date)||0));
+    let tIn=0,tOut=0;txs.forEach(t=>{if(t.type==='entrada')tIn+=Math.abs(t.value);else tOut+=Math.abs(t.value);});
+    drillHtml='<div style="flex:1;min-height:0;overflow-y:auto;border-top:1px solid #E4E2DA;margin-top:8px;padding-top:2px;">'
+      +'<div style="display:flex;align-items:center;gap:10px;font-size:10.5px;margin-bottom:4px;position:sticky;top:0;background:#fff;padding:4px 0;z-index:1;">'
+      +'<b>'+MESES[dm]+' '+dy+'</b><span style="color:#999;">'+txs.length+' lançamento'+(txs.length===1?'':'s')+'</span>'
+      +'<span style="color:'+POS+';">+ '+fmtR(tIn)+'</span><span style="color:'+NEG+';">− '+fmtR(tOut)+'</span>'
+      +'<span style="color:#1a1a1a;font-weight:700;">= '+fmtR(tIn-tOut)+'</span>'
+      +'<button onclick="waC2Drill('+dy+','+dm+')" style="margin-left:auto;border:none;background:transparent;color:#999;cursor:pointer;font-size:12px;">✕ fechar</button></div>';
+    if(!txs.length)drillHtml+='<div style="font-size:10px;color:#999;padding:8px 0;">Nenhum lançamento no mês com os filtros atuais.</div>';
+    txs.forEach(t=>{
+      const neg=t.type!=='entrada';const fv=neg?_fvOf(getTipoPasta(t),t.cat||t.tipo||'Outros'):'';
+      drillHtml+='<div style="display:grid;grid-template-columns:44px minmax(0,1fr) minmax(0,230px) 100px;gap:8px;align-items:center;padding:3px 0;border-top:1px solid #F2F1EA;font-size:10.5px;">'
+        +'<span style="color:#999;">'+String(normDateBR(t.date)).slice(0,5)+'</span>'
+        +'<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+String(t.desc||'').replace(/"/g,'&quot;')+'">'+(t.desc||'—')+'</span>'
+        +'<span style="color:#999;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+getTipoPasta(t)+' · '+(t.cat||'—')+(fv?' <b style="color:'+(fv==='F'?'#7F1D1D':'#DC2626')+';">'+fv+'</b>':'')+' · '+(t.account||'')+'</span>'
+        +'<span style="text-align:right;font-variant-numeric:tabular-nums;font-weight:700;color:'+(neg?NEG:POS)+';">'+(neg?'−':'+')+' '+fmtR(Math.abs(t.value))+'</span></div>';});
+    drillHtml+='</div>';
+  }
+
   // ── montagem da página ──
   const chipS='padding:5px 12px;border-radius:100px;border:1px solid #D8D6CC;background:#fff;font-size:10px;font-weight:600;color:#666;cursor:pointer;white-space:nowrap;';
   const chipOn='padding:5px 12px;border-radius:100px;border:1px solid #1a1a1a;background:#1a1a1a;font-size:10px;font-weight:600;color:#fff;cursor:pointer;white-space:nowrap;';
   const zoom=window.waDash2Zoom||1;
-  let html='<div class="wd2-wrap" style="zoom:'+zoom+';">';
+  let html='<div class="wd2-wrap wc2" style="zoom:'+zoom+';">';
   // navegação
   html+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;">'
     +'<button onclick="waC2Go(-1)" style="width:26px;height:26px;border-radius:50%;border:1px solid #D8D6CC;background:#fff;cursor:pointer;color:#666;">‹</button>'
@@ -10648,15 +10702,17 @@ function _waCharts2Render(){
   if(usePastas){
     html+='<button onclick="waC2PastasModal()" style="'+(s.pastas?chipOn:chipS)+'">🗂 '+pastaLbl+'</button>';
   }
+  if(s.chart==='fluxo')html+='<button onclick="waC2Set(\'showMeta\','+(s.showMeta===false)+')" title="mostrar/ocultar a curva da meta" style="'+(s.showMeta!==false?chipOn:chipS)+'">◈ meta</button>';
   html+='</div>';
-  // cartão do gráfico
-  html+='<div style="background:#fff;border:1px solid #E4E2DA;border-radius:12px;padding:16px 18px;">'
-    +'<div style="font-size:13px;font-weight:700;color:#1a1a1a;">'+title+'</div>'
-    +'<div style="font-size:9.5px;color:'+MUT+';margin-bottom:10px;">'+sub+'</div>'
-    +svg
-    +(extra?'<div style="display:flex;gap:14px;font-size:9px;color:'+MUT+';margin-top:6px;flex-wrap:wrap;">'+extra+'</div>':'')
+  // cartão do gráfico: ocupa o resto da tela; com a lista aberta, o gráfico segura ~44% e a lista rola
+  const hasDrill=!!drillHtml;
+  html+='<div style="background:#fff;border:1px solid #E4E2DA;border-radius:12px;padding:14px 18px;flex:1;min-height:0;display:flex;flex-direction:column;">'
+    +'<div style="flex:none;font-size:13px;font-weight:700;color:#1a1a1a;">'+title+'</div>'
+    +'<div style="flex:none;font-size:9.5px;color:'+MUT+';margin-bottom:8px;">'+sub+'</div>'
+    +'<div style="'+(hasDrill?'height:44%;flex:none;':'flex:1;')+'min-height:0;">'+svg+'</div>'
+    +(extra?'<div style="flex:none;display:flex;gap:14px;font-size:9px;color:'+MUT+';margin-top:6px;flex-wrap:wrap;">'+extra+'</div>':'')
+    +drillHtml
     +'</div>';
-  html+='<div style="margin-top:8px;font-size:9px;color:#AAA;">Gráficos 2.0 · meses de anos anteriores preenchem conforme a carga silenciosa do histórico termina.</div>';
   html+='</div>';
   const body=document.getElementById('wa-center-body');
   if(body)body.innerHTML=html;
