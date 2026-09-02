@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1e3a8a,#fde68a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFFBEB !important;}
-  #splash .splash-sub{color:rgba(255,251,235,.65) !important;}
-  #splash .splash-version{color:rgba(255,251,235,.35) !important;}
-  #splash .splash-btn{background:#FFFBEB !important;color:#1e3a8a !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFFBEB !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0f5c4c,#ffe0c7);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFF4E9 !important;}
+  #splash .splash-sub{color:rgba(255,244,233,.65) !important;}
+  #splash .splash-version{color:rgba(255,244,233,.35) !important;}
+  #splash .splash-btn{background:#FFF4E9 !important;color:#0f5c4c !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFF4E9 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2107,7 +2107,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='18.79';
+const APP_VERSION='18.80';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -12420,12 +12420,24 @@ function _findLogTarget(arr,nome){
   if(ativo)return ativo;
   if(nome.includes(' » ')){
     const pp=nome.split(' » ');
-    const pai=arr.find(a=>a.nome===pp[0]);
+    const pai=_findLogTarget(arr.filter(a=>!a._isSubRow),pp[0])||arr.find(a=>a.nome===pp[0]);
     if(pai&&pai.subs){
       const sb=pai.subs.find(x=>x.nome===pp.slice(1).join(' » '));
       if(sb)return {log:sb.log};
     }
+    return null;
   }
+  // ativo renomeado: registros antigos do log ainda trazem o nome anterior.
+  // Casa por prefixo (nome do log começa com o nome do cadastro, ou o contrário),
+  // exigindo prefixo mínimo de 10 caracteres e escolhendo o candidato mais específico.
+  const n=nome.toLowerCase().trim();
+  const cands=arr.filter(a=>{
+    const an=String(a.nome||'').toLowerCase().trim();
+    const min=Math.min(an.length,n.length);
+    if(min<10)return false;
+    return n.startsWith(an)||an.startsWith(n);
+  });
+  if(cands.length===1)return cands[0]; // 2+ candidatos = ambíguo, melhor não casar
   return null;
 }
 function getAtivoSaldoMes(ativo,m,year){
