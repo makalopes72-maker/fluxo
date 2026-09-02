@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#701a75,#bbf7d0);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F0FDF4 !important;}
-  #splash .splash-sub{color:rgba(240,253,244,.65) !important;}
-  #splash .splash-version{color:rgba(240,253,244,.35) !important;}
-  #splash .splash-btn{background:#F0FDF4 !important;color:#701a75 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F0FDF4 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1e3a5f,#fbcfe8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FDF2F8 !important;}
+  #splash .splash-sub{color:rgba(253,242,248,.65) !important;}
+  #splash .splash-version{color:rgba(253,242,248,.35) !important;}
+  #splash .splash-btn{background:#FDF2F8 !important;color:#1e3a5f !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FDF2F8 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2118,7 +2118,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='19.03';
+const APP_VERSION='19.04';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -10736,23 +10736,23 @@ function _waCharts2Render(){
       if(a.pct===null&&b.pct===null)return b.real-a.real;
       if(a.pct===null)return 1;if(b.pct===null)return -1;
       return b.pct-a.pct;});
-    const top=items.slice(0,22);
-    const Hh=Math.max(top.length*26+20,110);
-    svg='<svg viewBox="0 0 '+W+' '+Hh+'" preserveAspectRatio="xMidYMin meet" style="width:100%;height:100%;display:block;">';
-    const bx=210,bwMax=W-bx-90;
+    const top=items; // todas as categorias; a área do gráfico rola verticalmente
+    const RH=22; // linhas mais próximas
+    const Hh=Math.max(top.length*RH+16,110);
+    svg='<svg viewBox="0 0 '+W+' '+Hh+'" style="width:100%;height:auto;display:block;">';
+    const bx=225,bwMax=W-bx-100;
     top.forEach((it,i)=>{
-      const yy=8+i*26;
+      const yy=8+i*RH;
       const pct=Math.min(it.pct===null?2:it.pct,2);
       const wB=bwMax*pct/2;
       const col=it.pct===null?FC.vermelho:(it.pct<=0.9?FC.verde:it.pct<=1.1?FC.cinza:FC.vermelho);
-      svg+='<text x="'+(bx-8)+'" y="'+(yy+11)+'" text-anchor="end" font-size="9.5" fill="#3A3A36">'+it.cat+'</text>';
-      svg+='<rect x="'+bx+'" y="'+yy+'" width="'+bwMax+'" height="12" rx="2" fill="#F1EFE8"/>';
-      svg+='<rect x="'+bx+'" y="'+yy+'" width="'+Math.max(wB,1)+'" height="12" rx="2" fill="'+col+'"/>';
-      svg+='<line x1="'+(bx+bwMax/2)+'" y1="'+(yy-1)+'" x2="'+(bx+bwMax/2)+'" y2="'+(yy+13)+'" stroke="#1a1a1a" stroke-width="1"/>';
-      svg+='<text x="'+(bx+bwMax+6)+'" y="'+(yy+10)+'" font-size="8.5" fill="#666">'+(it.pct!==null?Math.round(it.pct*100)+'%':'sem meta')+' <tspan fill="#AAA">'+fmtK(it.real)+'/'+fmtK(it.meta)+'</tspan></text>';
-      svg+='<rect x="0" y="'+(yy-2)+'" width="'+W+'" height="18" fill="transparent"'+tipA('<b>'+it.cat+'</b> · '+it.tp+'<br>Real: '+fmtR(it.real)+'<br>Meta do período: '+(it.meta>0?fmtR(it.meta)+'<br>Consumo: <b>'+Math.round(it.pct*100)+'%</b>':'<b>sem meta</b>'))+'/>';
+      svg+='<text x="'+(bx-8)+'" y="'+(yy+11)+'" text-anchor="end" font-size="11.5" fill="#3A3A36">'+it.cat+'</text>';
+      svg+='<rect x="'+bx+'" y="'+yy+'" width="'+bwMax+'" height="13" rx="2" fill="#F1EFE8"/>';
+      svg+='<rect x="'+bx+'" y="'+yy+'" width="'+Math.max(wB,1)+'" height="13" rx="2" fill="'+col+'"/>';
+      svg+='<line x1="'+(bx+bwMax/2)+'" y1="'+(yy-1)+'" x2="'+(bx+bwMax/2)+'" y2="'+(yy+14)+'" stroke="#1a1a1a" stroke-width="1"/>';
+      svg+='<text x="'+(bx+bwMax+6)+'" y="'+(yy+11)+'" font-size="10.5" fill="#666">'+(it.pct!==null?Math.round(it.pct*100)+'%':'sem meta')+' <tspan fill="#AAA" font-size="9.5">'+fmtK(it.real)+'/'+fmtK(it.meta)+'</tspan></text>';
+      svg+='<rect x="0" y="'+(yy-2)+'" width="'+W+'" height="'+(RH-2)+'" fill="transparent"'+tipA('<b>'+it.cat+'</b> · '+it.tp+'<br>Real: '+fmtR(it.real)+'<br>Meta do período: '+(it.meta>0?fmtR(it.meta)+'<br>Consumo: <b>'+Math.round(it.pct*100)+'%</b>':'<b>sem meta</b>'))+'/>';
     });
-    if(items.length>top.length)svg+='<text x="'+(W/2)+'" y="'+(8+top.length*26+8)+'" text-anchor="middle" font-size="8.5" fill="#AAA">+'+(items.length-top.length)+' categorias não exibidas</text>';
     svg+='</svg>';
     extra='<span>barra até a marca central = 100% da meta · verde ≤90% · cinza 90–110% · vermelho >110% · <span style="color:'+FC.vermelho+';">sem meta no fim da lista</span></span>'+(nVal===0?'<span style="color:'+FC.vermelho+';font-weight:700;">nenhum mês comparável no período (anos sem orçamento) — troque o período para «ano»</span>':'');
   }
@@ -11022,7 +11022,7 @@ function _waCharts2Render(){
   html+='<div style="background:#fff;border:1px solid #E4E2DA;border-radius:12px;padding:14px 18px;flex:1;min-height:0;display:flex;flex-direction:column;">'
     +'<div style="flex:none;font-size:13px;font-weight:700;color:#1a1a1a;">'+title+'</div>'
     +'<div style="flex:none;font-size:9.5px;color:'+MUT+';margin-bottom:8px;">'+sub+'</div>'
-    +'<div style="flex:1;min-height:0;">'+svg+'</div>'
+    +'<div style="flex:1;min-height:0;'+(s.chart==='meta'?'overflow-y:auto;':'')+'">'+svg+'</div>'
     +(extra?'<div style="flex:none;display:flex;gap:14px;font-size:9px;color:'+MUT+';margin-top:6px;flex-wrap:wrap;">'+extra+'</div>':'')
     +'</div>';
   html+='</div>';
