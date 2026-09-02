@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1e3a5f,#fbcfe8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FDF2F8 !important;}
-  #splash .splash-sub{color:rgba(253,242,248,.65) !important;}
-  #splash .splash-version{color:rgba(253,242,248,.35) !important;}
-  #splash .splash-btn{background:#FDF2F8 !important;color:#1e3a5f !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FDF2F8 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#713f12,#cffafe);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECFEFF !important;}
+  #splash .splash-sub{color:rgba(236,254,255,.65) !important;}
+  #splash .splash-version{color:rgba(236,254,255,.35) !important;}
+  #splash .splash-btn{background:#ECFEFF !important;color:#713f12 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#ECFEFF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2118,7 +2118,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='19.04';
+const APP_VERSION='19.05';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -10272,11 +10272,13 @@ function _waOrc2Render(){
   const allTipos=new Set(Object.keys(tiposData||{}).filter(t=>(tiposData[t]||{}).active!==false));
   const sorted=[...receitaTipos.filter(t=>allTipos.has(t)),...[...allTipos].filter(t=>!receitaTipos.includes(t)).sort()];
 
-  // preserva rolagem
+  // preserva rolagem (com memória: se um segundo render pegar o corpo já zerado
+  // por um render anterior, reaproveita a última posição conhecida)
   const oldWrap=document.getElementById('wo2-wrap');
   const sX=oldWrap?oldWrap.scrollLeft:0;
   const bEl=document.getElementById('wa-center-body');
-  const sY=bEl?bEl.scrollTop:0;
+  let sY=bEl?bEl.scrollTop:0;
+  if(sY===0&&window._wo2LastY>0&&Date.now()-(window._wo2LastT||0)<500)sY=window._wo2LastY;
 
   const zoom=window.waDash2Zoom||1;
   let html=(window._wo2Banner||'')+'<div class="wd2-wrap" id="wo2-wrap" style="zoom:'+zoom+';">';
@@ -10303,7 +10305,9 @@ function _waOrc2Render(){
   html+='<th class="wd2-h wd2-tot" style="text-align:right;">Σ ano</th>';
   html+='</tr></thead><tbody>';
 
-  const chip=(lbl,oc,ttl,dark)=>'<span onclick="'+oc+'" title="'+ttl+'" style="display:inline-block;min-width:20px;text-align:center;padding:1px 7px;border-radius:100px;border:1px solid '+(dark?'#1a1a1a':'#C9C6BA')+';background:'+(dark?'#1a1a1a':'transparent')+';color:'+(dark?'#fff':'#777')+';font-size:9px;font-weight:700;cursor:pointer;">'+lbl+'</span>';
+  // st = {bg,bd,fg} opcional: pinta o chip como STATUS (cada valor tem a sua cor);
+  // sem st, mantém o visual antigo (dark = preenchido)
+  const chip=(lbl,oc,ttl,dark,st)=>'<span onclick="'+oc+'" title="'+ttl+'" style="display:inline-block;min-width:20px;text-align:center;padding:1px 7px;border-radius:100px;border:1px solid '+(st?st.bd:(dark?'#1a1a1a':'#C9C6BA'))+';background:'+(st?st.bg:(dark?'#1a1a1a':'transparent'))+';color:'+(st?st.fg:(dark?'#fff':'#777'))+';font-size:9px;font-weight:700;cursor:pointer;">'+lbl+'</span>';
 
   const sumMetaMes=Array(12).fill(0),sumMetaMesPos=Array(12).fill(0),sumMetaMesNeg=Array(12).fill(0);
 
@@ -10339,8 +10343,12 @@ function _waOrc2Render(){
       html+='<tr>';
       html+='<td class="wd2-lbl wd2-cat">'+cat+'</td>';
       html+='<td style="text-align:center;">'+chip(per.slice(0,3),'orc2CyclePeriod(\''+te+'\',\''+ce+'\')','Periodicidade: '+per+' — clique para alternar',false)+'</td>';
-      html+='<td style="text-align:center;">'+chip(tp,'orc2ToggleTipo(\''+te+'\',\''+ce+'\')','Tipo: '+(tp==='F'?'Fixo':'Variável')+' — clique para alternar',tp==='F')+'</td>';
-      html+='<td style="text-align:center;">'+chip(fa,'orc2ToggleFarol(\''+te+'\',\''+ce+'\')','Farol: '+(fa==='A'?'Absoluto (meta cheia, qualquer dia)':'Relativo (pró-rata do mês)')+' — clique para alternar',fa==='A')+'</td>';
+      // F/V e A/R são dois status, cada valor com a própria cor (nada de ligado/desligado):
+      // F fixo = azul-escuro · V variável = âmbar · A absoluto = roxo · R relativo = teal
+      const stFV=tp==='F'?{bg:'#DBEAFE',bd:'#1E40AF',fg:'#1E40AF'}:{bg:'#FEF3C7',bd:'#B45309',fg:'#92400E'};
+      const stAR=fa==='A'?{bg:'#EDE9FE',bd:'#6D28D9',fg:'#5B21B6'}:{bg:'#CCFBF1',bd:'#0F766E',fg:'#0F766E'};
+      html+='<td style="text-align:center;">'+chip(tp,'orc2ToggleTipo(\''+te+'\',\''+ce+'\')','Tipo: '+(tp==='F'?'Fixo':'Variável')+' — clique para alternar',false,stFV)+'</td>';
+      html+='<td style="text-align:center;">'+chip(fa,'orc2ToggleFarol(\''+te+'\',\''+ce+'\')','Farol: '+(fa==='A'?'Absoluto (meta cheia, qualquer dia)':'Relativo (pró-rata do mês)')+' — clique para alternar',false,stAR)+'</td>';
       html+='<td class="wd2-num wd2-tot" onclick="orc2EditDefault(this,\''+te+'\',\''+ce+'\')" title="Valor padrão do ano — clique para editar" style="cursor:pointer;font-weight:600;">'+(defV?fmtM(defV):'·')+'</td>';
       for(let m=0;m<12;m++){
         const mv=orc2GetMeta(cd,yr,m);anoSum+=mv;
@@ -10372,10 +10380,11 @@ function _waOrc2Render(){
   html+='<div style="margin-top:10px;font-size:9px;color:#AAA;">Orçamento 2.0 · mesmas metas do Quadro 2.0 — alterou aqui, mudou lá. Orçamento independente por usuário ('+user+').</div>';
   html+='</div>';
   const body=document.getElementById('wa-center-body');
-  if(body)body.innerHTML=html;
+  if(body){body.innerHTML=html;body.scrollTop=sY;const w0=document.getElementById('wo2-wrap');if(w0)w0.scrollLeft=sX;}
   requestAnimationFrame(()=>{
     const w=document.getElementById('wo2-wrap');if(w)w.scrollLeft=sX;
     const b=document.getElementById('wa-center-body');if(b)b.scrollTop=sY;
+    window._wo2LastY=sY;window._wo2LastT=Date.now();
   });
 }
 
