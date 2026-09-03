@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#3f6212,#fbd0e8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FDF0F8 !important;}
-  #splash .splash-sub{color:rgba(253,240,248,.65) !important;}
-  #splash .splash-version{color:rgba(253,240,248,.35) !important;}
-  #splash .splash-btn{background:#FDF0F8 !important;color:#3f6212 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FDF0F8 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1e1b4b,#fed7aa);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFF7ED !important;}
+  #splash .splash-sub{color:rgba(255,247,237,.65) !important;}
+  #splash .splash-version{color:rgba(255,247,237,.35) !important;}
+  #splash .splash-btn{background:#FFF7ED !important;color:#1e1b4b !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFF7ED !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2118,7 +2118,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='19.09';
+const APP_VERSION='19.10';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4040,7 +4040,7 @@ async function loadData(){
         // chaves brutas da aba Preferencias (antes só o ↻ sincronizar as lia):
         // data de atualização por usuário e formulários de lançamento múltiplo
         prefRows.forEach(r=>{
-          if(r[1]==='quadro_date'&&r[0]&&r[2])_quadroDates[r[0]]=r[2];
+          if(r[1]==='quadro_date'&&r[0]&&r[2])_quadroDates[r[0]]=_prefDateBR(r[2]);
           if(r[1]==='multi_tpl'&&r[0]&&r[2]){try{window._multiTpl=window._multiTpl||{};window._multiTpl[r[0]]=JSON.parse(r[2]);}catch(e){}}
         });
         try{localStorage.setItem('fluxo_quadro_dates',JSON.stringify(_quadroDates));}catch(e){}
@@ -6696,7 +6696,7 @@ async function syncAll(manual=false){
         }
         // Load quadro dates from raw rows
         rows.forEach(r=>{
-          if(r[1]==='quadro_date'&&r[0]&&r[2]) _quadroDates[r[0]]=r[2];
+          if(r[1]==='quadro_date'&&r[0]&&r[2]) _quadroDates[r[0]]=_prefDateBR(r[2]);
           if(r[1]==='multi_tpl'&&r[0]&&r[2]){try{window._multiTpl=window._multiTpl||{};window._multiTpl[r[0]]=JSON.parse(r[2]);}catch(e){}}
         });
         try{localStorage.setItem('fluxo_multitpl',JSON.stringify(window._multiTpl||{}));}catch(e){}
@@ -7049,6 +7049,24 @@ function waDashPreviewPage(font,size){
 // ── Formulários de lançamento múltiplo (templates tipo holerite) — só no web ──
 // Modelo: {id, nome, linhas:[{nome, tipo, cat, sinal:'+'|'-'}]} por usuário.
 window._multiTpl=window._multiTpl||(function(){try{return JSON.parse(localStorage.getItem('fluxo_multitpl')||'{}');}catch(e){return {};}})();
+// Sheets converte '02/09/2026' em data ISO na coluna C; normaliza de volta
+function _prefDateBR(v){const s=String(v||'');const m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);if(m)return m[3]+'/'+m[2]+'/'+m[1];return s;}
+// recarrega as chaves brutas da aba Preferencias sob demanda (diagnóstico/recuperação)
+async function waTplReload(){
+  try{
+    const rows=await sheetsRead(SHEETS.preferencias);
+    let nT=0;
+    (rows||[]).forEach(r=>{
+      if(r[1]==='quadro_date'&&r[0]&&r[2])_quadroDates[r[0]]=_prefDateBR(r[2]);
+      if(r[1]==='multi_tpl'&&r[0]&&r[2]){try{window._multiTpl=window._multiTpl||{};window._multiTpl[r[0]]=JSON.parse(r[2]);nT+=(window._multiTpl[r[0]]||[]).length;}catch(e){}}
+    });
+    try{localStorage.setItem('fluxo_multitpl',JSON.stringify(window._multiTpl||{}));}catch(e){}
+    try{localStorage.setItem('fluxo_quadro_dates',JSON.stringify(_quadroDates));}catch(e){}
+    if(typeof waRenderQuadroDate==='function')try{waRenderQuadroDate();}catch(e){}
+    toast('↻ Preferências relidas: '+(rows?rows.length:0)+' linhas · '+((window._multiTpl[currentUser||'ALE']||[]).length)+' formulário(s) deste usuário','success');
+    if(window.waCfgTab==='forms')waShowCfg();
+  }catch(e){toast('✗ '+e.message,'error');}
+}
 function waTplList(){const u=currentUser||'ALE';if(!window._multiTpl[u])window._multiTpl[u]=[];return window._multiTpl[u];}
 function waTplSave(){
   const u=currentUser||'ALE';
@@ -8143,6 +8161,7 @@ function waCfgRenderForms(container){
       +'<button onclick="waTplDel('+i+')" style="border:1px solid var(--border);background:transparent;border-radius:7px;padding:4px 10px;font-size:10.5px;cursor:pointer;color:#C62828;">🗑</button>'
       +'</div>';});
   h+='<button onclick="waTplEdit(-1)" style="width:100%;padding:10px;border-radius:10px;border:1px dashed var(--muted);background:transparent;color:var(--font);font-size:12px;cursor:pointer;font-family:inherit;">+ novo formulário</button>';
+  h+='<div style="display:flex;align-items:center;gap:10px;margin-top:12px;"><button onclick="waTplReload()" style="border:1px solid var(--border);background:transparent;border-radius:8px;padding:6px 12px;font-size:10.5px;cursor:pointer;color:var(--font);font-family:inherit;">↻ recarregar formulários do Sheets</button><span style="font-size:9.5px;color:var(--muted);">use se um formulário criado em outro aparelho não aparecer · app v'+APP_VERSION+'</span></div>';
   wrap.innerHTML=h;container.appendChild(wrap);
 }
 function waTplDel(i){const tpls=waTplList();if(!confirm('Excluir o formulário «'+tpls[i].nome+'»?'))return;tpls.splice(i,1);waTplSave();waShowCfg();}
