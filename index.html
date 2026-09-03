@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#14532d,#e9d5ff);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FAF5FF !important;}
-  #splash .splash-sub{color:rgba(250,245,255,.65) !important;}
-  #splash .splash-version{color:rgba(250,245,255,.35) !important;}
-  #splash .splash-btn{background:#FAF5FF !important;color:#14532d !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FAF5FF !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#831843,#a5f3fc);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECFEFF !important;}
+  #splash .splash-sub{color:rgba(236,254,255,.65) !important;}
+  #splash .splash-version{color:rgba(236,254,255,.35) !important;}
+  #splash .splash-btn{background:#ECFEFF !important;color:#831843 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#ECFEFF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2118,7 +2118,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='19.07';
+const APP_VERSION='19.08';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6688,7 +6688,9 @@ async function syncAll(manual=false){
         // Load quadro dates from raw rows
         rows.forEach(r=>{
           if(r[1]==='quadro_date'&&r[0]&&r[2]) _quadroDates[r[0]]=r[2];
+          if(r[1]==='multi_tpl'&&r[0]&&r[2]){try{window._multiTpl=window._multiTpl||{};window._multiTpl[r[0]]=JSON.parse(r[2]);}catch(e){}}
         });
+        try{localStorage.setItem('fluxo_multitpl',JSON.stringify(window._multiTpl||{}));}catch(e){}
         localStorage.setItem('fluxo_quadro_dates',JSON.stringify(_quadroDates));
         waRenderQuadroDate();
       }
@@ -7035,6 +7037,16 @@ function waDashPreviewPage(font,size){
     +'</div>';
 }
 
+// ── Formulários de lançamento múltiplo (templates tipo holerite) — só no web ──
+// Modelo: {id, nome, linhas:[{nome, tipo, cat, sinal:'+'|'-'}]} por usuário.
+window._multiTpl=window._multiTpl||(function(){try{return JSON.parse(localStorage.getItem('fluxo_multitpl')||'{}');}catch(e){return {};}})();
+function waTplList(){const u=currentUser||'ALE';if(!window._multiTpl[u])window._multiTpl[u]=[];return window._multiTpl[u];}
+function waTplSave(){
+  const u=currentUser||'ALE';
+  try{localStorage.setItem('fluxo_multitpl',JSON.stringify(window._multiTpl));}catch(e){}
+  sheetsPost({action:'appendLog',sheet:'Preferencias',row:[u,'multi_tpl',JSON.stringify(window._multiTpl[u]||[])]})
+    .catch(e=>console.warn('multi_tpl save fail',e));
+}
 function waShowCfg(){
   document.getElementById('wa-center-title').textContent='Configurações';
   document.getElementById('wa-right-title').textContent='--';
@@ -7120,7 +7132,7 @@ function waShowCfg(){
   // tab bar
   const tabBar=document.createElement('div');
   tabBar.style.cssText='display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;';
-  const tabs=[['tipografia','🔤 Tipografia Web'],['layout','📐 Layout'],['pastas','🗂 Pastas & Categorias'],['contas','💳 Contas'],['invopts','📈 Investimentos'],['backup','💾 Backup']];
+  const tabs=[['tipografia','🔤 Tipografia Web'],['layout','📐 Layout'],['pastas','🗂 Pastas & Categorias'],['contas','💳 Contas'],['invopts','📈 Investimentos'],['forms','📋 Formulários'],['backup','💾 Backup']];
   if(!window.waCfgTab||window.waCfgTab==='aparencia')window.waCfgTab='tipografia';
   tabs.forEach(([id,lbl])=>{
     const b=document.createElement('button');
@@ -7150,6 +7162,8 @@ function waShowCfg(){
     waCfgRenderContas(content);
   } else if(window.waCfgTab==='invopts'){
     waCfgRenderInvOpts(content);
+  } else if(window.waCfgTab==='forms'){
+    waCfgRenderForms(content);
   } else if(window.waCfgTab==='backup'){
     waCfgRenderBackup(content);
   } else {
@@ -8103,9 +8117,168 @@ function waCfgRenderPastas(container){
     container.appendChild(block);
   });
 }
+function waCfgRenderForms(container){
+  container.innerHTML='';
+  const wrap=document.createElement('div');
+  wrap.style.cssText='padding:16px 20px;max-width:640px;';
+  const tpls=waTplList();
+  let h='<div style="font-size:14px;font-weight:600;color:var(--font);margin-bottom:4px;">Formulários de lançamento múltiplo</div>'
+    +'<div style="font-size:11px;color:var(--muted);margin-bottom:14px;">Modelos tipo holerite: cada linha tem nome, pasta·categoria e sinal (+ entrada / − saída). No Lançar/Extrato, o formulário preenchido gera todos os lançamentos de uma vez, numa única data. Por usuário ('+(currentUser||'ALE')+'), sincronizado no Sheets.</div>';
+  if(!tpls.length)h+='<div style="font-size:11px;color:var(--muted);padding:14px;border:1px dashed var(--border);border-radius:10px;margin-bottom:10px;">Nenhum formulário ainda. Crie o primeiro — ex.: «Holerite».</div>';
+  tpls.forEach((t,i)=>{
+    const nPos=t.linhas.filter(l=>l.sinal==='+').length,nNeg=t.linhas.length-nPos;
+    h+='<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;">'
+      +'<span style="flex:1;font-size:12.5px;font-weight:700;color:var(--font);">'+t.nome+'<span style="font-weight:400;color:var(--muted);font-size:10.5px;"> · '+t.linhas.length+' linha'+(t.linhas.length===1?'':'s')+' ('+nPos+' +, '+nNeg+' −)</span></span>'
+      +'<button onclick="waTplEdit('+i+')" style="border:1px solid var(--border);background:transparent;border-radius:7px;padding:4px 10px;font-size:10.5px;cursor:pointer;color:var(--font);">✎ editar</button>'
+      +'<button onclick="waTplDup('+i+')" style="border:1px solid var(--border);background:transparent;border-radius:7px;padding:4px 10px;font-size:10.5px;cursor:pointer;color:var(--font);">⧉ duplicar</button>'
+      +'<button onclick="waTplDel('+i+')" style="border:1px solid var(--border);background:transparent;border-radius:7px;padding:4px 10px;font-size:10.5px;cursor:pointer;color:#C62828;">🗑</button>'
+      +'</div>';});
+  h+='<button onclick="waTplEdit(-1)" style="width:100%;padding:10px;border-radius:10px;border:1px dashed var(--muted);background:transparent;color:var(--font);font-size:12px;cursor:pointer;font-family:inherit;">+ novo formulário</button>';
+  wrap.innerHTML=h;container.appendChild(wrap);
+}
+function waTplDel(i){const tpls=waTplList();if(!confirm('Excluir o formulário «'+tpls[i].nome+'»?'))return;tpls.splice(i,1);waTplSave();waShowCfg();}
+function waTplDup(i){const tpls=waTplList();const cp=JSON.parse(JSON.stringify(tpls[i]));cp.id='tpl_'+Date.now();cp.nome=cp.nome+' (cópia)';tpls.push(cp);waTplSave();waShowCfg();}
+function waTplEdit(i){
+  const tpls=waTplList();
+  const t=i>=0?JSON.parse(JSON.stringify(tpls[i])):{id:'tpl_'+Date.now(),nome:'',linhas:[{nome:'',tipo:'',cat:'',sinal:'-'}]};
+  window._tplDraft={idx:i,t};
+  waTplEditRender();
+}
+function waTplEditRender(){
+  const d=window._tplDraft;if(!d)return;const t=d.t;
+  let ov=document.getElementById('tpl-ov');
+  if(!ov){ov=document.createElement('div');ov.id='tpl-ov';ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9200;display:flex;align-items:center;justify-content:center;';ov.addEventListener('click',e=>{if(e.target===ov){ov.remove();window._tplDraft=null;}});document.body.appendChild(ov);}
+  const pastas=Object.keys(tiposData||{}).filter(p=>(tiposData[p]||{}).active!==false);
+  const catsOf=p=>(((tiposData[p]||{}).cats)||[]).filter(cc=>cc.active!==false).map(cc=>cc.name||cc);
+  const IS='padding:6px 8px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--font);font-size:11px;font-family:var(--font-body);box-sizing:border-box;';
+  let rows='';
+  t.linhas.forEach((l,li)=>{
+    const cats=catsOf(l.tipo);
+    rows+='<div style="display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1.2fr) 66px 26px;gap:6px;align-items:center;margin-bottom:6px;">'
+      +'<input value="'+String(l.nome||'').replace(/"/g,'&quot;')+'" placeholder="nome da linha (ex.: Dias normais)" onchange="_tplSet('+li+',\'nome\',this.value)" style="'+IS+'">'
+      +'<select onchange="_tplSet('+li+',\'tipo\',this.value)" style="'+IS+'"><option value="">pasta…</option>'+pastas.map(p=>'<option '+(l.tipo===p?'selected':'')+'>'+p+'</option>').join('')+'</select>'
+      +'<select onchange="_tplSet('+li+',\'cat\',this.value)" style="'+IS+'"><option value="">categoria…</option>'+cats.map(cname=>'<option '+(l.cat===cname?'selected':'')+'>'+cname+'</option>').join('')+'</select>'
+      +'<button onclick="_tplSet('+li+',\'sinal\',\''+(l.sinal==='+'?'-':'+')+'\')" title="clique para alternar entrada/saída" style="border:1px solid '+(l.sinal==='+'?'#2E5B34':'#8E3B3B')+';border-radius:7px;padding:5px 0;background:'+(l.sinal==='+'?'#E7F0E7':'#F7E8E8')+';color:'+(l.sinal==='+'?'#2E5B34':'#8E3B3B')+';font-size:11px;font-weight:800;cursor:pointer;">'+(l.sinal==='+'?'+ entra':'− sai')+'</button>'
+      +'<button onclick="_tplDelLinha('+li+')" style="border:none;background:transparent;color:#999;cursor:pointer;font-size:13px;">✕</button>'
+      +'</div>';});
+  ov.innerHTML='<div style="background:var(--bg);border-radius:12px;padding:18px 20px;width:min(720px,94vw);max-height:88vh;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.3);font-family:var(--font-body);" onclick="event.stopPropagation()">'
+    +'<div style="font-size:.85rem;font-weight:700;color:var(--font);margin-bottom:10px;">'+(d.idx>=0?'Editar':'Novo')+' formulário</div>'
+    +'<div style="font-size:.62rem;color:var(--muted);margin-bottom:3px;">nome do formulário</div>'
+    +'<input id="tpl-nome" value="'+String(t.nome||'').replace(/"/g,'&quot;')+'" placeholder="ex.: Holerite" onchange="window._tplDraft.t.nome=this.value" style="'+IS+'width:100%;font-size:13px;font-weight:700;margin-bottom:12px;">'
+    +'<div style="display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1.2fr) 66px 26px;gap:6px;font-size:.6rem;color:var(--muted);margin-bottom:4px;"><span>nome da linha</span><span>pasta</span><span>categoria</span><span>sinal</span><span></span></div>'
+    +rows
+    +'<button onclick="_tplAddLinha()" style="width:100%;padding:8px;border-radius:8px;border:1px dashed var(--muted);background:transparent;color:var(--font);font-size:11px;cursor:pointer;font-family:inherit;margin:4px 0 14px;">+ linha</button>'
+    +'<div style="display:flex;gap:8px;"><button onclick="document.getElementById(\'tpl-ov\').remove();window._tplDraft=null;" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11.5px;cursor:pointer;font-family:inherit;">Cancelar</button>'
+    +'<button onclick="waTplCommit()" style="flex:1;padding:9px;border-radius:8px;border:none;background:#0F766E;color:#fff;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">Salvar formulário</button></div>'
+    +'</div>';
+}
+function _tplSet(li,k,v){const d=window._tplDraft;if(!d)return;d.t.linhas[li][k]=v;if(k==='tipo')d.t.linhas[li].cat='';waTplEditRender();}
+function _tplAddLinha(){const d=window._tplDraft;if(!d)return;const last=d.t.linhas[d.t.linhas.length-1];d.t.linhas.push({nome:'',tipo:last?last.tipo:'',cat:'',sinal:last?last.sinal:'-'});waTplEditRender();}
+function _tplDelLinha(li){const d=window._tplDraft;if(!d)return;d.t.linhas.splice(li,1);if(!d.t.linhas.length)d.t.linhas.push({nome:'',tipo:'',cat:'',sinal:'-'});waTplEditRender();}
+function waTplCommit(){
+  const d=window._tplDraft;if(!d)return;const t=d.t;
+  t.nome=(document.getElementById('tpl-nome')?.value||t.nome||'').trim();
+  if(!t.nome){alert('Dê um nome ao formulário.');return;}
+  t.linhas=t.linhas.filter(l=>(l.nome||'').trim()&&l.tipo&&l.cat);
+  if(!t.linhas.length){alert('Inclua ao menos uma linha completa (nome, pasta e categoria).');return;}
+  const tpls=waTplList();
+  if(d.idx>=0)tpls[d.idx]=t;else tpls.push(t);
+  waTplSave();
+  const ov=document.getElementById('tpl-ov');if(ov)ov.remove();window._tplDraft=null;
+  toast('✓ Formulário «'+t.nome+'» salvo','success');
+  if(window.waCfgTab==='forms')waShowCfg();
+}
+
+// ── preenchimento e lançamento em lote ──
+function waMultiOpen(){
+  const tpls=waTplList();
+  if(!tpls.length){toast('Nenhum formulário criado — crie em Config → 📋 Formulários','error');return;}
+  if(tpls.length===1)return waMultiFill(0);
+  const S='display:block;width:100%;text-align:left;padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--font);font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;';
+  const html='<div id="mt-pick" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9200;display:flex;align-items:center;justify-content:center;" onclick="if(event.target===this)this.remove();">'
+    +'<div style="background:var(--bg);border-radius:12px;padding:18px 20px;width:min(380px,92vw);box-shadow:0 8px 24px rgba(0,0,0,.3);font-family:var(--font-body);">'
+    +'<div style="font-size:.85rem;font-weight:700;color:var(--font);margin-bottom:10px;">Qual formulário?</div>'
+    +tpls.map((t,i)=>'<button onclick="document.getElementById(\'mt-pick\').remove();waMultiFill('+i+')" style="'+S+'">'+t.nome+'<span style="font-weight:400;color:var(--muted);font-size:10.5px;"> · '+t.linhas.length+' linhas</span></button>').join('')
+    +'</div></div>';
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+function waMultiFill(ti){
+  const t=waTplList()[ti];if(!t)return;
+  window._mtFill={ti,vals:{}};
+  const u=currentUser||'ALE';
+  const accts=accounts.filter(a=>a.active&&(a.owner===u||a.owner==='AMBOS')).map(a=>a.name);
+  const IS='padding:7px 9px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--font);font-size:12px;font-family:var(--font-body);box-sizing:border-box;';
+  const today=new Date();const pad=n=>n<10?'0'+n:n;
+  let rows='';
+  t.linhas.forEach((l,li)=>{
+    rows+='<div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) 130px;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);">'
+      +'<span style="font-size:12px;color:var(--font);font-weight:600;">'+l.nome+' <b style="color:'+(l.sinal==='+'?'#2E5B34':'#8E3B3B')+';">'+l.sinal+'</b></span>'
+      +'<span style="font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+l.tipo+' · '+l.cat+'</span>'
+      +'<input inputmode="decimal" placeholder="0,00" oninput="waMultiCalc()" data-li="'+li+'" class="mt-val" style="'+IS+'text-align:right;font-variant-numeric:tabular-nums;'+(l.sinal==='+'?'color:#2E5B34;':'color:#8E3B3B;')+'">'
+      +'</div>';});
+  const html='<div id="mt-ov" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9200;display:flex;align-items:center;justify-content:center;" onclick="if(event.target===this){this.remove();window._mtFill=null;}">'
+    +'<div style="background:var(--bg);border-radius:12px;padding:18px 20px;width:min(640px,94vw);max-height:90vh;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.3);font-family:var(--font-body);" onclick="event.stopPropagation()">'
+    +'<div style="font-size:.9rem;font-weight:700;color:var(--font);">📋 '+t.nome+'</div>'
+    +'<div style="font-size:.62rem;color:var(--muted);margin-bottom:12px;">linhas em branco são ignoradas · todos os lançamentos saem na mesma data e conta</div>'
+    +'<div style="display:flex;gap:10px;margin-bottom:12px;">'
+      +'<div style="flex:1;"><div style="font-size:.62rem;color:var(--muted);margin-bottom:3px;">data única dos lançamentos</div><input type="date" id="mt-date" value="'+today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate())+'" style="'+IS+'width:100%;"></div>'
+      +'<div style="flex:1.4;"><div style="font-size:.62rem;color:var(--muted);margin-bottom:3px;">conta</div><select id="mt-conta" style="'+IS+'width:100%;">'+accts.map(a2=>'<option>'+a2+'</option>').join('')+'</select></div>'
+    +'</div>'
+    +rows
+    +'<div id="mt-tot" style="display:flex;gap:14px;font-size:12px;padding:10px 0 2px;font-variant-numeric:tabular-nums;"></div>'
+    +'<div style="display:flex;gap:8px;margin-top:12px;"><button onclick="document.getElementById(\'mt-ov\').remove();window._mtFill=null;" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit;">Cancelar</button>'
+    +'<button id="mt-go" onclick="waMultiCommit()" style="flex:1.4;padding:10px;border-radius:8px;border:none;background:#0F766E;color:#fff;font-size:12.5px;font-weight:800;cursor:pointer;font-family:inherit;">Lançar 0 registros</button></div>'
+    +'</div></div>';
+  document.body.insertAdjacentHTML('beforeend',html);
+  waMultiCalc();
+}
+function waMultiCalc(){
+  const t=window._mtFill?waTplList()[window._mtFill.ti]:null;if(!t)return;
+  let pos=0,neg=0,n=0;
+  document.querySelectorAll('.mt-val').forEach(inp=>{
+    const li=+inp.dataset.li;const v=parseBRNumber((inp.value||'').trim());
+    if(v>0){n++;if(t.linhas[li].sinal==='+')pos+=v;else neg+=v;}
+  });
+  const f=v=>v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const tot=document.getElementById('mt-tot');
+  if(tot)tot.innerHTML='<span style="color:#2E5B34;">+ '+f(pos)+'</span><span style="color:#8E3B3B;">− '+f(neg)+'</span><span style="font-weight:800;color:var(--font);">líquido '+f(pos-neg)+'</span>';
+  const go=document.getElementById('mt-go');
+  if(go){go.textContent='Lançar '+n+' registro'+(n===1?'':'s');go.disabled=n===0;go.style.opacity=n===0?'.5':'1';}
+}
+async function waMultiCommit(){
+  const mf=window._mtFill;if(!mf)return;const t=waTplList()[mf.ti];if(!t)return;
+  const iso=(document.getElementById('mt-date')?.value||'');if(!iso){alert('Escolha a data.');return;}
+  const [yy,mm2,dd]=iso.split('-');const dateBR=dd+'/'+mm2+'/'+yy;
+  const conta=document.getElementById('mt-conta')?.value||'';
+  const items=[];
+  document.querySelectorAll('.mt-val').forEach(inp=>{
+    const li=+inp.dataset.li;const v=parseBRNumber((inp.value||'').trim());
+    if(v>0)items.push({l:t.linhas[li],v});
+  });
+  if(!items.length)return;
+  const go=document.getElementById('mt-go');
+  if(go){go.disabled=true;go.textContent='LANÇANDO…';go.style.animation='waBlink .8s ease-in-out infinite';}
+  let okN=0;
+  for(const it of items){
+    const desc=it.l.nome+' · '+t.nome;
+    const type=it.l.sinal==='+'?'entrada':'saída';
+    const row=[dateBR,desc,it.v.toFixed(2).replace('.',','),it.l.cat,it.l.tipo,conta,type,'1','','',''];
+    try{
+      const r=await sheetsPost({action:'append',row,sheet:SHEET_NAME});
+      if(r&&r.ok){okN++;allData.push({_row:allData.length+2,_id:r.id?String(r.id):'',date:dateBR,desc,value:it.v,cat:it.l.cat,tipo:it.l.tipo,account:conta,type,consolidated:true});}
+    }catch(e){console.warn('multi append fail',e);}
+    await new Promise(z=>setTimeout(z,160));
+  }
+  try{waTxCacheSave();}catch(e){}
+  const ov=document.getElementById('mt-ov');if(ov)ov.remove();window._mtFill=null;
+  toast(okN===items.length?('✓ '+okN+' lançamentos criados ('+t.nome+' · '+dateBR+')'):('⚠ '+okN+' de '+items.length+' gravados — confira o extrato'),okN===items.length?'success':'error');
+  try{waRenderExtrato();}catch(e){}
+  try{if(typeof waActiveDashRender==='function')waActiveDashRender();}catch(e){}
+  try{renderDash();renderHistory();}catch(e){}
+}
 function waShowLaunch(){
   document.getElementById('wa-center-title').textContent='Lançar / Extrato';
-  document.getElementById('wa-center-actions').innerHTML='';
+  document.getElementById('wa-center-actions').innerHTML='<button onclick="waMultiOpen()" title="Lançar vários registros de uma vez a partir de um formulário (crie os modelos em Config → Formulários)" style="padding:5px 12px;border-radius:100px;border:1px solid #D8D6CC;background:#fff;font-size:10px;font-weight:600;color:#666;cursor:pointer;white-space:nowrap;">📋 lançar por formulário</button>';
   document.getElementById('wa-right-title').textContent='Lançar transação';
   const _nb=document.getElementById('wa-new-btn');if(_nb)_nb.style.display='block';
   // reabrir painel direito
