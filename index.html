@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#713f12,#cffafe);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#ECFEFF !important;}
-  #splash .splash-sub{color:rgba(236,254,255,.65) !important;}
-  #splash .splash-version{color:rgba(236,254,255,.35) !important;}
-  #splash .splash-btn{background:#ECFEFF !important;color:#713f12 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#ECFEFF !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#14532d,#e9d5ff);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FAF5FF !important;}
+  #splash .splash-sub{color:rgba(250,245,255,.65) !important;}
+  #splash .splash-version{color:rgba(250,245,255,.35) !important;}
+  #splash .splash-btn{background:#FAF5FF !important;color:#14532d !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FAF5FF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2118,7 +2118,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='19.05';
+const APP_VERSION='19.07';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -10444,6 +10444,53 @@ function waC2PmToggle(k){const s=waC2State();
   const i=s.pmSel.indexOf(k);if(i>=0)s.pmSel.splice(i,1);else s.pmSel.push(k);
   waCharts2Render();}
 function waC2PmAll(){const s=waC2State();s.pmSel=null;waCharts2Render();}
+function waC2PatriComp(k){const s=waC2State();if(!s.patriComp)s.patriComp={total:true,cc:true,inv:true,bens:true};s.patriComp[k]=s.patriComp[k]===false;waCharts2Render();}
+function waC2PatriModal(){
+  const s=waC2State();
+  const insts=(instituicoes||[]).map(i2=>i2.name);
+  const bens=((bensData&&bensData[currentUser||'ALE'])||[]).map(b=>({id:b.id||b.nome,nome:b.nome}));
+  let selI=new Set(s.patriInst||insts),selB=new Set(s.patriBens||bens.map(b=>b.id));
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9000;display:flex;align-items:center;justify-content:center;';
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+  const box=document.createElement('div');
+  box.style.cssText='background:var(--bg);border-radius:12px;padding:16px 18px;width:min(440px,92vw);max-height:80vh;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.3);font-family:var(--font-body);';
+  ov.appendChild(box);document.body.appendChild(ov);
+  const apply=()=>{
+    s.patriInst=(selI.size===insts.length)?null:[...selI];
+    s.patriBens=(selB.size===bens.length)?null:[...selB];
+    waCharts2Render();};
+  const render=()=>{
+    const chip=(on,lbl,oc)=>'<button data-oc="'+oc+'" style="border:1px solid '+(on?'var(--font)':'var(--border)')+';border-radius:100px;padding:4px 11px;font-size:11px;cursor:pointer;font-family:inherit;background:'+(on?'var(--font)':'transparent')+';color:'+(on?'var(--bg)':'var(--muted)')+';margin:0 4px 6px 0;">'+lbl+'</button>';
+    let h='<div style="font-size:.8rem;font-weight:700;color:var(--font);margin-bottom:2px;">Patrimônio — o que entra na conta</div>'
+      +'<div style="font-size:.62rem;color:var(--muted);margin-bottom:10px;">o gráfico atualiza a cada clique · instituições valem para conta corrente e investimentos</div>'
+      +'<div style="font-size:.66rem;color:var(--muted);margin-bottom:4px;"><b>INSTITUIÇÕES</b> · <a href="#" data-oc="ia" style="color:var(--font);">todas</a> · <a href="#" data-oc="in" style="color:var(--font);">nenhuma</a></div>'
+      +'<div>'+insts.map((n,i)=>chip(selI.has(n),n,'i:'+i)).join('')+'</div>'
+      +(bens.length?'<div style="font-size:.66rem;color:var(--muted);margin:10px 0 4px;"><b>BENS</b> · <a href="#" data-oc="ba" style="color:var(--font);">todos</a> · <a href="#" data-oc="bn" style="color:var(--font);">nenhum</a></div>'
+      +'<div>'+bens.map((b,i)=>chip(selB.has(b.id),b.nome,'b:'+i)).join('')+'</div>':'')
+      +'<div style="display:flex;justify-content:flex-end;margin-top:12px;"><button data-oc="ok" style="font-size:.68rem;padding:6px 16px;border-radius:8px;border:none;background:var(--font);color:var(--bg);font-weight:700;cursor:pointer;font-family:inherit;">Fechar</button></div>';
+    box.innerHTML=h;
+    box.querySelectorAll('[data-oc]').forEach(el=>{
+      el.addEventListener('click',ev=>{ev.preventDefault();const oc=el.dataset.oc;
+        if(oc==='ok'){ov.remove();return;}
+        if(oc==='ia')selI=new Set(insts);else if(oc==='in')selI=new Set();
+        else if(oc==='ba')selB=new Set(bens.map(b=>b.id));else if(oc==='bn')selB=new Set();
+        else if(oc.startsWith('i:')){const n=insts[+oc.slice(2)];selI.has(n)?selI.delete(n):selI.add(n);}
+        else if(oc.startsWith('b:')){const id=bens[+oc.slice(2)].id;selB.has(id)?selB.delete(id):selB.add(id);}
+        apply();render();});
+    });
+  };
+  render();
+}
+function waC2IntraNav(dir){const s=waC2State();const now=new Date();
+  if(dir===0){s.intraYM=null;waCharts2Render();return;}
+  const cur=s.intraYM||{y:now.getFullYear(),m:now.getMonth()};
+  let y=cur.y,m=cur.m+dir;
+  if(m<0){m=11;y--;}if(m>11){m=0;y++;}
+  // não passa do mês atual
+  if(y>now.getFullYear()||(y===now.getFullYear()&&m>now.getMonth())){y=now.getFullYear();m=now.getMonth();}
+  s.intraYM=(y===now.getFullYear()&&m===now.getMonth())?null:{y,m};
+  waCharts2Render();}
 function waC2Year(d){const s=waC2State();s.year=Math.min(s.year+d,new Date().getFullYear());waCharts2Render();}
 function waC2PastasModal(){
   const s=waC2State();
@@ -10766,19 +10813,23 @@ function _waCharts2Render(){
     extra='<span>barra até a marca central = 100% da meta · verde ≤90% · cinza 90–110% · vermelho >110% · <span style="color:'+FC.vermelho+';">sem meta no fim da lista</span></span>'+(nVal===0?'<span style="color:'+FC.vermelho+';font-weight:700;">nenhum mês comparável no período (anos sem orçamento) — troque o período para «ano»</span>':'');
   }
   else if(s.chart==='intra'){
-    title='Curva intra-mês · '+MESES[now.getMonth()]+' '+curYear;sub='gasto acumulado dia a dia × meta pró-rata × mês anterior · '+pastaLbl;
-    const dim=new Date(curYear,now.getMonth()+1,0).getDate();
-    const dimPrev=new Date(curYear,now.getMonth(),0).getDate();
+    // mês selecionável: padrão = mês atual; ‹ › navegam para meses anteriores/seguintes
+    const selYM=s.intraYM||{y:curYear,m:now.getMonth()};
+    const iy=selYM.y,im=selYM.m;
+    const isCurMonth=(iy===now.getFullYear()&&im===now.getMonth());
+    title='Curva intra-mês · '+MESES[im]+' '+iy;sub='gasto acumulado dia a dia × meta pró-rata × mês anterior · '+pastaLbl+(isCurMonth?'':' · mês encerrado');
+    const dim=new Date(iy,im+1,0).getDate();
+    const dimPrev=new Date(iy,im,0).getDate();
     const cum=Array(dim).fill(0),cumPrev=Array(dimPrev).fill(0);
     allData.forEach(t=>{
       if(!t.consolidated)return;
-      if(uAccts.length&&!uAccts.includes(normalizeAcct(t.account)))return;
+      if(!acctOk(t.account))return;
       if(t.type==='entrada'||t._transferId||t._isAdjust)return;
       const tp=getTipoPasta(t);
       if(receitaTipos.includes(tp)||!pastaOk(tp))return;
       const d=parseDate(t.date);if(!d)return;
-      if(d.getFullYear()===curYear&&d.getMonth()===now.getMonth())cum[d.getDate()-1]+=Math.abs(t.value);
-      const pv=new Date(curYear,now.getMonth()-1,1);
+      if(d.getFullYear()===iy&&d.getMonth()===im)cum[d.getDate()-1]+=Math.abs(t.value);
+      const pv=new Date(iy,im-1,1);
       if(d.getFullYear()===pv.getFullYear()&&d.getMonth()===pv.getMonth())cumPrev[d.getDate()-1]+=Math.abs(t.value);
     });
     for(let i=1;i<dim;i++)cum[i]+=cum[i-1];
@@ -10788,11 +10839,11 @@ function _waCharts2Render(){
     Object.keys(tiposData||{}).filter(t=>!receitaTipos.includes(t)&&pastaOk(t)&&(tiposData[t]||{}).active!==false).forEach(tp=>{
       ((tiposData[tp]||{}).cats||[]).filter(cc=>cc.active!==false).forEach(cc=>{
         const cd=(orcData[user]&&orcData[user][tp]&&orcData[user][tp][cc.name])||null;
-        metaTot+=cd?orc2GetMeta(cd,curYear,now.getMonth()):0;
+        metaTot+=cd?orc2GetMeta(cd,iy,im):0;
       });
     });
     const metaLine=Array(dim).fill(0).map((_,i)=>metaTot*(i+1)/dim);
-    const today=now.getDate();
+    const today=isCurMonth?now.getDate():dim; // mês encerrado: curva completa
     const mx=Math.max(...cum,...metaLine,...cumPrev,1);
     const cw=(W-pL-pR)/dim;
     const yF=v=>pT+(H-pT-pB)*(1-v/mx);
@@ -10909,24 +10960,39 @@ function _waCharts2Render(){
     svg+='</svg>';
   }
   else if(s.chart==='patri'){
-    title='Patrimônio';sub='conta corrente + investimentos + bens · '+periodLbl;
-    const bens=(bensData&&bensData[user])||[];
-    const patri=meses.map(mm=>{
-      const inv=(instituicoes||[]).reduce((sm,inst)=>sm+(getInstAtivos(inst)||[]).reduce((ss,a)=>{const v=getAtivoSaldoMes(a,mm.m,mm.y);return ss+(v||0);},0),0);
-      let cc=0;(instituicoes||[]).forEach(inst=>{const v=getCcSaldoMes(inst.name,mm.y,mm.m);if(v!==null)cc+=v;});
-      const bb=bens.reduce((sm,b)=>{const v=getBensSaldoMes(b,mm.y,mm.m);return sm+(v||0);},0);
-      return inv+cc+bb;
-    });
-    const mn=Math.min(...patri),mx=Math.max(...patri,1);
+    const pc=s.patriComp||{total:true,cc:true,inv:true,bens:true};
+    const instOk=n=>!s.patriInst||s.patriInst.includes(n);
+    const bemOk=b=>!s.patriBens||s.patriBens.includes(b.id||b.nome);
+    const bens=((bensData&&bensData[user])||[]).filter(bemOk);
+    const instsF=(instituicoes||[]).filter(i2=>instOk(i2.name));
+    const nInstAll=(instituicoes||[]).length,nBensAll=((bensData&&bensData[user])||[]).length;
+    title='Patrimônio';sub='curvas por componente · '+(s.patriInst?instsF.length+' de '+nInstAll+' instituições':'todas as instituições')+(s.patriBens?' · '+bens.length+' de '+nBensAll+' bens':'')+' · '+periodLbl;
+    // conta corrente com arrasto: mês sem saldo declarado herda o último conhecido
+    const ccMap={};instsF.forEach(inst=>{let last=null;ccMap[inst.name]=meses.map(mm=>{const v=getCcSaldoMes(inst.name,mm.y,mm.m);if(v!==null)last=v;return last;});});
+    const ccArr=meses.map((mm,i)=>instsF.reduce((sm,inst)=>sm+(ccMap[inst.name][i]||0),0));
+    const invArr=meses.map(mm=>instsF.reduce((sm,inst)=>sm+(getInstAtivos(inst)||[]).reduce((ss,a)=>{const v=getAtivoSaldoMes(a,mm.m,mm.y);return ss+(v||0);},0),0));
+    const bensArr=meses.map(mm=>bens.reduce((sm,b)=>{const v=getBensSaldoMes(b,mm.y,mm.m);return sm+(v||0);},0));
+    const totArr=meses.map((mm,i)=>ccArr[i]+invArr[i]+bensArr[i]);
+    const S=[
+      {k:'total',lbl:'Total',col:'#1B4D2A',arr:totArr,w:2.6},
+      {k:'inv',lbl:'Investimentos',col:'#059669',arr:invArr,w:1.8},
+      {k:'cc',lbl:'Conta corrente',col:'#1565C0',arr:ccArr,w:1.8},
+      {k:'bens',lbl:'Bens',col:'#8B5E34',arr:bensArr,w:1.8}
+    ].filter(x=>pc[x.k]!==false);
+    const allV=S.flatMap(x=>x.arr);
+    const mn=Math.min(...allV,0),mx=Math.max(...allV,1);
     const cw=cwN(meses.length);const rng=(mx-mn)||1;
     const yF=v=>pT+(H-pT-pB)*(1-(v-mn)/rng);
     svg='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMin meet" style="width:100%;height:100%;display:block;">'+axes(mx,mn);
-    const pts=patri.map((v,i)=>(pL+i*cw+cw/2)+','+yF(v));
-    svg+='<polygon points="'+pL+','+(H-pB)+' '+pts.join(' ')+' '+(W-pR)+','+(H-pB)+'" fill="#1B4D2A" opacity=".08"/>';
-    svg+=line(patri,'#1B4D2A',mn,mx);
-    patri.forEach((v,i)=>{svg+='<text x="'+(pL+i*cw+cw/2)+'" y="'+(yF(v)-6)+'" text-anchor="middle" font-size="7.5" fill="#666">'+fmtK(v)+'</text>';});
-    svg+=hitCols(meses.length,meses.map((mm,i)=>'<b>'+MESES[mm.m]+' '+mm.y+'</b><br>Patrimônio: <b>'+fmtR(patri[i])+'</b>'+(i>0?'<br>Variação: '+fmtR(patri[i]-patri[i-1]):'')));
+    S.slice().reverse().forEach(x=>{ // total desenhado por último (por cima)
+      if(x.k==='total')svg+='<polygon points="'+(pL+cw/2)+','+yF(Math.max(mn,0))+' '+x.arr.map((v,i)=>(pL+i*cw+cw/2)+','+yF(v)).join(' ')+' '+(pL+(meses.length-1)*cw+cw/2)+','+yF(Math.max(mn,0))+'" fill="#1B4D2A" opacity=".06"/>';
+      svg+='<polyline points="'+x.arr.map((v,i)=>(pL+i*cw+cw/2)+','+yF(v)).join(' ')+'" fill="none" stroke="'+x.col+'" stroke-width="'+x.w+'" stroke-linejoin="round"/>';
+    });
+    if(pc.total!==false)totArr.forEach((v,i)=>{svg+='<text x="'+(pL+i*cw+cw/2)+'" y="'+(yF(v)-6)+'" text-anchor="middle" font-size="7.5" fill="#666">'+fmtK(v)+'</text>';});
+    svg+=hitCols(meses.length,meses.map((mm,i)=>'<b>'+MESES[mm.m]+' '+mm.y+'</b>'+S.map(x=>'<br><span style=&quot;color:'+x.col+';&quot;>'+x.lbl+': '+(x.k==='total'?'<b>'+fmtR(x.arr[i])+'</b>':fmtR(x.arr[i]))+'</span>').join('')+(i>0&&pc.total!==false?'<br>Variação do total: '+fmtR(totArr[i]-totArr[i-1]):'')));
     svg+=mLabels()+'</svg>';
+    extra=S.map(x=>'<span><span style="display:inline-block;width:12px;height:'+(x.k==='total'?'3px':'2px')+';background:'+x.col+';vertical-align:middle;"></span> '+x.lbl+' <b style="color:#1a1a1a;">'+fmtK(x.arr[x.arr.length-1])+'</b></span>').join('')
+      +'<span style="color:#AAA;">conta corrente: mês sem saldo declarado herda o último conhecido</span>';
   }
 
   window._c2Meses=meses.map(mm=>mm.y+'-'+mm.m);
@@ -11018,6 +11084,23 @@ function _waCharts2Render(){
     html+='<button onclick="waC2PastasModal()" style="'+(s.pastas?chipOn:chipS)+'">🗂 '+pastaLbl+'</button>';
   }
   if(s.chart==='fluxo'||s.chart==='acum')html+='<button onclick="waC2Set(\'showMeta\','+(s.showMeta===false)+')" title="mostrar/ocultar a curva da meta/planejado" style="'+(s.showMeta!==false?chipOn:chipS)+'">◈ meta</button>';
+  if(s.chart==='intra'){
+    const _iy=(s.intraYM||{y:new Date().getFullYear(),m:new Date().getMonth()});
+    const _nowI=new Date();
+    const _isCur=_iy.y===_nowI.getFullYear()&&_iy.m===_nowI.getMonth();
+    html+='<span style="display:flex;align-items:center;gap:4px;margin-left:4px;">'
+      +'<button onclick="waC2IntraNav(-1)" style="'+chipS+'padding:4px 10px;">‹</button>'
+      +'<b style="font-size:11px;color:#1a1a1a;min-width:74px;text-align:center;">'+['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][_iy.m]+' '+_iy.y+'</b>'
+      +'<button onclick="waC2IntraNav(1)" '+(_isCur?'disabled style="'+chipS+'padding:4px 10px;opacity:.35;cursor:default;"':'style="'+chipS+'padding:4px 10px;"')+'>›</button>'
+      +(_isCur?'':'<button onclick="waC2IntraNav(0)" title="voltar ao mês atual" style="'+chipS+'padding:4px 9px;">hoje</button>')
+      +'</span>';
+  }
+  if(s.chart==='patri'){
+    const pc2=s.patriComp||{total:true,cc:true,inv:true,bens:true};
+    [['total','∑ total'],['inv','Investimentos'],['cc','Conta corrente'],['bens','Bens']].forEach(([k,lbl])=>{
+      html+='<button onclick="waC2PatriComp(\''+k+'\')" style="'+(pc2[k]!==false?chipOn:chipS)+'">'+lbl+'</button>';});
+    html+='<button onclick="waC2PatriModal()" style="'+((s.patriInst||s.patriBens)?chipOn:chipS)+'">🏦 instituições & bens</button>';
+  }
   if(s.chart==='pastas'){
     const selM2=s.pmSel?new Set(s.pmSel):null;
     html+='<span style="font-size:9px;color:#999;margin-left:4px;">meses:</span>';
