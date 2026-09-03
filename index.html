@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1e1b4b,#fed7aa);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFF7ED !important;}
-  #splash .splash-sub{color:rgba(255,247,237,.65) !important;}
-  #splash .splash-version{color:rgba(255,247,237,.35) !important;}
-  #splash .splash-btn{background:#FFF7ED !important;color:#1e1b4b !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFF7ED !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0d5c63,#fae8ff);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FDF4FF !important;}
+  #splash .splash-sub{color:rgba(253,244,255,.65) !important;}
+  #splash .splash-version{color:rgba(253,244,255,.35) !important;}
+  #splash .splash-btn{background:#FDF4FF !important;color:#0d5c63 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FDF4FF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2118,7 +2118,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='19.10';
+const APP_VERSION='19.11';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8179,29 +8179,39 @@ function waTplEditRender(){
   const pastas=Object.keys(tiposData||{}).filter(p=>(tiposData[p]||{}).active!==false);
   const catsOf=p=>(((tiposData[p]||{}).cats)||[]).filter(cc=>cc.active!==false).map(cc=>cc.name||cc);
   const IS='padding:6px 8px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--font);font-size:11px;font-family:var(--font-body);box-sizing:border-box;';
+  const nL=t.linhas.length;
   let rows='';
   t.linhas.forEach((l,li)=>{
     const cats=catsOf(l.tipo);
-    rows+='<div style="display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1.2fr) 66px 26px;gap:6px;align-items:center;margin-bottom:6px;">'
-      +'<input value="'+String(l.nome||'').replace(/"/g,'&quot;')+'" placeholder="nome da linha (ex.: Dias normais)" onchange="_tplSet('+li+',\'nome\',this.value)" style="'+IS+'">'
+    const mv=(dir,en)=>'<button onclick="_tplMove('+li+','+dir+')" '+(en?'':'disabled ')+'style="border:none;background:transparent;color:'+(en?'#666':'#DDD')+';cursor:'+(en?'pointer':'default')+';font-size:10px;line-height:1;padding:1px 2px;">'+(dir<0?'▲':'▼')+'</button>';
+    rows+='<div style="display:grid;grid-template-columns:30px minmax(0,1.3fr) minmax(0,1fr) minmax(0,1.2fr) 66px 26px;gap:6px;align-items:center;margin-bottom:6px;">'
+      +'<span style="display:flex;flex-direction:column;align-items:center;">'+mv(-1,li>0)+mv(1,li<nL-1)+'</span>'
+      +'<input value="'+String(l.nome||'').replace(/"/g,'&quot;')+'" placeholder="nome da linha (ex.: Dias normais)" oninput="window._tplDraft.t.linhas['+li+'].nome=this.value" style="'+IS+'">'
       +'<select onchange="_tplSet('+li+',\'tipo\',this.value)" style="'+IS+'"><option value="">pasta…</option>'+pastas.map(p=>'<option '+(l.tipo===p?'selected':'')+'>'+p+'</option>').join('')+'</select>'
       +'<select onchange="_tplSet('+li+',\'cat\',this.value)" style="'+IS+'"><option value="">categoria…</option>'+cats.map(cname=>'<option '+(l.cat===cname?'selected':'')+'>'+cname+'</option>').join('')+'</select>'
       +'<button onclick="_tplSet('+li+',\'sinal\',\''+(l.sinal==='+'?'-':'+')+'\')" title="clique para alternar entrada/saída" style="border:1px solid '+(l.sinal==='+'?'#2E5B34':'#8E3B3B')+';border-radius:7px;padding:5px 0;background:'+(l.sinal==='+'?'#E7F0E7':'#F7E8E8')+';color:'+(l.sinal==='+'?'#2E5B34':'#8E3B3B')+';font-size:11px;font-weight:800;cursor:pointer;">'+(l.sinal==='+'?'+ entra':'− sai')+'</button>'
       +'<button onclick="_tplDelLinha('+li+')" style="border:none;background:transparent;color:#999;cursor:pointer;font-size:13px;">✕</button>'
       +'</div>';});
-  ov.innerHTML='<div style="background:var(--bg);border-radius:12px;padding:18px 20px;width:min(720px,94vw);max-height:88vh;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.3);font-family:var(--font-body);" onclick="event.stopPropagation()">'
+  const _box0=document.getElementById('tpl-box');
+  const _sY=_box0?_box0.scrollTop:0; // preserva a rolagem do modal entre re-renderizações
+  ov.innerHTML='<div id="tpl-box" style="background:var(--bg);border-radius:12px;padding:18px 20px;width:min(720px,94vw);max-height:88vh;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.3);font-family:var(--font-body);" onclick="event.stopPropagation()">'
     +'<div style="font-size:.85rem;font-weight:700;color:var(--font);margin-bottom:10px;">'+(d.idx>=0?'Editar':'Novo')+' formulário</div>'
     +'<div style="font-size:.62rem;color:var(--muted);margin-bottom:3px;">nome do formulário</div>'
     +'<input id="tpl-nome" value="'+String(t.nome||'').replace(/"/g,'&quot;')+'" placeholder="ex.: Holerite" onchange="window._tplDraft.t.nome=this.value" style="'+IS+'width:100%;font-size:13px;font-weight:700;margin-bottom:12px;">'
-    +'<div style="display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1.2fr) 66px 26px;gap:6px;font-size:.6rem;color:var(--muted);margin-bottom:4px;"><span>nome da linha</span><span>pasta</span><span>categoria</span><span>sinal</span><span></span></div>'
+    +'<div style="display:grid;grid-template-columns:30px minmax(0,1.3fr) minmax(0,1fr) minmax(0,1.2fr) 66px 26px;gap:6px;font-size:.6rem;color:var(--muted);margin-bottom:4px;"><span>ordem</span><span>nome da linha</span><span>pasta</span><span>categoria</span><span>sinal</span><span></span></div>'
     +rows
     +'<button onclick="_tplAddLinha()" style="width:100%;padding:8px;border-radius:8px;border:1px dashed var(--muted);background:transparent;color:var(--font);font-size:11px;cursor:pointer;font-family:inherit;margin:4px 0 14px;">+ linha</button>'
     +'<div style="display:flex;gap:8px;"><button onclick="document.getElementById(\'tpl-ov\').remove();window._tplDraft=null;" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11.5px;cursor:pointer;font-family:inherit;">Cancelar</button>'
     +'<button onclick="waTplCommit()" style="flex:1;padding:9px;border-radius:8px;border:none;background:#0F766E;color:#fff;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">Salvar formulário</button></div>'
     +'</div>';
+  const _box1=document.getElementById('tpl-box');
+  if(_box1&&_sY)_box1.scrollTop=_sY;
 }
+function _tplMove(li,dir){const d=window._tplDraft;if(!d)return;const a=d.t.linhas;const j=li+dir;if(j<0||j>=a.length)return;const x=a[li];a[li]=a[j];a[j]=x;waTplEditRender();}
 function _tplSet(li,k,v){const d=window._tplDraft;if(!d)return;d.t.linhas[li][k]=v;if(k==='tipo')d.t.linhas[li].cat='';waTplEditRender();}
-function _tplAddLinha(){const d=window._tplDraft;if(!d)return;const last=d.t.linhas[d.t.linhas.length-1];d.t.linhas.push({nome:'',tipo:last?last.tipo:'',cat:'',sinal:last?last.sinal:'-'});waTplEditRender();}
+function _tplAddLinha(){const d=window._tplDraft;if(!d)return;const last=d.t.linhas[d.t.linhas.length-1];d.t.linhas.push({nome:'',tipo:last?last.tipo:'',cat:'',sinal:last?last.sinal:'-'});waTplEditRender();
+  const bx=document.getElementById('tpl-box');if(bx)bx.scrollTop=bx.scrollHeight; // nova linha à vista
+  const inps=document.querySelectorAll('#tpl-box input[placeholder^="nome da linha"]');if(inps.length)inps[inps.length-1].focus();}
 function _tplDelLinha(li){const d=window._tplDraft;if(!d)return;d.t.linhas.splice(li,1);if(!d.t.linhas.length)d.t.linhas.push({nome:'',tipo:'',cat:'',sinal:'-'});waTplEditRender();}
 function waTplCommit(){
   const d=window._tplDraft;if(!d)return;const t=d.t;
@@ -12236,7 +12246,13 @@ function waRenderQuadroDate(){
     const wrap=document.getElementById('wa-side-qdate');if(wrap)wrap.title='Dados até '+(d||'—')+' · usuário '+u+' — clique para editar';
     sv.classList.toggle('old',!!(d&&_qdParse(d)&&_qdParse(d)<_qdToday()));}
 }
-function _qdParse(s){const p=String(s||'').split('/');if(p.length!==3)return null;const d=new Date(+p[2],+p[1]-1,+p[0]);return isNaN(d)?null:d;}
+function _qdParse(s){
+  s=String(s||'');
+  const m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); // ISO gravado pelo Sheets (bug 19.09) também vale
+  if(m){const d=new Date(+m[1],+m[2]-1,+m[3]);return isNaN(d)?null:d;}
+  const p=s.split('/');if(p.length!==3)return null;
+  const d=new Date(+p[2],+p[1]-1,+p[0]);return isNaN(d)?null:d;
+}
 function _qdToday(){const t=new Date();return new Date(t.getFullYear(),t.getMonth(),t.getDate());}
 // setter central: memória + localStorage + Preferencias (Sheets) + todos os displays
 function waQDateSet(val){
@@ -12320,7 +12336,9 @@ function waSaveQuadroDate(){
 function waLoadQuadroDates(){
   try{
     const s=localStorage.getItem('fluxo_quadro_dates');
-    if(s) _quadroDates=JSON.parse(s);
+    if(s){_quadroDates=JSON.parse(s);
+      // sanear datas contaminadas com ISO (gravadas pela 19.09 antes da normalização)
+      Object.keys(_quadroDates).forEach(u2=>{if(typeof _prefDateBR==='function')_quadroDates[u2]=_prefDateBR(_quadroDates[u2]);});}
   }catch(e){}
   // also read from Sheets Preferencias (loaded in loadData)
 }
