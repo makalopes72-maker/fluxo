@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0d5c63,#fae8ff);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FDF4FF !important;}
-  #splash .splash-sub{color:rgba(253,244,255,.65) !important;}
-  #splash .splash-version{color:rgba(253,244,255,.35) !important;}
-  #splash .splash-btn{background:#FDF4FF !important;color:#0d5c63 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FDF4FF !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4a044e,#d1fae5);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECFDF5 !important;}
+  #splash .splash-sub{color:rgba(236,253,245,.65) !important;}
+  #splash .splash-version{color:rgba(236,253,245,.35) !important;}
+  #splash .splash-btn{background:#ECFDF5 !important;color:#4a044e !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#ECFDF5 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2118,7 +2118,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='19.11';
+const APP_VERSION='19.12';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -10483,13 +10483,20 @@ function _waOrc2Render(){
   const allTipos=new Set(Object.keys(tiposData||{}).filter(t=>(tiposData[t]||{}).active!==false));
   const sorted=[...receitaTipos.filter(t=>allTipos.has(t)),...[...allTipos].filter(t=>!receitaTipos.includes(t)).sort()];
 
-  // preserva rolagem (com memória: se um segundo render pegar o corpo já zerado
-  // por um render anterior, reaproveita a última posição conhecida)
+  // preserva rolagem em TODAS as camadas: painel central, wrap E a própria janela
+  // (com zoom, quem rola pode ser a página — o innerHTML colapsa a altura por um
+  // instante e o navegador ancora a janela no topo; nada restaurava essa camada).
+  // Memória anti-duplo-render: se um segundo render pegar tudo já zerado, reusa a última posição.
   const oldWrap=document.getElementById('wo2-wrap');
   const sX=oldWrap?oldWrap.scrollLeft:0;
+  let sYw=oldWrap?oldWrap.scrollTop:0;
   const bEl=document.getElementById('wa-center-body');
   let sY=bEl?bEl.scrollTop:0;
-  if(sY===0&&window._wo2LastY>0&&Date.now()-(window._wo2LastT||0)<500)sY=window._wo2LastY;
+  const dSE=document.scrollingElement||document.documentElement;
+  let sW=dSE?dSE.scrollTop:0;
+  if(sY===0&&sW===0&&sYw===0&&Date.now()-(window._wo2LastT||0)<500){
+    sY=window._wo2LastY||0;sW=window._wo2LastW||0;sYw=window._wo2LastYw||0;
+  }
 
   const zoom=window.waDash2Zoom||1;
   let html=(window._wo2Banner||'')+'<div class="wd2-wrap" id="wo2-wrap" style="zoom:'+zoom+';">';
@@ -10591,11 +10598,16 @@ function _waOrc2Render(){
   html+='<div style="margin-top:10px;font-size:9px;color:#AAA;">Orçamento 2.0 · mesmas metas do Quadro 2.0 — alterou aqui, mudou lá. Orçamento independente por usuário ('+user+').</div>';
   html+='</div>';
   const body=document.getElementById('wa-center-body');
-  if(body){body.innerHTML=html;body.scrollTop=sY;const w0=document.getElementById('wo2-wrap');if(w0)w0.scrollLeft=sX;}
-  requestAnimationFrame(()=>{
-    const w=document.getElementById('wo2-wrap');if(w)w.scrollLeft=sX;
+  const _rest=()=>{
+    const w=document.getElementById('wo2-wrap');if(w){w.scrollLeft=sX;w.scrollTop=sYw;}
     const b=document.getElementById('wa-center-body');if(b)b.scrollTop=sY;
-    window._wo2LastY=sY;window._wo2LastT=Date.now();
+    if(dSE)dSE.scrollTop=sW;
+  };
+  if(body){body.innerHTML=html;_rest();}
+  requestAnimationFrame(()=>{
+    _rest();
+    requestAnimationFrame(_rest); // segundo frame: depois do layout com zoom
+    window._wo2LastY=sY;window._wo2LastW=sW;window._wo2LastYw=sYw;window._wo2LastT=Date.now();
   });
 }
 
