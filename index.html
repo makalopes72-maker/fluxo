@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0c0a09,#a5b4fc);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#EEF2FF !important;}
-  #splash .splash-sub{color:rgba(238,242,255,.65) !important;}
-  #splash .splash-version{color:rgba(238,242,255,.35) !important;}
-  #splash .splash-btn{background:#EEF2FF !important;color:#0c0a09 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#EEF2FF !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#7e22ce,#fef3c7);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFFBEB !important;}
+  #splash .splash-sub{color:rgba(255,251,235,.65) !important;}
+  #splash .splash-version{color:rgba(255,251,235,.35) !important;}
+  #splash .splash-btn{background:#FFFBEB !important;color:#7e22ce !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFFBEB !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2118,7 +2118,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='19.19';
+const APP_VERSION='19.21';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8314,7 +8314,7 @@ function waMultiFill(ti){
     rows+='<div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) 130px;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);">'
       +'<span style="font-size:12px;color:var(--font);font-weight:600;">'+l.nome+' <b style="color:'+(l.sinal==='+'?'#2E5B34':'#8E3B3B')+';">'+l.sinal+'</b></span>'
       +'<span style="font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+l.tipo+' · '+l.cat+'</span>'
-      +'<input inputmode="decimal" placeholder="0,00" oninput="waMultiCalc()" data-li="'+li+'" class="mt-val" style="'+IS+'text-align:right;font-variant-numeric:tabular-nums;'+(l.sinal==='+'?'color:#2E5B34;':'color:#8E3B3B;')+'">'
+      +'<input inputmode="numeric" placeholder="0,00" oninput="_i2Money(this);waMultiCalc()" data-li="'+li+'" class="mt-val" style="'+IS+'text-align:right;font-variant-numeric:tabular-nums;'+(l.sinal==='+'?'color:#2E5B34;':'color:#8E3B3B;')+'">'
       +'</div>';});
   const html='<div id="mt-ov" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9200;display:flex;align-items:center;justify-content:center;" onclick="if(event.target===this){this.remove();window._mtFill=null;}">'
     +'<div style="background:var(--bg);border-radius:12px;padding:18px 20px;width:min(640px,94vw);max-height:90vh;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.3);font-family:var(--font-body);" onclick="event.stopPropagation()">'
@@ -8955,9 +8955,9 @@ function waRenderLaunchForm(){
     <div style="background:${typeColor};padding:7px 12px;flex-shrink:0;display:flex;align-items:center;gap:8px;">
       <div style="flex:1;">
         <div style="font-size:.66rem;color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.08em;margin-bottom:1px;">${typeLabel}</div>
-        <input id="wa-val-input" type="text" inputmode="decimal" value="${valDisplay}"
-          onfocus="waValInputFocus(this)" onblur="waValInputBlur(this)"
-          onkeydown="if(!/[0-9,\.\+\-\*\/\=\,\b]/.test(event.key)&&event.key!='Backspace'&&event.key!='Tab')event.preventDefault();"
+        <input id="wa-val-input" type="text" inputmode="numeric" value="${valDisplay}"
+          onfocus="waValInputFocus(this)" oninput="waValInputType(this)" onblur="waValInputType(this)"
+          onkeydown="if(!/[0-9]/.test(event.key)&&event.key!='Backspace'&&event.key!='Tab'&&event.key!='Delete'&&!event.key.startsWith('Arrow'))event.preventDefault();"
           style="font-family:var(--font-display);font-size:1.9rem;color:#fff;letter-spacing:-1px;background:transparent;border:none;outline:none;width:100%;">
       </div>
       <button onclick="waKp('del')" style="color:rgba(255,255,255,.7);background:transparent;border:none;font-size:1rem;cursor:pointer;padding:4px;">⌫</button>
@@ -9062,12 +9062,17 @@ function waKp(k){
 }
 
 function waValInputFocus(inp){inp.select();}
+// digitação "centavos primeiro" (padrão do teclado mobile): 123456 → R$ 1.234,56 —
+// o usuário digita só números, sempre com as 2 casas, sem precisar da vírgula
+function waValInputType(inp){
+  const d=String(inp.value||'').replace(/\D/g,'').slice(0,13);
+  const cents=d?parseInt(d,10):0;
+  waKpState.cents=cents;
+  waLaunchState.valueCents=cents;
+  inp.value='R$ '+(cents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
+}
 function waValInputBlur(inp){
-  const raw=inp.value.replace(/[^0-9,.]/g,'').replace(',','.');
-  const v=parseFloat(raw)||0;
-  waKpState.cents=Math.round(v*100);
-  waLaunchState.valueCents=waKpState.cents;
-  inp.value='R$ '+(waKpState.cents/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  waValInputType(inp);
 }
 function waValInputChange(v){}
 
@@ -9821,7 +9826,7 @@ function waDash2ZoomStep(dir){
   window.waDash2Zoom=z;
   localStorage.setItem('fluxo_wd2_zoom',String(z));
   const w=document.getElementById('wd2-wrap');
-  if(w)w.style.zoom=z;
+  if(w){w.style.zoom=z;w.style.maxHeight='calc((100vh - 225px)/'+z+')';}
   const p=document.getElementById('wd2-zoom-pct');
   if(p)p.textContent=Math.round(z*100)+'%';
 }
@@ -10069,7 +10074,12 @@ function _waDash2Render(){
   }
   const zoom=window.waDash2Zoom||parseFloat(localStorage.getItem('fluxo_wd2_zoom')||'1')||1;
   window.waDash2Zoom=zoom;
-  let html='<div class="wd2-wrap" id="wd2-wrap" style="zoom:'+zoom+';">';
+  // wrap com rolagem vertical própria (altura da tela menos cabeçalho+KPIs, ajustada
+  // pelo zoom) — o thead sticky mantém a linha dos meses fixa no topo ao rolar.
+  // preserva a rolagem interna do quadro entre re-renderizações (edições de meta, sync)
+  const _w0=document.getElementById('wd2-wrap');
+  const _wsY=_w0?_w0.scrollTop:0,_wsX=_w0?_w0.scrollLeft:0;
+  let html='<div class="wd2-wrap wo2-sticky" id="wd2-wrap" style="zoom:'+zoom+';max-height:calc((100vh - 225px)/'+zoom+');overflow:auto;">';
   html+='<div class="wd2-kpis">'
     +'<div class="wd2-kpi"><div class="wd2-kpi-l">'+(isPastYear?'Saldo do ano':'Saldo do mês')+'</div><div class="wd2-kpi-v" style="color:'+vColor(kpiSaldo)+';">'+fmtSg(kpiSaldo)+'</div><div class="wd2-kpi-s">'+(isPastYear?dashYear:MESES[curM]+' · só efetivadas'+(hideInvSaldo?' · s/ invest.':''))+'</div></div>'
     +'<div class="wd2-kpi"><div class="wd2-kpi-l">Acumulado</div><div class="wd2-kpi-v" style="color:'+vColor(kpiAcum)+';">'+fmtSg(kpiAcum)+'</div><div class="wd2-kpi-s">'+MESES[0]+' – '+MESES[isPastYear?11:curM]+' '+dashYear+'</div></div>'
@@ -10365,6 +10375,7 @@ function _waDash2Render(){
   html+='</div>';
   const body=document.getElementById('wa-center-body');
   if(body)body.innerHTML=html;
+  {const _w1=document.getElementById('wd2-wrap');if(_w1){_w1.scrollTop=_wsY;_w1.scrollLeft=_wsX;}requestAnimationFrame(()=>{const w2=document.getElementById('wd2-wrap');if(w2){w2.scrollTop=_wsY;w2.scrollLeft=_wsX;}});}
 }
 
 
