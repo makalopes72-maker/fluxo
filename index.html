@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#7c2d12,#e0f2fe);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F0F9FF !important;}
-  #splash .splash-sub{color:rgba(240,249,255,.65) !important;}
-  #splash .splash-version{color:rgba(240,249,255,.35) !important;}
-  #splash .splash-btn{background:#F0F9FF !important;color:#7c2d12 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F0F9FF !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#134e4a,#fde68a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFFBEB !important;}
+  #splash .splash-sub{color:rgba(255,251,235,.65) !important;}
+  #splash .splash-version{color:rgba(255,251,235,.35) !important;}
+  #splash .splash-btn{background:#FFFBEB !important;color:#134e4a !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFFBEB !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2118,7 +2118,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='19.16';
+const APP_VERSION='19.17';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -9913,6 +9913,7 @@ function _waDash2Render(){
       .wd2-kpi-v{font-size:18px;font-weight:600;letter-spacing:-.3px;}
       .wd2-kpi-s{font-size:9px;color:#AAA;margin-top:1px;}
       .wd2-tbl{border-collapse:collapse;width:100%;font-size:var(--wad-size-geral);font-family:var(--wad-font-geral);}
+      .wo2-sticky thead th{position:sticky;top:0;background:#FBFAF6;z-index:5;box-shadow:0 1px 0 #E4E2DA;}
       .wd2-tbl td,.wd2-tbl th{padding:4px 8px;border-bottom:1px solid #D9D6C9;}
       .wd2-lbl{position:sticky;left:0;z-index:3;background:#fff;white-space:nowrap;min-width:150px;max-width:210px;overflow:hidden;text-overflow:ellipsis;text-align:left;box-shadow:2px 0 4px rgba(0,0,0,.05);}
       .wd2-num{text-align:right;white-space:nowrap;font-family:var(--wad-font-valor);font-size:var(--wad-size-valor);}
@@ -10561,7 +10562,10 @@ function _waOrc2Render(){
   }
 
   const zoom=window.waDash2Zoom||1;
-  let html=(window._wo2Banner||'')+'<div class="wd2-wrap" id="wo2-wrap" style="zoom:'+zoom+';">';
+  // altura útil: a tela menos o cabeçalho da página; dividida pelo zoom (o zoom
+  // multiplica o tamanho renderizado). Com o wrap rolando na vertical, o
+  // position:sticky do thead funciona (o rolador é o próprio wrap).
+  let html=(window._wo2Banner||'')+'<div class="wd2-wrap wo2-sticky" id="wo2-wrap" style="zoom:'+zoom+';max-height:calc((100vh - 120px)/'+zoom+');overflow:auto;">';
 
   // legenda
   html+='<div style="display:flex;gap:14px;align-items:center;margin:0 0 8px;font-size:10px;color:#888;flex-wrap:wrap;">'
