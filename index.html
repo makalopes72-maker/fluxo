@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#500724,#ccfbf1);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F0FDFA !important;}
-  #splash .splash-sub{color:rgba(240,253,250,.65) !important;}
-  #splash .splash-version{color:rgba(240,253,250,.35) !important;}
-  #splash .splash-btn{background:#F0FDFA !important;color:#500724 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F0FDFA !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1a2e05,#fce7f3);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FDF2F8 !important;}
+  #splash .splash-sub{color:rgba(253,242,248,.65) !important;}
+  #splash .splash-version{color:rgba(253,242,248,.35) !important;}
+  #splash .splash-btn{background:#FDF2F8 !important;color:#1a2e05 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FDF2F8 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2118,7 +2118,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='19.14';
+const APP_VERSION='19.15';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2274,21 +2274,21 @@ const CAT_ICONS={
 const _UNUSED={'Alimentação':'🍽','Transporte':'🚗','Moradia':'🏠','Saúde':'💊','Lazer':'🎉','Educação':'📚','Vestuário':'👕','Salário':'💰','Receita':'💵','Casa':'🏠','Investimentos':'📈','Outros':'📦'};
 
 // -- TIPOS & CATEGORIAS --
-const TIPOS={
-  'Alimentação':     ['Café da Manhã / Padaria','Desconto VR','Feira','Lanches & Snacks','Refeições em restaurante','Supermercado'],
-  'Casa':            ['Celular Telefone','Combo TV + Internet + Tel','Condomínio','Energia Elétrica','Gás','IPTU','Limpeza / Faxina','Móveis e Decoração','Reforma / Manutenção','Utensílios e Eletrodomésticos','X Outros Casa'],
-  'Dependentes':     ['Celular Filhos','Clube Filhos','Escotismo','Escotismo Coreia','Pensão Alimentícia','Pensão Alimentícia Férias','Plano Saúde Filhos','Táxi Filhos','X Outros Filhos'],
-  'Educação':        ['Consultorias','Cursos','Material Escolar'],
-  'Empresa / Aut.':  ['Alimentação / Empresa','AngelUs','Contabilidade','CREF / TEF anuidade','Cursos e Eventos Empresa','Estacionamento/Taxi / Empresa','Infraestrutura','INSS','IR','Marketing','Material de Escritório','Nexus / Vistage','Taxa (banco / PJ)','X Outros / Empresa'],
-  'Gastos Pessoais': ['Aplicativos / Armazenamento','Doações','Documentos','Eletrônicos Pessoais','Higiene / Estética / Produtos','INSS / IR (PF)','Loterias','Presentes','Salão de Beleza / Manicure','Suplemento Alimentar','Transferências','Vestuário Calçados Acessórios','X Outros Pessoais','XXX Escotismo'],
-  'Investimentos':   ['Avenue','Itaú','Outros Investimentos','Safra'],
-  'Lazer':           ['APPs Netflix Spotify','Bares e Restaurantes','Bike / Artigos esportivos','Cinema / Teatro / Show / Passeio','Clube'],
-  'Receita':         ['Férias Adiantamento','Juros Investimentos / Dividendos','Receita Bruta (Cliente / Salário)','Receita Salário 13º','Receita Salário Bônus','Reembolso','Restituição','X Outras Receitas'],
-  'Saúde':           ['Consultas Fora do Plano','Dentista','Exames','Fisioterapia','Medicamentos Farmácia','Plano de Saúde Ale','Plano de Saúde Sílvia','Reembolso Médico','Seguro de Vida','Suplemento Alimentar','Terapia / Massagem / Tratamento'],
-  'Seguros':         ['Seguro Automóvel','Seguro Residencial','Seguro de Vida','Outros Seguros'],
-  'Serv. Financeiros':['Anuidade Cartão Crédito','Contador','Tarifas bancárias','X Outros Serviços Financeiros'],
-  'Transporte':      ['Combustível (sem reembolso)','Compra carro','Estacionamento','IPVA (+ licenciamento)','Lavagem e Higienização','Multas','Ônibus Metrô (sem reembolso)','Revisão Anual / Manut / Cons','Seguro do Carro','Sem Parar','Táxi (sem reembolso) / Aplicativo'],
-  'Viagens':         ['Alimentação Férias','Combustível Férias','Compras','Hospedagem Férias','Passagens / Transporte férias','Passeios Férias','Sem Parar Férias','X Outros'],
+const TIPOS={ // espelho do cadastro (aba Pastas) — regenerado na v19.15
+  'Alimentação': ['Café da Manhã / Padaria','Desconto VR','Feira','Lanches & Snacks','Refeições em restaurante','Supermercado'],
+  'Casa': ['Combo TV + Internet + Tel','Condomínio','Energia Elétrica','Gás','IPTU','Internet + TV','Limpeza / Faxina','Móveis e decoração','Reforma / Manutenção','Utensílios e Eletrodomésticos','X Outros Casa'],
+  'Dependentes': ['Celular filhos','Clube filhos','Escotismo','Escotismo Coreia','Pensão Alimentícia','Pensão Alimentícia Férias','Plano saúde filhos','Taxi filhos','X Outros Filhos'],
+  'Educação': ['Consultoria','Cursos','Livros e materiais'],
+  'Empresa / Aut.': ['Alimentação / Empresa','AngelUs','CREF / TEF anuidade','Contabilidade','Cursos e Eventos / Empresa','Estacionamento / Taxi / Empresa','INSS','IR','Infraestrutura','Marketing','Material de Escritório','Nexus / Vistage','Taxa (banco / PJ)','X Outros / Empresa'],
+  'Gastos Pessoais': ['APP mãe','Aplicativos / armazenamento','Doações','Documentos','Eletrônicos Pessoais','Escotismo','Higiene / Estética - procedimentos','Higiene / Estética - produtos','INSS / IR (PF)','Loterias','Presentes','Salão Beleza / Manicure','Suplemento Alimentar','Transferências','Vestuário Calçados Acessórios','X Outros Pessoais','XXX Escotismo'],
+  'Investimentos': ['Avenue','Itaú','Outros Investimentos','Safra'],
+  'Lazer': ['APPs Netflix Spotify','Bares e Restaurantes','Bike / Artigos esportivos','Cinema / Teatro / Show / Passeio','Clube'],
+  'Receita': ['Férias Adiantamento','Juros Investimentos / Dividendos','Receita Bruta (Cliente / Salário)','Receita Salário 13º','Receita Salário Bônus','Reembolso','Restituição','X Outras Receitas'],
+  'Saúde': ['Consultas Fora do Plano','Dentista','Exames','Fisioterapia','Medicamentos Farmácia','Plano de Saúde - Co Participação','Plano de Saúde Ale','Plano de Saúde Sílvia','Reembolso Médico','Seguro de Vida','Suplemento Alimentar','Terapia / Massagem / Tratamento'],
+  'Seguros': ['Outros Seguros','Seguro Automóvel','Seguro Residencial','Seguro de Vida'],
+  'Serv. Financeiros': ['Anuidade Cartão Crédito','Contador','Tarifas bancárias','X Outros Serviços Financeiros'],
+  'Transporte': ['Combustível (sem reembolso)','Compra carro','Estacionamento','IPVA (+ licenciamento)','Lavagem e Higienização','Multas','Revisão Anual / Manut / Cons','Seguro do Carro','Sem Parar','Táxi (sem reembolso) / Aplicativo','Ônibus Metrô (sem reembolso)'],
+  'Viagens': ['Alimentação Férias','Combustível Férias','Compras','Hospedagem Férias','Passagens / Transporte férias','Passeios Férias','Sem Parar Férias','X Outros'],
 };
 // -- CONTAS --
 const DEFAULT_ACCOUNTS=[
@@ -2406,6 +2406,13 @@ const CAT_TO_PASTA={
   'Viagens':'Viagens','Hospedagem Férias':'Viagens','Combustível Férias':'Viagens',
   'Compras':'Viagens','Passagens / Transporte férias':'Viagens','Passeios Férias':'Viagens',
   'Sem Parar Férias':'Viagens','X Outros':'Viagens',
+  // nomes oficiais pós-limpeza (v19.15)
+  'Clube filhos':'Dependentes','Celular filhos':'Dependentes','Plano saúde filhos':'Dependentes',
+  'Móveis e decoração':'Casa','Internet + TV':'Casa',
+  'Aplicativos / armazenamento':'Gastos Pessoais','Salão Beleza / Manicure':'Gastos Pessoais',
+  'Higiene / Estética - produtos':'Gastos Pessoais','Higiene / Estética - procedimentos':'Gastos Pessoais',
+  'APP mãe':'Gastos Pessoais',
+  'Cursos e Eventos / Empresa':'Empresa / Aut.','Estacionamento / Taxi / Empresa':'Empresa / Aut.','Empresa / Aut.':'Empresa / Aut.',
 };
 function getTipoPasta(t){
   var rawTipo=t.tipo||t.cat||'Outros';
@@ -3879,34 +3886,39 @@ async function saveTransaction(syncAfter=false){
 
 // -- DATA --
 const CAT_ALIASES={
+  // grafias antigas → nome oficial do cadastro (aba Pastas). Direção é sempre velho→novo.
   'Juros Investimentos . Dividendos':'Juros Investimentos / Dividendos',
   'Receita Bruta (Cliente/ Salário)':'Receita Bruta (Cliente / Salário)',
-  'Celular Telefone':'Celular / Telefone',
-  'Móveis e decoração':'Móveis e Decoração',
-  'Utensílios e Eletrodomésticos':'Utensílios / Eletrodomésticos',
   'Táxi (sem reembolso). Aplicativo':'Táxi (sem reembolso) / Aplicativo',
   'Revisão Anual / Manut/ Conserto':'Revisão Anual / Manut / Cons',
-  'Empresa / Aut.':'Empresa / Atividade Autônoma',
-  'Cursos e Eventos / Empresa':'Cursos e Eventos Empresa',
-  'Aplicativos / armazenamento':'Aplicativos / Armazenamento',
-  'Higiene / Estética Produtos':'Higiene / Estética / Produtos',
-  'Higiene / Estética':'Higiene / Estética / Produtos',
-  'Salão Beleza / Manicure':'Salão de Beleza / Manicure',
-  'Celular filhos':'Celular Filhos',
-  'Clube filhos':'Clube Filhos',
-  'Plano saúde filhos':'Plano Saúde Filhos',
-  'Taxi filhos':'Táxi Filhos',
-  'Consultoria':'Consultorias',
-  'Livros e materiais':'Material Escolar',
-  'Seguro do Carro':'Seguro Automóvel',
-  'Estacionamento / Taxi / Empresa':'Estacionamento/Taxi / Empresa',
-  'Combo TV + Internet + Telefone':'Combo TV + Internet + Tel',
-  'Transferência':'Transferências',
-  'Lazer e Informação':'Lazer',
   'Terapia.Massagem.Tratamentos':'Terapia / Massagem / Tratamento',
   'IMSS / IR (PF)':'INSS / IR (PF)',
   'CRF / TRF Anuidade':'CREF / TEF anuidade',
   'Contador':'Contabilidade',
+  'Seguro do Carro':'Seguro Automóvel',
+  'Transferência':'Transferências',
+  'Lazer e Informação':'Lazer',
+  'Utensílios e Eletrodomésticos':'Utensílios / Eletrodomésticos',
+  'Empresa / Atividade Autônoma':'Empresa / Aut.',
+  'Cursos e Eventos Empresa':'Cursos e Eventos / Empresa',
+  'Estacionamento/Taxi / Empresa':'Estacionamento / Taxi / Empresa',
+  'Aplicativos / Armazenamento':'Aplicativos / armazenamento',
+  'Higiene / Estética Produtos':'Higiene / Estética - produtos',
+  'Higiene / Estética / Produtos':'Higiene / Estética - produtos',
+  'Higiene / Estética':'Higiene / Estética - procedimentos',
+  'Salão de Beleza / Manicure':'Salão Beleza / Manicure',
+  'Celular Filhos':'Celular filhos',
+  'Clube Filhos':'Clube filhos',
+  'Plano Saúde Filhos':'Plano saúde filhos',
+  'Táxi Filhos':'Taxi filhos',
+  'Consultorias':'Consultoria',
+  'Material Escolar':'Livros e materiais',
+  'Móveis e Decoração':'Móveis e decoração',
+  'Celular Telefone':'Internet + TV',
+  'Celular / Telefone':'Internet + TV',
+  'Combo TV + Internet + Telefone':'Internet + TV',
+  'Combo TV + Internet + Tel':'Internet + TV',
+  'XXX Escotismo':'Escotismo',
 };
 function normalizeCat(cat){return CAT_ALIASES[cat]||cat;}
 
@@ -5833,7 +5845,7 @@ function getOrcCat(tipo,cat){
 }
 function seedOrcForUser(user){
   if(!orcData[user])orcData[user]={};
-  orcData[user]={"Alimentação": {"Café da Manhã / Padaria": {"default": 400, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Desconto VR": {"default": 350, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Feira": {"default": 350, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Lanches & Snacks": {"default": 40, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Refeições em restaurante": {"default": 1100, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Supermercado": {"default": 800, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Casa": {"Celular Telefone": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Combo TV + Internet + Tel": {"default": 2850, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Condomínio": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Energia Elétrica": {"default": 240, "period": "mensal", "tipo": "V", "farol": "A", "months": {}}, "Gás": {"default": 240, "period": "mensal", "tipo": "V", "farol": "A", "months": {}}, "IPTU": {"default": 1040, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Limpeza / Faxina": {"default": 1000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Móveis e Decoração": {"default": 200, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Reforma / Manutenção": {"default": 150, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Seguro Residencial": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Utensílios e Eletrodomésticos": {"default": 100, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Moradia": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Dependentes": {"Celular Filhos": {"default": 590, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Clube Filhos": {"default": 590, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Escotismo": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Escotismo Corrida": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Pensão Alimentícia": {"default": 8840, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Pensão Alimentícia Férias": {"default": 8840, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Plano Saúde Filhos": {"default": 1500, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Táxi Filhos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Filhos": {"default": 100, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Educação": {"Consultorias": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Cursos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Material Escolar": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Empresa / Atividade Autônoma": {"Alimentação Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Contabilidade": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "CREF / TEF anuidade": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Cursos e Eventos Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Estacionamento Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Infraestrutura": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "INSS": {"default": 92, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "INSS Férias": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "IR": {"default": 6000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Férias": {"default": 6000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Materiais de Escritório Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Nexus / Vistage": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Outros Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Gastos Pessoais": {"Aplicativos / Armazenamento": {"default": 30, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Doações": {"default": 30, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Documentos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Eletrônicos Pessoais": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Higiene / Estética / Produtos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "INSS / IR (PF)": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Loterias": {"default": 20, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Presentes": {"default": 300, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Salão de Beleza / Manicure": {"default": 40, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Transferências": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Transporte": {"Combustível (sem reembolso)": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Estacionamento": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Sem Parar": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Táxi (sem reembolso) / Aplicativo": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Transporte": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Saúde": {"Medicamentos Farmácia": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Plano de Saúde": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Consultas Fora do Plano": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Academia / Esporte": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}}, "Lazer": {"APPs Netflix Spotify": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Bares e Restaurantes": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Cinema / Teatro / Show / Passeio": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Lazer": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Receita": {"Receita Bruta (Cliente / Salário)": {"default": 34000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Reembolso": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Receita": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}};
+  orcData[user]={"Alimentação": {"Café da Manhã / Padaria": {"default": 400, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Desconto VR": {"default": 350, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Feira": {"default": 350, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Lanches & Snacks": {"default": 40, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Refeições em restaurante": {"default": 1100, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Supermercado": {"default": 800, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Casa": {"Internet + TV": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Combo TV + Internet + Tel": {"default": 2850, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Condomínio": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Energia Elétrica": {"default": 240, "period": "mensal", "tipo": "V", "farol": "A", "months": {}}, "Gás": {"default": 240, "period": "mensal", "tipo": "V", "farol": "A", "months": {}}, "IPTU": {"default": 1040, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Limpeza / Faxina": {"default": 1000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Móveis e decoração": {"default": 200, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Reforma / Manutenção": {"default": 150, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Seguro Residencial": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Utensílios e Eletrodomésticos": {"default": 100, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Moradia": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Dependentes": {"Celular filhos": {"default": 590, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Clube filhos": {"default": 590, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Escotismo": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Escotismo Corrida": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Pensão Alimentícia": {"default": 8840, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Pensão Alimentícia Férias": {"default": 8840, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Plano saúde filhos": {"default": 1500, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Taxi filhos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Filhos": {"default": 100, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Educação": {"Consultoria": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Cursos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Livros e materiais": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Empresa / Aut.": {"Alimentação Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Contabilidade": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "CREF / TEF anuidade": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Cursos e Eventos / Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Estacionamento Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Infraestrutura": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "INSS": {"default": 92, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "INSS Férias": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "IR": {"default": 6000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Férias": {"default": 6000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Materiais de Escritório Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Nexus / Vistage": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Outros Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Gastos Pessoais": {"Aplicativos / armazenamento": {"default": 30, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Doações": {"default": 30, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Documentos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Eletrônicos Pessoais": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Higiene / Estética - produtos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "INSS / IR (PF)": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Loterias": {"default": 20, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Presentes": {"default": 300, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Salão Beleza / Manicure": {"default": 40, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Transferências": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Transporte": {"Combustível (sem reembolso)": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Estacionamento": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Sem Parar": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Táxi (sem reembolso) / Aplicativo": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Transporte": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Saúde": {"Medicamentos Farmácia": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Plano de Saúde": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Consultas Fora do Plano": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Academia / Esporte": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}}, "Lazer": {"APPs Netflix Spotify": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Bares e Restaurantes": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Cinema / Teatro / Show / Passeio": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Lazer": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Receita": {"Receita Bruta (Cliente / Salário)": {"default": 34000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Reembolso": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Receita": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}};
   saveOrc();
 }
 
