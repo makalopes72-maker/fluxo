@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#134e4a,#fde68a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFFBEB !important;}
-  #splash .splash-sub{color:rgba(255,251,235,.65) !important;}
-  #splash .splash-version{color:rgba(255,251,235,.35) !important;}
-  #splash .splash-btn{background:#FFFBEB !important;color:#134e4a !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFFBEB !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0c0a09,#a5b4fc);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#EEF2FF !important;}
+  #splash .splash-sub{color:rgba(238,242,255,.65) !important;}
+  #splash .splash-version{color:rgba(238,242,255,.35) !important;}
+  #splash .splash-btn{background:#EEF2FF !important;color:#0c0a09 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#EEF2FF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2118,7 +2118,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='19.17';
+const APP_VERSION='19.19';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2408,7 +2408,7 @@ const CAT_TO_PASTA={
   'Sem Parar Férias':'Viagens','X Outros':'Viagens',
   // nomes oficiais pós-limpeza (v19.15)
   'Clube filhos':'Dependentes','Celular filhos':'Dependentes','Plano saúde filhos':'Dependentes',
-  'Móveis e decoração':'Casa','Internet + TV':'Casa',
+  'Móveis e decoração':'Casa','Internet + TV':'Casa','Utensílios e Eletrodomésticos':'Casa',
   'Aplicativos / armazenamento':'Gastos Pessoais','Salão Beleza / Manicure':'Gastos Pessoais',
   'Higiene / Estética - produtos':'Gastos Pessoais','Higiene / Estética - procedimentos':'Gastos Pessoais',
   'APP mãe':'Gastos Pessoais',
@@ -3901,7 +3901,7 @@ const CAT_ALIASES={
   'Seguro do Carro':'Seguro Automóvel',
   'Transferência':'Transferências',
   'Lazer e Informação':'Lazer',
-  'Utensílios e Eletrodomésticos':'Utensílios / Eletrodomésticos',
+  'Utensílios / Eletrodomésticos':'Utensílios e Eletrodomésticos',
   'Empresa / Atividade Autônoma':'Empresa / Aut.',
   'Cursos e Eventos Empresa':'Cursos e Eventos / Empresa',
   'Estacionamento/Taxi / Empresa':'Estacionamento / Taxi / Empresa',
@@ -11085,21 +11085,25 @@ function _waCharts2Render(){
     const RH=22; // linhas mais próximas
     const Hh=Math.max(top.length*RH+16,110);
     svg='<svg viewBox="0 0 '+W+' '+Hh+'" style="width:100%;height:auto;display:block;">';
-    const bx=225,bwMax=W-bx-100;
+    const bx=225,bwMax=W-bx-175; // espaço extra à direita para a média mensal
+    const escJs=s=>String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
     top.forEach((it,i)=>{
       const yy=8+i*RH;
       const pct=Math.min(it.pct===null?2:it.pct,2);
       const wB=bwMax*pct/2;
       const col=it.pct===null?FC.vermelho:(it.pct<=0.9?FC.verde:it.pct<=1.1?FC.cinza:FC.vermelho);
-      svg+='<text x="'+(bx-8)+'" y="'+(yy+11)+'" text-anchor="end" font-size="11.5" fill="#3A3A36">'+it.cat+'</text>';
+      // clique no nome abre o mesmo modal de meta do Quadro 2.0
+      svg+='<text x="'+(bx-8)+'" y="'+(yy+11)+'" text-anchor="end" font-size="11.5" fill="#1565C0" style="cursor:pointer;" onclick="openOrcEdit(\''+escJs(it.tp)+'\',\''+escJs(it.cat)+'\')">'+it.cat+'</text>';
       svg+='<rect x="'+bx+'" y="'+yy+'" width="'+bwMax+'" height="13" rx="2" fill="#F1EFE8"/>';
       svg+='<rect x="'+bx+'" y="'+yy+'" width="'+Math.max(wB,1)+'" height="13" rx="2" fill="'+col+'"/>';
       svg+='<line x1="'+(bx+bwMax/2)+'" y1="'+(yy-1)+'" x2="'+(bx+bwMax/2)+'" y2="'+(yy+14)+'" stroke="#1a1a1a" stroke-width="1"/>';
-      svg+='<text x="'+(bx+bwMax+6)+'" y="'+(yy+11)+'" font-size="10.5" fill="#666">'+(it.pct!==null?Math.round(it.pct*100)+'%':'sem meta')+' <tspan fill="#AAA" font-size="9.5">'+fmtK(it.real)+'/'+fmtK(it.meta)+'</tspan></text>';
-      svg+='<rect x="0" y="'+(yy-2)+'" width="'+W+'" height="'+(RH-2)+'" fill="transparent"'+tipA('<b>'+it.cat+'</b> · '+it.tp+'<br>Real: '+fmtR(it.real)+'<br>Meta do período: '+(it.meta>0?fmtR(it.meta)+'<br>Consumo: <b>'+Math.round(it.pct*100)+'%</b>':'<b>sem meta</b>'))+'/>';
+      const med=nVal>0?it.real/nVal:0;
+      svg+='<text x="'+(bx+bwMax+6)+'" y="'+(yy+11)+'" font-size="10.5" fill="#666">'+(it.pct!==null?Math.round(it.pct*100)+'%':'sem meta')+' <tspan fill="#AAA" font-size="9.5">'+fmtK(it.real)+'/'+fmtK(it.meta)+' ('+fmtK(med)+'/mês)</tspan></text>';
+      svg+='<rect x="0" y="'+(yy-2)+'" width="'+(bx-14)+'" height="'+(RH-2)+'" fill="transparent" style="cursor:pointer;" onclick="openOrcEdit(\''+escJs(it.tp)+'\',\''+escJs(it.cat)+'\')"'+tipA('<b>'+it.cat+'</b> · '+it.tp+'<br><i>clique para editar a meta</i>')+'/>';
+      svg+='<rect x="'+(bx-14)+'" y="'+(yy-2)+'" width="'+(W-(bx-14))+'" height="'+(RH-2)+'" fill="transparent"'+tipA('<b>'+it.cat+'</b> · '+it.tp+'<br>Real: '+fmtR(it.real)+'<br>Média por mês comparado: '+fmtR(med)+'<br>Meta do período: '+(it.meta>0?fmtR(it.meta)+'<br>Consumo: <b>'+Math.round(it.pct*100)+'%</b>':'<b>sem meta</b>'))+'/>';
     });
     svg+='</svg>';
-    extra='<span>barra até a marca central = 100% da meta · verde ≤90% · cinza 90–110% · vermelho >110% · <span style="color:'+FC.vermelho+';">sem meta no fim da lista</span></span>'+(nVal===0?'<span style="color:'+FC.vermelho+';font-weight:700;">nenhum mês comparável no período (anos sem orçamento) — troque o período para «ano»</span>':'');
+    extra='<span>barra até a marca central = 100% da meta · verde ≤90% · cinza 90–110% · vermelho >110% · <span style="color:'+FC.vermelho+';">sem meta no fim da lista</span> · <span style="color:#1565C0;">clique no nome edita a meta</span></span>'+(nVal===0?'<span style="color:'+FC.vermelho+';font-weight:700;">nenhum mês comparável no período (anos sem orçamento) — troque o período para «ano»</span>':'');
   }
   else if(s.chart==='intra'){
     // mês selecionável: padrão = mês atual; ‹ › navegam para meses anteriores/seguintes
