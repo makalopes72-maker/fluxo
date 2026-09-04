@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#1a2e05,#fce7f3);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FDF2F8 !important;}
-  #splash .splash-sub{color:rgba(253,242,248,.65) !important;}
-  #splash .splash-version{color:rgba(253,242,248,.35) !important;}
-  #splash .splash-btn{background:#FDF2F8 !important;color:#1a2e05 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FDF2F8 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#7c2d12,#e0f2fe);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F0F9FF !important;}
+  #splash .splash-sub{color:rgba(240,249,255,.65) !important;}
+  #splash .splash-version{color:rgba(240,249,255,.35) !important;}
+  #splash .splash-btn{background:#F0F9FF !important;color:#7c2d12 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F0F9FF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2118,7 +2118,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='19.15';
+const APP_VERSION='19.16';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3430,6 +3430,7 @@ function login(u){
   }
   // CACHE-FIRST (v18.87): hidrata as transações da última sessão na hora
   try{if(!allData.length&&waTxCacheLoad()){renderDash();renderHistory();}}catch(e){}
+  try{orc2Sanitize();}catch(e){}
   // ENTRADA IMEDIATA (v18.92): o Quadro 2.0 abre AGORA, com o cache e o cadastro local —
   // as cargas do Sheets rodam atrás e vão re-renderizando a tela ativa conforme chegam.
   if(window.innerWidth>window.innerHeight){try{waOnLogin();}catch(e){console.warn('waOnLogin',e);}}
@@ -3437,6 +3438,8 @@ function login(u){
   (async()=>{
     // FASE 1: Transações do ano (com ?year=) e cadastro de investimentos
     try{await loadData();}catch(e){}
+    _rr();
+    try{await loadOrcFromSheets();}catch(e){}
     _rr();
     try{await loadInvFromSheets(false);}catch(e){}
     _rr();
@@ -4813,6 +4816,22 @@ async function syncCcMensalToSheets(user, inst, year, month, saldo, dataAjuste){
   }catch(e){console.warn('ccUpsert failed:',e);}
 }
 
+async function loadOrcFromSheets(){
+  try{
+    waLoadMark('orc','Orçamento','pend');
+    const rows=await sheetsRead(SHEETS.orcamento);
+    waLoadMark('orc','Orçamento','ok',(rows?rows.length:0)+' usuários');
+    if(rows&&rows.length>0){
+      const obj=deserializeKV(rows);
+      if(Object.keys(obj).length>0){
+        Object.keys(obj).forEach(u=>{orcData[u]=obj[u];}); // Sheets é a fonte da verdade por usuário
+      }
+    }
+    window._orcSynced=true; // libera gravações do orçamento nesta sessão
+    try{orc2Sanitize();}catch(e){}
+    try{localStorage.setItem('fluxo_orc',JSON.stringify(orcData));}catch(e){}
+  }catch(e){waLoadMark('orc','Orçamento','fail',e.message);throw e;}
+}
 async function loadCcMensalFromSheets(){
   waLoadMark('cc','Conta corrente (mensal)','pend');
   try{
@@ -5843,8 +5862,39 @@ function getOrcCat(tipo,cat){
   if(!uorc[tipo][cat])uorc[tipo][cat]={default:0,period:'mensal',tipo:'V',farol:'R',months:{}};
   return uorc[tipo][cat];
 }
+// normaliza as chaves do orçamento em memória: pasta legada e categorias com
+// grafia antiga são fundidas nos nomes oficiais (CAT_ALIASES). Roda no boot e
+// após cada leitura do Sheets — é o que impede 'Clube Filhos' × 'Clube filhos'.
+function orc2Sanitize(){
+  let mudou=false;
+  const temMeta=cd=>!!(cd&&((cd.default||0)||Object.values(cd.defaults||{}).some(v=>v)||Object.values(cd.months||{}).some(v=>v)));
+  Object.keys(orcData||{}).forEach(u=>{
+    const d=orcData[u];if(!d)return;
+    // pasta legada
+    if(d['Empresa / Atividade Autônoma']){
+      const src=d['Empresa / Atividade Autônoma'];d['Empresa / Aut.']=d['Empresa / Aut.']||{};
+      Object.keys(src).forEach(ct=>{const cd=src[ct];const c2=CAT_ALIASES[ct]||ct;
+        if(temMeta(cd)&&!temMeta(d['Empresa / Aut.'][c2]))d['Empresa / Aut.'][c2]=cd;});
+      delete d['Empresa / Atividade Autônoma'];mudou=true;
+    }
+    // categorias com grafia antiga → oficial (mescla; oficial com meta prevalece)
+    Object.keys(d).forEach(p=>{
+      Object.keys(d[p]||{}).forEach(ct=>{
+        const c2=CAT_ALIASES[ct];
+        if(!c2||c2===ct)return;
+        const cd=d[p][ct];const dest=d[p][c2];
+        if(temMeta(cd)&&!temMeta(dest))d[p][c2]=cd;
+        delete d[p][ct];mudou=true;
+      });
+    });
+  });
+  if(mudou){try{localStorage.setItem('fluxo_orc',JSON.stringify(orcData));}catch(e){}}
+  return mudou;
+}
 function seedOrcForUser(user){
-  if(!orcData[user])orcData[user]={};
+  // NUNCA sobrescreve um orçamento existente (incidente 04/09/26: o seed pisou
+  // no orçamento real e uma gravação levou a aba inteira junto)
+  if(orcData[user]&&Object.keys(orcData[user]).length>0)return;
   orcData[user]={"Alimentação": {"Café da Manhã / Padaria": {"default": 400, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Desconto VR": {"default": 350, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Feira": {"default": 350, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Lanches & Snacks": {"default": 40, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Refeições em restaurante": {"default": 1100, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Supermercado": {"default": 800, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Casa": {"Internet + TV": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Combo TV + Internet + Tel": {"default": 2850, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Condomínio": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Energia Elétrica": {"default": 240, "period": "mensal", "tipo": "V", "farol": "A", "months": {}}, "Gás": {"default": 240, "period": "mensal", "tipo": "V", "farol": "A", "months": {}}, "IPTU": {"default": 1040, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Limpeza / Faxina": {"default": 1000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Móveis e decoração": {"default": 200, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Reforma / Manutenção": {"default": 150, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Seguro Residencial": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Utensílios e Eletrodomésticos": {"default": 100, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Moradia": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Dependentes": {"Celular filhos": {"default": 590, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Clube filhos": {"default": 590, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Escotismo": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Escotismo Corrida": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Pensão Alimentícia": {"default": 8840, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Pensão Alimentícia Férias": {"default": 8840, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Plano saúde filhos": {"default": 1500, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Taxi filhos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Filhos": {"default": 100, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Educação": {"Consultoria": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Cursos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Livros e materiais": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Empresa / Aut.": {"Alimentação Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Contabilidade": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "CREF / TEF anuidade": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Cursos e Eventos / Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Estacionamento Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Infraestrutura": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "INSS": {"default": 92, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "INSS Férias": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "IR": {"default": 6000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Férias": {"default": 6000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Materiais de Escritório Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Nexus / Vistage": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Outros Empresa": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Gastos Pessoais": {"Aplicativos / armazenamento": {"default": 30, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Doações": {"default": 30, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Documentos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Eletrônicos Pessoais": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Higiene / Estética - produtos": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "INSS / IR (PF)": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Loterias": {"default": 20, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Presentes": {"default": 300, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Salão Beleza / Manicure": {"default": 40, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Transferências": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Transporte": {"Combustível (sem reembolso)": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Estacionamento": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Sem Parar": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Táxi (sem reembolso) / Aplicativo": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Transporte": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Saúde": {"Medicamentos Farmácia": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Plano de Saúde": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Consultas Fora do Plano": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Academia / Esporte": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}}, "Lazer": {"APPs Netflix Spotify": {"default": 0, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Bares e Restaurantes": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Cinema / Teatro / Show / Passeio": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Lazer": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}, "Receita": {"Receita Bruta (Cliente / Salário)": {"default": 34000, "period": "mensal", "tipo": "F", "farol": "A", "months": {}}, "Reembolso": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}, "Outros Receita": {"default": 0, "period": "mensal", "tipo": "V", "farol": "R", "months": {}}}};
   saveOrc();
 }
@@ -6608,19 +6658,7 @@ async function syncAll(manual=false){
     toast('Transações carregadas','');
 
     // 2. Orçamento
-    try{
-      waLoadMark('orc','Orçamento','pend');
-      const rows=await sheetsRead(SHEETS.orcamento);
-      waLoadMark('orc','Orçamento','ok',(rows?rows.length:0)+' linhas');
-      if(rows&&rows.length>0){
-        const obj=deserializeKV(rows);
-        if(Object.keys(obj).length>0){
-          // merge by user — never wipe a user that isn't in Sheets yet
-          Object.keys(obj).forEach(u=>{orcData[u]=obj[u];});
-          localStorage.setItem('fluxo_orc',JSON.stringify(orcData));
-        }
-      }
-    }catch(e){waLoadMark('orc','Orçamento','fail',e.message);console.warn('orc read fail',e);}
+    try{await loadOrcFromSheets();}catch(e){console.warn('orc read fail',e);}
 
     // 3. Investimentos
     try{await loadInvFromSheets();}catch(e){console.warn('inv read fail',e);}
@@ -6736,7 +6774,19 @@ async function pushToSheets(dataset){
   let res=null;
   try{
     if(dataset==='orc'){
-      res=await sheetsWriteSafe(SHEETS.orcamento, serializeKV(orcData));
+      // REGRA CRÍTICA (mesma dos Investimentos): a aba Orçamento guarda TODOS os
+      // usuários. (a) só grava depois de ter lido o Sheets nesta sessão;
+      // (b) lê de novo agora e MESCLA — usuários fora da memória local são preservados;
+      // (c) se a leitura falhar, NÃO grava (gravação cega = perda de dados).
+      if(!window._orcSynced){console.warn('orc write bloqueado: orçamento ainda não sincronizado nesta sessão');return null;}
+      let sheetObj={};
+      try{
+        const rows=await sheetsRead(SHEETS.orcamento);
+        sheetObj=deserializeKV(rows||[]);
+      }catch(e){console.warn('orc write abortado: leitura falhou',e);if(typeof toast==='function')toast('⚠ orçamento NÃO gravado (sem leitura do Sheets)','error');return null;}
+      const merged={...sheetObj};
+      Object.keys(orcData).forEach(u=>{if(orcData[u]&&Object.keys(orcData[u]).length)merged[u]=orcData[u];});
+      res=await sheetsWriteSafe(SHEETS.orcamento, serializeKV(merged));
     } else if(dataset==='insts'){
       const rows=[['ID','Nome','Icone'],...instituicoes.map(i=>[i.id||i.name,i.name,i.icon||'🏦'])];
       res=await sheetsWriteSafe('Instituições', rows);
