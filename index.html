@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#9f1239,#d9f99d);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#F7FEE7 !important;}
-  #splash .splash-sub{color:rgba(247,254,231,.65) !important;}
-  #splash .splash-version{color:rgba(247,254,231,.35) !important;}
-  #splash .splash-btn{background:#F7FEE7 !important;color:#9f1239 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F7FEE7 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0e7490,#fecdd3);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FFF1F2 !important;}
+  #splash .splash-sub{color:rgba(255,241,242,.65) !important;}
+  #splash .splash-version{color:rgba(255,241,242,.35) !important;}
+  #splash .splash-btn{background:#FFF1F2 !important;color:#0e7490 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFF1F2 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2118,7 +2118,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='19.23';
+const APP_VERSION='19.24';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -6349,6 +6349,19 @@ function waLoadRetry(key){
   const f=fns[key];if(!f)return;toast('↻ recarregando '+(waLoad[key]?waLoad[key].label:key)+'…','');
   Promise.resolve(f()).catch(e=>toast('✗ '+e.message,'error'));
 }
+// estica o rolador sticky (Quadro 2.0 / Orçamento 2.0) até a base da área central,
+// medindo a posição real (nada de constantes chutadas) e compensando o zoom
+function waStickyFit(id){
+  try{
+    const w=document.getElementById(id);if(!w)return;
+    const b=document.getElementById('wa-center-body');if(!b)return;
+    const z=parseFloat(w.style.zoom||'1')||1;
+    const wr=w.getBoundingClientRect(),br=b.getBoundingClientRect();
+    const avail=br.bottom-wr.top-6; // px reais até a base
+    if(avail>120)w.style.maxHeight=(avail/z)+'px';
+  }catch(e){}
+}
+window.addEventListener('resize',()=>{waStickyFit('wd2-wrap');waStickyFit('wo2-wrap');});
 function waLoadPanelToggle(){
   const p=document.getElementById('wa-load-panel');
   if(p){p.remove();return;}
@@ -9826,7 +9839,7 @@ function waDash2ZoomStep(dir){
   window.waDash2Zoom=z;
   localStorage.setItem('fluxo_wd2_zoom',String(z));
   const w=document.getElementById('wd2-wrap');
-  if(w){w.style.zoom=z;w.style.maxHeight='calc((100vh - 225px)/'+z+')';}
+  if(w){w.style.zoom=z;waStickyFit('wd2-wrap');}
   const p=document.getElementById('wd2-zoom-pct');
   if(p)p.textContent=Math.round(z*100)+'%';
 }
@@ -10086,7 +10099,7 @@ function _waDash2Render(){
   // preserva a rolagem interna do quadro entre re-renderizações (edições de meta, sync)
   const _w0=document.getElementById('wd2-wrap');
   const _wsY=_w0?_w0.scrollTop:0,_wsX=_w0?_w0.scrollLeft:0;
-  let html='<div class="wd2-wrap wo2-sticky" id="wd2-wrap" style="zoom:'+zoom+';max-height:calc((100vh - 225px)/'+zoom+');overflow:auto;">';
+  let html='<div class="wd2-wrap wo2-sticky" id="wd2-wrap" style="zoom:'+zoom+';overflow:auto;">';
   html+='<div class="wd2-kpis">'
     +'<div class="wd2-kpi"><div class="wd2-kpi-l">'+(isPastYear?'Saldo do ano':'Saldo do mês')+'</div><div class="wd2-kpi-v" style="color:'+vColor(kpiSaldo)+';">'+fmtSg(kpiSaldo)+'</div><div class="wd2-kpi-s">'+(isPastYear?dashYear:MESES[curM]+' · só efetivadas'+(hideInvSaldo?' · s/ invest.':''))+'</div></div>'
     +'<div class="wd2-kpi"><div class="wd2-kpi-l">Acumulado</div><div class="wd2-kpi-v" style="color:'+vColor(kpiAcum)+';">'+fmtSg(kpiAcum)+'</div><div class="wd2-kpi-s">'+MESES[0]+' – '+MESES[isPastYear?11:curM]+' '+dashYear+'</div></div>'
@@ -10384,8 +10397,8 @@ function _waDash2Render(){
   if(body)body.innerHTML=html;
   {const _w1=document.getElementById('wd2-wrap');
    const _h1=w3=>{const tr1=w3&&w3.querySelector('thead tr');if(tr1)w3.style.setProperty('--wd2h1',tr1.offsetHeight+'px');};
-   if(_w1){_w1.scrollTop=_wsY;_w1.scrollLeft=_wsX;_h1(_w1);}
-   requestAnimationFrame(()=>{const w2=document.getElementById('wd2-wrap');if(w2){w2.scrollTop=_wsY;w2.scrollLeft=_wsX;_h1(w2);}});}
+   if(_w1){waStickyFit('wd2-wrap');_w1.scrollTop=_wsY;_w1.scrollLeft=_wsX;_h1(_w1);}
+   requestAnimationFrame(()=>{const w2=document.getElementById('wd2-wrap');if(w2){waStickyFit('wd2-wrap');w2.scrollTop=_wsY;w2.scrollLeft=_wsX;_h1(w2);}});}
 }
 
 
@@ -10586,7 +10599,7 @@ function _waOrc2Render(){
   // altura útil: a tela menos o cabeçalho da página; dividida pelo zoom (o zoom
   // multiplica o tamanho renderizado). Com o wrap rolando na vertical, o
   // position:sticky do thead funciona (o rolador é o próprio wrap).
-  let html=(window._wo2Banner||'')+'<div class="wd2-wrap wo2-sticky" id="wo2-wrap" style="zoom:'+zoom+';max-height:calc((100vh - 120px)/'+zoom+');overflow:auto;">';
+  let html=(window._wo2Banner||'')+'<div class="wd2-wrap wo2-sticky" id="wo2-wrap" style="zoom:'+zoom+';overflow:auto;">';
 
   // legenda
   html+='<div style="display:flex;gap:14px;align-items:center;margin:0 0 8px;font-size:10px;color:#888;flex-wrap:wrap;">'
@@ -10686,7 +10699,7 @@ function _waOrc2Render(){
   html+='</div>';
   const body=document.getElementById('wa-center-body');
   const _rest=()=>{
-    const w=document.getElementById('wo2-wrap');if(w){w.scrollLeft=sX;w.scrollTop=sYw;}
+    const w=document.getElementById('wo2-wrap');if(w){waStickyFit('wo2-wrap');w.scrollLeft=sX;w.scrollTop=sYw;}
     const b=document.getElementById('wa-center-body');if(b)b.scrollTop=sY;
     if(dSE)dSE.scrollTop=sW;
   };
