@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#7e22ce,#fef3c7);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFFBEB !important;}
-  #splash .splash-sub{color:rgba(255,251,235,.65) !important;}
-  #splash .splash-version{color:rgba(255,251,235,.35) !important;}
-  #splash .splash-btn{background:#FFFBEB !important;color:#7e22ce !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFFBEB !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#365314,#cffafe);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#ECFEFF !important;}
+  #splash .splash-sub{color:rgba(236,254,255,.65) !important;}
+  #splash .splash-version{color:rgba(236,254,255,.35) !important;}
+  #splash .splash-btn{background:#ECFEFF !important;color:#365314 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#ECFEFF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2118,7 +2118,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='19.21';
+const APP_VERSION='19.22';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -9918,7 +9918,9 @@ function _waDash2Render(){
       .wd2-kpi-v{font-size:18px;font-weight:600;letter-spacing:-.3px;}
       .wd2-kpi-s{font-size:9px;color:#AAA;margin-top:1px;}
       .wd2-tbl{border-collapse:collapse;width:100%;font-size:var(--wad-size-geral);font-family:var(--wad-font-geral);}
-      .wo2-sticky thead th{position:sticky;top:0;background:#FBFAF6;z-index:5;box-shadow:0 1px 0 #E4E2DA;}
+      .wo2-sticky thead th{position:sticky;top:0;background:#FBFAF6;z-index:5;}
+      .wo2-sticky thead tr+tr th{top:var(--wd2h1,25px);box-shadow:0 1px 0 #E4E2DA;}
+      .wo2-sticky thead tr:last-child th{box-shadow:0 1px 0 #E4E2DA;}
       .wd2-tbl td,.wd2-tbl th{padding:4px 8px;border-bottom:1px solid #D9D6C9;}
       .wd2-lbl{position:sticky;left:0;z-index:3;background:#fff;white-space:nowrap;min-width:150px;max-width:210px;overflow:hidden;text-overflow:ellipsis;text-align:left;box-shadow:2px 0 4px rgba(0,0,0,.05);}
       .wd2-num{text-align:right;white-space:nowrap;font-family:var(--wad-font-valor);font-size:var(--wad-size-valor);}
@@ -10375,7 +10377,10 @@ function _waDash2Render(){
   html+='</div>';
   const body=document.getElementById('wa-center-body');
   if(body)body.innerHTML=html;
-  {const _w1=document.getElementById('wd2-wrap');if(_w1){_w1.scrollTop=_wsY;_w1.scrollLeft=_wsX;}requestAnimationFrame(()=>{const w2=document.getElementById('wd2-wrap');if(w2){w2.scrollTop=_wsY;w2.scrollLeft=_wsX;}});}
+  {const _w1=document.getElementById('wd2-wrap');
+   const _h1=w3=>{const tr1=w3&&w3.querySelector('thead tr');if(tr1)w3.style.setProperty('--wd2h1',tr1.offsetHeight+'px');};
+   if(_w1){_w1.scrollTop=_wsY;_w1.scrollLeft=_wsX;_h1(_w1);}
+   requestAnimationFrame(()=>{const w2=document.getElementById('wd2-wrap');if(w2){w2.scrollTop=_wsY;w2.scrollLeft=_wsX;_h1(w2);}});}
 }
 
 
