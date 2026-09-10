@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#0e7490,#fecdd3);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FFF1F2 !important;}
-  #splash .splash-sub{color:rgba(255,241,242,.65) !important;}
-  #splash .splash-version{color:rgba(255,241,242,.35) !important;}
-  #splash .splash-btn{background:#FFF1F2 !important;color:#0e7490 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FFF1F2 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#3f2d1d,#bae6fd);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#F0F9FF !important;}
+  #splash .splash-sub{color:rgba(240,249,255,.65) !important;}
+  #splash .splash-version{color:rgba(240,249,255,.35) !important;}
+  #splash .splash-btn{background:#F0F9FF !important;color:#3f2d1d !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#F0F9FF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2118,7 +2118,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='19.24';
+const APP_VERSION='19.25';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -4432,9 +4432,10 @@ function renderHistory(){
       const cls=consol?'':'not-consolidated';
       const valCls=t.type==='entrada'?'val-in':'val-out';
       const sign=t.type==='entrada'?'+':'-';
-      return `<tr class="${cls}" onclick="openEdit(${idx})" style="cursor:pointer;">
-        <td class="ext-check" onclick="event.stopPropagation();toggleTxConsolidado(${idx},event)" style="text-align:center;cursor:pointer;">
-          <span class="tx-check ${consol?'on':'off'}" style="display:inline-flex;width:18px;height:18px;border-radius:50%;align-items:center;justify-content:center;" onclick="toggleTxConsolidado(${idx},event)"><span class="tx-check-ic" style="font-size:.6rem;">✓</span></span>
+      const rid=`waTxResolve('${String(t._id||'').replace(/'/g,'')}',${idx})`;
+      return `<tr class="${cls}" onclick="openEdit(${rid})" style="cursor:pointer;">
+        <td class="ext-check" onclick="event.stopPropagation();toggleTxConsolidado(${rid},event)" style="text-align:center;cursor:pointer;">
+          <span class="tx-check ${consol?'on':'off'}" style="display:inline-flex;width:18px;height:18px;border-radius:50%;align-items:center;justify-content:center;" onclick="toggleTxConsolidado(${rid},event)"><span class="tx-check-ic" style="font-size:.6rem;">✓</span></span>
         </td>
         <td style="white-space:nowrap;font-size:.8rem;">${t.date}${t._id?'<span style="opacity:.3;font-size:.6rem;margin-left:4px;">#'+t._id+'</span>':''}</td>
         <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.desc||''}</td>
@@ -4443,16 +4444,21 @@ function renderHistory(){
         <td style="color:var(--muted);font-size:.78rem;white-space:nowrap;">${t.account||''}</td>
         <td class="${valCls}" style="white-space:nowrap;">${sign}${fmt(t.value)}</td>
         <td><div class="ext-actions">
-          <button class="ext-act-btn" onclick="event.stopPropagation();openEdit(${idx})">✏️</button>
-          <button class="ext-act-btn" onclick="event.stopPropagation();deleteTx(${idx})" style="color:var(--red);" title="Excluir">🗑</button>
+          <button class="ext-act-btn" onclick="event.stopPropagation();openEdit(${rid})">✏️</button>
+          <button class="ext-act-btn" onclick="event.stopPropagation();deleteTx(${rid})" style="color:var(--red);" title="Excluir">🗑</button>
         </div></td>
       </tr>`;
     }).join('');
   }
 }
 function txIdx(t){
-  // first try by _row (most reliable)
-  if(t._row!==undefined&&t._row!==null){
+  // 1º pelo ID (col K): único e estável — _row muda quando linhas são
+  // excluídas/inseridas na planilha e pode colidir entre cache e dados frescos
+  if(t._id){
+    const i=allData.findIndex(x=>x._id&&String(x._id)===String(t._id));
+    if(i>=0)return i;
+  }
+  if(t._row!==undefined&&t._row!==null&&t._row>0){
     const i=allData.findIndex(x=>x._row===t._row);
     if(i>=0)return i;
   }
@@ -4464,7 +4470,14 @@ function txIdx(t){
   if(i>=0)return i;
   return allData.indexOf(t);
 }
+// resolve o índice na hora do clique — entre o render e o clique, cargas de
+// fundo podem reordenar allData e o índice congelado apontaria pra outra transação
+function waTxResolve(id,fb){
+  if(id){const i=allData.findIndex(x=>x._id&&String(x._id)===String(id));if(i>=0)return i;}
+  return fb;
+}
 function txHTML(t,idx){
+  const rid=`waTxResolve('${String(t._id||'').replace(/'/g,'')}',${rid})`;
   const icon=t._transferId?'⇄':(CAT_ICONS[t.cat]||TIPO_ICONS[t.tipo]||'📦');
   const consol=t.consolidated!==false;
   const checkCls='tx-check '+(consol?'on':'off');
@@ -4472,7 +4485,7 @@ function txHTML(t,idx){
   const itemCls='tx-item'+(consol?'':' not-consolidated')+(isTransf?' transf-tx':'');
   const routeHtml=isTransf?`<div class="tx-transf-route">⇄ ${t._transferRoute||''}</div>`:'';
   const idBadge=t._id?`<span style="font-size:.58rem;color:var(--muted);opacity:.5;margin-left:4px;letter-spacing:.02em;">#${t._id}</span>`:'';
-  return `<div class="tx-wrap"><div class="tx-actions"><button class="tx-action-btn tx-action-edit" onclick="openEdit(${idx})"><span class="act-icon">✏️</span>editar</button><button class="tx-action-btn tx-action-del" onclick="deleteTx(${idx})"><span class="act-icon">🗑</span>excluir</button></div><div class="${itemCls}" onclick="openEditFromTap(${idx},event)"><div class="${checkCls}" onclick="toggleTxConsolidado(${idx},event)"><span class="tx-check-ic">✓</span></div><div class="tx-icon" style="${isTransf?'background:rgba(124,58,237,.12);color:#7c3aed;':''}">${icon}</div><div class="tx-info"><div class="tx-desc">${t.desc||t.cat}</div><div class="tx-date">${t.date} · ${t.cat} · ${t.account}${idBadge}</div>${routeHtml}</div><div class="tx-val ${t.type==='entrada'?'in':'out'}" style="${isTransf?'color:#7c3aed;':''}">${t.type==='entrada'?'+':'-'}${fmt(t.value)}</div></div></div>`;
+  return `<div class="tx-wrap"><div class="tx-actions"><button class="tx-action-btn tx-action-edit" onclick="openEdit(${rid})"><span class="act-icon">✏️</span>editar</button><button class="tx-action-btn tx-action-del" onclick="deleteTx(${rid})"><span class="act-icon">🗑</span>excluir</button></div><div class="${itemCls}" onclick="openEditFromTap(${rid},event)"><div class="${checkCls}" onclick="toggleTxConsolidado(${rid},event)"><span class="tx-check-ic">✓</span></div><div class="tx-icon" style="${isTransf?'background:rgba(124,58,237,.12);color:#7c3aed;':''}">${icon}</div><div class="tx-info"><div class="tx-desc">${t.desc||t.cat}</div><div class="tx-date">${t.date} · ${t.cat} · ${t.account}${idBadge}</div>${routeHtml}</div><div class="tx-val ${t.type==='entrada'?'in':'out'}" style="${isTransf?'color:#7c3aed;':''}">${t.type==='entrada'?'+':'-'}${fmt(t.value)}</div></div></div>`;
 }
 function openEditFromTap(idx,event){
   if(event.target.closest('.tx-check'))return;
