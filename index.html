@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#701a75,#d1fae5);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#ECFDF5 !important;}
-  #splash .splash-sub{color:rgba(236,253,245,.65) !important;}
-  #splash .splash-version{color:rgba(236,253,245,.35) !important;}
-  #splash .splash-btn{background:#ECFDF5 !important;color:#701a75 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#ECFDF5 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#115e59,#fbcfe8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FDF2F8 !important;}
+  #splash .splash-sub{color:rgba(253,242,248,.65) !important;}
+  #splash .splash-version{color:rgba(253,242,248,.35) !important;}
+  #splash .splash-btn{background:#FDF2F8 !important;color:#115e59 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FDF2F8 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2118,7 +2118,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='19.26';
+const APP_VERSION='19.28';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -3360,7 +3360,7 @@ function saveAppearance(app){
     localStorage.setItem('fluxo_p8_'+u,JSON.stringify(stored));
   }catch(e){}
   // Sync directly to Sheets
-  sheetsWriteSafe('Preferencias',serializeKV(prefsData))
+  pushPrefsToSheets()
     .then(r=>{ if(r&&r.ok) toast('✓ Tipografia salva no banco','success'); else toast('✗ Falha ao salvar preferências','error'); })
     .catch(e=>toast('✗ Erro ao salvar preferências: '+e.message,'error'));
 }
@@ -4496,27 +4496,33 @@ function openEditFromTap(idx,event){
 }
 function toggleTxConsolidado(idx,event){
   event.stopPropagation();
-  // always find fresh by index -- idx comes from render-time allData position
   const t=allData[idx];if(!t)return;
   t.consolidated=!t.consolidated;
-  // update visual immediately without full re-render
+  // visual imediato, sem re-render (cartão mobile E linha da tabela web)
   const chk=event.currentTarget;
-  if(chk){
-    chk.className='tx-check '+(t.consolidated?'on':'off');
-    const ic=chk.querySelector('.tx-check-ic');
-    if(ic)ic.style.color=t.consolidated?'var(--bg)':'transparent';
-  }
-  const wrap=chk?.closest('.tx-item');
-  if(wrap){if(t.consolidated)wrap.classList.remove('not-consolidated');else wrap.classList.add('not-consolidated');}
-  // save to Sheets
+  const paint=on=>{
+    if(chk){
+      chk.className='tx-check '+(on?'on':'off');
+      const ic=chk.querySelector('.tx-check-ic');
+      if(ic)ic.style.color=on?'var(--bg)':'transparent';
+    }
+    const wrap=chk?.closest('.tx-item')||chk?.closest('tr');
+    if(wrap){if(on)wrap.classList.remove('not-consolidated');else wrap.classList.add('not-consolidated');}
+  };
+  paint(t.consolidated);
+  try{waTxCacheSave();}catch(e){} // cache acompanha — F5 não volta o status
   if(!t._id&&!t._row){toast('Sem referência para salvar','error');return;}
+  // gravação SILENCIOSA em segundo plano; se falhar, reverte e avisa
   const row=[t.date,t.desc,(t.value||0).toFixed(2).replace('.',','),t.cat,t.tipo||t.cat,t.account,t.type,t.consolidated?'1':'0',t._transferId||'',t._isAdjust?'1':'',t._id||''];
   const payload=t._id
     ? {action:'update',id:String(t._id),data:row,sheet:SHEET_NAME}
     : {action:'update',row:t._row,data:row,sheet:SHEET_NAME};
+  const alvo=t.consolidated;
   sheetsPost(payload)
-    .then(r=>{if(r&&r.ok)toast(t.consolidated?'Consolidado ✓':'Previsto ○','success');else toast('Erro ao salvar','error');})
-    .catch(e=>{toast('Erro: '+e.message,'error');});
+    .then(r=>{
+      if(!(r&&r.ok)){t.consolidated=!alvo;paint(t.consolidated);try{waTxCacheSave();}catch(e){}toast('Não salvou — status revertido','error');}
+    })
+    .catch(()=>{t.consolidated=!alvo;paint(t.consolidated);try{waTxCacheSave();}catch(e){}toast('Sem conexão — status revertido','error');});
 }
 const SWIPE_OPEN=160,SWIPE_THRESHOLD=60;
 function attachSwipe(listId){
@@ -7651,7 +7657,7 @@ function saveLayout(layout){
     localStorage.setItem('fluxo_p8_'+u,JSON.stringify(stored));
   }catch(e){}
   // Sync directly to Sheets
-  sheetsWriteSafe('Preferencias',serializeKV(prefsData))
+  pushPrefsToSheets()
     .then(r=>{ if(r&&r.ok) toast('✓ Layout salvo no banco','success'); else toast('✗ Falha ao salvar layout','error'); })
     .catch(e=>toast('✗ Erro ao salvar layout: '+e.message,'error'));
 }
@@ -8416,9 +8422,29 @@ function waShowLaunch(){
   waRenderLaunchForm();
 }
 
+// REGRA CRÍTICA (mesma do Orçamento): a aba Preferencias guarda TAMBÉM linhas
+// brutas [usuário, chave, valor] (quadro_date, multi_tpl). Gravar só o
+// serializeKV(prefsData) APAGAVA essas linhas — foi assim que o formulário
+// Holerite sumiu em 04/09/26. Agora: lê antes, preserva as linhas brutas
+// (col. C não vazia) e aborta se a leitura falhar.
+async function pushPrefsToSheets(){
+  let keep=[];
+  try{
+    const rows=await sheetsRead(SHEETS.preferencias);
+    keep=(rows||[]).filter(r=>r&&r.length>=3&&String(r[2]==null?'':r[2]).trim()!=='');
+  }catch(e){
+    console.warn('prefs write abortado: leitura falhou',e);
+    return {ok:false,error:'leitura falhou — preferências NÃO gravadas'};
+  }
+  return sheetsWriteSafe('Preferencias',serializeKV(prefsData).concat(keep));
+}
 function waRenderExtrato(){
   const body=document.getElementById('wa-center-body');
   if(!body)return;
+  // congela a rolagem da lista entre re-renderizações (salvar lançamento, filtros,
+  // sync): a lista fica onde está e a transação nova aparece onde cair
+  const _sc0=body.querySelector('.wa-scroll');
+  const _scY=_sc0?_sc0.scrollTop:0;
 
   // ensure filter bar exists once
   if(!document.getElementById('wa-filter-bar')){
@@ -8601,6 +8627,10 @@ function waRenderExtrato(){
     +'<th style="width:20px;"></th><th style="width:20px;"></th>'
     +'</tr></thead>'
     +'<tbody>'+rows+'</tbody></table></div>';
+  // restaura a rolagem capturada no início (imediato + pós-layout)
+  const _sc1=body.querySelector('.wa-scroll');
+  if(_sc1&&_scY)_sc1.scrollTop=_scY;
+  requestAnimationFrame(()=>{const s2=body.querySelector('.wa-scroll');if(s2&&_scY)s2.scrollTop=_scY;});
 }
 
 
