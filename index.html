@@ -18,12 +18,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#115e59,#fbcfe8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
-  #splash .splash-logo{color:#FDF2F8 !important;}
-  #splash .splash-sub{color:rgba(253,242,248,.65) !important;}
-  #splash .splash-version{color:rgba(253,242,248,.35) !important;}
-  #splash .splash-btn{background:#FDF2F8 !important;color:#115e59 !important;font-weight:700;}
-  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FDF2F8 !important;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#4c1d95,#fef9c3);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash .splash-logo{color:#FEFCE8 !important;}
+  #splash .splash-sub{color:rgba(254,252,232,.65) !important;}
+  #splash .splash-version{color:rgba(254,252,232,.35) !important;}
+  #splash .splash-btn{background:#FEFCE8 !important;color:#4c1d95 !important;font-weight:700;}
+  #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#FEFCE8 !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
   .user-btns{display:flex;gap:12px;}
@@ -2118,7 +2118,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='19.28';
+const APP_VERSION='19.29';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -8391,13 +8391,27 @@ async function waMultiCommit(){
   const go=document.getElementById('mt-go');
   if(go){go.disabled=true;go.textContent='LANÇANDO…';go.style.animation='waBlink .8s ease-in-out infinite';}
   let okN=0;
+  // ID único POR LINHA, gerado no cliente (antes o lote inteiro saía com um só ID,
+  // quebrando edição/exclusão por ID das linhas do lote)
+  let _lastMs=0;
+  const genId=()=>{
+    // aritmética em milissegundos (13 dígitos — seguro); o ID de 17 dígitos é só formato
+    let ms=Date.now();
+    if(ms<=_lastMs)ms=_lastMs+1;
+    _lastMs=ms;
+    const t=new Date(ms);const p=(n,w)=>String(n).padStart(w||2,'0');
+    return ''+t.getFullYear()+p(t.getMonth()+1)+p(t.getDate())+p(t.getHours())+p(t.getMinutes())+p(t.getSeconds())+p(t.getMilliseconds(),3);
+  };
   for(const it of items){
     const desc=it.l.nome+' · '+t.nome;
     const type=it.l.sinal==='+'?'entrada':'saída';
-    const row=[dateBR,desc,it.v.toFixed(2).replace('.',','),it.l.cat,it.l.tipo,conta,type,'1','','',''];
+    const rid=genId();
+    const row=[dateBR,desc,it.v.toFixed(2).replace('.',','),it.l.cat,it.l.tipo,conta,type,'1','','',rid];
     try{
-      const r=await sheetsPost({action:'append',row,sheet:SHEET_NAME});
-      if(r&&r.ok){okN++;allData.push({_row:allData.length+2,_id:r.id?String(r.id):'',date:dateBR,desc,value:it.v,cat:it.l.cat,tipo:it.l.tipo,account:conta,type,consolidated:true});}
+      // POST (não GET): navegador nunca reenvia POST sozinho — mata a fonte
+      // provável dos lançamentos duplicados em rede oscilante
+      const r=await sheetsPostLarge({action:'append',row,sheet:SHEET_NAME});
+      if(r&&r.ok){okN++;allData.push({_row:allData.length+2,_id:rid,date:dateBR,desc,value:it.v,cat:it.l.cat,tipo:it.l.tipo,account:conta,type,consolidated:true});}
     }catch(e){console.warn('multi append fail',e);}
     await new Promise(z=>setTimeout(z,160));
   }
