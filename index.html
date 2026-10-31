@@ -4,6 +4,7 @@
  FLUXO · CHANGELOG (mais recente primeiro)
  Ao subir no GitHub: use a linha da versão como mensagem do commit.
 ═══════════════════════════════════════════════════════════════════
+ v19.32 · Palavras-chave: fonte única na planilha (aba PalavrasChave) com mescla por união — não há mais gravação às cegas na abertura do app; sincroniza ao abrir e ao salvar; exclusões valem em todos os aparelhos (lápide)
  v19.31 · TODAS as gravações via POST (fim dos lançamentos duplicados por reenvio de GET em rede oscilante); base re-identificada com IDs 100% únicos
  v19.30 · Changelog embutido no HTML; entregas passam a incluir mensagem de commit pronta
  v19.29 · Lançamento por formulário: ID único por linha (antes o lote saía com 1 ID só) e envio via POST (mata duplicação por reenvio de rede)
@@ -47,11 +48,11 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--font);font-family:var(--font-body);}
 
-  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#78350f,#dbeafe);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
+  #splash{position:fixed;inset:0;background:linear-gradient(140deg,#3b0d2e,#b7e4c7);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:8px;animation:fadeIn .5s ease;}
   #splash .splash-logo{color:#EFF6FF !important;}
   #splash .splash-sub{color:rgba(239,246,255,.65) !important;}
   #splash .splash-version{color:rgba(239,246,255,.35) !important;}
-  #splash .splash-btn{background:#EFF6FF !important;color:#78350f !important;font-weight:700;}
+  #splash .splash-btn{background:#EFF6FF !important;color:#3b0d2e !important;font-weight:700;}
   #splash .user-btn:not(.splash-btn){background:rgba(233,213,255,.15) !important;color:#EFF6FF !important;}
   #splash h1{font-family:var(--font-display);font-size:3rem;letter-spacing:-1px;color:var(--font);}
   #splash p{color:var(--muted);font-size:.9rem;margin-bottom:32px;}
@@ -2147,7 +2148,7 @@
 <div id="toast"></div>
 
 <script>
-const APP_VERSION='19.31';
+const APP_VERSION='19.32';
 const SHEET_ID='1Ljqu3PhKmaWfUbU9YcJKHkUv1edSQFZMwi6cWLv-7E8';
 const API_KEY='AIzaSyDwqjmHDdItqNUbo8ZRfxn67RQwlAXP6RA';
 const SHEET_NAME='Transações';
@@ -2706,6 +2707,7 @@ function toggleKwPanel(tipo,cat){
   buildTiposEditor();
 }
 function loadKeywords(){
+  _kwLoadDel();
   try{
     const s=localStorage.getItem('fluxo_kw');
     if(s){
@@ -2721,7 +2723,57 @@ function loadKeywords(){
   keywordsData={};
   seedKeywords();
 }
-function saveKeywords(){try{localStorage.setItem('fluxo_kw',JSON.stringify(keywordsData));}catch(e){}pushToSheets('kw');}
+// ── PALAVRAS-CHAVE (v19.32): fonte única = aba PalavrasChave. Mescla por UNIÃO (planilha ∪ local),
+// nunca grava sem ler antes (aborta se a leitura falhar). Exclusões viram "lápide" (kwDel) para valer em todos os aparelhos.
+let kwDel=[];            // lápides 'tipo|||cat|||palavra(minúscula)'
+let _kwRe=new Set();     // palavras re-adicionadas localmente (anulam a lápide na próxima mescla)
+let _kwChain=Promise.resolve();
+function _kwLoadDel(){try{const a=JSON.parse(localStorage.getItem('fluxo_kw_del')||'[]');kwDel=Array.isArray(a)?a:[];}catch(e){kwDel=[];}}
+function _kwKey(t,c,w){return t+'|||'+c+'|||'+String(w).trim().toLowerCase();}
+function kwTomb(t,c,w){const k=_kwKey(t,c,w);_kwRe.delete(k);if(!kwDel.includes(k))kwDel.push(k);}
+function kwUntomb(t,c,w){const k=_kwKey(t,c,w);kwDel=kwDel.filter(x=>x!==k);_kwRe.add(k);}
+function _kwNorm(o){const r={};Object.keys(o||{}).sort().forEach(t=>{r[t]={};Object.keys(o[t]||{}).sort().forEach(c=>{r[t][c]=(o[t][c]||[]).map(w=>String(w)).sort();});});return r;}
+function _kwMerge(remote,remoteDel){
+  const del=new Set([...(remoteDel||[]),...kwDel]);_kwRe.forEach(k=>del.delete(k));
+  const out={};
+  const add=src=>{Object.keys(src||{}).forEach(t=>{Object.keys(src[t]||{}).forEach(c=>{
+    if(!out[t])out[t]={};if(!out[t][c])out[t][c]=[];
+    (src[t][c]||[]).forEach(w=>{const k=_kwKey(t,c,w);if(del.has(k))return;if(!out[t][c].some(x=>_kwKey(t,c,x)===k))out[t][c].push(w);});
+  });});};
+  add(remote);add(keywordsData);
+  return {kw:out,del:[...del]};
+}
+function kwSync(){_kwChain=_kwChain.then(_kwSyncRun,_kwSyncRun);return _kwChain;}
+async function _kwSyncRun(){
+  let remote={},remoteDel=[];
+  try{
+    try{waLoadMark('kw','Palavras-chave','pend');}catch(_){}
+    const rows=await sheetsRead(SHEETS.keywords); // lança em falha → aborta sem gravar
+    const obj=(rows&&rows.length)?deserializeKV(rows):{};
+    remote=(obj.keywords&&typeof obj.keywords==='object')?obj.keywords:{};
+    remoteDel=Array.isArray(obj.kwDel)?obj.kwDel:[];
+  }catch(e){console.warn('kw read fail',e);try{waLoadMark('kw','Palavras-chave','fail',e.message);}catch(_){}return false;}
+  const before=JSON.stringify(_kwNorm(keywordsData));
+  const m=_kwMerge(remote,remoteDel);
+  keywordsData=m.kw;kwDel=m.del;_kwRe=new Set();
+  try{localStorage.setItem('fluxo_kw',JSON.stringify(keywordsData));localStorage.setItem('fluxo_kw_del',JSON.stringify(kwDel));}catch(e){}
+  const same=JSON.stringify(_kwNorm(remote))===JSON.stringify(_kwNorm(m.kw))&&JSON.stringify([...remoteDel].sort())===JSON.stringify([...kwDel].sort());
+  if(!same){
+    let res=null;
+    try{res=await sheetsWriteSafe(SHEETS.keywords,serializeKV({keywords:keywordsData,kwDel}));}catch(e){res={ok:false,error:String(e&&e.message||e)};}
+    if(!res||res.ok===false){console.warn('kw write fail',res&&res.error);try{waLoadMark('kw','Palavras-chave','fail',(res&&res.error)||'falha ao gravar');}catch(_){}return false;}
+  }
+  try{waLoadMark('kw','Palavras-chave','ok');}catch(_){}
+  if(before!==JSON.stringify(_kwNorm(keywordsData))){ // a planilha trouxe novidade: atualiza a tela aberta
+    try{const e=window._waCfgPastasEl;if(e&&document.body.contains(e))waCfgRenderPastas(e);}catch(x){}
+    try{buildTiposEditor();}catch(x){}
+  }
+  return true;
+}
+function saveKeywords(){
+  try{localStorage.setItem('fluxo_kw',JSON.stringify(keywordsData));localStorage.setItem('fluxo_kw_del',JSON.stringify(kwDel));}catch(e){}
+  kwSync().then(ok=>{if(!ok&&typeof toast==='function')toast('⚠ Palavras-chave salvas só neste aparelho (sem conexão com a planilha)','error');});
+}
 
 function seedKeywords(){
   // merge with any existing data -- don't overwrite custom keywords
@@ -2769,7 +2821,6 @@ function seedKeywords(){
       }
     });
   });
-  saveKeywords();
 }
 
 function getAllKeywords(){
@@ -2867,6 +2918,7 @@ function confirmAddKw(){
   if(!keywordsData[_kwPendingTipo])keywordsData[_kwPendingTipo]={};
   if(!keywordsData[_kwPendingTipo][_kwPendingCat])keywordsData[_kwPendingTipo][_kwPendingCat]=[];
   keywordsData[_kwPendingTipo][_kwPendingCat].push(_kwPendingDesc);
+  kwUntomb(_kwPendingTipo,_kwPendingCat,_kwPendingDesc);
   saveKeywords();
   closeKwToast();
   toast('"'+_kwPendingDesc+'" adicionado!','success');
@@ -2881,11 +2933,13 @@ function addKw(tipo,cat,inputId){
   if(!keywordsData[tipo][cat])keywordsData[tipo][cat]=[];
   if(keywordsData[tipo][cat].includes(val)){toast('Já existe!','');return;}
   keywordsData[tipo][cat].push(val);
+  kwUntomb(tipo,cat,val);
   saveKeywords();inp.value='';
   buildTiposEditor();
 }
 function deleteKw(tipo,cat,idx){
   if(!keywordsData[tipo]?.[cat])return;
+  kwTomb(tipo,cat,keywordsData[tipo][cat][idx]);
   keywordsData[tipo][cat].splice(idx,1);
   saveKeywords();buildTiposEditor();
 }
@@ -3468,6 +3522,7 @@ function login(u){
     // FASE 1: Transações do ano (com ?year=) e cadastro de investimentos
     try{await loadData();}catch(e){}
     _rr();
+    try{await kwSync();}catch(e){}
     try{await loadOrcFromSheets();}catch(e){}
     _rr();
     try{await loadInvFromSheets(false);}catch(e){}
@@ -6764,30 +6819,8 @@ async function syncAll(manual=false){
       }
     }catch(e){waLoadMark('pastas','Pastas / Categorias','fail',e.message);console.warn('pastas read fail',e);}
 
-    // 6. Palavras-chave
-    try{
-      waLoadMark('kw','Palavras-chave','pend');
-      const rows=await sheetsRead(SHEETS.keywords);
-      waLoadMark('kw','Palavras-chave','ok');
-      if(rows&&rows.length>0){
-        const obj=deserializeKV(rows);
-        if(obj.keywords&&Object.keys(obj.keywords).length>0){
-          // merge sheets data with local -- sheets wins for existing, local keeps extras
-          Object.keys(obj.keywords).forEach(tipo=>{
-            if(!keywordsData[tipo])keywordsData[tipo]={};
-            Object.keys(obj.keywords[tipo]).forEach(cat=>{
-              keywordsData[tipo][cat]=obj.keywords[tipo][cat];
-            });
-          });
-          localStorage.setItem('fluxo_kw',JSON.stringify(keywordsData));
-        } else {
-          // sheets empty -- push local up
-          pushToSheets('kw');
-        }
-      } else {
-        pushToSheets('kw');
-      }
-    }catch(e){waLoadMark('kw','Palavras-chave','fail',e.message);console.warn('kw read fail',e);}
+    // 6. Palavras-chave (v19.32: mescla por união, lê antes de gravar)
+    try{await kwSync();}catch(e){console.warn('kw sync fail',e);}
 
     // 6. Preferencias
     try{
@@ -6919,7 +6952,7 @@ async function pushToSheets(dataset){
     } else if(dataset==='prefs'){
       res=await sheetsWriteSafe(SHEETS.preferencias, serializeKV(prefsData));
     } else if(dataset==='kw'){
-      res=await sheetsWriteSafe(SHEETS.keywords, serializeKV({keywords:keywordsData}));
+      res={ok:await kwSync()};
     } else if(dataset==='bens'){
       // Mesma regra de MESCLA da aba Investimentos: preserva os bens dos outros usuários.
       const u=currentUser||'ALE';
@@ -8099,6 +8132,7 @@ function waCfgRenderContas(container){
 }
 
 function waCfgRenderPastas(container){
+  window._waCfgPastasEl=container;
   container.innerHTML='';
   const tipos=Object.keys(tiposData);
 
@@ -8231,6 +8265,7 @@ function waCfgRenderPastas(container){
             if(!keywordsData[tipoName][cat.name])keywordsData[tipoName][cat.name]=[];
             if(!keywordsData[tipoName][cat.name].includes(v)){
               keywordsData[tipoName][cat.name].push(v);
+              kwUntomb(tipoName,cat.name,v);
               saveKeywords();
             }
             kwInp.value='';
@@ -9710,6 +9745,7 @@ function waConfirmKw(desc,tipo,cat){
   if(!keywordsData[tipo][cat])keywordsData[tipo][cat]=[];
   if(!keywordsData[tipo][cat].includes(desc)){
     keywordsData[tipo][cat].push(desc);
+    kwUntomb(tipo,cat,desc);
     saveKeywords();
     waSyncIndicator('"'+desc+'" adicionado','#059669',false);
   }
